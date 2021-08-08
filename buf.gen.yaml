@@ -4,3 +4,7 @@ plugins:
   - name: go
     out: proto/gen
     opt: module=github.com/einride/protoc-gen-go-aiptest/proto/gen
+
+  - name: go-aiptest
+    out: proto/gen
+    opt: module=github.com/einride/protoc-gen-go-aiptest/proto/gen

@@ -41,7 +41,7 @@ $(protoc_gen_go_aiptest):
 	@go build -o $@ .
 
 .PHONY: buf-generate
-buf-generate: $(buf) $(protoc_gen_typescript_http)
+buf-generate: $(buf) $(protoc_gen_go_aiptest)
 	$(info [$@] generating protobuf stubs...)
 	@rm -rf proto/gen
 	@$(buf) generate --path proto/src/einride

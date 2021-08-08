@@ -3,3 +3,7 @@ run:
 
 linters:
   enable-all: true
+  disable:
+    - exhaustivestruct
+    - wsl
+    - nlreturn
