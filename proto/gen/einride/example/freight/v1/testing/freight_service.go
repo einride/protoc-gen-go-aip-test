@@ -5,7 +5,12 @@ package examplefreightv1test
 import (
 	context "context"
 	v1 "github.com/einride/protoc-gen-go-aiptest/proto/gen/einride/example/freight/v1"
+	codes "google.golang.org/grpc/codes"
+	status "google.golang.org/grpc/status"
+	assert "gotest.tools/v3/assert"
+	strings "strings"
 	testing "testing"
+	time "time"
 )
 
 type FreightService struct {
@@ -16,32 +21,172 @@ type FreightService struct {
 	Service v1.FreightServiceServer
 }
 
-func (fx *FreightService) TestShipment(t *testing.T, options Shipment) {
-	options.test(t)
-}
-
 func (fx *FreightService) TestShipper(t *testing.T, options Shipper) {
+	options.ctx = fx.Context
+	options.service = fx.Service
 	options.test(t)
 }
 
 func (fx *FreightService) TestSite(t *testing.T, options Site) {
+	options.ctx = fx.Context
+	options.service = fx.Service
 	options.test(t)
 }
 
-type Shipment struct {
-}
-
-func (fx *Shipment) test(t *testing.T) {
-}
-
 type Shipper struct {
+	ctx        context.Context
+	service    v1.FreightServiceServer
+	currParent int
+
+	// Create should return a resource which is valid to create, ie.
+	// all required fields set.
+	Create func() *v1.Shipper
+	// Patterns of tests to skip.
+	// For example if a service has a Get method:
+	// Skip: ["Get"] will skip all tests for Get.
+	// Skip: ["Get/persisted"] will only skip the subtest called "persisted" of Get.
+	Skip []string
 }
 
 func (fx *Shipper) test(t *testing.T) {
+	t.Run("Create", fx.testCreate)
+}
+
+func (fx *Shipper) testCreate(t *testing.T) {
+	// Standard methods: Create
+	// https://google.aip.dev/133
+
+	// Field create_time should be populated when the resource is created.
+	t.Run("create time", func(t *testing.T) {
+		fx.maybeSkip(t)
+		msg, err := fx.service.CreateShipper(fx.ctx, &v1.CreateShipperRequest{
+			Shipper: fx.Create(),
+		})
+		assert.NilError(t, err)
+		assert.Check(t, time.Since(msg.CreateTime.AsTime()) < time.Second)
+	})
+
+	// If method support user settable IDs, when set the resource should
+	// returned with the provided ID.
+	t.Run("user settable id", func(t *testing.T) {
+		fx.maybeSkip(t)
+		msg, err := fx.service.CreateShipper(fx.ctx, &v1.CreateShipperRequest{
+			Shipper:   fx.Create(),
+			ShipperId: "usersetid",
+		})
+		assert.NilError(t, err)
+		assert.Check(t, strings.HasSuffix(msg.GetName(), "usersetid"))
+	})
+
+	// If method support user settable IDs and the same ID is reused
+	// the method should return AlreadyExists.
+	t.Run("already exists", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.CreateShipper(fx.ctx, &v1.CreateShipperRequest{
+			Shipper:   fx.Create(),
+			ShipperId: "alreadyexists",
+		})
+		assert.NilError(t, err)
+		_, err = fx.service.CreateShipper(fx.ctx, &v1.CreateShipperRequest{
+			Shipper:   fx.Create(),
+			ShipperId: "alreadyexists",
+		})
+		assert.Equal(t, codes.AlreadyExists, status.Code(err), err)
+	})
+}
+
+func (fx *Shipper) maybeSkip(t *testing.T) {
+	for _, skip := range fx.Skip {
+		if strings.Contains(t.Name(), skip) {
+			t.Skip("skipped because of .Skip")
+		}
+	}
 }
 
 type Site struct {
+	ctx        context.Context
+	service    v1.FreightServiceServer
+	currParent int
+
+	// The parents to use when creating resources.
+	// At least one parent needs to be set. Depending on methods available on the resource,
+	// more may be required. If insufficient number of parents are
+	// provided the test will fail.
+	Parents []string
+	// Create should return a resource which is valid to create, ie.
+	// all required fields set.
+	Create func(parent string) *v1.Site
+	// Patterns of tests to skip.
+	// For example if a service has a Get method:
+	// Skip: ["Get"] will skip all tests for Get.
+	// Skip: ["Get/persisted"] will only skip the subtest called "persisted" of Get.
+	Skip []string
 }
 
 func (fx *Site) test(t *testing.T) {
+	t.Run("Create", fx.testCreate)
+}
+
+func (fx *Site) testCreate(t *testing.T) {
+	// Standard methods: Create
+	// https://google.aip.dev/133
+
+	parent := fx.nextParent(t, false)
+
+	// Method should fail with InvalidArgument if no parent is provided.
+	t.Run("missing parent", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.CreateSite(fx.ctx, &v1.CreateSiteRequest{
+			Parent: "",
+			Site:   fx.Create(""),
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument is provided parent is not valid.
+	t.Run("invalid parent", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.CreateSite(fx.ctx, &v1.CreateSiteRequest{
+			Parent: "invalid resource name",
+			Site:   fx.Create("invalid resource name"),
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Field create_time should be populated when the resource is created.
+	t.Run("create time", func(t *testing.T) {
+		fx.maybeSkip(t)
+		msg, err := fx.service.CreateSite(fx.ctx, &v1.CreateSiteRequest{
+			Parent: parent,
+			Site:   fx.Create(parent),
+		})
+		assert.NilError(t, err)
+		assert.Check(t, time.Since(msg.CreateTime.AsTime()) < time.Second)
+	})
+}
+
+func (fx *Site) nextParent(t *testing.T, pristine bool) string {
+	if pristine {
+		fx.currParent++
+	}
+	if fx.currParent >= len(fx.Parents) {
+		t.Fatal("need at least", fx.currParent+1, "parents")
+	}
+	return fx.Parents[fx.currParent]
+}
+
+func (fx *Site) peekNextParent(t *testing.T) string {
+	next := fx.currParent + 1
+	if next >= len(fx.Parents) {
+		t.Fatal("need at least", next+1, "parents")
+	}
+	return fx.Parents[next]
+}
+
+func (fx *Site) maybeSkip(t *testing.T) {
+	for _, skip := range fx.Skip {
+		if strings.Contains(t.Name(), skip) {
+			t.Skip("skipped because of .Skip")
+		}
+	}
 }

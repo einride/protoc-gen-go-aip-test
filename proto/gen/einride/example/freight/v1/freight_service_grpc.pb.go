@@ -50,22 +50,6 @@ type FreightServiceClient interface {
 	// See: https://google.aip.dev/135 (Standard methods: Delete).
 	// See: https://google.aip.dev/164 (Soft delete).
 	DeleteSite(ctx context.Context, in *DeleteSiteRequest, opts ...grpc.CallOption) (*Site, error)
-	// Get a shipment.
-	// See: https://google.aip.dev/131 (Standard methods: Get).
-	GetShipment(ctx context.Context, in *GetShipmentRequest, opts ...grpc.CallOption) (*Shipment, error)
-	// List shipments for a shipper.
-	// See: https://google.aip.dev/132 (Standard methods: List).
-	ListShipments(ctx context.Context, in *ListShipmentsRequest, opts ...grpc.CallOption) (*ListShipmentsResponse, error)
-	// Create a shipment.
-	// See: https://google.aip.dev/133 (Standard methods: Create).
-	CreateShipment(ctx context.Context, in *CreateShipmentRequest, opts ...grpc.CallOption) (*Shipment, error)
-	// Update a shipment.
-	// See: https://google.aip.dev/134 (Standard methods: Update).
-	UpdateShipment(ctx context.Context, in *UpdateShipmentRequest, opts ...grpc.CallOption) (*Shipment, error)
-	// Delete a shipment.
-	// See: https://google.aip.dev/135 (Standard methods: Delete).
-	// See: https://google.aip.dev/164 (Soft delete).
-	DeleteShipment(ctx context.Context, in *DeleteShipmentRequest, opts ...grpc.CallOption) (*Shipment, error)
 }
 
 type freightServiceClient struct {
@@ -166,51 +150,6 @@ func (c *freightServiceClient) DeleteSite(ctx context.Context, in *DeleteSiteReq
 	return out, nil
 }
 
-func (c *freightServiceClient) GetShipment(ctx context.Context, in *GetShipmentRequest, opts ...grpc.CallOption) (*Shipment, error) {
-	out := new(Shipment)
-	err := c.cc.Invoke(ctx, "/einride.example.freight.v1.FreightService/GetShipment", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *freightServiceClient) ListShipments(ctx context.Context, in *ListShipmentsRequest, opts ...grpc.CallOption) (*ListShipmentsResponse, error) {
-	out := new(ListShipmentsResponse)
-	err := c.cc.Invoke(ctx, "/einride.example.freight.v1.FreightService/ListShipments", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *freightServiceClient) CreateShipment(ctx context.Context, in *CreateShipmentRequest, opts ...grpc.CallOption) (*Shipment, error) {
-	out := new(Shipment)
-	err := c.cc.Invoke(ctx, "/einride.example.freight.v1.FreightService/CreateShipment", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *freightServiceClient) UpdateShipment(ctx context.Context, in *UpdateShipmentRequest, opts ...grpc.CallOption) (*Shipment, error) {
-	out := new(Shipment)
-	err := c.cc.Invoke(ctx, "/einride.example.freight.v1.FreightService/UpdateShipment", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *freightServiceClient) DeleteShipment(ctx context.Context, in *DeleteShipmentRequest, opts ...grpc.CallOption) (*Shipment, error) {
-	out := new(Shipment)
-	err := c.cc.Invoke(ctx, "/einride.example.freight.v1.FreightService/DeleteShipment", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // FreightServiceServer is the server API for FreightService service.
 // All implementations must embed UnimplementedFreightServiceServer
 // for forward compatibility
@@ -247,22 +186,6 @@ type FreightServiceServer interface {
 	// See: https://google.aip.dev/135 (Standard methods: Delete).
 	// See: https://google.aip.dev/164 (Soft delete).
 	DeleteSite(context.Context, *DeleteSiteRequest) (*Site, error)
-	// Get a shipment.
-	// See: https://google.aip.dev/131 (Standard methods: Get).
-	GetShipment(context.Context, *GetShipmentRequest) (*Shipment, error)
-	// List shipments for a shipper.
-	// See: https://google.aip.dev/132 (Standard methods: List).
-	ListShipments(context.Context, *ListShipmentsRequest) (*ListShipmentsResponse, error)
-	// Create a shipment.
-	// See: https://google.aip.dev/133 (Standard methods: Create).
-	CreateShipment(context.Context, *CreateShipmentRequest) (*Shipment, error)
-	// Update a shipment.
-	// See: https://google.aip.dev/134 (Standard methods: Update).
-	UpdateShipment(context.Context, *UpdateShipmentRequest) (*Shipment, error)
-	// Delete a shipment.
-	// See: https://google.aip.dev/135 (Standard methods: Delete).
-	// See: https://google.aip.dev/164 (Soft delete).
-	DeleteShipment(context.Context, *DeleteShipmentRequest) (*Shipment, error)
 	mustEmbedUnimplementedFreightServiceServer()
 }
 
@@ -299,21 +222,6 @@ func (UnimplementedFreightServiceServer) UpdateSite(context.Context, *UpdateSite
 }
 func (UnimplementedFreightServiceServer) DeleteSite(context.Context, *DeleteSiteRequest) (*Site, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteSite not implemented")
-}
-func (UnimplementedFreightServiceServer) GetShipment(context.Context, *GetShipmentRequest) (*Shipment, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetShipment not implemented")
-}
-func (UnimplementedFreightServiceServer) ListShipments(context.Context, *ListShipmentsRequest) (*ListShipmentsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListShipments not implemented")
-}
-func (UnimplementedFreightServiceServer) CreateShipment(context.Context, *CreateShipmentRequest) (*Shipment, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateShipment not implemented")
-}
-func (UnimplementedFreightServiceServer) UpdateShipment(context.Context, *UpdateShipmentRequest) (*Shipment, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateShipment not implemented")
-}
-func (UnimplementedFreightServiceServer) DeleteShipment(context.Context, *DeleteShipmentRequest) (*Shipment, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteShipment not implemented")
 }
 func (UnimplementedFreightServiceServer) mustEmbedUnimplementedFreightServiceServer() {}
 
@@ -508,96 +416,6 @@ func _FreightService_DeleteSite_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
-func _FreightService_GetShipment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetShipmentRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(FreightServiceServer).GetShipment(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/einride.example.freight.v1.FreightService/GetShipment",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FreightServiceServer).GetShipment(ctx, req.(*GetShipmentRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _FreightService_ListShipments_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListShipmentsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(FreightServiceServer).ListShipments(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/einride.example.freight.v1.FreightService/ListShipments",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FreightServiceServer).ListShipments(ctx, req.(*ListShipmentsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _FreightService_CreateShipment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateShipmentRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(FreightServiceServer).CreateShipment(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/einride.example.freight.v1.FreightService/CreateShipment",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FreightServiceServer).CreateShipment(ctx, req.(*CreateShipmentRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _FreightService_UpdateShipment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateShipmentRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(FreightServiceServer).UpdateShipment(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/einride.example.freight.v1.FreightService/UpdateShipment",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FreightServiceServer).UpdateShipment(ctx, req.(*UpdateShipmentRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _FreightService_DeleteShipment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteShipmentRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(FreightServiceServer).DeleteShipment(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/einride.example.freight.v1.FreightService/DeleteShipment",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FreightServiceServer).DeleteShipment(ctx, req.(*DeleteShipmentRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // FreightService_ServiceDesc is the grpc.ServiceDesc for FreightService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -644,26 +462,6 @@ var FreightService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteSite",
 			Handler:    _FreightService_DeleteSite_Handler,
-		},
-		{
-			MethodName: "GetShipment",
-			Handler:    _FreightService_GetShipment_Handler,
-		},
-		{
-			MethodName: "ListShipments",
-			Handler:    _FreightService_ListShipments_Handler,
-		},
-		{
-			MethodName: "CreateShipment",
-			Handler:    _FreightService_CreateShipment_Handler,
-		},
-		{
-			MethodName: "UpdateShipment",
-			Handler:    _FreightService_UpdateShipment_Handler,
-		},
-		{
-			MethodName: "DeleteShipment",
-			Handler:    _FreightService_DeleteShipment_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

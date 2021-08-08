@@ -3,13 +3,12 @@ package plugin
 import (
 	"go.einride.tech/aip/reflect/aipreflect"
 	"google.golang.org/protobuf/compiler/protogen"
-	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 type serviceGenerator struct {
 	service   *protogen.Service
 	resources []*aipreflect.ResourceDescriptor
-	messages  []protoreflect.MessageDescriptor
+	messages  []*protogen.Message
 }
 
 func (s *serviceGenerator) Generate(f *protogen.GeneratedFile) error {
@@ -18,6 +17,7 @@ func (s *serviceGenerator) Generate(f *protogen.GeneratedFile) error {
 	for i, resource := range s.resources {
 		message := s.messages[i]
 		generator := resourceGenerator{
+			service:  s.service,
 			resource: resource,
 			message:  message,
 		}
@@ -62,6 +62,8 @@ func (s *serviceGenerator) generateTestMethods(f *protogen.GeneratedFile) {
 	for _, resource := range s.resources {
 		resourceFx := resource.Type.Type()
 		f.P("func (fx *", serviceFx, ") Test", resourceFx, "(t *", testing, ", options ", resourceFx, ") {")
+		f.P("options.ctx = fx.Context")
+		f.P("options.service = fx.Service")
 		f.P("options.test(t)")
 		f.P("}")
 		f.P()

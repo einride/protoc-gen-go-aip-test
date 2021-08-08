@@ -7,7 +7,6 @@ option java_multiple_files = true;
 option java_outer_classname = "FreightServiceProto";
 option java_package = "tech.einride.example.freight.v1";
 
-import "einride/example/freight/v1/shipment.proto";
 import "einride/example/freight/v1/shipper.proto";
 import "einride/example/freight/v1/site.proto";
 import "google/api/annotations.proto";
@@ -126,54 +125,6 @@ service FreightService {
     };
     option (google.api.method_signature) = "name";
   }
-
-  // Get a shipment.
-  // See: https://google.aip.dev/131 (Standard methods: Get).
-  rpc GetShipment(GetShipmentRequest) returns (Shipment) {
-    option (google.api.http) = {
-      get: "/v1/{name=shippers/*/shipments/*}"
-    };
-    option (google.api.method_signature) = "name";
-  }
-
-  // List shipments for a shipper.
-  // See: https://google.aip.dev/132 (Standard methods: List).
-  rpc ListShipments(ListShipmentsRequest) returns (ListShipmentsResponse) {
-    option (google.api.http) = {
-      get: "/v1/{parent=shippers/*}/shipments"
-    };
-    option (google.api.method_signature) = "parent";
-  }
-
-  // Create a shipment.
-  // See: https://google.aip.dev/133 (Standard methods: Create).
-  rpc CreateShipment(CreateShipmentRequest) returns (Shipment) {
-    option (google.api.http) = {
-      post: "/v1/{parent=shippers/*}/shipments"
-      body: "shipment"
-    };
-    option (google.api.method_signature) = "parent,shipment";
-  }
-
-  // Update a shipment.
-  // See: https://google.aip.dev/134 (Standard methods: Update).
-  rpc UpdateShipment(UpdateShipmentRequest) returns (Shipment) {
-    option (google.api.http) = {
-      patch: "/v1/{shipment.name=shippers/*/shipments/*}"
-      body: "shipment"
-    };
-    option (google.api.method_signature) = "shipment,update_mask";
-  }
-
-  // Delete a shipment.
-  // See: https://google.aip.dev/135 (Standard methods: Delete).
-  // See: https://google.aip.dev/164 (Soft delete).
-  rpc DeleteShipment(DeleteShipmentRequest) returns (Shipment) {
-    option (google.api.http) = {
-      delete: "/v1/{name=shippers/*/shipments/*}"
-    };
-    option (google.api.method_signature) = "name";
-  }
 }
 
 // Request message for FreightService.GetShipper.
@@ -215,6 +166,7 @@ message ListShippersResponse {
 message CreateShipperRequest {
   // The shipper to create.
   Shipper shipper = 1 [(google.api.field_behavior) = REQUIRED];
+  string shipper_id = 2;
 }
 
 // Request message for FreightService.UpdateShipper.
@@ -315,85 +267,5 @@ message DeleteSiteRequest {
   string name = 1 [
     (google.api.field_behavior) = REQUIRED,
     (google.api.resource_reference).type = "freight-example.einride.tech/Site"
-  ];
-}
-
-// Request message for FreightService.GetShipment.
-message GetShipmentRequest {
-  // The resource name of the shipment to retrieve.
-  // Format: shippers/{shipper}/shipments/{shipment}
-  string name = 1 [
-    (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference).type = "freight-example.einride.tech/Shipment"
-  ];
-}
-
-// Request message for FreightService.ListShipments.
-message ListShipmentsRequest {
-  // The resource name of the parent, which owns this collection of shipments.
-  // Format: shippers/{shipper}
-  string parent = 1 [
-    (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {
-      type: "freight-example.einride.tech/Shipper"
-      child_type: "freight-example.einride.tech/Shipment"
-    }
-  ];
-
-  // Requested page size. Server may return fewer shipments than requested.
-  // If unspecified, server will pick an appropriate default.
-  int32 page_size = 2;
-
-  // A token identifying a page of results the server should return.
-  // Typically, this is the value of
-  // [ListShipmentsResponse.next_page_token][einride.example.freight.v1.ListShipmentsResponse.next_page_token]
-  // returned from the previous call to `ListShipments` method.
-  string page_token = 3;
-}
-
-// Response message for FreightService.ListShipments.
-message ListShipmentsResponse {
-  // The list of shipments.
-  repeated Shipment shipments = 1;
-
-  // A token to retrieve next page of results.  Pass this value in the
-  // [ListShipmentsRequest.page_token][einride.example.freight.v1.ListShipmentsRequest.page_token]
-  // field in the subsequent call to `ListShipments` method to retrieve the next
-  // page of results.
-  string next_page_token = 2;
-}
-
-// Request message for FreightService.CreateShipment.
-message CreateShipmentRequest {
-  // The resource name of the parent shipper for which this shipment will be created.
-  // Format: shippers/{shipper}
-  string parent = 1 [
-    (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {
-      child_type: "freight-example.einride.tech/Shipper"
-    }
-  ];
-  // The shipment to create.
-  Shipment shipment = 2 [(google.api.field_behavior) = REQUIRED];
-}
-
-// Request message for FreightService.UpdateShipment.
-message UpdateShipmentRequest {
-  // The shipment to update with. The name must match or be empty.
-  // The shipment's `name` field is used to identify the shipment to be updated.
-  // Format: shippers/{shipper}/shipments/{shipment}
-  Shipment shipment = 1 [(google.api.field_behavior) = REQUIRED];
-
-  // The list of fields to be updated.
-  google.protobuf.FieldMask update_mask = 2;
-}
-
-// Request message for FreightService.DeleteShipment.
-message DeleteShipmentRequest {
-  // The resource name of the shipment to delete.
-  // Format: shippers/{shipper}/shipments/{shipment}
-  string name = 1 [
-    (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference).type = "freight-example.einride.tech/Shipment"
   ];
 }

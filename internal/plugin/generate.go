@@ -39,7 +39,7 @@ func Generate(plugin *protogen.Plugin) error {
 			if len(resources) == 0 {
 				continue
 			}
-			messages, err := findResourceMessages(protoRegistry, resources)
+			messages, err := findResourceMessages(plugin, resources)
 			if err != nil {
 				return err
 			}
@@ -105,16 +105,27 @@ func findServiceResources(
 }
 
 func findResourceMessages(
-	registry *protoregistry.Files,
+	plugin *protogen.Plugin,
 	resources []*aipreflect.ResourceDescriptor,
-) ([]protoreflect.MessageDescriptor, error) {
-	msgs := make([]protoreflect.MessageDescriptor, 0, len(resources))
+) ([]*protogen.Message, error) {
+	allMessages := allPluginMessages(plugin)
+	msgs := make([]*protogen.Message, 0, len(resources))
 	for _, resource := range resources {
-		msg, err := registry.FindDescriptorByName(resource.Message)
-		if err != nil {
-			return nil, fmt.Errorf("find descriptor for resource '%s': %w", resource.Type.Type(), err)
+		msg, ok := allMessages[resource.Message]
+		if !ok {
+			return nil, fmt.Errorf("found no message descriptor for resource '%s'", resource.Type.Type())
 		}
-		msgs = append(msgs, msg.(protoreflect.MessageDescriptor))
+		msgs = append(msgs, msg)
 	}
 	return msgs, nil
+}
+
+func allPluginMessages(plugin *protogen.Plugin) map[protoreflect.FullName]*protogen.Message {
+	msgs := make(map[protoreflect.FullName]*protogen.Message)
+	for _, file := range plugin.Files {
+		for _, message := range file.Messages {
+			msgs[message.Desc.FullName()] = message
+		}
+	}
+	return msgs
 }

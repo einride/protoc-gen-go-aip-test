@@ -3,6 +3,7 @@ module github.com/einride/protoc-gen-go-aiptest
 go 1.15
 
 require (
+	github.com/stoewer/go-strcase v1.2.0
 	go.einride.tech/aip v0.44.0
 	golang.org/x/net v0.0.0-20210805182204-aaa1db679c0d // indirect
 	golang.org/x/sys v0.0.0-20210806184541-e5e7981a1069 // indirect
@@ -10,4 +11,5 @@ require (
 	google.golang.org/grpc v1.39.1
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.1.0
 	google.golang.org/protobuf v1.27.1
+	gotest.tools/v3 v3.0.3
 )
