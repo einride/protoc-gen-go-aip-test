@@ -14,6 +14,17 @@ type serviceGenerator struct {
 
 func (s *serviceGenerator) Generate(f *protogen.GeneratedFile) error {
 	s.generateFixture(f)
+	s.generateTestMethods(f)
+	for i, resource := range s.resources {
+		message := s.messages[i]
+		generator := resourceGenerator{
+			resource: resource,
+			message:  message,
+		}
+		if err := generator.Generate(f); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -34,8 +45,25 @@ func (s *serviceGenerator) generateFixture(f *protogen.GeneratedFile) {
 	f.P("Context ", context)
 	f.P()
 
-	f.P("// The service to test.")
+	f.P("// Service to test.")
 	f.P("Service  ", service)
 	f.P()
+
 	f.P("}")
+	f.P()
+}
+
+func (s *serviceGenerator) generateTestMethods(f *protogen.GeneratedFile) {
+	testing := f.QualifiedGoIdent(protogen.GoIdent{
+		GoName:       "T",
+		GoImportPath: "testing",
+	})
+	serviceFx := s.service.GoName
+	for _, resource := range s.resources {
+		resourceFx := resource.Type.Type()
+		f.P("func (fx *", serviceFx, ") Test", resourceFx, "(t *", testing, ", options ", resourceFx, ") {")
+		f.P("options.test(t)")
+		f.P("}")
+		f.P()
+	}
 }
