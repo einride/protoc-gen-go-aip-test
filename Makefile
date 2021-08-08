@@ -15,6 +15,8 @@ include tools/commitlint/rules.mk
 include tools/git-verify-nodiff/rules.mk
 include tools/golangci-lint/rules.mk
 include tools/goreview/rules.mk
+include tools/protoc-gen-go/rules.mk
+include tools/protoc-gen-go-grpc/rules.mk
 include tools/semantic-release/rules.mk
 
 .PHONY: go-test
@@ -41,7 +43,7 @@ $(protoc_gen_go_aiptest):
 	@go build -o $@ .
 
 .PHONY: buf-generate
-buf-generate: $(buf) $(protoc_gen_go_aiptest)
+buf-generate: $(buf) $(protoc_gen_go_aiptest) $(protoc_gen_go) $(protoc_gen_go_grpc)
 	$(info [$@] generating protobuf stubs...)
 	@rm -rf proto/gen
 	@$(buf) generate --path proto/src/einride

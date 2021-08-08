@@ -5,6 +5,10 @@ plugins:
     out: proto/gen
     opt: module=github.com/einride/protoc-gen-go-aiptest/proto/gen
 
+  - name: go-grpc
+    out: proto/gen
+    opt: module=github.com/einride/protoc-gen-go-aiptest/proto/gen
+
   - name: go-aiptest
     out: proto/gen
     opt: module=github.com/einride/protoc-gen-go-aiptest/proto/gen
