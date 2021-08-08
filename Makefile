@@ -43,5 +43,5 @@ $(protoc_gen_go_aiptest):
 .PHONY: buf-generate
 buf-generate: $(buf) $(protoc_gen_typescript_http)
 	$(info [$@] generating protobuf stubs...)
-	@rm -rf examples/proto/gen
-	@$(buf) generate --path examples/proto/src/einride
+	@rm -rf proto/gen
+	@$(buf) generate --path proto/src/einride

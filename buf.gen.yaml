@@ -2,4 +2,5 @@ version: v1beta1
 
 plugins:
   - name: go
-    out: examples/proto/gen/typescript
+    out: proto/gen
+    opt: module=github.com/einride/protoc-gen-go-aiptest/proto/gen
