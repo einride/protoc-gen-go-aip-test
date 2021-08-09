@@ -1,6 +1,8 @@
 package plugin
 
 import (
+	"strconv"
+
 	"go.einride.tech/aip/reflect/aipreflect"
 	"google.golang.org/protobuf/compiler/protogen"
 )
@@ -29,9 +31,9 @@ func (s *serviceGenerator) Generate(f *protogen.GeneratedFile) error {
 }
 
 func (s *serviceGenerator) generateFixture(f *protogen.GeneratedFile) {
-	context := f.QualifiedGoIdent(protogen.GoIdent{
-		GoName:       "Context",
-		GoImportPath: "context",
+	testingT := f.QualifiedGoIdent(protogen.GoIdent{
+		GoName:       "T",
+		GoImportPath: "testing",
 	})
 
 	service := f.QualifiedGoIdent(protogen.GoIdent{
@@ -40,13 +42,9 @@ func (s *serviceGenerator) generateFixture(f *protogen.GeneratedFile) {
 	})
 
 	f.P("type ", s.service.GoName, " struct {")
-
-	f.P("// Context to use for running tests.")
-	f.P("Context ", context)
-	f.P()
-
-	f.P("// Service to test.")
-	f.P("Service  ", service)
+	f.P("T ", testingT)
+	f.P("// Server to test.")
+	f.P("Server  ", service)
 	f.P()
 
 	f.P("}")
@@ -54,17 +52,23 @@ func (s *serviceGenerator) generateFixture(f *protogen.GeneratedFile) {
 }
 
 func (s *serviceGenerator) generateTestMethods(f *protogen.GeneratedFile) {
-	testing := f.QualifiedGoIdent(protogen.GoIdent{
+	context := f.QualifiedGoIdent(protogen.GoIdent{
+		GoName:       "Context",
+		GoImportPath: "context",
+	})
+	testingT := f.QualifiedGoIdent(protogen.GoIdent{
 		GoName:       "T",
 		GoImportPath: "testing",
 	})
 	serviceFx := s.service.GoName
 	for _, resource := range s.resources {
 		resourceFx := resource.Type.Type()
-		f.P("func (fx *", serviceFx, ") Test", resourceFx, "(t *", testing, ", options ", resourceFx, ") {")
-		f.P("options.ctx = fx.Context")
-		f.P("options.service = fx.Service")
+		f.P("func (fx *", serviceFx, ") Test", resourceFx, "(ctx ", context, ", options ", resourceFx, ") {")
+		f.P("fx.T.Run(", strconv.Quote(resource.Type.Type()), ", func(t *", testingT, ") {")
+		f.P("options.ctx = ctx")
+		f.P("options.service = fx.Server")
 		f.P("options.test(t)")
+		f.P("})")
 		f.P("}")
 		f.P()
 	}

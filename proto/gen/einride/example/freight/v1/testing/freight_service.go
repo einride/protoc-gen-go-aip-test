@@ -14,23 +14,25 @@ import (
 )
 
 type FreightService struct {
-	// Context to use for running tests.
-	Context context.Context
-
-	// Service to test.
-	Service v1.FreightServiceServer
+	T testing.T
+	// Server to test.
+	Server v1.FreightServiceServer
 }
 
-func (fx *FreightService) TestShipper(t *testing.T, options Shipper) {
-	options.ctx = fx.Context
-	options.service = fx.Service
-	options.test(t)
+func (fx *FreightService) TestShipper(ctx context.Context, options Shipper) {
+	fx.T.Run("Shipper", func(t *testing.T) {
+		options.ctx = ctx
+		options.service = fx.Server
+		options.test(t)
+	})
 }
 
-func (fx *FreightService) TestSite(t *testing.T, options Site) {
-	options.ctx = fx.Context
-	options.service = fx.Service
-	options.test(t)
+func (fx *FreightService) TestSite(ctx context.Context, options Site) {
+	fx.T.Run("Site", func(t *testing.T) {
+		options.ctx = ctx
+		options.service = fx.Server
+		options.test(t)
+	})
 }
 
 type Shipper struct {
