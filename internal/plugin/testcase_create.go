@@ -21,6 +21,7 @@ func (r *resourceGenerator) createTestCase() testCase {
 	if !ok {
 		return disabledTestCase()
 	}
+	isLRO := createMethod.Output.Desc.FullName() == "google.longrunning.Operation"
 
 	return newTestCase("Create", func(f *protogen.GeneratedFile) {
 		testingT := f.QualifiedGoIdent(protogen.GoIdent{GoName: "T", GoImportPath: "testing"})
@@ -90,21 +91,23 @@ func (r *resourceGenerator) createTestCase() testCase {
 			f.P("})")
 		}
 
-		f.P()
-		f.P("// Field create_time should be populated when the resource is created.")
-		f.P("t.Run(\"create time\", func(t *", testingT, ") {")
-		f.P("fx.maybeSkip(t)")
-		m := methodCreate{
-			resource: r.resource,
-			method:   createMethod,
-			parent:   "parent",
+		if !isLRO {
+			f.P()
+			f.P("// Field create_time should be populated when the resource is created.")
+			f.P("t.Run(\"create time\", func(t *", testingT, ") {")
+			f.P("fx.maybeSkip(t)")
+			m := methodCreate{
+				resource: r.resource,
+				method:   createMethod,
+				parent:   "parent",
+			}
+			m.Generate(f, "msg", "err", ":=")
+			f.P(assertNilError, "(t, err)")
+			f.P(assertCheck, "(t, ", timeSince, "(msg.CreateTime.AsTime()) < ", timeSecond, ")")
+			f.P("})")
 		}
-		m.Generate(f, "msg", "err", ":=")
-		f.P(assertNilError, "(t, err)")
-		f.P(assertCheck, "(t, ", timeSince, "(msg.CreateTime.AsTime()) < ", timeSecond, ")")
-		f.P("})")
 
-		if hasUserSettableID(r.resource, createMethod.Desc) {
+		if hasUserSettableID(r.resource, createMethod.Desc) && !isLRO {
 			f.P()
 			f.P("// If method support user settable IDs, when set the resource should")
 			f.P("// returned with the provided ID.")
@@ -122,7 +125,7 @@ func (r *resourceGenerator) createTestCase() testCase {
 			f.P("})")
 		}
 
-		if hasUserSettableID(r.resource, createMethod.Desc) {
+		if hasUserSettableID(r.resource, createMethod.Desc) && !isLRO {
 			f.P()
 			f.P("// If method support user settable IDs and the same ID is reused")
 			f.P("// the method should return AlreadyExists.")
