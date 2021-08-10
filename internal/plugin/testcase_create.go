@@ -240,6 +240,11 @@ func (r *resourceGenerator) createTestCase() testCase {
 			)
 			f.P("})")
 		}
+
+		f.P()
+		f.P("_ = ", timeSecond)
+		f.P("_ = ", stringsHasSuffix)
+		f.P("_ = ", codesInvalidArgument)
 	})
 }
 

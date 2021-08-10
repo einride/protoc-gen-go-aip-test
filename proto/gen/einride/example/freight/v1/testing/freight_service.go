@@ -145,6 +145,10 @@ func (fx *Shipper) testCreate(t *testing.T) {
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
 	})
+
+	_ = time.Second
+	_ = strings.HasSuffix
+	_ = codes.InvalidArgument
 }
 
 func (fx *Shipper) maybeSkip(t *testing.T) {
@@ -253,6 +257,10 @@ func (fx *Site) testCreate(t *testing.T) {
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
 	})
+
+	_ = time.Second
+	_ = strings.HasSuffix
+	_ = codes.InvalidArgument
 }
 
 func (fx *Site) nextParent(t *testing.T, pristine bool) string {
