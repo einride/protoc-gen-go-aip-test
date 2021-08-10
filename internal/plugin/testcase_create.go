@@ -141,6 +141,48 @@ func (r *resourceGenerator) createTestCase() testCase {
 			f.P("})")
 		}
 
+		if hasRequiredFields(r.message.Desc) {
+			f.P()
+			f.P("t.Run(\"required fields\", func(t *", testingT, ") {")
+			f.P("fx.maybeSkip(t)")
+			rangeRequiredFields(r.message.Desc, func(p protopath.Path, field protoreflect.FieldDescriptor) {
+				// strip root step
+				p = p[1:]
+				containerPath := p[:len(p)-1]
+				fieldPath := p[len(p)-1]
+				isTopLevel := len(containerPath) == 0
+
+				f.P("t.Run(", strconv.Quote(p.String()), ", func(t *", testingT, ") {")
+				f.P("fx.maybeSkip(t)")
+				if hasParent(r.resource) {
+					f.P("msg := fx.Create(parent)")
+				} else {
+					f.P("msg := fx.Create()")
+				}
+				if isTopLevel {
+					f.P("container := msg")
+				} else {
+					f.P("container := msg.", chainedGet(containerPath))
+				}
+				f.P("if container == nil {")
+				f.P("t.Skip(\"not reachable\")")
+				f.P("}")
+				fieldName := string(fieldPath.FieldDescriptor().Name())
+				f.P("fd := container.ProtoReflect().Descriptor().Fields().ByName(", strconv.Quote(fieldName), ")")
+				f.P("container.ProtoReflect().Clear(fd)")
+				m := methodCreate{
+					resource: r.resource,
+					method:   createMethod,
+					parent:   "parent",
+					message:  "msg",
+				}
+				m.Generate(f, "_", "err", ":=")
+				f.P(assertEqual, "(t, ", codesInvalidArgument, ", ", statusCode, "(err), err)")
+				f.P("})")
+			})
+			f.P("})")
+		}
+
 		if hasMutableResourceReferences(r.message.Desc) {
 			f.P()
 			f.P("// If resource references are accepted on the resource, they must be validated.")

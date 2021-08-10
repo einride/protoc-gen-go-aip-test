@@ -39,9 +39,12 @@ func hasField(message protoreflect.MessageDescriptor, field protoreflect.Name) b
 
 func hasMutableResourceReferences(message protoreflect.MessageDescriptor) bool {
 	var found bool
-	rangeMutableResourceReferences(message, func(p protopath.Path, field protoreflect.FieldDescriptor, r *annotations.ResourceReference) {
-		found = true
-	})
+	rangeMutableResourceReferences(
+		message,
+		func(p protopath.Path, field protoreflect.FieldDescriptor, r *annotations.ResourceReference) {
+			found = true
+		},
+	)
 	return found
 }
 
@@ -56,6 +59,28 @@ func rangeMutableResourceReferences(
 				return
 			}
 			f(p, field, r)
+		},
+	)
+}
+
+func hasRequiredFields(message protoreflect.MessageDescriptor) bool {
+	var found bool
+	rangeRequiredFields(message, func(p protopath.Path, field protoreflect.FieldDescriptor) {
+		found = true
+	})
+	return found
+}
+
+func rangeRequiredFields(
+	message protoreflect.MessageDescriptor,
+	f func(protopath.Path, protoreflect.FieldDescriptor),
+) {
+	xrange.RangeFields(
+		message,
+		func(p protopath.Path, field protoreflect.FieldDescriptor) {
+			if fieldbehavior.Has(field, annotations.FieldBehavior_REQUIRED) {
+				f(p, field)
+			}
 		},
 	)
 }

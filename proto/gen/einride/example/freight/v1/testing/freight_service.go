@@ -96,6 +96,38 @@ func (fx *Shipper) testCreate(t *testing.T) {
 		assert.Equal(t, codes.AlreadyExists, status.Code(err), err)
 	})
 
+	t.Run("required fields", func(t *testing.T) {
+		fx.maybeSkip(t)
+		t.Run(".display_name", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msg := fx.Create()
+			container := msg
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.CreateShipper(fx.ctx, &v1.CreateShipperRequest{
+				Shipper: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+		t.Run(".billing_account", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msg := fx.Create()
+			container := msg
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("billing_account")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.CreateShipper(fx.ctx, &v1.CreateShipperRequest{
+				Shipper: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+	})
+
 	// If resource references are accepted on the resource, they must be validated.
 	t.Run("resource references", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -182,6 +214,25 @@ func (fx *Site) testCreate(t *testing.T) {
 		})
 		assert.NilError(t, err)
 		assert.Check(t, time.Since(msg.CreateTime.AsTime()) < time.Second)
+	})
+
+	t.Run("required fields", func(t *testing.T) {
+		fx.maybeSkip(t)
+		t.Run(".display_name", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msg := fx.Create(parent)
+			container := msg
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.CreateSite(fx.ctx, &v1.CreateSiteRequest{
+				Parent: parent,
+				Site:   msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
 	})
 
 	// If resource references are accepted on the resource, they must be validated.
