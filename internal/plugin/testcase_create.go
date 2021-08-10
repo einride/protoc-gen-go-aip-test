@@ -2,9 +2,14 @@ package plugin
 
 import (
 	"strconv"
+	"strings"
 
+	"github.com/stoewer/go-strcase"
 	"go.einride.tech/aip/reflect/aipreflect"
+	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/compiler/protogen"
+	"google.golang.org/protobuf/reflect/protopath"
+	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 func (r *resourceGenerator) createTestCase() testCase {
@@ -135,5 +140,69 @@ func (r *resourceGenerator) createTestCase() testCase {
 			f.P(assertEqual, "(t, ", codesAlreadyExists, ",", statusCode, "(err), err)")
 			f.P("})")
 		}
+
+		if hasMutableResourceReferences(r.message.Desc) {
+			f.P()
+			f.P("// If resource references are accepted on the resource, they must be validated.")
+			f.P("t.Run(\"resource references\", func(t *", testingT, ") {")
+			f.P("fx.maybeSkip(t)")
+			rangeMutableResourceReferences(
+				r.message.Desc,
+				func(p protopath.Path, field protoreflect.FieldDescriptor, desc *annotations.ResourceReference) {
+					if field.ContainingOneof() != nil {
+						// resource references that are also one-ofs are
+						// tricky to test this way
+						return
+					}
+					// strip root step
+					p = p[1:]
+					containerPath := p[:len(p)-1]
+					fieldPath := p[len(p)-1]
+					isTopLevel := len(containerPath) == 0
+
+					f.P("t.Run(", strconv.Quote(p.String()), ", func(t *", testingT, ") {")
+					f.P("fx.maybeSkip(t)")
+					if hasParent(r.resource) {
+						f.P("msg := fx.Create(parent)")
+					} else {
+						f.P("msg := fx.Create()")
+					}
+					if isTopLevel {
+						f.P("container := msg")
+					} else {
+						f.P("container := msg.", chainedGet(containerPath))
+					}
+					f.P("if container == nil {")
+					f.P("t.Skip(\"not reachable\")")
+					f.P("}")
+
+					fieldGoName := strcase.UpperCamelCase(string(fieldPath.FieldDescriptor().Name()))
+					if field.IsList() {
+						f.P("container.", fieldGoName, "= []string{\"invalid resource name\"}")
+					} else {
+						f.P("container.", fieldGoName, "= \"invalid resource name\"")
+					}
+					m := methodCreate{
+						resource: r.resource,
+						method:   createMethod,
+						parent:   "parent",
+						message:  "msg",
+					}
+					m.Generate(f, "_", "err", ":=")
+					f.P(assertEqual, "(t, ", codesInvalidArgument, ", ", statusCode, "(err), err)")
+					f.P("})")
+				},
+			)
+			f.P("})")
+		}
 	})
+}
+
+func chainedGet(p protopath.Path) string {
+	gg := make([]string, 0, len(p))
+	for _, step := range p {
+		g := "Get" + strcase.UpperCamelCase(string(step.FieldDescriptor().Name())) + "()"
+		gg = append(gg, g)
+	}
+	return strings.Join(gg, ".")
 }

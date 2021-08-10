@@ -36,4 +36,14 @@ message Site {
   string display_name = 5 [(google.api.field_behavior) = REQUIRED];
   // The geographic location of the site.
   google.type.LatLng lat_lng = 6;
+  // Billing information on the site.
+  Billing billing = 7;
+}
+
+message Billing {
+  // The billing account used by this site.
+  // If not specified the shippers billing accout is used.
+  string billing_account = 1 [
+    (google.api.resource_reference).type = "freight-example.einride.tech/BillingAccount"
+  ];
 }

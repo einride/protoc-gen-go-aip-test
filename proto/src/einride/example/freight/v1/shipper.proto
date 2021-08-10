@@ -32,4 +32,9 @@ message Shipper {
   google.protobuf.Timestamp delete_time = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
   // The display name of the shipper.
   string display_name = 5 [(google.api.field_behavior) = REQUIRED];
+  // The billing account of the shipper.
+  string billing_account = 6 [
+    (google.api.resource_reference).type = "freight-example.einride.tech/BillingAccount",
+    (google.api.field_behavior) = REQUIRED
+  ];
 }

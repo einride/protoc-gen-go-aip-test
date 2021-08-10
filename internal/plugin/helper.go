@@ -1,9 +1,13 @@
 package plugin
 
 import (
+	"github.com/einride/protoc-gen-go-aiptest/internal/xrange"
 	"github.com/stoewer/go-strcase"
+	"go.einride.tech/aip/fieldbehavior"
 	"go.einride.tech/aip/reflect/aipreflect"
+	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/compiler/protogen"
+	"google.golang.org/protobuf/reflect/protopath"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
@@ -31,4 +35,27 @@ func hasUserSettableID(resource *aipreflect.ResourceDescriptor, method protorefl
 func hasField(message protoreflect.MessageDescriptor, field protoreflect.Name) bool {
 	f := message.Fields().ByName(field)
 	return f != nil
+}
+
+func hasMutableResourceReferences(message protoreflect.MessageDescriptor) bool {
+	var found bool
+	rangeMutableResourceReferences(message, func(p protopath.Path, field protoreflect.FieldDescriptor, r *annotations.ResourceReference) {
+		found = true
+	})
+	return found
+}
+
+func rangeMutableResourceReferences(
+	message protoreflect.MessageDescriptor,
+	f func(protopath.Path, protoreflect.FieldDescriptor, *annotations.ResourceReference),
+) {
+	xrange.RangeResourceReferences(
+		message,
+		func(p protopath.Path, field protoreflect.FieldDescriptor, r *annotations.ResourceReference) {
+			if fieldbehavior.Has(field, annotations.FieldBehavior_OUTPUT_ONLY) {
+				return
+			}
+			f(p, field, r)
+		},
+	)
 }
