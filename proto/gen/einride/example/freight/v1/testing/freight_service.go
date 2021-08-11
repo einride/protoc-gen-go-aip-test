@@ -245,6 +245,7 @@ type Site struct {
 func (fx *Site) test(t *testing.T) {
 	t.Run("Create", fx.testCreate)
 	t.Run("Get", fx.testGet)
+	t.Run("BatchGet", fx.testBatchGet)
 }
 
 func (fx *Site) testCreate(t *testing.T) {
@@ -389,6 +390,160 @@ func (fx *Site) testGet(t *testing.T) {
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
 	})
+	_ = codes.NotFound
+}
+
+func (fx *Site) testBatchGet(t *testing.T) {
+	// Batch methods: Get
+	// https://google.aip.dev/231
+
+	parent := fx.nextParent(t, false)
+	created00, err := fx.service.CreateSite(fx.ctx, &v1.CreateSiteRequest{
+		Parent: parent,
+		Site:   fx.Create(parent),
+	})
+	assert.NilError(t, err)
+	created01, err := fx.service.CreateSite(fx.ctx, &v1.CreateSiteRequest{
+		Parent: parent,
+		Site:   fx.Create(parent),
+	})
+	assert.NilError(t, err)
+	created02, err := fx.service.CreateSite(fx.ctx, &v1.CreateSiteRequest{
+		Parent: parent,
+		Site:   fx.Create(parent),
+	})
+	assert.NilError(t, err)
+
+	// Method should fail with InvalidArgument if provided parent is not valid.
+	t.Run("invalid parent", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.BatchGetSites(fx.ctx, &v1.BatchGetSitesRequest{
+			Parent: "invalid resource name",
+			Names: []string{
+				created00.Name,
+			},
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if no names are provided.
+	t.Run("no names", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.BatchGetSites(fx.ctx, &v1.BatchGetSitesRequest{
+			Parent: parent,
+			Names:  []string{},
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if a provided name is not valid.
+	t.Run("invalid name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.BatchGetSites(fx.ctx, &v1.BatchGetSitesRequest{
+			Parent: parent,
+			Names: []string{
+				"invalid resource name",
+			},
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Resources should be returned without errors if they exist.
+	t.Run("all exists", func(t *testing.T) {
+		fx.maybeSkip(t)
+		response, err := fx.service.BatchGetSites(fx.ctx, &v1.BatchGetSitesRequest{
+			Parent: parent,
+			Names: []string{
+				created00.Name,
+				created01.Name,
+				created02.Name,
+			},
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(
+			t,
+			[]*v1.Site{
+				created00,
+				created01,
+				created02,
+			},
+			response.Sites,
+			protocmp.Transform(),
+		)
+	})
+
+	// The method must be atomic; it must fail for all resources
+	// or succeed for all resources (no partial success).
+	t.Run("atomic", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.BatchGetSites(fx.ctx, &v1.BatchGetSitesRequest{
+			Parent: parent,
+			Names: []string{
+				created00.Name,
+				created01.Name + "notfound",
+				created02.Name,
+			},
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
+	// If a caller sets the "parent", and the parent collection in the name of any resource
+	// being retrieved does not match, the request must fail.
+	t.Run("parent mismatch", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.BatchGetSites(fx.ctx, &v1.BatchGetSitesRequest{
+			Parent: fx.peekNextParent(t),
+			Names: []string{
+				created00.Name,
+			},
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// The order of resources in the response must be the same as the names in the request.
+	t.Run("ordered", func(t *testing.T) {
+		fx.maybeSkip(t)
+		for _, order := range [][]*v1.Site{
+			{created00, created01, created02},
+			{created01, created00, created02},
+			{created02, created01, created00},
+		} {
+			response, err := fx.service.BatchGetSites(fx.ctx, &v1.BatchGetSitesRequest{
+				Parent: parent,
+				Names: []string{
+					order[0].GetName(),
+					order[1].GetName(),
+					order[2].GetName(),
+				},
+			})
+			assert.NilError(t, err)
+			assert.DeepEqual(t, order, response.Sites, protocmp.Transform())
+		}
+	})
+
+	// If a caller provides duplicate names, the service should return
+	// duplicate resources.
+	t.Run("duplicate names", func(t *testing.T) {
+		fx.maybeSkip(t)
+		response, err := fx.service.BatchGetSites(fx.ctx, &v1.BatchGetSitesRequest{
+			Parent: parent,
+			Names: []string{
+				created00.Name,
+				created00.Name,
+			},
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(
+			t,
+			[]*v1.Site{
+				created00,
+				created00,
+			},
+			response.Sites,
+			protocmp.Transform(),
+		)
+	})
+
 	_ = codes.NotFound
 }
 

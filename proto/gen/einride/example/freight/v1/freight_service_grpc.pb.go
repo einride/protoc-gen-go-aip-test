@@ -37,6 +37,9 @@ type FreightServiceClient interface {
 	// Get a site.
 	// See: https://google.aip.dev/131 (Standard methods: Get).
 	GetSite(ctx context.Context, in *GetSiteRequest, opts ...grpc.CallOption) (*Site, error)
+	// Batch get sites.
+	// See: https://google.aip.dev/231 (Standard methods: Get).
+	BatchGetSites(ctx context.Context, in *BatchGetSitesRequest, opts ...grpc.CallOption) (*BatchGetSitesResponse, error)
 	// List sites for a shipper.
 	// See: https://google.aip.dev/132 (Standard methods: List).
 	ListSites(ctx context.Context, in *ListSitesRequest, opts ...grpc.CallOption) (*ListSitesResponse, error)
@@ -114,6 +117,15 @@ func (c *freightServiceClient) GetSite(ctx context.Context, in *GetSiteRequest, 
 	return out, nil
 }
 
+func (c *freightServiceClient) BatchGetSites(ctx context.Context, in *BatchGetSitesRequest, opts ...grpc.CallOption) (*BatchGetSitesResponse, error) {
+	out := new(BatchGetSitesResponse)
+	err := c.cc.Invoke(ctx, "/einride.example.freight.v1.FreightService/BatchGetSites", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *freightServiceClient) ListSites(ctx context.Context, in *ListSitesRequest, opts ...grpc.CallOption) (*ListSitesResponse, error) {
 	out := new(ListSitesResponse)
 	err := c.cc.Invoke(ctx, "/einride.example.freight.v1.FreightService/ListSites", in, out, opts...)
@@ -173,6 +185,9 @@ type FreightServiceServer interface {
 	// Get a site.
 	// See: https://google.aip.dev/131 (Standard methods: Get).
 	GetSite(context.Context, *GetSiteRequest) (*Site, error)
+	// Batch get sites.
+	// See: https://google.aip.dev/231 (Standard methods: Get).
+	BatchGetSites(context.Context, *BatchGetSitesRequest) (*BatchGetSitesResponse, error)
 	// List sites for a shipper.
 	// See: https://google.aip.dev/132 (Standard methods: List).
 	ListSites(context.Context, *ListSitesRequest) (*ListSitesResponse, error)
@@ -210,6 +225,9 @@ func (UnimplementedFreightServiceServer) DeleteShipper(context.Context, *DeleteS
 }
 func (UnimplementedFreightServiceServer) GetSite(context.Context, *GetSiteRequest) (*Site, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetSite not implemented")
+}
+func (UnimplementedFreightServiceServer) BatchGetSites(context.Context, *BatchGetSitesRequest) (*BatchGetSitesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BatchGetSites not implemented")
 }
 func (UnimplementedFreightServiceServer) ListSites(context.Context, *ListSitesRequest) (*ListSitesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListSites not implemented")
@@ -344,6 +362,24 @@ func _FreightService_GetSite_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FreightService_BatchGetSites_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchGetSitesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FreightServiceServer).BatchGetSites(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/einride.example.freight.v1.FreightService/BatchGetSites",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FreightServiceServer).BatchGetSites(ctx, req.(*BatchGetSitesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _FreightService_ListSites_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListSitesRequest)
 	if err := dec(in); err != nil {
@@ -446,6 +482,10 @@ var FreightService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetSite",
 			Handler:    _FreightService_GetSite_Handler,
+		},
+		{
+			MethodName: "BatchGetSites",
+			Handler:    _FreightService_BatchGetSites_Handler,
 		},
 		{
 			MethodName: "ListSites",

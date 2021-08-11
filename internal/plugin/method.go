@@ -49,3 +49,24 @@ func (m methodGet) Generate(f *protogen.GeneratedFile, response string, err stri
 	f.P("Name: ", m.name, ",")
 	f.P("})")
 }
+
+type methodBatchGet struct {
+	resource *annotations.ResourceDescriptor
+	method   *protogen.Method
+
+	parent string
+	names  []string
+}
+
+func (m methodBatchGet) Generate(f *protogen.GeneratedFile, response string, err string, assign string) {
+	f.P(response, ", ", err, " ", assign, " fx.service.", m.method.GoName, "(fx.ctx, &", m.method.Input.GoIdent, "{")
+	if hasParent(m.resource) {
+		f.P("Parent: ", m.parent, ",")
+	}
+	f.P("Names: []string{")
+	for _, name := range m.names {
+		f.P(name, ",")
+	}
+	f.P("},")
+	f.P("})")
+}

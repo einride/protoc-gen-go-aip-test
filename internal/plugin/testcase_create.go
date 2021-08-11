@@ -18,7 +18,7 @@ func (r *resourceGenerator) createTestCase() testCase {
 		return disabledTestCase()
 	}
 	getMethod, hasGet := r.standardMethod(aipreflect.MethodTypeGet)
-	isLRO := createMethod.Output.Desc.FullName() == "google.longrunning.Operation"
+	isLRO := returnsLRO(createMethod.Desc)
 
 	return newTestCase("Create", func(f *protogen.GeneratedFile) {
 		testingT := f.QualifiedGoIdent(protogen.GoIdent{GoName: "T", GoImportPath: "testing"})

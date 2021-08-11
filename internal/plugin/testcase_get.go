@@ -16,6 +16,10 @@ func (r *resourceGenerator) getTestCase() testCase {
 	if !ok {
 		return disabledTestCase()
 	}
+	// TODO: support LROs for create.
+	if returnsLRO(createMethod.Desc) {
+		return disabledTestCase()
+	}
 
 	return newTestCase("Get", func(f *protogen.GeneratedFile) {
 		testingT := f.QualifiedGoIdent(protogen.GoIdent{GoName: "T", GoImportPath: "testing"})

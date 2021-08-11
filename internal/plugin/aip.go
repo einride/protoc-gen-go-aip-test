@@ -1,6 +1,8 @@
 package plugin
 
 import (
+	"strings"
+
 	"github.com/stoewer/go-strcase"
 	"go.einride.tech/aip/reflect/aipreflect"
 	"go.einride.tech/aip/resourcename"
@@ -72,4 +74,16 @@ func inferMethodName(r *annotations.ResourceDescriptor, methodType aipreflect.Me
 		grammaticalName = aipreflect.GrammaticalName(r.GetPlural())
 	}
 	return methodType.NamePrefix() + protoreflect.Name(grammaticalName.UpperCamelCase())
+}
+
+func returnsLRO(method protoreflect.MethodDescriptor) bool {
+	return method.Output().FullName() == "google.longrunning.Operation"
+}
+
+func isAlternativeBatchGet(method protoreflect.MethodDescriptor) bool {
+	if !strings.HasPrefix(string(method.Name()), "BatchGet") {
+		return false
+	}
+	inputFields := method.Input().Fields()
+	return inputFields.ByName("requests") != nil
 }
