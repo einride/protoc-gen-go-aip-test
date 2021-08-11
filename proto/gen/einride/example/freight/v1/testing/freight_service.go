@@ -7,6 +7,7 @@ import (
 	v1 "github.com/einride/protoc-gen-go-aiptest/proto/gen/einride/example/freight/v1"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	protocmp "google.golang.org/protobuf/testing/protocmp"
 	assert "gotest.tools/v3/assert"
 	strings "strings"
 	testing "testing"
@@ -66,6 +67,20 @@ func (fx *Shipper) testCreate(t *testing.T) {
 		})
 		assert.NilError(t, err)
 		assert.Check(t, time.Since(msg.CreateTime.AsTime()) < time.Second)
+	})
+
+	// The created resource should be persisted and reachable with Get.
+	t.Run("persisted", func(t *testing.T) {
+		fx.maybeSkip(t)
+		msg, err := fx.service.CreateShipper(fx.ctx, &v1.CreateShipperRequest{
+			Shipper: fx.Create(),
+		})
+		assert.NilError(t, err)
+		persisted, err := fx.service.GetShipper(fx.ctx, &v1.GetShipperRequest{
+			Name: msg.Name,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(t, msg, persisted, protocmp.Transform())
 	})
 
 	// If method support user settable IDs, when set the resource should
@@ -218,6 +233,21 @@ func (fx *Site) testCreate(t *testing.T) {
 		})
 		assert.NilError(t, err)
 		assert.Check(t, time.Since(msg.CreateTime.AsTime()) < time.Second)
+	})
+
+	// The created resource should be persisted and reachable with Get.
+	t.Run("persisted", func(t *testing.T) {
+		fx.maybeSkip(t)
+		msg, err := fx.service.CreateSite(fx.ctx, &v1.CreateSiteRequest{
+			Parent: parent,
+			Site:   fx.Create(parent),
+		})
+		assert.NilError(t, err)
+		persisted, err := fx.service.GetSite(fx.ctx, &v1.GetSiteRequest{
+			Name: msg.Name,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(t, msg, persisted, protocmp.Transform())
 	})
 
 	t.Run("required fields", func(t *testing.T) {

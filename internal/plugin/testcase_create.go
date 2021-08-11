@@ -17,6 +17,7 @@ func (r *resourceGenerator) createTestCase() testCase {
 	if !ok {
 		return disabledTestCase()
 	}
+	getMethod, hasGet := r.standardMethod(aipreflect.MethodTypeGet)
 	isLRO := createMethod.Output.Desc.FullName() == "google.longrunning.Operation"
 
 	return newTestCase("Create", func(f *protogen.GeneratedFile) {
@@ -32,9 +33,17 @@ func (r *resourceGenerator) createTestCase() testCase {
 			GoName:       "Equal",
 			GoImportPath: "gotest.tools/v3/assert",
 		})
+		assertDeepEqual := f.QualifiedGoIdent(protogen.GoIdent{
+			GoName:       "DeepEqual",
+			GoImportPath: "gotest.tools/v3/assert",
+		})
 		assertNilError := f.QualifiedGoIdent(protogen.GoIdent{
 			GoName:       "NilError",
 			GoImportPath: "gotest.tools/v3/assert",
+		})
+		protocmpTransform := f.QualifiedGoIdent(protogen.GoIdent{
+			GoName:       "Transform",
+			GoImportPath: "google.golang.org/protobuf/testing/protocmp",
 		})
 		statusCode := f.QualifiedGoIdent(protogen.GoIdent{
 			GoName:       "Code",
@@ -100,6 +109,27 @@ func (r *resourceGenerator) createTestCase() testCase {
 			m.Generate(f, "msg", "err", ":=")
 			f.P(assertNilError, "(t, err)")
 			f.P(assertCheck, "(t, ", timeSince, "(msg.CreateTime.AsTime()) < ", timeSecond, ")")
+			f.P("})")
+		}
+
+		if hasGet && !isLRO {
+			f.P()
+			f.P("// The created resource should be persisted and reachable with Get.")
+			f.P("t.Run(\"persisted\", func(t *", testingT, ") {")
+			f.P("fx.maybeSkip(t)")
+			methodCreate{
+				resource: r.resource,
+				method:   createMethod,
+				parent:   "parent",
+			}.Generate(f, "msg", "err", ":=")
+			f.P(assertNilError, "(t, err)")
+			methodGet{
+				resource: r.resource,
+				method:   getMethod,
+				name:     "msg.Name",
+			}.Generate(f, "persisted", "err", ":=")
+			f.P(assertNilError, "(t, err)")
+			f.P(assertDeepEqual, "(t, msg, persisted, ", protocmpTransform, "())")
 			f.P("})")
 		}
 
