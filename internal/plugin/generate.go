@@ -3,13 +3,11 @@ package plugin
 import (
 	"fmt"
 	"path/filepath"
-	"sort"
 
-	"go.einride.tech/aip/reflect/aipreflect"
-	"go.einride.tech/aip/reflect/aipregistry"
+	"github.com/einride/protoc-gen-go-aiptest/internal/xrange"
+	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/reflect/protoreflect"
-	"google.golang.org/protobuf/reflect/protoregistry"
 )
 
 const (
@@ -18,15 +16,7 @@ const (
 )
 
 func Generate(plugin *protogen.Plugin) error {
-	protoRegistry, err := protoRegistryFromPlugin(plugin)
-	if err != nil {
-		return err
-	}
-	aipRegistry, err := aipregistry.NewResources(protoRegistry)
-	if err != nil {
-		return fmt.Errorf("initialize AIP registry: %w", err)
-	}
-
+	pkgResources := findResourcesPerPackage(plugin)
 	for _, file := range plugin.Files {
 		if len(file.Services) == 0 || !file.Generate {
 			continue
@@ -35,18 +25,34 @@ func Generate(plugin *protogen.Plugin) error {
 		writeHeader(file, f)
 
 		for _, service := range file.Services {
-			resources := findServiceResources(aipRegistry, service.Desc.FullName())
+			resources := pkgResources[file.Desc.Package()]
 			if len(resources) == 0 {
+				// no resources in this package.
 				continue
 			}
-			messages, err := findResourceMessages(plugin, resources)
-			if err != nil {
-				return err
+			serviceResources := make([]resource, 0, len(resources))
+			for _, r := range resources {
+				if hasAnyStandardMethodFor(service.Desc, r.descriptor) {
+					serviceResources = append(serviceResources, r)
+				}
+			}
+			if len(serviceResources) == 0 {
+				continue
+			}
+			ms := make([]*protogen.Message, 0, len(serviceResources))
+			rs := make([]*annotations.ResourceDescriptor, 0, len(serviceResources))
+			for _, serviceResource := range serviceResources {
+				rs = append(rs, serviceResource.descriptor)
+				m, err := protogenMessage(plugin, serviceResource.message.FullName())
+				if err != nil {
+					return err
+				}
+				ms = append(ms, m)
 			}
 			generator := serviceGenerator{
 				service:   service,
-				resources: resources,
-				messages:  messages,
+				resources: rs,
+				messages:  ms,
 			}
 			if err := generator.Generate(f); err != nil {
 				return err
@@ -74,58 +80,39 @@ func writeHeader(file *protogen.File, f *protogen.GeneratedFile) {
 	f.P()
 }
 
-func protoRegistryFromPlugin(plugin *protogen.Plugin) (*protoregistry.Files, error) {
-	var protoReg protoregistry.Files
-	for _, file := range plugin.Files {
-		if err := protoReg.RegisterFile(file.Desc); err != nil {
-			return nil, fmt.Errorf("register proto file: %w", err)
-		}
-	}
-	return &protoReg, nil
-}
-
-func findServiceResources(
-	resources *aipregistry.Resources,
-	service protoreflect.FullName,
-) []*aipreflect.ResourceDescriptor {
-	var found []*aipreflect.ResourceDescriptor
-	resources.RangeResources(func(descriptor *aipreflect.ResourceDescriptor) bool {
-		for _, method := range descriptor.Methods {
-			if method.Parent() == service {
-				found = append(found, descriptor)
-				return true
-			}
-		}
-		return true
-	})
-	sort.Slice(found, func(i, j int) bool {
-		return found[i].Type < found[j].Type
-	})
-	return found
-}
-
-func findResourceMessages(
-	plugin *protogen.Plugin,
-	resources []*aipreflect.ResourceDescriptor,
-) ([]*protogen.Message, error) {
-	allMessages := allPluginMessages(plugin)
-	msgs := make([]*protogen.Message, 0, len(resources))
-	for _, resource := range resources {
-		msg, ok := allMessages[resource.Message]
-		if !ok {
-			return nil, fmt.Errorf("found no message descriptor for resource '%s'", resource.Type.Type())
-		}
-		msgs = append(msgs, msg)
-	}
-	return msgs, nil
-}
-
-func allPluginMessages(plugin *protogen.Plugin) map[protoreflect.FullName]*protogen.Message {
-	msgs := make(map[protoreflect.FullName]*protogen.Message)
+func protogenMessage(plugin *protogen.Plugin, name protoreflect.FullName) (*protogen.Message, error) {
 	for _, file := range plugin.Files {
 		for _, message := range file.Messages {
-			msgs[message.Desc.FullName()] = message
+			if message.Desc.FullName() == name {
+				return message, nil
+			}
 		}
 	}
-	return msgs
+	return nil, fmt.Errorf("no message named '%s' in plugin", name)
+}
+
+type resource struct {
+	message    protoreflect.MessageDescriptor
+	descriptor *annotations.ResourceDescriptor
+}
+
+func findResourcesPerPackage(plugin *protogen.Plugin) map[protoreflect.FullName][]resource {
+	resources := make(map[protoreflect.FullName][]resource)
+	for _, file := range plugin.Files {
+		pkg := file.Desc.Package()
+		xrange.RangeResourceDescriptors(
+			file.Desc,
+			func(m protoreflect.MessageDescriptor, r *annotations.ResourceDescriptor) {
+				// ignore forwarded resource descriptors
+				if m == nil {
+					return
+				}
+				resources[pkg] = append(resources[pkg], resource{
+					message:    m,
+					descriptor: r,
+				})
+			},
+		)
+	}
+	return resources
 }

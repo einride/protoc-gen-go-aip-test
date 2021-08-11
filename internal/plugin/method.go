@@ -2,11 +2,12 @@ package plugin
 
 import (
 	"go.einride.tech/aip/reflect/aipreflect"
+	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
 type methodCreate struct {
-	resource *aipreflect.ResourceDescriptor
+	resource *annotations.ResourceDescriptor
 	method   *protogen.Method
 
 	parent         string
@@ -20,17 +21,18 @@ func (m *methodCreate) Generate(f *protogen.GeneratedFile, response string, err 
 		f.P("Parent: ", m.parent, ",")
 	}
 
+	upper := aipreflect.GrammaticalName(m.resource.GetSingular()).UpperCamelCase()
 	switch {
 	case m.message != "":
-		f.P(m.resource.Singular.UpperCamelCase(), ": ", m.message, ",")
+		f.P(upper, ": ", m.message, ",")
 	case !hasParent(m.resource):
-		f.P(m.resource.Singular.UpperCamelCase(), ": fx.Create(),")
+		f.P(upper, ": fx.Create(),")
 	default:
-		f.P(m.resource.Singular.UpperCamelCase(), ": fx.Create(", m.parent, "),")
+		f.P(upper, ": fx.Create(", m.parent, "),")
 	}
 
-	if hasUserSettableID(m.resource, m.method.Desc) && m.userSettableID != "" {
-		f.P(m.resource.Singular.UpperCamelCase(), "Id: ", m.userSettableID, ",")
+	if m.userSettableID != "" && hasUserSettableIDField(m.resource, m.method.Input.Desc) {
+		f.P(upper, "Id: ", m.userSettableID, ",")
 	}
 	f.P("})")
 }

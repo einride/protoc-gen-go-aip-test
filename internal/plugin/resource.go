@@ -4,12 +4,13 @@ import (
 	"strconv"
 
 	"go.einride.tech/aip/reflect/aipreflect"
+	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
 type resourceGenerator struct {
 	service  *protogen.Service
-	resource *aipreflect.ResourceDescriptor
+	resource *annotations.ResourceDescriptor
 	message  *protogen.Message
 }
 
@@ -23,6 +24,16 @@ func (r *resourceGenerator) Generate(f *protogen.GeneratedFile) error {
 	return nil
 }
 
+func (r *resourceGenerator) standardMethod(methodType aipreflect.MethodType) (*protogen.Method, bool) {
+	methodName := inferMethodName(r.resource, methodType)
+	for _, method := range r.service.Methods {
+		if method.Desc.Name() == methodName {
+			return method, true
+		}
+	}
+	return nil, false
+}
+
 func (r *resourceGenerator) generateFixture(f *protogen.GeneratedFile) {
 	context := f.QualifiedGoIdent(protogen.GoIdent{
 		GoName:       "Context",
@@ -33,7 +44,7 @@ func (r *resourceGenerator) generateFixture(f *protogen.GeneratedFile) {
 		GoImportPath: r.service.Methods[0].Input.GoIdent.GoImportPath,
 	})
 
-	f.P("type ", r.resource.Type.Type(), " struct {")
+	f.P("type ", resourceType(r.resource), " struct {")
 	f.P("ctx ", context)
 	f.P("service ", service)
 	f.P("currParent int")
@@ -46,7 +57,7 @@ func (r *resourceGenerator) generateFixture(f *protogen.GeneratedFile) {
 		f.P("// provided the test will fail.")
 		f.P("Parents []string")
 	}
-	_, hasCreate := r.resource.Methods[aipreflect.MethodTypeCreate]
+	_, hasCreate := r.standardMethod(aipreflect.MethodTypeCreate)
 	if hasCreate {
 		f.P("// Create should return a resource which is valid to create, ie.")
 		f.P("// all required fields set.")
@@ -72,7 +83,7 @@ func (r *resourceGenerator) generateTestMethod(f *protogen.GeneratedFile, testCa
 		GoImportPath: "testing",
 	})
 
-	f.P("func (fx *", r.resource.Type.Type(), ") test(t *", testingT, ") {")
+	f.P("func (fx *", resourceType(r.resource), ") test(t *", testingT, ") {")
 	for _, tc := range testCases {
 		if !tc.enabled {
 			continue
@@ -92,7 +103,7 @@ func (r *resourceGenerator) generateTestCases(f *protogen.GeneratedFile, testCas
 		if !tc.enabled {
 			continue
 		}
-		f.P("func (fx *", r.resource.Type.Type(), ")", tc.FuncName(), "(t *", testingT, ") {")
+		f.P("func (fx *", resourceType(r.resource), ")", tc.FuncName(), "(t *", testingT, ") {")
 		tc.fn(f)
 		f.P("}")
 		f.P()
@@ -108,7 +119,7 @@ func (r *resourceGenerator) generateSkip(f *protogen.GeneratedFile) {
 		GoName:       "Contains",
 		GoImportPath: "strings",
 	})
-	f.P("func (fx *", r.resource.Type.Type(), ") maybeSkip(t *", testingT, ") {")
+	f.P("func (fx *", resourceType(r.resource), ") maybeSkip(t *", testingT, ") {")
 	f.P("for _, skip := range fx.Skip {")
 	f.P("if ", stringsContains, "(t.Name(), skip) {")
 	f.P("t.Skip(\"skipped because of .Skip\")")
@@ -126,7 +137,7 @@ func (r *resourceGenerator) generateParentMethods(f *protogen.GeneratedFile) {
 		GoName:       "T",
 		GoImportPath: "testing",
 	})
-	f.P("func (fx *", r.resource.Type.Type(), ") nextParent(t *", testingT, ", pristine bool) string {")
+	f.P("func (fx *", resourceType(r.resource), ") nextParent(t *", testingT, ", pristine bool) string {")
 	f.P("if pristine {")
 	f.P("fx.currParent++")
 	f.P("}")
@@ -136,7 +147,7 @@ func (r *resourceGenerator) generateParentMethods(f *protogen.GeneratedFile) {
 	f.P("return fx.Parents[fx.currParent]")
 	f.P("}")
 	f.P()
-	f.P("func (fx *", r.resource.Type.Type(), ") peekNextParent(t *", testingT, ") string {")
+	f.P("func (fx *", resourceType(r.resource), ") peekNextParent(t *", testingT, ") string {")
 	f.P("next := fx.currParent + 1")
 	f.P("if next >= len(fx.Parents) {")
 	f.P("t.Fatal(\"need at least\", next +1,  \"parents\")")

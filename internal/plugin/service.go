@@ -3,13 +3,13 @@ package plugin
 import (
 	"strconv"
 
-	"go.einride.tech/aip/reflect/aipreflect"
+	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
 type serviceGenerator struct {
 	service   *protogen.Service
-	resources []*aipreflect.ResourceDescriptor
+	resources []*annotations.ResourceDescriptor
 	messages  []*protogen.Message
 }
 
@@ -62,9 +62,9 @@ func (s *serviceGenerator) generateTestMethods(f *protogen.GeneratedFile) {
 	})
 	serviceFx := s.service.GoName
 	for _, resource := range s.resources {
-		resourceFx := resource.Type.Type()
+		resourceFx := resourceType(resource)
 		f.P("func (fx *", serviceFx, ") Test", resourceFx, "(ctx ", context, ", options ", resourceFx, ") {")
-		f.P("fx.T.Run(", strconv.Quote(resource.Type.Type()), ", func(t *", testingT, ") {")
+		f.P("fx.T.Run(", strconv.Quote(resourceType(resource)), ", func(t *", testingT, ") {")
 		f.P("options.ctx = ctx")
 		f.P("options.service = fx.Server")
 		f.P("options.test(t)")

@@ -13,11 +13,7 @@ import (
 )
 
 func (r *resourceGenerator) createTestCase() testCase {
-	createMethodName, err := r.resource.InferMethodName(aipreflect.MethodTypeCreate)
-	if err != nil {
-		return disabledTestCase()
-	}
-	createMethod, ok := findMethod(r.service, createMethodName)
+	createMethod, ok := r.standardMethod(aipreflect.MethodTypeCreate)
 	if !ok {
 		return disabledTestCase()
 	}
@@ -107,7 +103,7 @@ func (r *resourceGenerator) createTestCase() testCase {
 			f.P("})")
 		}
 
-		if hasUserSettableID(r.resource, createMethod.Desc) && !isLRO {
+		if hasUserSettableIDField(r.resource, createMethod.Input.Desc) && !isLRO {
 			f.P()
 			f.P("// If method support user settable IDs, when set the resource should")
 			f.P("// returned with the provided ID.")
@@ -125,7 +121,7 @@ func (r *resourceGenerator) createTestCase() testCase {
 			f.P("})")
 		}
 
-		if hasUserSettableID(r.resource, createMethod.Desc) && !isLRO {
+		if hasUserSettableIDField(r.resource, createMethod.Input.Desc) && !isLRO {
 			f.P()
 			f.P("// If method support user settable IDs and the same ID is reused")
 			f.P("// the method should return AlreadyExists.")
