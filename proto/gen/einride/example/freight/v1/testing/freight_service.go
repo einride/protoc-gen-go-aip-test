@@ -53,6 +53,7 @@ type Shipper struct {
 
 func (fx *Shipper) test(t *testing.T) {
 	t.Run("Create", fx.testCreate)
+	t.Run("Get", fx.testGet)
 }
 
 func (fx *Shipper) testCreate(t *testing.T) {
@@ -166,6 +167,53 @@ func (fx *Shipper) testCreate(t *testing.T) {
 	_ = codes.InvalidArgument
 }
 
+func (fx *Shipper) testGet(t *testing.T) {
+	// Standard methods: Get
+	// https://google.aip.dev/131
+	created00, err := fx.service.CreateShipper(fx.ctx, &v1.CreateShipperRequest{
+		Shipper: fx.Create(),
+	})
+	assert.NilError(t, err)
+
+	// Method should fail with InvalidArgument if no name is provided.
+	t.Run("missing name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.GetShipper(fx.ctx, &v1.GetShipperRequest{
+			Name: "",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument is provided name is not valid.
+	t.Run("invalid name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.GetShipper(fx.ctx, &v1.GetShipperRequest{
+			Name: "invalid resource name",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Resource should be returned without errors if it exists.
+	t.Run("exists", func(t *testing.T) {
+		fx.maybeSkip(t)
+		msg, err := fx.service.GetShipper(fx.ctx, &v1.GetShipperRequest{
+			Name: created00.Name,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(t, msg, created00, protocmp.Transform())
+	})
+
+	// Method should fail with NotFound if the resource does not exist.
+	t.Run("not found", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.GetShipper(fx.ctx, &v1.GetShipperRequest{
+			Name: created00.Name + "notfound",
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+	_ = codes.NotFound
+}
+
 func (fx *Shipper) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
@@ -196,6 +244,7 @@ type Site struct {
 
 func (fx *Site) test(t *testing.T) {
 	t.Run("Create", fx.testCreate)
+	t.Run("Get", fx.testGet)
 }
 
 func (fx *Site) testCreate(t *testing.T) {
@@ -291,6 +340,56 @@ func (fx *Site) testCreate(t *testing.T) {
 	_ = time.Second
 	_ = strings.HasSuffix
 	_ = codes.InvalidArgument
+}
+
+func (fx *Site) testGet(t *testing.T) {
+	// Standard methods: Get
+	// https://google.aip.dev/131
+
+	parent := fx.nextParent(t, false)
+	created00, err := fx.service.CreateSite(fx.ctx, &v1.CreateSiteRequest{
+		Parent: parent,
+		Site:   fx.Create(parent),
+	})
+	assert.NilError(t, err)
+
+	// Method should fail with InvalidArgument if no name is provided.
+	t.Run("missing name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.GetSite(fx.ctx, &v1.GetSiteRequest{
+			Name: "",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument is provided name is not valid.
+	t.Run("invalid name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.GetSite(fx.ctx, &v1.GetSiteRequest{
+			Name: "invalid resource name",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Resource should be returned without errors if it exists.
+	t.Run("exists", func(t *testing.T) {
+		fx.maybeSkip(t)
+		msg, err := fx.service.GetSite(fx.ctx, &v1.GetSiteRequest{
+			Name: created00.Name,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(t, msg, created00, protocmp.Transform())
+	})
+
+	// Method should fail with NotFound if the resource does not exist.
+	t.Run("not found", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.GetSite(fx.ctx, &v1.GetSiteRequest{
+			Name: created00.Name + "notfound",
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+	_ = codes.NotFound
 }
 
 func (fx *Site) nextParent(t *testing.T, pristine bool) string {

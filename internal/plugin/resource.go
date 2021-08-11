@@ -160,5 +160,6 @@ func (r *resourceGenerator) generateParentMethods(f *protogen.GeneratedFile) {
 func (r *resourceGenerator) collectTestCases() []testCase {
 	return []testCase{
 		r.createTestCase(),
+		r.getTestCase(),
 	}
 }
