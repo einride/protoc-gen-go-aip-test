@@ -59,12 +59,22 @@ func (r *resourceGenerator) generateFixture(f *protogen.GeneratedFile) {
 	}
 	_, hasCreate := r.standardMethod(aipreflect.MethodTypeCreate)
 	if hasCreate {
-		f.P("// Create should return a resource which is valid to create, ie.")
+		f.P("// Create should return a resource which is valid to create, i.e.")
 		f.P("// all required fields set.")
 		if hasParent(r.resource) {
 			f.P("Create func(parent string) *", r.message.GoIdent)
 		} else {
 			f.P("Create func() *", r.message.GoIdent)
+		}
+	}
+	_, hasUpdate := r.standardMethod(aipreflect.MethodTypeUpdate)
+	if hasUpdate {
+		f.P("// Update should return a resource which is valid to update, i.e.")
+		f.P("// all required fields set.")
+		if hasParent(r.resource) {
+			f.P("Update func(parent string) *", r.message.GoIdent)
+		} else {
+			f.P("Update func() *", r.message.GoIdent)
 		}
 	}
 
@@ -162,5 +172,6 @@ func (r *resourceGenerator) collectTestCases() []testCase {
 		r.createTestCase(),
 		r.getTestCase(),
 		r.batchGetTestCase(),
+		r.updateTestCase(),
 	}
 }
