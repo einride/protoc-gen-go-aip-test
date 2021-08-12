@@ -271,6 +271,7 @@ func (r *resourceGenerator) createTestCase() testCase {
 		f.P("_ = ", timeSecond)
 		f.P("_ = ", stringsHasSuffix)
 		f.P("_ = ", codesInvalidArgument)
+		f.P("_ = ", protocmpTransform)
 	})
 }
 

@@ -23,6 +23,7 @@ func Generate(plugin *protogen.Plugin) error {
 		}
 		f := plugin.NewGeneratedFile(filePath(file), goImportPath(file))
 		writeHeader(file, f)
+		f.Skip()
 
 		for _, service := range file.Services {
 			resources := pkgResources[file.Desc.Package()]
@@ -57,6 +58,7 @@ func Generate(plugin *protogen.Plugin) error {
 			if err := generator.Generate(f); err != nil {
 				return err
 			}
+			f.Unskip()
 		}
 	}
 	return nil

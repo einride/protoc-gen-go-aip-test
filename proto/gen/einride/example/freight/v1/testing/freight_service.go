@@ -165,6 +165,7 @@ func (fx *Shipper) testCreate(t *testing.T) {
 	_ = time.Second
 	_ = strings.HasSuffix
 	_ = codes.InvalidArgument
+	_ = protocmp.Transform
 }
 
 func (fx *Shipper) testGet(t *testing.T) {
@@ -212,6 +213,7 @@ func (fx *Shipper) testGet(t *testing.T) {
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
 	})
 	_ = codes.NotFound
+	_ = protocmp.Transform
 }
 
 func (fx *Shipper) maybeSkip(t *testing.T) {
@@ -341,6 +343,7 @@ func (fx *Site) testCreate(t *testing.T) {
 	_ = time.Second
 	_ = strings.HasSuffix
 	_ = codes.InvalidArgument
+	_ = protocmp.Transform
 }
 
 func (fx *Site) testGet(t *testing.T) {
@@ -391,6 +394,7 @@ func (fx *Site) testGet(t *testing.T) {
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
 	})
 	_ = codes.NotFound
+	_ = protocmp.Transform
 }
 
 func (fx *Site) testBatchGet(t *testing.T) {
@@ -545,6 +549,7 @@ func (fx *Site) testBatchGet(t *testing.T) {
 	})
 
 	_ = codes.NotFound
+	_ = protocmp.Transform
 }
 
 func (fx *Site) nextParent(t *testing.T, pristine bool) string {

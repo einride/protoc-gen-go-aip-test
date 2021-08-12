@@ -119,5 +119,6 @@ func (r *resourceGenerator) getTestCase() testCase {
 		// TODO: add test for supplying wildcard as name
 
 		f.P("_ = ", codesNotFound)
+		f.P("_ = ", protocmpTransform)
 	})
 }
