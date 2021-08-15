@@ -5,6 +5,7 @@ package examplefreightv1test
 import (
 	context "context"
 	v1 "github.com/einride/protoc-gen-go-aiptest/proto/gen/einride/example/freight/v1"
+	cmpopts "github.com/google/go-cmp/cmp/cmpopts"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
 	proto "google.golang.org/protobuf/proto"
@@ -60,6 +61,7 @@ func (fx *Shipper) test(t *testing.T) {
 	t.Run("Create", fx.testCreate)
 	t.Run("Get", fx.testGet)
 	t.Run("Update", fx.testUpdate)
+	t.Run("List", fx.testList)
 }
 
 func (fx *Shipper) testCreate(t *testing.T) {
@@ -345,6 +347,42 @@ func (fx *Shipper) testUpdate(t *testing.T) {
 	_ = protocmp.Transform
 }
 
+func (fx *Shipper) testList(t *testing.T) {
+	// Standard methods: List
+	// https://google.aip.dev/132
+	const n = 15
+
+	parent02msgs := make([]*v1.Shipper, n)
+	for i := 0; i < n; i++ {
+		msg, err := fx.service.CreateShipper(fx.ctx, &v1.CreateShipperRequest{
+			Shipper: fx.Create(),
+		})
+		assert.NilError(t, err)
+		parent02msgs[i] = msg
+	}
+
+	// Method should fail with InvalidArgument is provided page token is not valid.
+	t.Run("invalid page token", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.ListShippers(fx.ctx, &v1.ListShippersRequest{
+			PageToken: "invalid page token",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument is provided page size is negative.
+	t.Run("negative page size", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.ListShippers(fx.ctx, &v1.ListShippersRequest{
+			PageSize: -10,
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+	_ = codes.NotFound
+	_ = protocmp.Transform
+	_ = cmpopts.SortSlices
+}
+
 func (fx *Shipper) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
@@ -381,6 +419,7 @@ func (fx *Site) test(t *testing.T) {
 	t.Run("Get", fx.testGet)
 	t.Run("BatchGet", fx.testBatchGet)
 	t.Run("Update", fx.testUpdate)
+	t.Run("List", fx.testList)
 }
 
 func (fx *Site) testCreate(t *testing.T) {
@@ -797,6 +836,157 @@ func (fx *Site) testUpdate(t *testing.T) {
 	})
 	_ = codes.NotFound
 	_ = protocmp.Transform
+}
+
+func (fx *Site) testList(t *testing.T) {
+	// Standard methods: List
+	// https://google.aip.dev/132
+	parent01 := fx.nextParent(t, false)
+	parent02 := fx.nextParent(t, true)
+
+	const n = 15
+
+	parent01msgs := make([]*v1.Site, n)
+	for i := 0; i < n; i++ {
+		msg, err := fx.service.CreateSite(fx.ctx, &v1.CreateSiteRequest{
+			Parent: parent01,
+			Site:   fx.Create(parent01),
+		})
+		assert.NilError(t, err)
+		parent01msgs[i] = msg
+	}
+
+	parent02msgs := make([]*v1.Site, n)
+	for i := 0; i < n; i++ {
+		msg, err := fx.service.CreateSite(fx.ctx, &v1.CreateSiteRequest{
+			Parent: parent02,
+			Site:   fx.Create(parent02),
+		})
+		assert.NilError(t, err)
+		parent02msgs[i] = msg
+	}
+
+	// Method should fail with InvalidArgument is provided parent is not valid.
+	t.Run("invalid parent", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.ListSites(fx.ctx, &v1.ListSitesRequest{
+			Parent: "invalid parent",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument is provided page token is not valid.
+	t.Run("invalid page token", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.ListSites(fx.ctx, &v1.ListSitesRequest{
+			Parent:    parent01,
+			PageToken: "invalid page token",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument is provided page size is negative.
+	t.Run("negative page size", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.ListSites(fx.ctx, &v1.ListSitesRequest{
+			Parent:   parent01,
+			PageSize: -10,
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// If parent is provided the method must only return resources
+	// under that parent.
+	t.Run("isolation", func(t *testing.T) {
+		fx.maybeSkip(t)
+		response, err := fx.service.ListSites(fx.ctx, &v1.ListSitesRequest{
+			Parent:   parent02,
+			PageSize: 999,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(
+			t,
+			parent02msgs,
+			response.Sites,
+			cmpopts.SortSlices(func(a, b *v1.Site) bool {
+				return a.Name < b.Name
+			}),
+			protocmp.Transform(),
+		)
+	})
+
+	t.Run("pagination", func(t *testing.T) {
+		fx.maybeSkip(t)
+
+		// If there are no more resources, next_page_token should be unset.
+		t.Run("next page token", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.service.ListSites(fx.ctx, &v1.ListSitesRequest{
+				Parent:   parent02,
+				PageSize: 999,
+			})
+			assert.NilError(t, err)
+			assert.Equal(t, "", response.NextPageToken)
+		})
+
+		// Listing resource one by one should eventually return all resources created.
+		t.Run("one by one", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msgs := make([]*v1.Site, 0, n)
+			var nextPageToken string
+			for {
+				response, err := fx.service.ListSites(fx.ctx, &v1.ListSitesRequest{
+					Parent:   parent02,
+					PageSize: 1,
+				})
+				assert.NilError(t, err)
+				assert.Equal(t, 1, len(response.Sites))
+				msgs = append(msgs, response.Sites...)
+				nextPageToken = response.NextPageToken
+				if nextPageToken == "" {
+					break
+				}
+			}
+			assert.DeepEqual(
+				t,
+				parent02msgs,
+				msgs,
+				cmpopts.SortSlices(func(a, b *v1.Site) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
+	})
+
+	// Method should not return deleted resources.
+	t.Run("deleted", func(t *testing.T) {
+		fx.maybeSkip(t)
+		const nDelete = 5
+		for i := 0; i < nDelete; i++ {
+			_, err := fx.service.DeleteSite(fx.ctx, &v1.DeleteSiteRequest{
+				Name: parent02msgs[i].Name,
+			})
+			assert.NilError(t, err)
+		}
+		response, err := fx.service.ListSites(fx.ctx, &v1.ListSitesRequest{
+			Parent:   parent02,
+			PageSize: 9999,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(
+			t,
+			parent02msgs[nDelete:],
+			response.Sites,
+			cmpopts.SortSlices(func(a, b *v1.Site) bool {
+				return a.Name < b.Name
+			}),
+			protocmp.Transform(),
+		)
+	})
+	_ = codes.NotFound
+	_ = protocmp.Transform
+	_ = cmpopts.SortSlices
 }
 
 func (fx *Site) nextParent(t *testing.T, pristine bool) string {

@@ -173,5 +173,6 @@ func (r *resourceGenerator) collectTestCases() []testCase {
 		r.getTestCase(),
 		r.batchGetTestCase(),
 		r.updateTestCase(),
+		r.listTestCase(),
 	}
 }

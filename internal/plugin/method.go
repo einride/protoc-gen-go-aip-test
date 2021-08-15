@@ -114,3 +114,39 @@ func (m methodUpdate) Generate(f *protogen.GeneratedFile, response string, err s
 	}
 	f.P("})")
 }
+
+type methodList struct {
+	resource *annotations.ResourceDescriptor
+	method   *protogen.Method
+
+	parent    string
+	pageSize  string
+	pageToken string
+}
+
+func (m methodList) Generate(f *protogen.GeneratedFile, response string, err string, assign string) {
+	f.P(response, ", ", err, " ", assign, " fx.service.", m.method.GoName, "(fx.ctx, &", m.method.Input.GoIdent, "{")
+	if hasParent(m.resource) {
+		f.P("Parent: ", m.parent, ",")
+	}
+	if m.pageSize != "" {
+		f.P("PageSize: ", m.pageSize, ",")
+	}
+	if m.pageToken != "" {
+		f.P("PageToken: ", m.pageToken, ",")
+	}
+	f.P("})")
+}
+
+type methodDelete struct {
+	resource *annotations.ResourceDescriptor
+	method   *protogen.Method
+
+	name string
+}
+
+func (m methodDelete) Generate(f *protogen.GeneratedFile, response string, err string, assign string) {
+	f.P(response, ", ", err, " ", assign, " fx.service.", m.method.GoName, "(fx.ctx, &", m.method.Input.GoIdent, "{")
+	f.P("Name: ", m.name, ",")
+	f.P("})")
+}
