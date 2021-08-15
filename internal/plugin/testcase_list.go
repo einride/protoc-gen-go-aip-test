@@ -67,7 +67,6 @@ func (r *resourceGenerator) listTestCase() testCase {
 			f.P("parent01 := fx.nextParent(t, false)")
 			f.P("parent02 := fx.nextParent(t, true)")
 			f.P()
-		} else {
 		}
 
 		// create 15 under each parent
@@ -189,10 +188,11 @@ func (r *resourceGenerator) listTestCase() testCase {
 			f.P("var nextPageToken string")
 			f.P("for {")
 			methodList{
-				resource: r.resource,
-				method:   listMethod,
-				parent:   "parent02",
-				pageSize: "1",
+				resource:  r.resource,
+				method:    listMethod,
+				parent:    "parent02",
+				pageToken: "nextPageToken",
+				pageSize:  "1",
 			}.Generate(f, "response", "err", ":=")
 			f.P(assertNilError, "(t, err)")
 			f.P(assertEqual, "(t, 1, len(response.", responseResources, "))")
@@ -247,7 +247,6 @@ func (r *resourceGenerator) listTestCase() testCase {
 			f.P(protocmpTransform, "(),")
 			f.P(")")
 			f.P("})")
-
 		}
 
 		f.P("_ = ", codesNotFound)

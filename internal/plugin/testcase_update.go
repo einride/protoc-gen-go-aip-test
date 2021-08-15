@@ -227,5 +227,6 @@ func (r *resourceGenerator) updateTestCase() testCase {
 
 		f.P("_ = ", codesNotFound)
 		f.P("_ = ", protocmpTransform)
+		f.P("_ = ", protoClone)
 	})
 }

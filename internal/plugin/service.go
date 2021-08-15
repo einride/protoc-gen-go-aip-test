@@ -42,7 +42,7 @@ func (s *serviceGenerator) generateFixture(f *protogen.GeneratedFile) {
 	})
 
 	f.P("type ", s.service.GoName, " struct {")
-	f.P("T ", testingT)
+	f.P("T *", testingT)
 	f.P("// Server to test.")
 	f.P("Server  ", service)
 	f.P()

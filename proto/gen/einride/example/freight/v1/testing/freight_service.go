@@ -18,7 +18,7 @@ import (
 )
 
 type FreightService struct {
-	T testing.T
+	T *testing.T
 	// Server to test.
 	Server v1.FreightServiceServer
 }
@@ -345,6 +345,7 @@ func (fx *Shipper) testUpdate(t *testing.T) {
 	})
 	_ = codes.NotFound
 	_ = protocmp.Transform
+	_ = proto.Clone
 }
 
 func (fx *Shipper) testList(t *testing.T) {
@@ -836,6 +837,7 @@ func (fx *Site) testUpdate(t *testing.T) {
 	})
 	_ = codes.NotFound
 	_ = protocmp.Transform
+	_ = proto.Clone
 }
 
 func (fx *Site) testList(t *testing.T) {
@@ -936,8 +938,9 @@ func (fx *Site) testList(t *testing.T) {
 			var nextPageToken string
 			for {
 				response, err := fx.service.ListSites(fx.ctx, &v1.ListSitesRequest{
-					Parent:   parent02,
-					PageSize: 1,
+					Parent:    parent02,
+					PageSize:  1,
+					PageToken: nextPageToken,
 				})
 				assert.NilError(t, err)
 				assert.Equal(t, 1, len(response.Sites))
