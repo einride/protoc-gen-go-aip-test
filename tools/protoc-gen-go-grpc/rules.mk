@@ -1,5 +1,5 @@
 grpc_go_cwd := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
-protoc_gen_go_grpc := $(grpc_go_cwd)/bin/protoc-gen-go_grpc
+protoc_gen_go_grpc := $(grpc_go_cwd)/bin/protoc-gen-go-grpc
 export PATH := $(dir $(protoc_gen_go_grpc)):$(PATH)
 
 $(protoc_gen_go_grpc): $(grpc_go_cwd)/../../go.mod
