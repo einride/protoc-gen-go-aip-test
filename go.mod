@@ -1,4 +1,4 @@
-module github.com/einride/protoc-gen-go-aiptest
+module github.com/einride/protoc-gen-go-aip-test
 
 go 1.15
 

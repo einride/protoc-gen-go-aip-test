@@ -1,7 +1,7 @@
 package plugin
 
 import (
-	"github.com/einride/protoc-gen-go-aiptest/internal/xrange"
+	"github.com/einride/protoc-gen-go-aip-test/internal/xrange"
 	"go.einride.tech/aip/fieldbehavior"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/reflect/protopath"

@@ -34,16 +34,16 @@ buf-lint: $(buf)
 	$(info [$@] linting protobuf schemas...)
 	@$(buf) lint
 
-protoc_gen_go_aiptest := ./bin/protoc-gen-go-aiptest
-export PATH := $(dir $(abspath $(protoc_gen_go_aiptest))):$(PATH)
+protoc_gen_go_aip_test := ./bin/protoc-gen-go-aip-test
+export PATH := $(dir $(abspath $(protoc_gen_go_aip_test))):$(PATH)
 
-.PHONY: $(protoc_gen_go_aiptest)
-$(protoc_gen_go_aiptest):
+.PHONY: $(protoc_gen_go_aip_test)
+$(protoc_gen_go_aip_test):
 	$(info [$@] building binary...)
 	@go build -o $@ .
 
 .PHONY: buf-generate
-buf-generate: $(buf) $(protoc_gen_go_aiptest) $(protoc_gen_go) $(protoc_gen_go_grpc)
+buf-generate: $(buf) $(protoc_gen_go_aip_test) $(protoc_gen_go) $(protoc_gen_go_grpc)
 	$(info [$@] generating protobuf stubs...)
 	@rm -rf proto/gen
 	@$(buf) generate --path proto/src/einride
