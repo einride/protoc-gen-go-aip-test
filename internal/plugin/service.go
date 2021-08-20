@@ -41,7 +41,7 @@ func (s *serviceGenerator) generateFixture(f *protogen.GeneratedFile) {
 		GoImportPath: s.service.Methods[0].Input.GoIdent.GoImportPath,
 	})
 
-	f.P("type ", s.service.GoName, " struct {")
+	f.P("type ", serviceTestSuiteName(s.service.Desc), " struct {")
 	f.P("T *", testingT)
 	f.P("// Server to test.")
 	f.P("Server  ", service)
@@ -60,9 +60,9 @@ func (s *serviceGenerator) generateTestMethods(f *protogen.GeneratedFile) {
 		GoName:       "T",
 		GoImportPath: "testing",
 	})
-	serviceFx := s.service.GoName
+	serviceFx := serviceTestSuiteName(s.service.Desc)
 	for _, resource := range s.resources {
-		resourceFx := resourceType(resource)
+		resourceFx := resourceTestSuiteConfigName(resource)
 		f.P("func (fx ", serviceFx, ") Test", resourceFx, "(ctx ", context, ", options ", resourceFx, ") {")
 		f.P("fx.T.Run(", strconv.Quote(resourceType(resource)), ", func(t *", testingT, ") {")
 		f.P("options.ctx = ctx")
