@@ -3,6 +3,10 @@ package plugin
 import (
 	"strconv"
 
+	"github.com/einride/protoc-gen-go-aip-test/internal/aiptest"
+	"github.com/einride/protoc-gen-go-aip-test/internal/ident"
+	"github.com/einride/protoc-gen-go-aip-test/internal/suite"
+	"github.com/einride/protoc-gen-go-aip-test/internal/util"
 	"go.einride.tech/aip/reflect/aipreflect"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/compiler/protogen"
@@ -16,22 +20,13 @@ type resourceGenerator struct {
 
 func (r *resourceGenerator) Generate(f *protogen.GeneratedFile) error {
 	r.generateFixture(f)
-	testCases := r.collectTestCases()
-	r.generateTestMethod(f, testCases)
-	r.generateTestCases(f, testCases)
+	r.generateTestMethod(f)
+	if err := r.generateTestCases(f); err != nil {
+		return err
+	}
 	r.generateParentMethods(f)
 	r.generateSkip(f)
 	return nil
-}
-
-func (r *resourceGenerator) standardMethod(methodType aipreflect.MethodType) (*protogen.Method, bool) {
-	methodName := inferMethodName(r.resource, methodType)
-	for _, method := range r.service.Methods {
-		if method.Desc.Name() == methodName {
-			return method, true
-		}
-	}
-	return nil, false
 }
 
 func (r *resourceGenerator) generateFixture(f *protogen.GeneratedFile) {
@@ -50,28 +45,28 @@ func (r *resourceGenerator) generateFixture(f *protogen.GeneratedFile) {
 	f.P("currParent int")
 	f.P()
 
-	if hasParent(r.resource) {
+	if util.HasParent(r.resource) {
 		f.P("// The parents to use when creating resources.")
 		f.P("// At least one parent needs to be set. Depending on methods available on the resource,")
 		f.P("// more may be required. If insufficient number of parents are")
 		f.P("// provided the test will fail.")
 		f.P("Parents []string")
 	}
-	_, hasCreate := r.standardMethod(aipreflect.MethodTypeCreate)
+	_, hasCreate := util.StandardMethod(r.service, r.resource, aipreflect.MethodTypeCreate)
 	if hasCreate {
 		f.P("// Create should return a resource which is valid to create, i.e.")
 		f.P("// all required fields set.")
-		if hasParent(r.resource) {
+		if util.HasParent(r.resource) {
 			f.P("Create func(parent string) *", r.message.GoIdent)
 		} else {
 			f.P("Create func() *", r.message.GoIdent)
 		}
 	}
-	_, hasUpdate := r.standardMethod(aipreflect.MethodTypeUpdate)
+	_, hasUpdate := util.StandardMethod(r.service, r.resource, aipreflect.MethodTypeUpdate)
 	if hasUpdate {
 		f.P("// Update should return a resource which is valid to update, i.e.")
 		f.P("// all required fields set.")
-		if hasParent(r.resource) {
+		if util.HasParent(r.resource) {
 			f.P("Update func(parent string) *", r.message.GoIdent)
 		} else {
 			f.P("Update func() *", r.message.GoIdent)
@@ -87,37 +82,86 @@ func (r *resourceGenerator) generateFixture(f *protogen.GeneratedFile) {
 	f.P()
 }
 
-func (r *resourceGenerator) generateTestMethod(f *protogen.GeneratedFile, testCases []testCase) {
+func (r *resourceGenerator) generateTestMethod(f *protogen.GeneratedFile) {
 	testingT := f.QualifiedGoIdent(protogen.GoIdent{
 		GoName:       "T",
 		GoImportPath: "testing",
 	})
 
 	f.P("func (fx *", resourceType(r.resource), ") test(t *", testingT, ") {")
-	for _, tc := range testCases {
-		if !tc.enabled {
-			continue
+	scope := suite.Scope{
+		Service:  r.service,
+		Resource: r.resource,
+		Message:  r.message,
+	}
+	for _, s := range aiptest.Suites {
+		if s.Enabled(scope) {
+			f.P("t.Run(", strconv.Quote(s.Name), ", fx.test", s.Name, ")")
 		}
-		f.P("t.Run(", strconv.Quote(tc.Name()), ", fx.", tc.FuncName(), ")")
 	}
 	f.P("}")
 	f.P()
 }
 
-func (r *resourceGenerator) generateTestCases(f *protogen.GeneratedFile, testCases []testCase) {
+func (r *resourceGenerator) generateTestCases(f *protogen.GeneratedFile) error {
 	testingT := f.QualifiedGoIdent(protogen.GoIdent{
 		GoName:       "T",
 		GoImportPath: "testing",
 	})
-	for _, tc := range testCases {
-		if !tc.enabled {
+	scope := suite.Scope{
+		Service:  r.service,
+		Resource: r.resource,
+		Message:  r.message,
+	}
+	for _, s := range aiptest.Suites {
+		if !s.Enabled(scope) {
 			continue
 		}
-		f.P("func (fx *", resourceType(r.resource), ")", tc.FuncName(), "(t *", testingT, ") {")
-		tc.fn(f)
+		f.P("func (fx *", resourceType(r.resource), ") test", s.Name, "(t *", testingT, ") {")
+		for _, t := range s.Tests {
+			if err := r.generateTestCase(f, t, scope); err != nil {
+				return err
+			}
+			f.P()
+		}
+		for _, group := range s.TestGroups {
+			if !group.Enabled(scope) {
+				continue
+			}
+			if err := group.GenerateBefore(f, scope); err != nil {
+				return err
+			}
+			for _, t := range group.Tests {
+				if err := r.generateTestCase(f, t, scope); err != nil {
+					return err
+				}
+				f.P()
+			}
+		}
 		f.P("}")
 		f.P()
 	}
+	return nil
+}
+
+func (r *resourceGenerator) generateTestCase(f *protogen.GeneratedFile, test suite.Test, scope suite.Scope) error {
+	testingT := f.QualifiedGoIdent(protogen.GoIdent{
+		GoName:       "T",
+		GoImportPath: "testing",
+	})
+	if !test.Enabled(scope) {
+		return nil
+	}
+	for _, line := range test.Doc {
+		f.P("// ", line)
+	}
+	f.P("t.Run(", strconv.Quote(test.Name), ", func(t *", testingT, ") {")
+	f.P(ident.FixtureMaybeSkip, "(t)")
+	if err := test.Generate(f, scope); err != nil {
+		return err
+	}
+	f.P("})")
+	return nil
 }
 
 func (r *resourceGenerator) generateSkip(f *protogen.GeneratedFile) {
@@ -140,7 +184,7 @@ func (r *resourceGenerator) generateSkip(f *protogen.GeneratedFile) {
 }
 
 func (r *resourceGenerator) generateParentMethods(f *protogen.GeneratedFile) {
-	if !hasParent(r.resource) {
+	if !util.HasParent(r.resource) {
 		return
 	}
 	testingT := f.QualifiedGoIdent(protogen.GoIdent{
@@ -165,15 +209,4 @@ func (r *resourceGenerator) generateParentMethods(f *protogen.GeneratedFile) {
 	f.P("return fx.Parents[next]")
 	f.P("}")
 	f.P()
-}
-
-func (r *resourceGenerator) collectTestCases() []testCase {
-	return []testCase{
-		r.createTestCase(),
-		r.getTestCase(),
-		r.batchGetTestCase(),
-		r.updateTestCase(),
-		r.listTestCase(),
-		r.searchTestCase(),
-	}
 }

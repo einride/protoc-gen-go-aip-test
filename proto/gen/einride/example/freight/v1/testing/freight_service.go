@@ -65,8 +65,6 @@ func (fx *Shipper) test(t *testing.T) {
 }
 
 func (fx *Shipper) testCreate(t *testing.T) {
-	// Standard methods: Create
-	// https://google.aip.dev/133
 
 	// Field create_time should be populated when the resource is created.
 	t.Run("create time", func(t *testing.T) {
@@ -93,7 +91,7 @@ func (fx *Shipper) testCreate(t *testing.T) {
 	})
 
 	// If method support user settable IDs, when set the resource should
-	// returned with the provided ID.
+	// be returned with the provided ID.
 	t.Run("user settable id", func(t *testing.T) {
 		fx.maybeSkip(t)
 		msg, err := fx.service.CreateShipper(fx.ctx, &v1.CreateShipperRequest{
@@ -120,6 +118,8 @@ func (fx *Shipper) testCreate(t *testing.T) {
 		assert.Equal(t, codes.AlreadyExists, status.Code(err), err)
 	})
 
+	// The method should fail with InvalidArgument if the resource has any
+	// required fields and they are not provided.
 	t.Run("required fields", func(t *testing.T) {
 		fx.maybeSkip(t)
 		t.Run(".display_name", func(t *testing.T) {
@@ -152,7 +152,8 @@ func (fx *Shipper) testCreate(t *testing.T) {
 		})
 	})
 
-	// If resource references are accepted on the resource, they must be validated.
+	// The method should fail with InvalidArgument if the resource has any
+	// resource references and they are invalid.
 	t.Run("resource references", func(t *testing.T) {
 		fx.maybeSkip(t)
 		t.Run(".billing_account", func(t *testing.T) {
@@ -170,20 +171,9 @@ func (fx *Shipper) testCreate(t *testing.T) {
 		})
 	})
 
-	_ = time.Second
-	_ = strings.HasSuffix
-	_ = codes.InvalidArgument
-	_ = protocmp.Transform
 }
 
 func (fx *Shipper) testGet(t *testing.T) {
-	// Standard methods: Get
-	// https://google.aip.dev/131
-	created00, err := fx.service.CreateShipper(fx.ctx, &v1.CreateShipperRequest{
-		Shipper: fx.Create(),
-	})
-	assert.NilError(t, err)
-
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -205,33 +195,33 @@ func (fx *Shipper) testGet(t *testing.T) {
 	// Resource should be returned without errors if it exists.
 	t.Run("exists", func(t *testing.T) {
 		fx.maybeSkip(t)
-		msg, err := fx.service.GetShipper(fx.ctx, &v1.GetShipperRequest{
-			Name: created00.Name,
+		created, err := fx.service.CreateShipper(fx.ctx, &v1.CreateShipperRequest{
+			Shipper: fx.Create(),
 		})
 		assert.NilError(t, err)
-		assert.DeepEqual(t, msg, created00, protocmp.Transform())
+		msg, err := fx.service.GetShipper(fx.ctx, &v1.GetShipperRequest{
+			Name: created.Name,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(t, msg, created, protocmp.Transform())
 	})
 
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetShipper(fx.ctx, &v1.GetShipperRequest{
-			Name: created00.Name + "notfound",
+		created, err := fx.service.CreateShipper(fx.ctx, &v1.CreateShipperRequest{
+			Shipper: fx.Create(),
+		})
+		assert.NilError(t, err)
+		_, err = fx.service.GetShipper(fx.ctx, &v1.GetShipperRequest{
+			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
 	})
-	_ = codes.NotFound
-	_ = protocmp.Transform
+
 }
 
 func (fx *Shipper) testUpdate(t *testing.T) {
-	// Standard methods: Update
-	// https://google.aip.dev/134
-	created00, err := fx.service.CreateShipper(fx.ctx, &v1.CreateShipperRequest{
-		Shipper: fx.Create(),
-	})
-	assert.NilError(t, err)
-
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -254,25 +244,25 @@ func (fx *Shipper) testUpdate(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
+	created, err := fx.service.CreateShipper(fx.ctx, &v1.CreateShipperRequest{
+		Shipper: fx.Create(),
+	})
+	assert.NilError(t, err)
 	// Field update_time should be updated when the resource is updated.
 	t.Run("update time", func(t *testing.T) {
 		fx.maybeSkip(t)
-		initial, err := fx.service.CreateShipper(fx.ctx, &v1.CreateShipperRequest{
-			Shipper: fx.Create(),
-		})
-		assert.NilError(t, err)
 		updated, err := fx.service.UpdateShipper(fx.ctx, &v1.UpdateShipperRequest{
-			Shipper: initial,
+			Shipper: created,
 		})
 		assert.NilError(t, err)
-		assert.Check(t, updated.UpdateTime.AsTime().After(initial.UpdateTime.AsTime()))
+		assert.Check(t, updated.UpdateTime.AsTime().After(created.UpdateTime.AsTime()))
 	})
 
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
 		fx.maybeSkip(t)
 		msg := fx.Update()
-		msg.Name = created00.Name + "notfound"
+		msg.Name = created.Name + "notfound"
 		_, err := fx.service.UpdateShipper(fx.ctx, &v1.UpdateShipperRequest{
 			Shipper: msg,
 		})
@@ -282,13 +272,10 @@ func (fx *Shipper) testUpdate(t *testing.T) {
 	// The updated resource should be persisted and reachable with Get.
 	t.Run("persisted", func(t *testing.T) {
 		fx.maybeSkip(t)
-		initial, err := fx.service.CreateShipper(fx.ctx, &v1.CreateShipperRequest{
-			Shipper: fx.Create(),
+		updated, err := fx.service.UpdateShipper(fx.ctx, &v1.UpdateShipperRequest{
+			Shipper: created,
 		})
 		assert.NilError(t, err)
-		updated, err := fx.service.UpdateShipper(fx.ctx, &v1.UpdateShipperRequest{
-			Shipper: initial,
-		})
 		persisted, err := fx.service.GetShipper(fx.ctx, &v1.GetShipperRequest{
 			Name: updated.Name,
 		})
@@ -300,7 +287,7 @@ func (fx *Shipper) testUpdate(t *testing.T) {
 	t.Run("invalid update mask", func(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.UpdateShipper(fx.ctx, &v1.UpdateShipperRequest{
-			Shipper: created00,
+			Shipper: created,
 			UpdateMask: &fieldmaskpb.FieldMask{
 				Paths: []string{
 					"invalid_field_xyz",
@@ -316,51 +303,47 @@ func (fx *Shipper) testUpdate(t *testing.T) {
 		fx.maybeSkip(t)
 		t.Run(".display_name", func(t *testing.T) {
 			fx.maybeSkip(t)
-			msg := proto.Clone(created00).(*v1.Shipper)
+			msg := proto.Clone(created).(*v1.Shipper)
 			container := msg
 			if container == nil {
 				t.Skip("not reachable")
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateShipper(fx.ctx, &v1.CreateShipperRequest{
+			_, err := fx.service.UpdateShipper(fx.ctx, &v1.UpdateShipperRequest{
 				Shipper: msg,
+				UpdateMask: &fieldmaskpb.FieldMask{
+					Paths: []string{
+						"*",
+					},
+				},
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
 		t.Run(".billing_account", func(t *testing.T) {
 			fx.maybeSkip(t)
-			msg := proto.Clone(created00).(*v1.Shipper)
+			msg := proto.Clone(created).(*v1.Shipper)
 			container := msg
 			if container == nil {
 				t.Skip("not reachable")
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("billing_account")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateShipper(fx.ctx, &v1.CreateShipperRequest{
+			_, err := fx.service.UpdateShipper(fx.ctx, &v1.UpdateShipperRequest{
 				Shipper: msg,
+				UpdateMask: &fieldmaskpb.FieldMask{
+					Paths: []string{
+						"*",
+					},
+				},
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
 	})
-	_ = codes.NotFound
-	_ = protocmp.Transform
-	_ = proto.Clone
+
 }
 
 func (fx *Shipper) testList(t *testing.T) {
-	// Standard methods: List
-	// https://google.aip.dev/132
-	const n = 15
-
-	parent02msgs := make([]*v1.Shipper, n)
-	for i := 0; i < n; i++ {
-		msg, err := fx.service.CreateShipper(fx.ctx, &v1.CreateShipperRequest{
-			Shipper: fx.Create(),
-		})
-		assert.NilError(t, err)
-		parent02msgs[i] = msg
-	}
 
 	// Method should fail with InvalidArgument is provided page token is not valid.
 	t.Run("invalid page token", func(t *testing.T) {
@@ -379,9 +362,7 @@ func (fx *Shipper) testList(t *testing.T) {
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
-	_ = codes.NotFound
-	_ = protocmp.Transform
-	_ = cmpopts.SortSlices
+
 }
 
 func (fx *Shipper) maybeSkip(t *testing.T) {
@@ -424,11 +405,6 @@ func (fx *Site) test(t *testing.T) {
 }
 
 func (fx *Site) testCreate(t *testing.T) {
-	// Standard methods: Create
-	// https://google.aip.dev/133
-
-	parent := fx.nextParent(t, false)
-
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -439,7 +415,7 @@ func (fx *Site) testCreate(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
-	// Method should fail with InvalidArgument is provided parent is not valid.
+	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateSite(fx.ctx, &v1.CreateSiteRequest{
@@ -452,6 +428,7 @@ func (fx *Site) testCreate(t *testing.T) {
 	// Field create_time should be populated when the resource is created.
 	t.Run("create time", func(t *testing.T) {
 		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
 		msg, err := fx.service.CreateSite(fx.ctx, &v1.CreateSiteRequest{
 			Parent: parent,
 			Site:   fx.Create(parent),
@@ -463,6 +440,7 @@ func (fx *Site) testCreate(t *testing.T) {
 	// The created resource should be persisted and reachable with Get.
 	t.Run("persisted", func(t *testing.T) {
 		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
 		msg, err := fx.service.CreateSite(fx.ctx, &v1.CreateSiteRequest{
 			Parent: parent,
 			Site:   fx.Create(parent),
@@ -475,10 +453,13 @@ func (fx *Site) testCreate(t *testing.T) {
 		assert.DeepEqual(t, msg, persisted, protocmp.Transform())
 	})
 
+	// The method should fail with InvalidArgument if the resource has any
+	// required fields and they are not provided.
 	t.Run("required fields", func(t *testing.T) {
 		fx.maybeSkip(t)
 		t.Run(".display_name", func(t *testing.T) {
 			fx.maybeSkip(t)
+			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
 			container := msg
 			if container == nil {
@@ -494,11 +475,13 @@ func (fx *Site) testCreate(t *testing.T) {
 		})
 	})
 
-	// If resource references are accepted on the resource, they must be validated.
+	// The method should fail with InvalidArgument if the resource has any
+	// resource references and they are invalid.
 	t.Run("resource references", func(t *testing.T) {
 		fx.maybeSkip(t)
 		t.Run(".billing.billing_account", func(t *testing.T) {
 			fx.maybeSkip(t)
+			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
 			container := msg.GetBilling()
 			if container == nil {
@@ -513,23 +496,9 @@ func (fx *Site) testCreate(t *testing.T) {
 		})
 	})
 
-	_ = time.Second
-	_ = strings.HasSuffix
-	_ = codes.InvalidArgument
-	_ = protocmp.Transform
 }
 
 func (fx *Site) testGet(t *testing.T) {
-	// Standard methods: Get
-	// https://google.aip.dev/131
-
-	parent := fx.nextParent(t, false)
-	created00, err := fx.service.CreateSite(fx.ctx, &v1.CreateSiteRequest{
-		Parent: parent,
-		Site:   fx.Create(parent),
-	})
-	assert.NilError(t, err)
-
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -551,28 +520,70 @@ func (fx *Site) testGet(t *testing.T) {
 	// Resource should be returned without errors if it exists.
 	t.Run("exists", func(t *testing.T) {
 		fx.maybeSkip(t)
-		msg, err := fx.service.GetSite(fx.ctx, &v1.GetSiteRequest{
-			Name: created00.Name,
+		parent := fx.nextParent(t, false)
+		created, err := fx.service.CreateSite(fx.ctx, &v1.CreateSiteRequest{
+			Parent: parent,
+			Site:   fx.Create(parent),
 		})
 		assert.NilError(t, err)
-		assert.DeepEqual(t, msg, created00, protocmp.Transform())
+		msg, err := fx.service.GetSite(fx.ctx, &v1.GetSiteRequest{
+			Name: created.Name,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(t, msg, created, protocmp.Transform())
 	})
 
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetSite(fx.ctx, &v1.GetSiteRequest{
-			Name: created00.Name + "notfound",
+		parent := fx.nextParent(t, false)
+		created, err := fx.service.CreateSite(fx.ctx, &v1.CreateSiteRequest{
+			Parent: parent,
+			Site:   fx.Create(parent),
+		})
+		assert.NilError(t, err)
+		_, err = fx.service.GetSite(fx.ctx, &v1.GetSiteRequest{
+			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
 	})
-	_ = codes.NotFound
-	_ = protocmp.Transform
+
 }
 
 func (fx *Site) testBatchGet(t *testing.T) {
-	// Batch methods: Get
-	// https://google.aip.dev/231
+	// Method should fail with InvalidArgument if provided parent is invalid.
+	t.Run("invalid parent", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.BatchGetSites(fx.ctx, &v1.BatchGetSitesRequest{
+			Parent: "invalid resource name",
+			Names:  []string{},
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if no names are provided.
+	t.Run("names missing", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		_, err := fx.service.BatchGetSites(fx.ctx, &v1.BatchGetSitesRequest{
+			Parent: parent,
+			Names:  []string{},
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if a provided name is not valid.
+	t.Run("names missing", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		_, err := fx.service.BatchGetSites(fx.ctx, &v1.BatchGetSitesRequest{
+			Parent: parent,
+			Names: []string{
+				"invalid resource name",
+			},
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
 
 	parent := fx.nextParent(t, false)
 	created00, err := fx.service.CreateSite(fx.ctx, &v1.CreateSiteRequest{
@@ -590,41 +601,6 @@ func (fx *Site) testBatchGet(t *testing.T) {
 		Site:   fx.Create(parent),
 	})
 	assert.NilError(t, err)
-
-	// Method should fail with InvalidArgument if provided parent is not valid.
-	t.Run("invalid parent", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.service.BatchGetSites(fx.ctx, &v1.BatchGetSitesRequest{
-			Parent: "invalid resource name",
-			Names: []string{
-				created00.Name,
-			},
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-	// Method should fail with InvalidArgument if no names are provided.
-	t.Run("no names", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.service.BatchGetSites(fx.ctx, &v1.BatchGetSitesRequest{
-			Parent: parent,
-			Names:  []string{},
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-	// Method should fail with InvalidArgument if a provided name is not valid.
-	t.Run("invalid name", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.service.BatchGetSites(fx.ctx, &v1.BatchGetSitesRequest{
-			Parent: parent,
-			Names: []string{
-				"invalid resource name",
-			},
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
 	// Resources should be returned without errors if they exist.
 	t.Run("all exists", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -721,24 +697,13 @@ func (fx *Site) testBatchGet(t *testing.T) {
 		)
 	})
 
-	_ = codes.NotFound
-	_ = protocmp.Transform
 }
 
 func (fx *Site) testUpdate(t *testing.T) {
-	// Standard methods: Update
-	// https://google.aip.dev/134
-
-	parent := fx.nextParent(t, false)
-	created00, err := fx.service.CreateSite(fx.ctx, &v1.CreateSiteRequest{
-		Parent: parent,
-		Site:   fx.Create(parent),
-	})
-	assert.NilError(t, err)
-
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
 		msg.Name = ""
 		_, err := fx.service.UpdateSite(fx.ctx, &v1.UpdateSiteRequest{
@@ -750,6 +715,7 @@ func (fx *Site) testUpdate(t *testing.T) {
 	// Method should fail with InvalidArgument is provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
 		msg.Name = "invalid resource name"
 		_, err := fx.service.UpdateSite(fx.ctx, &v1.UpdateSiteRequest{
@@ -758,26 +724,27 @@ func (fx *Site) testUpdate(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
+	parent := fx.nextParent(t, false)
+	created, err := fx.service.CreateSite(fx.ctx, &v1.CreateSiteRequest{
+		Parent: parent,
+		Site:   fx.Create(parent),
+	})
+	assert.NilError(t, err)
 	// Field update_time should be updated when the resource is updated.
 	t.Run("update time", func(t *testing.T) {
 		fx.maybeSkip(t)
-		initial, err := fx.service.CreateSite(fx.ctx, &v1.CreateSiteRequest{
-			Parent: parent,
-			Site:   fx.Create(parent),
-		})
-		assert.NilError(t, err)
 		updated, err := fx.service.UpdateSite(fx.ctx, &v1.UpdateSiteRequest{
-			Site: initial,
+			Site: created,
 		})
 		assert.NilError(t, err)
-		assert.Check(t, updated.UpdateTime.AsTime().After(initial.UpdateTime.AsTime()))
+		assert.Check(t, updated.UpdateTime.AsTime().After(created.UpdateTime.AsTime()))
 	})
 
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
 		fx.maybeSkip(t)
 		msg := fx.Update(parent)
-		msg.Name = created00.Name + "notfound"
+		msg.Name = created.Name + "notfound"
 		_, err := fx.service.UpdateSite(fx.ctx, &v1.UpdateSiteRequest{
 			Site: msg,
 		})
@@ -787,14 +754,10 @@ func (fx *Site) testUpdate(t *testing.T) {
 	// The updated resource should be persisted and reachable with Get.
 	t.Run("persisted", func(t *testing.T) {
 		fx.maybeSkip(t)
-		initial, err := fx.service.CreateSite(fx.ctx, &v1.CreateSiteRequest{
-			Parent: parent,
-			Site:   fx.Create(parent),
+		updated, err := fx.service.UpdateSite(fx.ctx, &v1.UpdateSiteRequest{
+			Site: created,
 		})
 		assert.NilError(t, err)
-		updated, err := fx.service.UpdateSite(fx.ctx, &v1.UpdateSiteRequest{
-			Site: initial,
-		})
 		persisted, err := fx.service.GetSite(fx.ctx, &v1.GetSiteRequest{
 			Name: updated.Name,
 		})
@@ -806,7 +769,7 @@ func (fx *Site) testUpdate(t *testing.T) {
 	t.Run("invalid update mask", func(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.UpdateSite(fx.ctx, &v1.UpdateSiteRequest{
-			Site: created00,
+			Site: created,
 			UpdateMask: &fieldmaskpb.FieldMask{
 				Paths: []string{
 					"invalid_field_xyz",
@@ -822,57 +785,33 @@ func (fx *Site) testUpdate(t *testing.T) {
 		fx.maybeSkip(t)
 		t.Run(".display_name", func(t *testing.T) {
 			fx.maybeSkip(t)
-			msg := proto.Clone(created00).(*v1.Site)
+			msg := proto.Clone(created).(*v1.Site)
 			container := msg
 			if container == nil {
 				t.Skip("not reachable")
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateSite(fx.ctx, &v1.CreateSiteRequest{
+			_, err := fx.service.UpdateSite(fx.ctx, &v1.UpdateSiteRequest{
 				Site: msg,
+				UpdateMask: &fieldmaskpb.FieldMask{
+					Paths: []string{
+						"*",
+					},
+				},
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
 	})
-	_ = codes.NotFound
-	_ = protocmp.Transform
-	_ = proto.Clone
+
 }
 
 func (fx *Site) testList(t *testing.T) {
-	// Standard methods: List
-	// https://google.aip.dev/132
-	parent01 := fx.nextParent(t, false)
-	parent02 := fx.nextParent(t, true)
-
-	const n = 15
-
-	parent01msgs := make([]*v1.Site, n)
-	for i := 0; i < n; i++ {
-		msg, err := fx.service.CreateSite(fx.ctx, &v1.CreateSiteRequest{
-			Parent: parent01,
-			Site:   fx.Create(parent01),
-		})
-		assert.NilError(t, err)
-		parent01msgs[i] = msg
-	}
-
-	parent02msgs := make([]*v1.Site, n)
-	for i := 0; i < n; i++ {
-		msg, err := fx.service.CreateSite(fx.ctx, &v1.CreateSiteRequest{
-			Parent: parent02,
-			Site:   fx.Create(parent02),
-		})
-		assert.NilError(t, err)
-		parent02msgs[i] = msg
-	}
-
-	// Method should fail with InvalidArgument is provided parent is not valid.
+	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.ListSites(fx.ctx, &v1.ListSitesRequest{
-			Parent: "invalid parent",
+			Parent: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -880,8 +819,9 @@ func (fx *Site) testList(t *testing.T) {
 	// Method should fail with InvalidArgument is provided page token is not valid.
 	t.Run("invalid page token", func(t *testing.T) {
 		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
 		_, err := fx.service.ListSites(fx.ctx, &v1.ListSitesRequest{
-			Parent:    parent01,
+			Parent:    parent,
 			PageToken: "invalid page token",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -890,25 +830,38 @@ func (fx *Site) testList(t *testing.T) {
 	// Method should fail with InvalidArgument is provided page size is negative.
 	t.Run("negative page size", func(t *testing.T) {
 		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
 		_, err := fx.service.ListSites(fx.ctx, &v1.ListSitesRequest{
-			Parent:   parent01,
+			Parent:   parent,
 			PageSize: -10,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
+
+	const resourcesCount = 15
+	parent := fx.nextParent(t, true)
+	parentMsgs := make([]*v1.Site, resourcesCount)
+	for i := 0; i < resourcesCount; i++ {
+		msg, err := fx.service.CreateSite(fx.ctx, &v1.CreateSiteRequest{
+			Parent: parent,
+			Site:   fx.Create(parent),
+		})
+		assert.NilError(t, err)
+		parentMsgs[i] = msg
+	}
 
 	// If parent is provided the method must only return resources
 	// under that parent.
 	t.Run("isolation", func(t *testing.T) {
 		fx.maybeSkip(t)
 		response, err := fx.service.ListSites(fx.ctx, &v1.ListSitesRequest{
-			Parent:   parent02,
+			Parent:   parent,
 			PageSize: 999,
 		})
 		assert.NilError(t, err)
 		assert.DeepEqual(
 			t,
-			parent02msgs,
+			parentMsgs,
 			response.Sites,
 			cmpopts.SortSlices(func(a, b *v1.Site) bool {
 				return a.Name < b.Name
@@ -917,69 +870,76 @@ func (fx *Site) testList(t *testing.T) {
 		)
 	})
 
-	t.Run("pagination", func(t *testing.T) {
+	// If there are no more resources, next_page_token should not be set.
+	t.Run("last page", func(t *testing.T) {
 		fx.maybeSkip(t)
+		response, err := fx.service.ListSites(fx.ctx, &v1.ListSitesRequest{
+			Parent:   parent,
+			PageSize: resourcesCount,
+		})
+		assert.NilError(t, err)
+		assert.Equal(t, "", response.NextPageToken)
+	})
 
-		// If there are no more resources, next_page_token should be unset.
-		t.Run("next page token", func(t *testing.T) {
-			fx.maybeSkip(t)
+	// If there are more resources, next_page_token should be set.
+	t.Run("more pages", func(t *testing.T) {
+		fx.maybeSkip(t)
+		response, err := fx.service.ListSites(fx.ctx, &v1.ListSitesRequest{
+			Parent:   parent,
+			PageSize: resourcesCount,
+		})
+		assert.NilError(t, err)
+		assert.Check(t, response.NextPageToken != "")
+	})
+
+	// Listing resource one by one should eventually return all resources.
+	t.Run("one by one", func(t *testing.T) {
+		fx.maybeSkip(t)
+		msgs := make([]*v1.Site, 0, resourcesCount)
+		var nextPageToken string
+		for {
 			response, err := fx.service.ListSites(fx.ctx, &v1.ListSitesRequest{
-				Parent:   parent02,
-				PageSize: 999,
+				Parent:    parent,
+				PageSize:  1,
+				PageToken: nextPageToken,
 			})
 			assert.NilError(t, err)
-			assert.Equal(t, "", response.NextPageToken)
-		})
-
-		// Listing resource one by one should eventually return all resources created.
-		t.Run("one by one", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msgs := make([]*v1.Site, 0, n)
-			var nextPageToken string
-			for {
-				response, err := fx.service.ListSites(fx.ctx, &v1.ListSitesRequest{
-					Parent:    parent02,
-					PageSize:  1,
-					PageToken: nextPageToken,
-				})
-				assert.NilError(t, err)
-				assert.Equal(t, 1, len(response.Sites))
-				msgs = append(msgs, response.Sites...)
-				nextPageToken = response.NextPageToken
-				if nextPageToken == "" {
-					break
-				}
+			assert.Equal(t, 1, len(response.Sites))
+			msgs = append(msgs, response.Sites...)
+			nextPageToken = response.NextPageToken
+			if nextPageToken == "" {
+				break
 			}
-			assert.DeepEqual(
-				t,
-				parent02msgs,
-				msgs,
-				cmpopts.SortSlices(func(a, b *v1.Site) bool {
-					return a.Name < b.Name
-				}),
-				protocmp.Transform(),
-			)
-		})
+		}
+		assert.DeepEqual(
+			t,
+			parentMsgs,
+			msgs,
+			cmpopts.SortSlices(func(a, b *v1.Site) bool {
+				return a.Name < b.Name
+			}),
+			protocmp.Transform(),
+		)
 	})
 
 	// Method should not return deleted resources.
 	t.Run("deleted", func(t *testing.T) {
 		fx.maybeSkip(t)
-		const nDelete = 5
-		for i := 0; i < nDelete; i++ {
+		const deleteCount = 5
+		for i := 0; i < deleteCount; i++ {
 			_, err := fx.service.DeleteSite(fx.ctx, &v1.DeleteSiteRequest{
-				Name: parent02msgs[i].Name,
+				Name: parentMsgs[i].Name,
 			})
 			assert.NilError(t, err)
 		}
 		response, err := fx.service.ListSites(fx.ctx, &v1.ListSitesRequest{
-			Parent:   parent02,
+			Parent:   parent,
 			PageSize: 9999,
 		})
 		assert.NilError(t, err)
 		assert.DeepEqual(
 			t,
-			parent02msgs[nDelete:],
+			parentMsgs[deleteCount:],
 			response.Sites,
 			cmpopts.SortSlices(func(a, b *v1.Site) bool {
 				return a.Name < b.Name
@@ -987,9 +947,7 @@ func (fx *Site) testList(t *testing.T) {
 			protocmp.Transform(),
 		)
 	})
-	_ = codes.NotFound
-	_ = protocmp.Transform
-	_ = cmpopts.SortSlices
+
 }
 
 func (fx *Site) nextParent(t *testing.T, pristine bool) string {
