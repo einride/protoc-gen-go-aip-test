@@ -23,7 +23,7 @@ type FreightService struct {
 	Server v1.FreightServiceServer
 }
 
-func (fx *FreightService) TestShipper(ctx context.Context, options Shipper) {
+func (fx FreightService) TestShipper(ctx context.Context, options Shipper) {
 	fx.T.Run("Shipper", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
@@ -31,7 +31,7 @@ func (fx *FreightService) TestShipper(ctx context.Context, options Shipper) {
 	})
 }
 
-func (fx *FreightService) TestSite(ctx context.Context, options Site) {
+func (fx FreightService) TestSite(ctx context.Context, options Site) {
 	fx.T.Run("Site", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
