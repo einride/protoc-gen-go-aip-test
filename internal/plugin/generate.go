@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/einride/protoc-gen-go-aip-test/internal/util"
 	"github.com/einride/protoc-gen-go-aip-test/internal/xrange"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/compiler/protogen"
@@ -33,7 +34,7 @@ func Generate(plugin *protogen.Plugin) error {
 			}
 			serviceResources := make([]resource, 0, len(resources))
 			for _, r := range resources {
-				if hasAnyStandardMethodFor(service.Desc, r.descriptor) {
+				if util.HasAnyStandardMethodFor(service.Desc, r.descriptor) {
 					serviceResources = append(serviceResources, r)
 				}
 			}
