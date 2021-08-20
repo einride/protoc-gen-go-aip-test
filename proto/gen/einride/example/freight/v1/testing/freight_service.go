@@ -17,13 +17,13 @@ import (
 	time "time"
 )
 
-type FreightService struct {
+type FreightServiceTestSuite struct {
 	T *testing.T
 	// Server to test.
 	Server v1.FreightServiceServer
 }
 
-func (fx FreightService) TestShipper(ctx context.Context, options Shipper) {
+func (fx FreightServiceTestSuite) TestShipperTestSuiteConfig(ctx context.Context, options ShipperTestSuiteConfig) {
 	fx.T.Run("Shipper", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
@@ -31,7 +31,7 @@ func (fx FreightService) TestShipper(ctx context.Context, options Shipper) {
 	})
 }
 
-func (fx FreightService) TestSite(ctx context.Context, options Site) {
+func (fx FreightServiceTestSuite) TestSiteTestSuiteConfig(ctx context.Context, options SiteTestSuiteConfig) {
 	fx.T.Run("Site", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
@@ -39,7 +39,7 @@ func (fx FreightService) TestSite(ctx context.Context, options Site) {
 	})
 }
 
-type Shipper struct {
+type ShipperTestSuiteConfig struct {
 	ctx        context.Context
 	service    v1.FreightServiceServer
 	currParent int
@@ -57,14 +57,14 @@ type Shipper struct {
 	Skip []string
 }
 
-func (fx *Shipper) test(t *testing.T) {
+func (fx *ShipperTestSuiteConfig) test(t *testing.T) {
 	t.Run("Create", fx.testCreate)
 	t.Run("Get", fx.testGet)
 	t.Run("Update", fx.testUpdate)
 	t.Run("List", fx.testList)
 }
 
-func (fx *Shipper) testCreate(t *testing.T) {
+func (fx *ShipperTestSuiteConfig) testCreate(t *testing.T) {
 
 	// Field create_time should be populated when the resource is created.
 	t.Run("create time", func(t *testing.T) {
@@ -173,7 +173,7 @@ func (fx *Shipper) testCreate(t *testing.T) {
 
 }
 
-func (fx *Shipper) testGet(t *testing.T) {
+func (fx *ShipperTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -221,7 +221,7 @@ func (fx *Shipper) testGet(t *testing.T) {
 
 }
 
-func (fx *Shipper) testUpdate(t *testing.T) {
+func (fx *ShipperTestSuiteConfig) testUpdate(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -343,7 +343,7 @@ func (fx *Shipper) testUpdate(t *testing.T) {
 
 }
 
-func (fx *Shipper) testList(t *testing.T) {
+func (fx *ShipperTestSuiteConfig) testList(t *testing.T) {
 
 	// Method should fail with InvalidArgument is provided page token is not valid.
 	t.Run("invalid page token", func(t *testing.T) {
@@ -365,7 +365,7 @@ func (fx *Shipper) testList(t *testing.T) {
 
 }
 
-func (fx *Shipper) maybeSkip(t *testing.T) {
+func (fx *ShipperTestSuiteConfig) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
 			t.Skip("skipped because of .Skip")
@@ -373,7 +373,7 @@ func (fx *Shipper) maybeSkip(t *testing.T) {
 	}
 }
 
-type Site struct {
+type SiteTestSuiteConfig struct {
 	ctx        context.Context
 	service    v1.FreightServiceServer
 	currParent int
@@ -396,7 +396,7 @@ type Site struct {
 	Skip []string
 }
 
-func (fx *Site) test(t *testing.T) {
+func (fx *SiteTestSuiteConfig) test(t *testing.T) {
 	t.Run("Create", fx.testCreate)
 	t.Run("Get", fx.testGet)
 	t.Run("BatchGet", fx.testBatchGet)
@@ -404,7 +404,7 @@ func (fx *Site) test(t *testing.T) {
 	t.Run("List", fx.testList)
 }
 
-func (fx *Site) testCreate(t *testing.T) {
+func (fx *SiteTestSuiteConfig) testCreate(t *testing.T) {
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -498,7 +498,7 @@ func (fx *Site) testCreate(t *testing.T) {
 
 }
 
-func (fx *Site) testGet(t *testing.T) {
+func (fx *SiteTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -550,7 +550,7 @@ func (fx *Site) testGet(t *testing.T) {
 
 }
 
-func (fx *Site) testBatchGet(t *testing.T) {
+func (fx *SiteTestSuiteConfig) testBatchGet(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -699,7 +699,7 @@ func (fx *Site) testBatchGet(t *testing.T) {
 
 }
 
-func (fx *Site) testUpdate(t *testing.T) {
+func (fx *SiteTestSuiteConfig) testUpdate(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -806,7 +806,7 @@ func (fx *Site) testUpdate(t *testing.T) {
 
 }
 
-func (fx *Site) testList(t *testing.T) {
+func (fx *SiteTestSuiteConfig) testList(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -950,7 +950,7 @@ func (fx *Site) testList(t *testing.T) {
 
 }
 
-func (fx *Site) nextParent(t *testing.T, pristine bool) string {
+func (fx *SiteTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	if pristine {
 		fx.currParent++
 	}
@@ -960,7 +960,7 @@ func (fx *Site) nextParent(t *testing.T, pristine bool) string {
 	return fx.Parents[fx.currParent]
 }
 
-func (fx *Site) peekNextParent(t *testing.T) string {
+func (fx *SiteTestSuiteConfig) peekNextParent(t *testing.T) string {
 	next := fx.currParent + 1
 	if next >= len(fx.Parents) {
 		t.Fatal("need at least", next+1, "parents")
@@ -968,7 +968,7 @@ func (fx *Site) peekNextParent(t *testing.T) string {
 	return fx.Parents[next]
 }
 
-func (fx *Site) maybeSkip(t *testing.T) {
+func (fx *SiteTestSuiteConfig) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
 			t.Skip("skipped because of .Skip")
