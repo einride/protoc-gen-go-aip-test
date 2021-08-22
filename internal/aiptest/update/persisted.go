@@ -16,12 +16,25 @@ var persisted = suite.Test{
 
 	OnlyIf: func(scope suite.Scope) bool {
 		updateMethod, hasUpdate := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeUpdate)
+		createMethod, hasCreate := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeCreate)
 		_, hasGet := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeGet)
-		return hasUpdate && !util.ReturnsLRO(updateMethod.Desc) && hasGet
+		return hasUpdate && !util.ReturnsLRO(updateMethod.Desc) &&
+			hasCreate && !util.ReturnsLRO(createMethod.Desc) &&
+			hasGet
 	},
 	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
 		updateMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeUpdate)
 		getMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeGet)
+		createMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeCreate)
+		if util.HasParent(scope.Resource) {
+			f.P("parent := ", ident.FixtureNextParent, "(t, false)")
+		}
+		util.MethodCreate{
+			Resource: scope.Resource,
+			Method:   createMethod,
+			Parent:   "parent",
+		}.Generate(f, "created", "err", ":=")
+		f.P(ident.AssertNilError, "(t, err)")
 		util.MethodUpdate{
 			Resource: scope.Resource,
 			Method:   updateMethod,

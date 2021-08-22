@@ -243,13 +243,13 @@ func (fx *ShipperTestSuiteConfig) testUpdate(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
-	created, err := fx.service.CreateShipper(fx.ctx, &CreateShipperRequest{
-		Shipper: fx.Create(),
-	})
-	assert.NilError(t, err)
 	// Field update_time should be updated when the resource is updated.
 	t.Run("update time", func(t *testing.T) {
 		fx.maybeSkip(t)
+		created, err := fx.service.CreateShipper(fx.ctx, &CreateShipperRequest{
+			Shipper: fx.Create(),
+		})
+		assert.NilError(t, err)
 		updated, err := fx.service.UpdateShipper(fx.ctx, &UpdateShipperRequest{
 			Shipper: created,
 		})
@@ -257,20 +257,13 @@ func (fx *ShipperTestSuiteConfig) testUpdate(t *testing.T) {
 		assert.Check(t, updated.UpdateTime.AsTime().After(created.UpdateTime.AsTime()))
 	})
 
-	// Method should fail with NotFound if the resource does not exist.
-	t.Run("not found", func(t *testing.T) {
-		fx.maybeSkip(t)
-		msg := fx.Update()
-		msg.Name = created.Name + "notfound"
-		_, err := fx.service.UpdateShipper(fx.ctx, &UpdateShipperRequest{
-			Shipper: msg,
-		})
-		assert.Equal(t, codes.NotFound, status.Code(err), err)
-	})
-
 	// The updated resource should be persisted and reachable with Get.
 	t.Run("persisted", func(t *testing.T) {
 		fx.maybeSkip(t)
+		created, err := fx.service.CreateShipper(fx.ctx, &CreateShipperRequest{
+			Shipper: fx.Create(),
+		})
+		assert.NilError(t, err)
 		updated, err := fx.service.UpdateShipper(fx.ctx, &UpdateShipperRequest{
 			Shipper: created,
 		})
@@ -280,6 +273,21 @@ func (fx *ShipperTestSuiteConfig) testUpdate(t *testing.T) {
 		})
 		assert.NilError(t, err)
 		assert.DeepEqual(t, updated, persisted, protocmp.Transform())
+	})
+
+	created, err := fx.service.CreateShipper(fx.ctx, &CreateShipperRequest{
+		Shipper: fx.Create(),
+	})
+	assert.NilError(t, err)
+	// Method should fail with NotFound if the resource does not exist.
+	t.Run("not found", func(t *testing.T) {
+		fx.maybeSkip(t)
+		msg := fx.Update()
+		msg.Name = created.Name + "notfound"
+		_, err := fx.service.UpdateShipper(fx.ctx, &UpdateShipperRequest{
+			Shipper: msg,
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
 	})
 
 	// The method should fail with InvalidArgument if the update_mask is invalid.
@@ -723,15 +731,15 @@ func (fx *SiteTestSuiteConfig) testUpdate(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
-	parent := fx.nextParent(t, false)
-	created, err := fx.service.CreateSite(fx.ctx, &CreateSiteRequest{
-		Parent: parent,
-		Site:   fx.Create(parent),
-	})
-	assert.NilError(t, err)
 	// Field update_time should be updated when the resource is updated.
 	t.Run("update time", func(t *testing.T) {
 		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created, err := fx.service.CreateSite(fx.ctx, &CreateSiteRequest{
+			Parent: parent,
+			Site:   fx.Create(parent),
+		})
+		assert.NilError(t, err)
 		updated, err := fx.service.UpdateSite(fx.ctx, &UpdateSiteRequest{
 			Site: created,
 		})
@@ -739,20 +747,15 @@ func (fx *SiteTestSuiteConfig) testUpdate(t *testing.T) {
 		assert.Check(t, updated.UpdateTime.AsTime().After(created.UpdateTime.AsTime()))
 	})
 
-	// Method should fail with NotFound if the resource does not exist.
-	t.Run("not found", func(t *testing.T) {
-		fx.maybeSkip(t)
-		msg := fx.Update(parent)
-		msg.Name = created.Name + "notfound"
-		_, err := fx.service.UpdateSite(fx.ctx, &UpdateSiteRequest{
-			Site: msg,
-		})
-		assert.Equal(t, codes.NotFound, status.Code(err), err)
-	})
-
 	// The updated resource should be persisted and reachable with Get.
 	t.Run("persisted", func(t *testing.T) {
 		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created, err := fx.service.CreateSite(fx.ctx, &CreateSiteRequest{
+			Parent: parent,
+			Site:   fx.Create(parent),
+		})
+		assert.NilError(t, err)
 		updated, err := fx.service.UpdateSite(fx.ctx, &UpdateSiteRequest{
 			Site: created,
 		})
@@ -762,6 +765,23 @@ func (fx *SiteTestSuiteConfig) testUpdate(t *testing.T) {
 		})
 		assert.NilError(t, err)
 		assert.DeepEqual(t, updated, persisted, protocmp.Transform())
+	})
+
+	parent := fx.nextParent(t, false)
+	created, err := fx.service.CreateSite(fx.ctx, &CreateSiteRequest{
+		Parent: parent,
+		Site:   fx.Create(parent),
+	})
+	assert.NilError(t, err)
+	// Method should fail with NotFound if the resource does not exist.
+	t.Run("not found", func(t *testing.T) {
+		fx.maybeSkip(t)
+		msg := fx.Update(parent)
+		msg.Name = created.Name + "notfound"
+		_, err := fx.service.UpdateSite(fx.ctx, &UpdateSiteRequest{
+			Site: msg,
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
 	})
 
 	// The method should fail with InvalidArgument if the update_mask is invalid.

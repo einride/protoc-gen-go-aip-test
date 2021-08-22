@@ -15,10 +15,22 @@ var updateTime = suite.Test{
 	},
 
 	OnlyIf: func(scope suite.Scope) bool {
-		updateMethod, ok := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeUpdate)
-		return ok && !util.ReturnsLRO(updateMethod.Desc)
+		updateMethod, hasUpdate := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeUpdate)
+		createMethod, hasCreate := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeCreate)
+		return hasUpdate && !util.ReturnsLRO(updateMethod.Desc) &&
+			hasCreate && !util.ReturnsLRO(createMethod.Desc)
 	},
 	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
+		createMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeCreate)
+		if util.HasParent(scope.Resource) {
+			f.P("parent := ", ident.FixtureNextParent, "(t, false)")
+		}
+		util.MethodCreate{
+			Resource: scope.Resource,
+			Method:   createMethod,
+			Parent:   "parent",
+		}.Generate(f, "created", "err", ":=")
+		f.P(ident.AssertNilError, "(t, err)")
 		updateMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeUpdate)
 		util.MethodUpdate{
 			Resource: scope.Resource,
