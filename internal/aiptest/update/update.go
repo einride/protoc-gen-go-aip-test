@@ -13,6 +13,8 @@ var Suite = suite.Suite{
 	Tests: []suite.Test{
 		missingName,
 		invalidName,
+		updateTime,
+		persisted,
 	},
 	TestGroups: []suite.TestGroup{
 		withResourceGroup,
@@ -38,9 +40,7 @@ var withResourceGroup = suite.TestGroup{
 		return nil
 	},
 	Tests: []suite.Test{
-		updateTime,
 		notFound,
-		persisted,
 		invalidUpdateMask,
 		requiredFields,
 		// TODO: add test for supplying wildcard as name
