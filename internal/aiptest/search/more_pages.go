@@ -24,7 +24,7 @@ var morePages = suite.Test{
 			Resource: scope.Resource,
 			Method:   searchMethod,
 			Parent:   "parent",
-			PageSize: "resourcesCount",
+			PageSize: "resourcesCount-1",
 		}.Generate(f, "response", "err", ":=")
 		f.P(ident.AssertNilError, "(t, err)")
 		f.P(ident.AssertCheck, "(t, response.NextPageToken != \"\")")

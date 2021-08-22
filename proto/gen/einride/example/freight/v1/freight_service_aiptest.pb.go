@@ -885,7 +885,7 @@ func (fx *SiteTestSuiteConfig) testList(t *testing.T) {
 		fx.maybeSkip(t)
 		response, err := fx.service.ListSites(fx.ctx, &ListSitesRequest{
 			Parent:   parent,
-			PageSize: resourcesCount,
+			PageSize: resourcesCount - 1,
 		})
 		assert.NilError(t, err)
 		assert.Check(t, response.NextPageToken != "")
