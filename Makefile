@@ -9,6 +9,7 @@ all: \
 	go-test \
 	go-mod-tidy \
 	readme-suites \
+	prettier-format-readme \
 	git-verify-nodiff
 
 include tools/buf/rules.mk
@@ -16,6 +17,7 @@ include tools/commitlint/rules.mk
 include tools/git-verify-nodiff/rules.mk
 include tools/golangci-lint/rules.mk
 include tools/goreview/rules.mk
+include tools/prettier/rules.mk
 include tools/protoc-gen-go/rules.mk
 include tools/protoc-gen-go-grpc/rules.mk
 include tools/semantic-release/rules.mk
@@ -25,6 +27,11 @@ include tools/snippet/rules.mk
 readme-suites: $(snippet)
 	$(info [$@] writing suites to README...)
 	@go run ./cmd/doc | $(snippet) -M SUITES_SNIPPET -F README.md
+
+.PHONY: prettier-format-readme
+prettier-format-readme: $(prettier)
+	$(info [$@] formatting README...)
+	@$(prettier) --write 'README.md' --loglevel warn
 
 .PHONY: go-test
 go-test:
