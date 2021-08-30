@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"github.com/einride/protoc-gen-go-aip-test/internal/ident"
+	"github.com/einride/protoc-gen-go-aip-test/internal/onlyif"
 	"github.com/einride/protoc-gen-go-aip-test/internal/suite"
 	"github.com/einride/protoc-gen-go-aip-test/internal/util"
 	"go.einride.tech/aip/reflect/aipreflect"
@@ -20,10 +21,10 @@ var requiredFields = suite.Test{
 		"when called with '*' update_mask.",
 	},
 
-	OnlyIf: func(scope suite.Scope) bool {
-		_, ok := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeUpdate)
-		return ok
-	},
+	OnlyIf: suite.OnlyIfs(
+		onlyif.HasMethod(aipreflect.MethodTypeUpdate),
+		onlyif.HasRequiredFields,
+	),
 	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
 		updateMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeUpdate)
 		util.RangeRequiredFields(scope.Message.Desc, func(p protopath.Path, field protoreflect.FieldDescriptor) {

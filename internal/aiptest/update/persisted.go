@@ -2,6 +2,7 @@ package update
 
 import (
 	"github.com/einride/protoc-gen-go-aip-test/internal/ident"
+	"github.com/einride/protoc-gen-go-aip-test/internal/onlyif"
 	"github.com/einride/protoc-gen-go-aip-test/internal/suite"
 	"github.com/einride/protoc-gen-go-aip-test/internal/util"
 	"go.einride.tech/aip/reflect/aipreflect"
@@ -14,14 +15,13 @@ var persisted = suite.Test{
 		"The updated resource should be persisted and reachable with Get.",
 	},
 
-	OnlyIf: func(scope suite.Scope) bool {
-		updateMethod, hasUpdate := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeUpdate)
-		createMethod, hasCreate := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeCreate)
-		_, hasGet := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeGet)
-		return hasUpdate && !util.ReturnsLRO(updateMethod.Desc) &&
-			hasCreate && !util.ReturnsLRO(createMethod.Desc) &&
-			hasGet
-	},
+	OnlyIf: suite.OnlyIfs(
+		onlyif.HasMethod(aipreflect.MethodTypeCreate),
+		onlyif.MethodNotLRO(aipreflect.MethodTypeCreate),
+		onlyif.HasMethod(aipreflect.MethodTypeUpdate),
+		onlyif.MethodNotLRO(aipreflect.MethodTypeUpdate),
+		onlyif.HasMethod(aipreflect.MethodTypeGet),
+	),
 	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
 		updateMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeUpdate)
 		getMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeGet)

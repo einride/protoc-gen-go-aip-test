@@ -79,8 +79,27 @@ func ReturnsLRO(method protoreflect.MethodDescriptor) bool {
 	return method.Output().FullName() == "google.longrunning.Operation"
 }
 
+func IsAlternativeBatch(method protoreflect.MethodDescriptor) bool {
+	switch {
+	case strings.HasPrefix(string(method.Name()), "BatchGet"):
+		return IsAlternativeBatchGet(method)
+	case strings.HasPrefix(string(method.Name()), "BatchDelete"):
+		return IsAlternativeBatchDelete(method)
+	default:
+		return false
+	}
+}
+
 func IsAlternativeBatchGet(method protoreflect.MethodDescriptor) bool {
 	if !strings.HasPrefix(string(method.Name()), "BatchGet") {
+		return false
+	}
+	inputFields := method.Input().Fields()
+	return inputFields.ByName("requests") != nil
+}
+
+func IsAlternativeBatchDelete(method protoreflect.MethodDescriptor) bool {
+	if !strings.HasPrefix(string(method.Name()), "BatchDelete") {
 		return false
 	}
 	inputFields := method.Input().Fields()

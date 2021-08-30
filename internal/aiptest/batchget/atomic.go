@@ -2,6 +2,7 @@ package batchget
 
 import (
 	"github.com/einride/protoc-gen-go-aip-test/internal/ident"
+	"github.com/einride/protoc-gen-go-aip-test/internal/onlyif"
 	"github.com/einride/protoc-gen-go-aip-test/internal/suite"
 	"github.com/einride/protoc-gen-go-aip-test/internal/util"
 	"go.einride.tech/aip/reflect/aipreflect"
@@ -16,11 +17,10 @@ var atomic = suite.Test{
 		"or succeed for all resources (no partial success).",
 	},
 
-	OnlyIf: func(scope suite.Scope) bool {
-		batchGetMethod, hasBatchGet := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeBatchGet)
-		return hasBatchGet &&
-			!util.IsAlternativeBatchGet(batchGetMethod.Desc)
-	},
+	OnlyIf: suite.OnlyIfs(
+		onlyif.HasMethod(aipreflect.MethodTypeBatchGet),
+		onlyif.BatchMethodNotAlternative(aipreflect.MethodTypeBatchGet),
+	),
 	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
 		batchGetMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeBatchGet)
 		util.MethodBatchGet{

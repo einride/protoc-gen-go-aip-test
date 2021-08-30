@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"github.com/einride/protoc-gen-go-aip-test/internal/ident"
+	"github.com/einride/protoc-gen-go-aip-test/internal/onlyif"
 	"github.com/einride/protoc-gen-go-aip-test/internal/suite"
 	"github.com/einride/protoc-gen-go-aip-test/internal/util"
 	"go.einride.tech/aip/reflect/aipreflect"
@@ -17,11 +18,10 @@ var namesInvalid = suite.Test{
 		"Method should fail with InvalidArgument if a provided name is not valid.",
 	},
 
-	OnlyIf: func(scope suite.Scope) bool {
-		batchGetMethod, hasBatchGet := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeBatchGet)
-		return hasBatchGet &&
-			!util.IsAlternativeBatchGet(batchGetMethod.Desc)
-	},
+	OnlyIf: suite.OnlyIfs(
+		onlyif.HasMethod(aipreflect.MethodTypeBatchGet),
+		onlyif.BatchMethodNotAlternative(aipreflect.MethodTypeBatchGet),
+	),
 	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
 		batchGetMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeBatchGet)
 		if util.HasParent(scope.Resource) {

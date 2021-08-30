@@ -36,24 +36,24 @@ func (m Suite) Enabled(scope Scope) bool {
 type Test struct {
 	Name     string
 	Doc      []string
-	OnlyIf   func(scope Scope) bool
+	OnlyIf   OnlyIf
 	Generate func(f *protogen.GeneratedFile, scope Scope) error
 }
 
 func (t Test) Enabled(scope Scope) bool {
-	return t.OnlyIf(scope)
+	return t.OnlyIf.Check(scope)
 }
 
 // TestGroup contains multiple tests in the generated code
 // that share some setup code.
 type TestGroup struct {
-	OnlyIf         func(scope Scope) bool
+	OnlyIf         OnlyIf
 	GenerateBefore func(f *protogen.GeneratedFile, scope Scope) error
 	Tests          []Test
 }
 
 func (tg TestGroup) Enabled(scope Scope) bool {
-	if tg.OnlyIf != nil && !tg.OnlyIf(scope) {
+	if tg.OnlyIf != nil && !tg.OnlyIf.Check(scope) {
 		return false
 	}
 	for _, t := range tg.Tests {

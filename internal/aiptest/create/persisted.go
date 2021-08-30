@@ -2,6 +2,7 @@ package create
 
 import (
 	"github.com/einride/protoc-gen-go-aip-test/internal/ident"
+	"github.com/einride/protoc-gen-go-aip-test/internal/onlyif"
 	"github.com/einride/protoc-gen-go-aip-test/internal/suite"
 	"github.com/einride/protoc-gen-go-aip-test/internal/util"
 	"go.einride.tech/aip/reflect/aipreflect"
@@ -13,12 +14,11 @@ var persisted = suite.Test{
 	Doc: []string{
 		"The created resource should be persisted and reachable with Get.",
 	},
-
-	OnlyIf: func(scope suite.Scope) bool {
-		createMethod, hasCreate := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeCreate)
-		_, hasGet := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeGet)
-		return hasCreate && !util.ReturnsLRO(createMethod.Desc) && hasGet
-	},
+	OnlyIf: suite.OnlyIfs(
+		onlyif.HasMethod(aipreflect.MethodTypeCreate),
+		onlyif.MethodNotLRO(aipreflect.MethodTypeCreate),
+		onlyif.HasMethod(aipreflect.MethodTypeGet),
+	),
 	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
 		createMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeCreate)
 		getMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeGet)
