@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"github.com/einride/protoc-gen-go-aip-test/internal/ident"
+	"github.com/einride/protoc-gen-go-aip-test/internal/onlyif"
 	"github.com/einride/protoc-gen-go-aip-test/internal/suite"
 	"github.com/einride/protoc-gen-go-aip-test/internal/util"
 	"go.einride.tech/aip/reflect/aipreflect"
@@ -18,12 +19,11 @@ var alreadyExists = suite.Test{
 		"the method should return AlreadyExists.",
 	},
 
-	OnlyIf: func(scope suite.Scope) bool {
-		createMethod, hasCreate := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeCreate)
-		return hasCreate &&
-			!util.ReturnsLRO(createMethod.Desc) &&
-			util.HasUserSettableIDField(scope.Resource, createMethod.Input.Desc)
-	},
+	OnlyIf: suite.OnlyIfs(
+		onlyif.HasMethod(aipreflect.MethodTypeCreate),
+		onlyif.MethodNotLRO(aipreflect.MethodTypeCreate),
+		onlyif.HasUserSettableID,
+	),
 	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
 		createMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeCreate)
 		if util.HasParent(scope.Resource) {

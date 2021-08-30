@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"github.com/einride/protoc-gen-go-aip-test/internal/ident"
+	"github.com/einride/protoc-gen-go-aip-test/internal/onlyif"
 	"github.com/einride/protoc-gen-go-aip-test/internal/suite"
 	"github.com/einride/protoc-gen-go-aip-test/internal/util"
 	"github.com/stoewer/go-strcase"
@@ -22,10 +23,10 @@ var resourceReferences = suite.Test{
 		"resource references and they are invalid.",
 	},
 
-	OnlyIf: func(scope suite.Scope) bool {
-		_, hasCreate := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeCreate)
-		return hasCreate && util.HasMutableResourceReferences(scope.Message.Desc)
-	},
+	OnlyIf: suite.OnlyIfs(
+		onlyif.HasMethod(aipreflect.MethodTypeCreate),
+		onlyif.HasMutableResourceReferences,
+	),
 	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
 		createMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeCreate)
 		util.RangeMutableResourceReferences(

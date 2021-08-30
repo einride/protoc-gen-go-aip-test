@@ -2,6 +2,7 @@ package search
 
 import (
 	"github.com/einride/protoc-gen-go-aip-test/internal/ident"
+	"github.com/einride/protoc-gen-go-aip-test/internal/onlyif"
 	"github.com/einride/protoc-gen-go-aip-test/internal/suite"
 	"github.com/einride/protoc-gen-go-aip-test/internal/util"
 	"go.einride.tech/aip/reflect/aipreflect"
@@ -15,10 +16,10 @@ var isolation = suite.Test{
 		"under that parent.",
 	},
 
-	OnlyIf: func(scope suite.Scope) bool {
-		_, hasSearch := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeSearch)
-		return hasSearch && util.HasParent(scope.Resource)
-	},
+	OnlyIf: suite.OnlyIfs(
+		onlyif.HasMethod(aipreflect.MethodTypeSearch),
+		onlyif.HasParent,
+	),
 	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
 		searchMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeSearch)
 		responseResources := aipreflect.GrammaticalName(scope.Resource.GetPlural()).UpperCamelCase()

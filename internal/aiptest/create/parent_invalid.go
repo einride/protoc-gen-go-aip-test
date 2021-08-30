@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"github.com/einride/protoc-gen-go-aip-test/internal/ident"
+	"github.com/einride/protoc-gen-go-aip-test/internal/onlyif"
 	"github.com/einride/protoc-gen-go-aip-test/internal/suite"
 	"github.com/einride/protoc-gen-go-aip-test/internal/util"
 	"go.einride.tech/aip/reflect/aipreflect"
@@ -17,10 +18,10 @@ var parentInvalid = suite.Test{
 		"Method should fail with InvalidArgument if provided parent is invalid.",
 	},
 
-	OnlyIf: func(scope suite.Scope) bool {
-		_, hasCreate := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeCreate)
-		return hasCreate && util.HasParent(scope.Resource)
-	},
+	OnlyIf: suite.OnlyIfs(
+		onlyif.HasMethod(aipreflect.MethodTypeCreate),
+		onlyif.HasParent,
+	),
 	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
 		createMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeCreate)
 		util.MethodCreate{

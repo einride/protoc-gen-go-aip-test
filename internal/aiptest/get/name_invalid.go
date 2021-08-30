@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"github.com/einride/protoc-gen-go-aip-test/internal/ident"
+	"github.com/einride/protoc-gen-go-aip-test/internal/onlyif"
 	"github.com/einride/protoc-gen-go-aip-test/internal/suite"
 	"github.com/einride/protoc-gen-go-aip-test/internal/util"
 	"go.einride.tech/aip/reflect/aipreflect"
@@ -17,10 +18,9 @@ var invalidName = suite.Test{
 		"Method should fail with InvalidArgument is provided name is not valid.",
 	},
 
-	OnlyIf: func(scope suite.Scope) bool {
-		_, ok := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeGet)
-		return ok
-	},
+	OnlyIf: suite.OnlyIfs(
+		onlyif.HasMethod(aipreflect.MethodTypeGet),
+	),
 	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
 		getMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeGet)
 		util.MethodGet{

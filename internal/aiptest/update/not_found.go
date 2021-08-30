@@ -2,6 +2,7 @@ package update
 
 import (
 	"github.com/einride/protoc-gen-go-aip-test/internal/ident"
+	"github.com/einride/protoc-gen-go-aip-test/internal/onlyif"
 	"github.com/einride/protoc-gen-go-aip-test/internal/suite"
 	"github.com/einride/protoc-gen-go-aip-test/internal/util"
 	"go.einride.tech/aip/reflect/aipreflect"
@@ -15,10 +16,9 @@ var notFound = suite.Test{
 		"Method should fail with NotFound if the resource does not exist.",
 	},
 
-	OnlyIf: func(scope suite.Scope) bool {
-		updateMethod, ok := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeUpdate)
-		return ok && !util.ReturnsLRO(updateMethod.Desc)
-	},
+	OnlyIf: suite.OnlyIfs(
+		onlyif.HasMethod(aipreflect.MethodTypeUpdate),
+	),
 	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
 		updateMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeUpdate)
 		util.MethodUpdate{

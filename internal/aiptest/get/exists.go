@@ -2,6 +2,7 @@ package get
 
 import (
 	"github.com/einride/protoc-gen-go-aip-test/internal/ident"
+	"github.com/einride/protoc-gen-go-aip-test/internal/onlyif"
 	"github.com/einride/protoc-gen-go-aip-test/internal/suite"
 	"github.com/einride/protoc-gen-go-aip-test/internal/util"
 	"go.einride.tech/aip/reflect/aipreflect"
@@ -14,11 +15,11 @@ var exists = suite.Test{
 		"Resource should be returned without errors if it exists.",
 	},
 
-	OnlyIf: func(scope suite.Scope) bool {
-		_, hasGet := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeGet)
-		create, hasCreate := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeCreate)
-		return hasGet && hasCreate && !util.ReturnsLRO(create.Desc)
-	},
+	OnlyIf: suite.OnlyIfs(
+		onlyif.HasMethod(aipreflect.MethodTypeCreate),
+		onlyif.MethodNotLRO(aipreflect.MethodTypeCreate),
+		onlyif.HasMethod(aipreflect.MethodTypeGet),
+	),
 	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
 		getMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeGet)
 		createMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeCreate)

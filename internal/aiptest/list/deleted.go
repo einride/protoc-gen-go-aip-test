@@ -2,6 +2,7 @@ package list
 
 import (
 	"github.com/einride/protoc-gen-go-aip-test/internal/ident"
+	"github.com/einride/protoc-gen-go-aip-test/internal/onlyif"
 	"github.com/einride/protoc-gen-go-aip-test/internal/suite"
 	"github.com/einride/protoc-gen-go-aip-test/internal/util"
 	"go.einride.tech/aip/reflect/aipreflect"
@@ -13,12 +14,11 @@ var deleted = suite.Test{
 	Doc: []string{
 		"Method should not return deleted resources.",
 	},
-
-	OnlyIf: func(scope suite.Scope) bool {
-		_, hasList := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeList)
-		_, hasDelete := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeDelete)
-		return hasList && util.HasParent(scope.Resource) && hasDelete
-	},
+	OnlyIf: suite.OnlyIfs(
+		onlyif.HasMethod(aipreflect.MethodTypeList),
+		onlyif.HasMethod(aipreflect.MethodTypeDelete),
+		onlyif.HasParent,
+	),
 	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
 		listMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeList)
 		deleteMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeDelete)
