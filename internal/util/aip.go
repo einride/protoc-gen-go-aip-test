@@ -87,7 +87,10 @@ func IsAlternativeBatchGet(method protoreflect.MethodDescriptor) bool {
 	return inputFields.ByName("requests") != nil
 }
 
-func hasUpdateMask(method protoreflect.MethodDescriptor) bool {
+func HasUpdateMask(method protoreflect.MethodDescriptor) bool {
+	if !strings.HasPrefix(string(method.Name()), "Update") {
+		return false
+	}
 	return method.Input().Fields().ByName("update_mask") != nil
 }
 

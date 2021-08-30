@@ -18,8 +18,8 @@ var invalidUpdateMask = suite.Test{
 	},
 
 	OnlyIf: func(scope suite.Scope) bool {
-		_, ok := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeUpdate)
-		return ok
+		updateMethod, hasUpdate := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeUpdate)
+		return hasUpdate && util.HasUpdateMask(updateMethod.Desc)
 	},
 	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
 		updateMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeUpdate)

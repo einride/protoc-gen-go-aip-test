@@ -99,7 +99,7 @@ func (m MethodUpdate) Generate(f *protogen.GeneratedFile, response string, err s
 	} else {
 		f.P(upper, ": msg,")
 	}
-	if hasUpdateMask(m.Method.Desc) && len(m.UpdateMask) > 0 {
+	if HasUpdateMask(m.Method.Desc) && len(m.UpdateMask) > 0 {
 		fieldmaskpbFieldMask := f.QualifiedGoIdent(protogen.GoIdent{
 			GoName:       "FieldMask",
 			GoImportPath: "google.golang.org/protobuf/types/known/fieldmaskpb",
