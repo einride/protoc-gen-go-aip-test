@@ -8,6 +8,7 @@ all: \
 	buf-generate \
 	go-test \
 	go-mod-tidy \
+	readme-suites \
 	git-verify-nodiff
 
 include tools/buf/rules.mk
@@ -18,6 +19,12 @@ include tools/goreview/rules.mk
 include tools/protoc-gen-go/rules.mk
 include tools/protoc-gen-go-grpc/rules.mk
 include tools/semantic-release/rules.mk
+include tools/snippet/rules.mk
+
+.PHONY: readme-suites
+readme-suites: $(snippet)
+	$(info [$@] writing suites to README...)
+	@go run ./cmd/doc | $(snippet) -M SUITES_SNIPPET -F README.md
 
 .PHONY: go-test
 go-test:
