@@ -118,6 +118,9 @@ func listMethod(method protoreflect.MethodDescriptor) *annotations.ResourceDescr
 	if field.Cardinality() != protoreflect.Repeated {
 		return nil
 	}
+	if !isTopLevelResource(resource) && !hasField(method.Input(), "parent") {
+		return nil
+	}
 	return resource
 }
 
@@ -135,6 +138,9 @@ func searchMethod(method protoreflect.MethodDescriptor) *annotations.ResourceDes
 		return nil
 	}
 	if field.Cardinality() != protoreflect.Repeated {
+		return nil
+	}
+	if !isTopLevelResource(resource) && !hasField(method.Input(), "parent") {
 		return nil
 	}
 	return resource
