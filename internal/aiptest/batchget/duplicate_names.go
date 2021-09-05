@@ -5,6 +5,7 @@ import (
 	"github.com/einride/protoc-gen-go-aip-test/internal/onlyif"
 	"github.com/einride/protoc-gen-go-aip-test/internal/suite"
 	"github.com/einride/protoc-gen-go-aip-test/internal/util"
+	"github.com/stoewer/go-strcase"
 	"go.einride.tech/aip/reflect/aipreflect"
 	"google.golang.org/protobuf/compiler/protogen"
 )
@@ -22,7 +23,11 @@ var duplicateNames = suite.Test{
 	),
 	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
 		batchGetMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeBatchGet)
-		responseResources := aipreflect.GrammaticalName(scope.Resource.GetPlural()).UpperCamelCase()
+		responseResources := strcase.UpperCamelCase(string(util.FindResourceField(
+			batchGetMethod.Output.Desc,
+			scope.Resource,
+		).Name()))
+
 		util.MethodBatchGet{
 			Resource: scope.Resource,
 			Method:   batchGetMethod,

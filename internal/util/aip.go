@@ -137,7 +137,7 @@ func PathChainGet(p protopath.Path) string {
 	return strings.Join(gg, ".")
 }
 
-func resourceField(
+func FindResourceField(
 	message protoreflect.MessageDescriptor,
 	resource *annotations.ResourceDescriptor,
 ) protoreflect.FieldDescriptor {

@@ -5,6 +5,7 @@ import (
 	"github.com/einride/protoc-gen-go-aip-test/internal/onlyif"
 	"github.com/einride/protoc-gen-go-aip-test/internal/suite"
 	"github.com/einride/protoc-gen-go-aip-test/internal/util"
+	"github.com/stoewer/go-strcase"
 	"go.einride.tech/aip/reflect/aipreflect"
 	"google.golang.org/protobuf/compiler/protogen"
 )
@@ -21,7 +22,10 @@ var oneByOne = suite.Test{
 	),
 	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
 		listMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeList)
-		responseResources := aipreflect.GrammaticalName(scope.Resource.GetPlural()).UpperCamelCase()
+		responseResources := strcase.UpperCamelCase(string(util.FindResourceField(
+			listMethod.Output.Desc,
+			scope.Resource,
+		).Name()))
 		f.P("msgs := make([]*", scope.Message.GoIdent, ", 0, resourcesCount)")
 		f.P("var nextPageToken string")
 		f.P("for {")
