@@ -4,16 +4,16 @@
 
 ### Create
 
-| Name                | Description                                                                                                    | Only if                                                                                             |
-| ------------------- | -------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| missing parent      | Method should fail with InvalidArgument if no parent is provided.                                              | has Create method and resource has a parent                                                         |
-| invalid parent      | Method should fail with InvalidArgument if provided parent is invalid.                                         | has Create method and resource has a parent                                                         |
-| create time         | Field create_time should be populated when the resource is created.                                            | has Create method and Create method does not return long-running operation                          |
-| persisted           | The created resource should be persisted and reachable with Get.                                               | has Create method and Create method does not return long-running operation and has Get method       |
-| user settable id    | If method support user settable IDs, when set the resource should be returned with the provided ID.            | has Create method and Create method does not return long-running operation and has user settable ID |
-| already exists      | If method support user settable IDs and the same ID is reused the method should return AlreadyExists.          | has Create method and Create method does not return long-running operation and has user settable ID |
-| required fields     | The method should fail with InvalidArgument if the resource has any required fields and they are not provided. | has Create method and resource has any required fields                                              |
-| resource references | The method should fail with InvalidArgument if the resource has any resource references and they are invalid.  | has Create method and resource has any mutable resource references                                  |
+| Name                | Description                                                                                                    | Only if                                                                                                |
+| ------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| missing parent      | Method should fail with InvalidArgument if no parent is provided.                                              | has Create method and resource has a parent                                                            |
+| invalid parent      | Method should fail with InvalidArgument if provided parent is invalid.                                         | has Create method and resource has a parent                                                            |
+| create time         | Field create_time should be populated when the resource is created.                                            | has Create method and Create method does not return long-running operation and has field 'create_time' |
+| persisted           | The created resource should be persisted and reachable with Get.                                               | has Create method and Create method does not return long-running operation and has Get method          |
+| user settable id    | If method support user settable IDs, when set the resource should be returned with the provided ID.            | has Create method and Create method does not return long-running operation and has user settable ID    |
+| already exists      | If method support user settable IDs and the same ID is reused the method should return AlreadyExists.          | has Create method and Create method does not return long-running operation and has user settable ID    |
+| required fields     | The method should fail with InvalidArgument if the resource has any required fields and they are not provided. | has Create method and resource has any required fields                                                 |
+| resource references | The method should fail with InvalidArgument if the resource has any resource references and they are invalid.  | has Create method and resource has any mutable resource references                                     |
 
 ### Get
 
