@@ -6,6 +6,7 @@ import (
 	"github.com/einride/protoc-gen-go-aip-test/internal/suite"
 	"github.com/einride/protoc-gen-go-aip-test/internal/util"
 	"go.einride.tech/aip/reflect/aipreflect"
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 )
 
 var _ suite.OnlyIf = onlyIf{}
@@ -71,6 +72,15 @@ var HasRequiredFields = onlyIf{
 		return util.HasRequiredFields(scope.Message.Desc)
 	},
 	doc: "resource has any required fields",
+}
+
+func HasField(name string) suite.OnlyIf {
+	return onlyIf{
+		f: func(scope suite.Scope) bool {
+			return scope.Message.Desc.Fields().ByName(protoreflect.Name(name)) != nil
+		},
+		doc: fmt.Sprintf("has field '%s'", name),
+	}
 }
 
 var HasMutableResourceReferences = onlyIf{
