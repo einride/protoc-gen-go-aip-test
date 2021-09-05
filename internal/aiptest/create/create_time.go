@@ -18,7 +18,9 @@ var createTime = suite.Test{
 	OnlyIf: suite.OnlyIfs(
 		onlyif.HasMethod(aipreflect.MethodTypeCreate),
 		onlyif.MethodNotLRO(aipreflect.MethodTypeCreate),
+		onlyif.HasField("create_time"),
 	),
+
 	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
 		createMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeCreate)
 		if util.HasParent(scope.Resource) {
