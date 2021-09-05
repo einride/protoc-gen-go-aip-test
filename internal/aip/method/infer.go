@@ -38,6 +38,9 @@ func getMethod(method protoreflect.MethodDescriptor) *annotations.ResourceDescri
 	if !hasNamePrefix(method, aipreflect.MethodTypeGet) {
 		return nil
 	}
+	if !hasField(method.Input(), "name") {
+		return nil
+	}
 	resource := getResourceDescriptor(method.Output())
 	return resource
 }
