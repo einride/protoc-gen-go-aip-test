@@ -63,4 +63,5 @@ buf-generate: $(buf) $(protoc_gen_go_aip_test) $(protoc_gen_go) $(protoc_gen_go_
 	@$(buf) generate --path proto/src/einride
 	@$(buf) generate buf.build/beta/googleapis \
 		--template buf.gen.googleapis.yaml \
-		--path google/spanner
+		--path google/spanner \
+		--path google/cloud/scheduler/v1
