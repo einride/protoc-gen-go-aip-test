@@ -20,6 +20,7 @@ var updateTime = suite.Test{
 		onlyif.MethodNotLRO(aipreflect.MethodTypeCreate),
 		onlyif.HasMethod(aipreflect.MethodTypeUpdate),
 		onlyif.MethodNotLRO(aipreflect.MethodTypeUpdate),
+		onlyif.HasField("update_time"),
 	),
 	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
 		createMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeCreate)
