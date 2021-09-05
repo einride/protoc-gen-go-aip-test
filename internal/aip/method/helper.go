@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"go.einride.tech/aip/reflect/aipreflect"
+	"go.einride.tech/aip/resourcename"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	longrunningpb "google.golang.org/genproto/googleapis/longrunning"
 	"google.golang.org/protobuf/proto"
@@ -149,4 +150,18 @@ func rangeReachableFiles(desc protoreflect.Descriptor, fn func(file protoreflect
 			return
 		}
 	}
+}
+
+func isTopLevelResource(r *annotations.ResourceDescriptor) bool {
+	return len(resourceNameSegments(r.GetPattern()[0])) <= 3
+}
+
+func resourceNameSegments(pattern string) []resourcename.Segment {
+	var s resourcename.Scanner
+	s.Init(pattern)
+	segments := make([]resourcename.Segment, 0)
+	for s.Scan() {
+		segments = append(segments, s.Segment())
+	}
+	return segments
 }
