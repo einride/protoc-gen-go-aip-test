@@ -60,6 +60,9 @@ func createMethod(method protoreflect.MethodDescriptor) *annotations.ResourceDes
 	if !hasNamePrefix(method, aipreflect.MethodTypeCreate) {
 		return nil
 	}
+	if !hasNamePrefix(method.Input(), aipreflect.MethodTypeCreate) {
+		return nil
+	}
 	output := method.Output()
 	if method.Output().FullName() == lro {
 		info := getLROInfo(method)

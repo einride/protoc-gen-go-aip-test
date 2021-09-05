@@ -24,7 +24,7 @@ func getResourceReference(field protoreflect.FieldDescriptor) *annotations.Resou
 	).(*annotations.ResourceReference)
 }
 
-func hasNamePrefix(method protoreflect.MethodDescriptor, methodType aipreflect.MethodType) bool {
+func hasNamePrefix(method protoreflect.Descriptor, methodType aipreflect.MethodType) bool {
 	return strings.HasPrefix(string(method.Name()), methodType.String())
 }
 
