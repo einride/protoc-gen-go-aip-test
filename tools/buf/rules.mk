@@ -1,7 +1,7 @@
 buf_cwd := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 buf := $(buf_cwd)/bin/buf
 
-buf_version := 0.39.1
+buf_version := 0.54.1
 
 arch = $(shell uname -s)-$(shell uname -m)
 
