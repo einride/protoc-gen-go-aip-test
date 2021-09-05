@@ -21,7 +21,7 @@ func (m MethodCreate) Generate(f *protogen.GeneratedFile, response string, err s
 		f.P("Parent: ", m.Parent, ",")
 	}
 
-	upper := strcase.UpperCamelCase(string(resourceField(
+	upper := strcase.UpperCamelCase(string(FindResourceField(
 		m.Method.Input.Desc,
 		m.Resource,
 	).Name()))
@@ -87,7 +87,7 @@ type MethodUpdate struct {
 }
 
 func (m MethodUpdate) Generate(f *protogen.GeneratedFile, response string, err string, assign string) {
-	upper := strcase.UpperCamelCase(string(resourceField(
+	upper := strcase.UpperCamelCase(string(FindResourceField(
 		m.Method.Input.Desc,
 		m.Resource,
 	).Name()))

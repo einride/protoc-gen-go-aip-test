@@ -5,6 +5,7 @@ import (
 	"github.com/einride/protoc-gen-go-aip-test/internal/onlyif"
 	"github.com/einride/protoc-gen-go-aip-test/internal/suite"
 	"github.com/einride/protoc-gen-go-aip-test/internal/util"
+	"github.com/stoewer/go-strcase"
 	"go.einride.tech/aip/reflect/aipreflect"
 	"google.golang.org/protobuf/compiler/protogen"
 )
@@ -23,7 +24,10 @@ var deleted = suite.Test{
 	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
 		searchMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeSearch)
 		deleteMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeDelete)
-		responseResources := aipreflect.GrammaticalName(scope.Resource.GetPlural()).UpperCamelCase()
+		responseResources := strcase.UpperCamelCase(string(util.FindResourceField(
+			searchMethod.Output.Desc,
+			scope.Resource,
+		).Name()))
 		f.P("const deleteCount = 5")
 		f.P("for i := 0; i < deleteCount; i++ {")
 		util.MethodDelete{
