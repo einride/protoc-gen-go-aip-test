@@ -3,12 +3,13 @@ package util
 import (
 	"strings"
 
+	"github.com/einride/protoc-gen-go-aip-test/internal/aip/method"
 	"github.com/einride/protoc-gen-go-aip-test/internal/xrange"
 	"github.com/stoewer/go-strcase"
 	"go.einride.tech/aip/fieldbehavior"
-	"go.einride.tech/aip/reflect/aipreflect"
 	"go.einride.tech/aip/resourcename"
 	"google.golang.org/genproto/googleapis/api/annotations"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protopath"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
@@ -32,47 +33,13 @@ func resourceNameSegments(pattern string) []resourcename.Segment {
 	return segments
 }
 
-func allStandardMethods() []aipreflect.MethodType {
-	return []aipreflect.MethodType{
-		aipreflect.MethodTypeGet,
-		aipreflect.MethodTypeList,
-		aipreflect.MethodTypeCreate,
-		aipreflect.MethodTypeUpdate,
-		aipreflect.MethodTypeDelete,
-		aipreflect.MethodTypeUndelete,
-		aipreflect.MethodTypeBatchGet,
-		aipreflect.MethodTypeBatchCreate,
-		aipreflect.MethodTypeBatchUpdate,
-		aipreflect.MethodTypeBatchDelete,
-		aipreflect.MethodTypeSearch,
-	}
-}
-
 func HasAnyStandardMethodFor(s protoreflect.ServiceDescriptor, r *annotations.ResourceDescriptor) bool {
-	methods := ResourceStandardMethods(r)
-	for _, method := range methods {
-		if s.Methods().ByName(method) != nil {
+	for _, resource := range method.NewMethods(s).Resources() {
+		if resource.Type == r.Type {
 			return true
 		}
 	}
 	return false
-}
-
-func ResourceStandardMethods(r *annotations.ResourceDescriptor) []protoreflect.Name {
-	methodTypes := allStandardMethods()
-	standardMethods := make([]protoreflect.Name, 0, len(methodTypes))
-	for _, methodType := range methodTypes {
-		standardMethods = append(standardMethods, InferMethodName(r, methodType))
-	}
-	return standardMethods
-}
-
-func InferMethodName(r *annotations.ResourceDescriptor, methodType aipreflect.MethodType) protoreflect.Name {
-	grammaticalName := aipreflect.GrammaticalName(r.GetSingular())
-	if methodType.IsPlural() {
-		grammaticalName = aipreflect.GrammaticalName(r.GetPlural())
-	}
-	return methodType.NamePrefix() + protoreflect.Name(grammaticalName.UpperCamelCase())
 }
 
 func ReturnsLRO(method protoreflect.MethodDescriptor) bool {
@@ -149,4 +116,27 @@ func PathChainGet(p protopath.Path) string {
 		gg = append(gg, g)
 	}
 	return strings.Join(gg, ".")
+}
+
+func resourceField(
+	message protoreflect.MessageDescriptor,
+	resource *annotations.ResourceDescriptor,
+) protoreflect.FieldDescriptor {
+	for i := 0; i < message.Fields().Len(); i++ {
+		field := message.Fields().Get(i)
+		if field.Kind() == protoreflect.MessageKind {
+			r := getResourceDescriptor(field.Message())
+			if r != nil && r.Type == resource.Type {
+				return field
+			}
+		}
+	}
+	return nil
+}
+
+func getResourceDescriptor(message protoreflect.MessageDescriptor) *annotations.ResourceDescriptor {
+	return proto.GetExtension(
+		message.Options(),
+		annotations.E_Resource,
+	).(*annotations.ResourceDescriptor)
 }

@@ -1,7 +1,7 @@
 package util
 
 import (
-	"go.einride.tech/aip/reflect/aipreflect"
+	"github.com/stoewer/go-strcase"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/compiler/protogen"
 )
@@ -21,7 +21,11 @@ func (m MethodCreate) Generate(f *protogen.GeneratedFile, response string, err s
 		f.P("Parent: ", m.Parent, ",")
 	}
 
-	upper := aipreflect.GrammaticalName(m.Resource.GetSingular()).UpperCamelCase()
+	upper := strcase.UpperCamelCase(string(resourceField(
+		m.Method.Input.Desc,
+		m.Resource,
+	).Name()))
+
 	switch {
 	case m.Message != "":
 		f.P(upper, ": ", m.Message, ",")
@@ -83,7 +87,10 @@ type MethodUpdate struct {
 }
 
 func (m MethodUpdate) Generate(f *protogen.GeneratedFile, response string, err string, assign string) {
-	upper := aipreflect.GrammaticalName(m.Resource.GetSingular()).UpperCamelCase()
+	upper := strcase.UpperCamelCase(string(resourceField(
+		m.Method.Input.Desc,
+		m.Resource,
+	).Name()))
 
 	if m.Msg == "" {
 		if HasParent(m.Resource) {
