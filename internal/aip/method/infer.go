@@ -75,6 +75,9 @@ func createMethod(method protoreflect.MethodDescriptor) *annotations.ResourceDes
 	if resource == nil {
 		return nil
 	}
+	if !isTopLevelResource(resource) && !hasField(method.Input(), "parent") {
+		return nil
+	}
 	// should have a field in input message for resource
 	if findResourceField(method.Input(), resource) == nil {
 		return nil
