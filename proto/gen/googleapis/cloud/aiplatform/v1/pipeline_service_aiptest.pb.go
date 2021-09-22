@@ -323,6 +323,118 @@ func (fx *TrainingPipelineTestSuiteConfig) testCreate(t *testing.T) {
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
+		t.Run(".model_to_upload.explanation_spec.parameters", func(t *testing.T) {
+			fx.maybeSkip(t)
+			parent := fx.nextParent(t, false)
+			msg := fx.Create(parent)
+			container := msg.GetModelToUpload().GetExplanationSpec()
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("parameters")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.CreateTrainingPipeline(fx.ctx, &CreateTrainingPipelineRequest{
+				Parent:           parent,
+				TrainingPipeline: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+		t.Run(".model_to_upload.explanation_spec.parameters.sampled_shapley_attribution.path_count", func(t *testing.T) {
+			fx.maybeSkip(t)
+			parent := fx.nextParent(t, false)
+			msg := fx.Create(parent)
+			container := msg.GetModelToUpload().GetExplanationSpec().GetParameters().GetSampledShapleyAttribution()
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("path_count")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.CreateTrainingPipeline(fx.ctx, &CreateTrainingPipelineRequest{
+				Parent:           parent,
+				TrainingPipeline: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+		t.Run(".model_to_upload.explanation_spec.parameters.integrated_gradients_attribution.step_count", func(t *testing.T) {
+			fx.maybeSkip(t)
+			parent := fx.nextParent(t, false)
+			msg := fx.Create(parent)
+			container := msg.GetModelToUpload().GetExplanationSpec().GetParameters().GetIntegratedGradientsAttribution()
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("step_count")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.CreateTrainingPipeline(fx.ctx, &CreateTrainingPipelineRequest{
+				Parent:           parent,
+				TrainingPipeline: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+		t.Run(".model_to_upload.explanation_spec.parameters.xrai_attribution.step_count", func(t *testing.T) {
+			fx.maybeSkip(t)
+			parent := fx.nextParent(t, false)
+			msg := fx.Create(parent)
+			container := msg.GetModelToUpload().GetExplanationSpec().GetParameters().GetXraiAttribution()
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("step_count")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.CreateTrainingPipeline(fx.ctx, &CreateTrainingPipelineRequest{
+				Parent:           parent,
+				TrainingPipeline: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+		t.Run(".model_to_upload.explanation_spec.metadata", func(t *testing.T) {
+			fx.maybeSkip(t)
+			parent := fx.nextParent(t, false)
+			msg := fx.Create(parent)
+			container := msg.GetModelToUpload().GetExplanationSpec()
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("metadata")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.CreateTrainingPipeline(fx.ctx, &CreateTrainingPipelineRequest{
+				Parent:           parent,
+				TrainingPipeline: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+		t.Run(".model_to_upload.explanation_spec.metadata.inputs", func(t *testing.T) {
+			fx.maybeSkip(t)
+			parent := fx.nextParent(t, false)
+			msg := fx.Create(parent)
+			container := msg.GetModelToUpload().GetExplanationSpec().GetMetadata()
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("inputs")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.CreateTrainingPipeline(fx.ctx, &CreateTrainingPipelineRequest{
+				Parent:           parent,
+				TrainingPipeline: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+		t.Run(".model_to_upload.explanation_spec.metadata.outputs", func(t *testing.T) {
+			fx.maybeSkip(t)
+			parent := fx.nextParent(t, false)
+			msg := fx.Create(parent)
+			container := msg.GetModelToUpload().GetExplanationSpec().GetMetadata()
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("outputs")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.CreateTrainingPipeline(fx.ctx, &CreateTrainingPipelineRequest{
+				Parent:           parent,
+				TrainingPipeline: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
 		t.Run(".model_to_upload.encryption_spec.kms_key_name", func(t *testing.T) {
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
