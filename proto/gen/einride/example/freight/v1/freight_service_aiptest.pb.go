@@ -580,7 +580,7 @@ func (fx *SiteTestSuiteConfig) testBatchGet(t *testing.T) {
 	})
 
 	// Method should fail with InvalidArgument if a provided name is not valid.
-	t.Run("names missing", func(t *testing.T) {
+	t.Run("invalid names", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		_, err := fx.service.BatchGetSites(fx.ctx, &BatchGetSitesRequest{

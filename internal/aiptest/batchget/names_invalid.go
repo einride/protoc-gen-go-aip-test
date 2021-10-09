@@ -13,7 +13,7 @@ import (
 )
 
 var namesInvalid = suite.Test{
-	Name: "names missing",
+	Name: "invalid names",
 	Doc: []string{
 		"Method should fail with InvalidArgument if a provided name is not valid.",
 	},
