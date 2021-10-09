@@ -14,7 +14,7 @@ func main() {
 		fmt.Println("| Name | Description | Only if |")
 		fmt.Println("| ---- | ----------- | ------- |")
 		for _, test := range s.Tests {
-			fmt.Println("|", test.Name, "|", strings.Join(test.Doc, " "), "|", test.OnlyIf.String(), "|")
+			printTestRow(test.Name, test.Doc, test.OnlyIf)
 		}
 		for _, group := range s.TestGroups {
 			for _, test := range group.Tests {
@@ -22,8 +22,33 @@ func main() {
 				if group.OnlyIf != nil {
 					testOnlyIf = suite.OnlyIfs(group.OnlyIf, test.OnlyIf)
 				}
-				fmt.Println("|", test.Name, "|", strings.Join(test.Doc, " "), "|", testOnlyIf.String(), "|")
+				printTestRow(test.Name, test.Doc, testOnlyIf)
 			}
 		}
 	}
+}
+
+func printTestRow(name string, doc []string, onlyif suite.OnlyIf) {
+	fmt.Println(
+		"|",
+		name,
+		"|",
+		strings.Join(doc, " "),
+		"|",
+		"Generated only if all are true:",
+		formatOnlyIfMarkdownList(onlyif),
+		"|",
+	)
+}
+
+func formatOnlyIfMarkdownList(onlyIf suite.OnlyIf) string {
+	if composed, ok := onlyIf.(suite.ComposedOnlyIf); ok {
+		onlyIfs := composed.Flat()
+		onlyIfsStr := make([]string, 0, len(onlyIfs))
+		for _, o := range onlyIfs {
+			onlyIfsStr = append(onlyIfsStr, "<li>"+o.String()+"</li>")
+		}
+		return "<ul>" + strings.Join(onlyIfsStr, "") + "</ul>"
+	}
+	return onlyIf.String()
 }
