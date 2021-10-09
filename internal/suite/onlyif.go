@@ -9,35 +9,50 @@ type OnlyIf interface {
 	String() string
 }
 
+type ComposedOnlyIf interface {
+	Flat() []OnlyIf
+}
+
 func OnlyIfs(onlyIfs ...OnlyIf) OnlyIf {
-	docs := make([]string, 0, len(onlyIfs))
-	for _, s := range onlyIfs {
-		docs = append(docs, s.String())
-	}
 	return onlyIf{
-		f: func(scope Scope) bool {
-			for _, o := range onlyIfs {
-				if !o.Check(scope) {
-					return false
-				}
-			}
-			return true
-		},
-		doc: strings.Join(docs, " and "),
+		children: onlyIfs,
 	}
 }
 
-var _ OnlyIf = onlyIf{}
+var (
+	_ OnlyIf         = onlyIf{}
+	_ ComposedOnlyIf = onlyIf{}
+)
 
 type onlyIf struct {
-	f   func(scope Scope) bool
-	doc string
+	children []OnlyIf
+}
+
+func (o onlyIf) Flat() []OnlyIf {
+	flat := make([]OnlyIf, 0, len(o.children))
+	for _, child := range o.children {
+		if composedChild, ok := child.(ComposedOnlyIf); ok {
+			flat = append(flat, composedChild.Flat()...)
+		} else {
+			flat = append(flat, child)
+		}
+	}
+	return flat
 }
 
 func (o onlyIf) Check(scope Scope) bool {
-	return o.f(scope)
+	for _, child := range o.children {
+		if !child.Check(scope) {
+			return false
+		}
+	}
+	return true
 }
 
 func (o onlyIf) String() string {
-	return o.doc
+	docs := make([]string, 0, len(o.children))
+	for _, child := range o.children {
+		docs = append(docs, child.String())
+	}
+	return strings.Join(docs, " and ")
 }

@@ -22,8 +22,20 @@ func main() {
 				if group.OnlyIf != nil {
 					testOnlyIf = suite.OnlyIfs(group.OnlyIf, test.OnlyIf)
 				}
-				fmt.Println("|", test.Name, "|", strings.Join(test.Doc, " "), "|", testOnlyIf.String(), "|")
+				fmt.Println("|", test.Name, "|", strings.Join(test.Doc, " "), "|", formatOnlyIfMarkdown(testOnlyIf), "|")
 			}
 		}
 	}
+}
+
+func formatOnlyIfMarkdown(onlyIf suite.OnlyIf) string {
+	if composed, ok := onlyIf.(suite.ComposedOnlyIf); ok {
+		onlyIfs := composed.Flat()
+		onlyIfsStr := make([]string, 0, len(onlyIfs))
+		for _, o := range onlyIfs {
+			onlyIfsStr = append(onlyIfsStr, "<li>"+o.String()+"</li>")
+		}
+		return "<ul>" + strings.Join(onlyIfsStr, "") + "</ul>"
+	}
+	return onlyIf.String()
 }
