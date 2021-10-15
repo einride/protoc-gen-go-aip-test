@@ -1,3 +1,95 @@
+# protoc-gen-go-aip-test
+
+Generate test suites for protobuf services implementing [standard AIP methods][aip-standard-methods].
+
+The generated test suites are based on guidance for standard methods, and experience from implementing these methods in
+practice. See [Suites](#suites) for a list of the generated tests.
+
+**Experimental**: This plugin is experimental, and breaking changes with regard to the generated tests suites should be
+expected.
+
+[aip-standard-methods]: https://google.aip.dev/121#methods
+
+## Usage
+
+### Step 1: Declare a service with AIP standard methods
+
+```protobuf
+service FreightService {
+  // Get a shipper.
+  // See: https://google.aip.dev/131 (Standard methods: Get).
+  rpc GetShipper(GetShipperRequest) returns (Shipper) {
+    option (google.api.http) = {
+      get: "/v1/{name=shippers/*}"
+    };
+    option (google.api.method_signature) = "name";
+  }
+
+  // ...
+}
+```
+
+### Step 2: Install the generator
+
+Download a prebuilt binary from [releases](./releases) and put it in your PATH.
+
+The generator can also be built from source using Go.
+
+### Step 3: Generate test suites
+
+Include the plugin in `protoc` invocation
+
+```bash
+protoc
+  --go-aip-test_out=[OUTPUT DIR] \
+  --go-aip-test_opt=module=[OUTPUT MODULE] \
+  [.proto files ...]
+```
+
+This can also be done via a [buf generate][buf-generate] template. See [buf.gen.yaml](./buf.gen.yaml) for an example.
+
+[buf-generate]: https://docs.buf.build/generate/usage
+
+### Step 4: Run tests
+
+The generated test suites must be provided with some input data.
+
+```go
+package example
+
+func Test_FreightService(t *testing.T) {
+	t.Skip("this is just an example, the service is not implemented.")
+	// setup server before test
+	server := examplefreightv1.UnimplementedFreightServiceServer{}
+	// setup test suite
+	suite := examplefreightv1.FreightServiceTestSuite{
+		T:      t,
+		Server: server,
+	}
+
+	// run tests for each resource in the service
+	ctx := context.Background()
+	suite.TestShipper(ctx, examplefreightv1.ShipperTestSuiteConfig{
+		// Create should return a resource which is valid to create, i.e.
+		// all required fields set.
+		Create: func() *examplefreightv1.Shipper {
+			return &examplefreightv1.Shipper{
+				DisplayName:    "Example shipper",
+				BillingAccount: "billingAccounts/12345",
+			}
+		},
+		// Update should return a resource which is valid to update, i.e.
+		// all required fields set.
+		Update: func() *examplefreightv1.Shipper {
+			return &examplefreightv1.Shipper{
+				DisplayName:    "Updated example shipper",
+				BillingAccount: "billingAccounts/54321",
+			}
+		},
+	})
+}
+```
+
 ## Suites
 
 <!-- SUITES_SNIPPET -->
