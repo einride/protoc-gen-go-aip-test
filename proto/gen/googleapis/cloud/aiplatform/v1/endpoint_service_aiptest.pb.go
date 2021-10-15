@@ -114,6 +114,27 @@ func (fx *EndpointTestSuiteConfig) testCreate(t *testing.T) {
 		})
 	})
 
+	// The method should fail with InvalidArgument if the resource has any
+	// resource references and they are invalid.
+	t.Run("resource references", func(t *testing.T) {
+		fx.maybeSkip(t)
+		t.Run(".network", func(t *testing.T) {
+			fx.maybeSkip(t)
+			parent := fx.nextParent(t, false)
+			msg := fx.Create(parent)
+			container := msg
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			container.Network = "invalid resource name"
+			_, err := fx.service.CreateEndpoint(fx.ctx, &CreateEndpointRequest{
+				Parent:   parent,
+				Endpoint: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+	})
+
 }
 
 func (fx *EndpointTestSuiteConfig) testGet(t *testing.T) {
