@@ -90,6 +90,22 @@ func Test_FreightService(t *testing.T) {
 }
 ```
 
+### Skipping tests
+
+There may be multiple reasons for an API to deviate from the guidance for standard methods (for examples
+see [AIP-200][aip-precedent]). This plugin supports skipping individual or groups of tests using the `Skip` field
+generated for each test suite config.
+
+Each test are compared, using `strings.Contains`, against a list of skipped test patterns. The full name of each test
+will follow the format `[resource]/[method type]/[test_name]`.
+
+Sample skips:
+
+- `"Get/invalid_name"` skips the "invalid name" test for Get standard method.
+- `"Get"` skips all tests for a Get standard method.
+
+[aip-precedent]: https://google.aip.dev/200
+
 ## Suites
 
 <!-- SUITES_SNIPPET -->
