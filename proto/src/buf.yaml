@@ -1,20 +1,13 @@
-version: v1beta1
-
-name: buf.build/einride/protoc-gen-go-aip-test
-
+version: v1
+name: buf.build/einride/protoc-gen-go-aip-test-proto-src
 deps:
   - buf.build/googleapis/googleapis
-
-build:
-  roots:
-    - proto/src
-
 lint:
   use:
     - DEFAULT
-  service_suffix: Service
   except:
     - RPC_REQUEST_STANDARD_NAME
     - RPC_RESPONSE_STANDARD_NAME
     - RPC_REQUEST_RESPONSE_UNIQUE
     - ENUM_VALUE_PREFIX
+  service_suffix: Service
