@@ -5,10 +5,6 @@ name: buf.build/einride/protoc-gen-go-aip-test
 deps:
   - buf.build/googleapis/googleapis
 
-build:
-  roots:
-    - proto/src
-
 lint:
   use:
     - DEFAULT

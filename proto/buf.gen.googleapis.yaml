@@ -2,13 +2,13 @@ version: v1beta1
 
 plugins:
   - name: go
-    out: proto/gen
+    out: gen
     opt: module=google.golang.org/genproto
 
   - name: go-grpc
-    out: proto/gen
+    out: gen
     opt: module=google.golang.org/genproto
 
   - name: go-aip-test
-    out: proto/gen
+    out: gen
     opt: module=google.golang.org/genproto

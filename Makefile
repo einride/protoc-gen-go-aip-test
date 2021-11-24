@@ -1,27 +1,27 @@
 SHELL := /bin/bash
 
 all: \
-	buf-lint \
-	buf-generate \
+	proto \
 	go-lint \
 	go-review \
-	buf-generate \
 	go-test \
 	go-mod-tidy \
 	readme-suites \
 	prettier-format-readme \
 	git-verify-nodiff
 
-include tools/buf/rules.mk
 include tools/commitlint/rules.mk
 include tools/git-verify-nodiff/rules.mk
 include tools/golangci-lint/rules.mk
 include tools/goreview/rules.mk
 include tools/prettier/rules.mk
-include tools/protoc-gen-go/rules.mk
-include tools/protoc-gen-go-grpc/rules.mk
 include tools/semantic-release/rules.mk
 include tools/snippet/rules.mk
+
+.PHONY: proto
+proto:
+	$(info [$@] building protos...)
+	@make -C proto
 
 .PHONY: readme-suites
 readme-suites: $(snippet)
@@ -42,30 +42,3 @@ go-test:
 go-mod-tidy:
 	$(info [$@] tidying Go module files...)
 	@go mod tidy -v
-
-.PHONY: buf-lint
-buf-lint: $(buf)
-	$(info [$@] linting protobuf schemas...)
-	@$(buf) lint
-
-protoc_gen_go_aip_test := ./bin/protoc-gen-go-aip-test
-export PATH := $(dir $(abspath $(protoc_gen_go_aip_test))):$(PATH)
-
-.PHONY: $(protoc_gen_go_aip_test)
-$(protoc_gen_go_aip_test):
-	$(info [$@] building binary...)
-	@go build -o $@ .
-
-.PHONY: buf-generate
-buf-generate: $(buf) $(protoc_gen_go_aip_test) $(protoc_gen_go) $(protoc_gen_go_grpc)
-	$(info [$@] generating protobuf stubs...)
-	@rm -rf proto/gen
-	@$(buf) generate --path proto/src/einride
-	@$(buf) generate buf.build/googleapis/googleapis \
-		--template buf.gen.googleapis.yaml \
-		--path google/area120/tables/v1alpha1 \
-		--path google/cloud/aiplatform/v1 \
-		--path google/cloud/gsuiteaddons/v1 \
-		--path google/cloud/scheduler/v1 \
-		--path google/pubsub/v1 \
-		--path google/spanner
