@@ -1,14 +1,11 @@
-version: v1beta1
-
+version: v1
 plugins:
   - name: go
     out: gen
     opt: module=github.com/einride/protoc-gen-go-aip-test/proto/gen
-
   - name: go-grpc
     out: gen
     opt: module=github.com/einride/protoc-gen-go-aip-test/proto/gen
-
   - name: go-aip-test
     out: gen
     opt: module=github.com/einride/protoc-gen-go-aip-test/proto/gen
