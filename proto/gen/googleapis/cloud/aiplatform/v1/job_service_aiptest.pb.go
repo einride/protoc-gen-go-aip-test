@@ -872,6 +872,21 @@ func (fx *CustomJobTestSuiteConfig) testCreate(t *testing.T) {
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
+		t.Run(".job_spec.tensorboard", func(t *testing.T) {
+			fx.maybeSkip(t)
+			parent := fx.nextParent(t, false)
+			msg := fx.Create(parent)
+			container := msg.GetJobSpec()
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			container.Tensorboard = "invalid resource name"
+			_, err := fx.service.CreateCustomJob(fx.ctx, &CreateCustomJobRequest{
+				Parent:    parent,
+				CustomJob: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
 	})
 
 }
@@ -2464,6 +2479,21 @@ func (fx *HyperparameterTuningJobTestSuiteConfig) testCreate(t *testing.T) {
 				t.Skip("not reachable")
 			}
 			container.Network = "invalid resource name"
+			_, err := fx.service.CreateHyperparameterTuningJob(fx.ctx, &CreateHyperparameterTuningJobRequest{
+				Parent:                  parent,
+				HyperparameterTuningJob: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+		t.Run(".trial_job_spec.tensorboard", func(t *testing.T) {
+			fx.maybeSkip(t)
+			parent := fx.nextParent(t, false)
+			msg := fx.Create(parent)
+			container := msg.GetTrialJobSpec()
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			container.Tensorboard = "invalid resource name"
 			_, err := fx.service.CreateHyperparameterTuningJob(fx.ctx, &CreateHyperparameterTuningJobRequest{
 				Parent:                  parent,
 				HyperparameterTuningJob: msg,
