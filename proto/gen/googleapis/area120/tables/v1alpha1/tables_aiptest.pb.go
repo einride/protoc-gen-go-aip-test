@@ -20,16 +20,16 @@ type TablesServiceTestSuite struct {
 	Server TablesServiceServer
 }
 
-func (fx TablesServiceTestSuite) TestTable(ctx context.Context, options TableTestSuiteConfig) {
-	fx.T.Run("Table", func(t *testing.T) {
+func (fx TablesServiceTestSuite) TestRow(ctx context.Context, options RowTestSuiteConfig) {
+	fx.T.Run("Row", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
 		options.test(t)
 	})
 }
 
-func (fx TablesServiceTestSuite) TestRow(ctx context.Context, options RowTestSuiteConfig) {
-	fx.T.Run("Row", func(t *testing.T) {
+func (fx TablesServiceTestSuite) TestTable(ctx context.Context, options TableTestSuiteConfig) {
+	fx.T.Run("Table", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
 		options.test(t)
@@ -42,74 +42,6 @@ func (fx TablesServiceTestSuite) TestWorkspace(ctx context.Context, options Work
 		options.service = fx.Server
 		options.test(t)
 	})
-}
-
-type TableTestSuiteConfig struct {
-	ctx        context.Context
-	service    TablesServiceServer
-	currParent int
-
-	// Patterns of tests to skip.
-	// For example if a service has a Get method:
-	// Skip: ["Get"] will skip all tests for Get.
-	// Skip: ["Get/persisted"] will only skip the subtest called "persisted" of Get.
-	Skip []string
-}
-
-func (fx *TableTestSuiteConfig) test(t *testing.T) {
-	t.Run("Get", fx.testGet)
-	t.Run("List", fx.testList)
-}
-
-func (fx *TableTestSuiteConfig) testGet(t *testing.T) {
-	// Method should fail with InvalidArgument if no name is provided.
-	t.Run("missing name", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.service.GetTable(fx.ctx, &GetTableRequest{
-			Name: "",
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-	// Method should fail with InvalidArgument is provided name is not valid.
-	t.Run("invalid name", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.service.GetTable(fx.ctx, &GetTableRequest{
-			Name: "invalid resource name",
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-}
-
-func (fx *TableTestSuiteConfig) testList(t *testing.T) {
-
-	// Method should fail with InvalidArgument is provided page token is not valid.
-	t.Run("invalid page token", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.service.ListTables(fx.ctx, &ListTablesRequest{
-			PageToken: "invalid page token",
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-	// Method should fail with InvalidArgument is provided page size is negative.
-	t.Run("negative page size", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.service.ListTables(fx.ctx, &ListTablesRequest{
-			PageSize: -10,
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-}
-
-func (fx *TableTestSuiteConfig) maybeSkip(t *testing.T) {
-	for _, skip := range fx.Skip {
-		if strings.Contains(t.Name(), skip) {
-			t.Skip("skipped because of .Skip")
-		}
-	}
 }
 
 type RowTestSuiteConfig struct {
@@ -474,6 +406,74 @@ func (fx *RowTestSuiteConfig) peekNextParent(t *testing.T) string {
 }
 
 func (fx *RowTestSuiteConfig) maybeSkip(t *testing.T) {
+	for _, skip := range fx.Skip {
+		if strings.Contains(t.Name(), skip) {
+			t.Skip("skipped because of .Skip")
+		}
+	}
+}
+
+type TableTestSuiteConfig struct {
+	ctx        context.Context
+	service    TablesServiceServer
+	currParent int
+
+	// Patterns of tests to skip.
+	// For example if a service has a Get method:
+	// Skip: ["Get"] will skip all tests for Get.
+	// Skip: ["Get/persisted"] will only skip the subtest called "persisted" of Get.
+	Skip []string
+}
+
+func (fx *TableTestSuiteConfig) test(t *testing.T) {
+	t.Run("Get", fx.testGet)
+	t.Run("List", fx.testList)
+}
+
+func (fx *TableTestSuiteConfig) testGet(t *testing.T) {
+	// Method should fail with InvalidArgument if no name is provided.
+	t.Run("missing name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.GetTable(fx.ctx, &GetTableRequest{
+			Name: "",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument is provided name is not valid.
+	t.Run("invalid name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.GetTable(fx.ctx, &GetTableRequest{
+			Name: "invalid resource name",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+}
+
+func (fx *TableTestSuiteConfig) testList(t *testing.T) {
+
+	// Method should fail with InvalidArgument is provided page token is not valid.
+	t.Run("invalid page token", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.ListTables(fx.ctx, &ListTablesRequest{
+			PageToken: "invalid page token",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument is provided page size is negative.
+	t.Run("negative page size", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.ListTables(fx.ctx, &ListTablesRequest{
+			PageSize: -10,
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+}
+
+func (fx *TableTestSuiteConfig) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
 			t.Skip("skipped because of .Skip")

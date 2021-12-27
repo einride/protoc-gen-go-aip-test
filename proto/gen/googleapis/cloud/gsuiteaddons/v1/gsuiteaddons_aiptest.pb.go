@@ -27,16 +27,16 @@ func (fx GSuiteAddOnsTestSuite) TestAuthorization(ctx context.Context, options A
 	})
 }
 
-func (fx GSuiteAddOnsTestSuite) TestInstallStatus(ctx context.Context, options InstallStatusTestSuiteConfig) {
-	fx.T.Run("InstallStatus", func(t *testing.T) {
+func (fx GSuiteAddOnsTestSuite) TestDeployment(ctx context.Context, options DeploymentTestSuiteConfig) {
+	fx.T.Run("Deployment", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
 		options.test(t)
 	})
 }
 
-func (fx GSuiteAddOnsTestSuite) TestDeployment(ctx context.Context, options DeploymentTestSuiteConfig) {
-	fx.T.Run("Deployment", func(t *testing.T) {
+func (fx GSuiteAddOnsTestSuite) TestInstallStatus(ctx context.Context, options InstallStatusTestSuiteConfig) {
+	fx.T.Run("InstallStatus", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
 		options.test(t)
@@ -81,74 +81,6 @@ func (fx *AuthorizationTestSuiteConfig) testGet(t *testing.T) {
 }
 
 func (fx *AuthorizationTestSuiteConfig) maybeSkip(t *testing.T) {
-	for _, skip := range fx.Skip {
-		if strings.Contains(t.Name(), skip) {
-			t.Skip("skipped because of .Skip")
-		}
-	}
-}
-
-type InstallStatusTestSuiteConfig struct {
-	ctx        context.Context
-	service    GSuiteAddOnsServer
-	currParent int
-
-	// The parents to use when creating resources.
-	// At least one parent needs to be set. Depending on methods available on the resource,
-	// more may be required. If insufficient number of parents are
-	// provided the test will fail.
-	Parents []string
-	// Patterns of tests to skip.
-	// For example if a service has a Get method:
-	// Skip: ["Get"] will skip all tests for Get.
-	// Skip: ["Get/persisted"] will only skip the subtest called "persisted" of Get.
-	Skip []string
-}
-
-func (fx *InstallStatusTestSuiteConfig) test(t *testing.T) {
-	t.Run("Get", fx.testGet)
-}
-
-func (fx *InstallStatusTestSuiteConfig) testGet(t *testing.T) {
-	// Method should fail with InvalidArgument if no name is provided.
-	t.Run("missing name", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.service.GetInstallStatus(fx.ctx, &GetInstallStatusRequest{
-			Name: "",
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-	// Method should fail with InvalidArgument is provided name is not valid.
-	t.Run("invalid name", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.service.GetInstallStatus(fx.ctx, &GetInstallStatusRequest{
-			Name: "invalid resource name",
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-}
-
-func (fx *InstallStatusTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
-	if pristine {
-		fx.currParent++
-	}
-	if fx.currParent >= len(fx.Parents) {
-		t.Fatal("need at least", fx.currParent+1, "parents")
-	}
-	return fx.Parents[fx.currParent]
-}
-
-func (fx *InstallStatusTestSuiteConfig) peekNextParent(t *testing.T) string {
-	next := fx.currParent + 1
-	if next >= len(fx.Parents) {
-		t.Fatal("need at least", next+1, "parents")
-	}
-	return fx.Parents[next]
-}
-
-func (fx *InstallStatusTestSuiteConfig) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
 			t.Skip("skipped because of .Skip")
@@ -506,6 +438,74 @@ func (fx *DeploymentTestSuiteConfig) peekNextParent(t *testing.T) string {
 }
 
 func (fx *DeploymentTestSuiteConfig) maybeSkip(t *testing.T) {
+	for _, skip := range fx.Skip {
+		if strings.Contains(t.Name(), skip) {
+			t.Skip("skipped because of .Skip")
+		}
+	}
+}
+
+type InstallStatusTestSuiteConfig struct {
+	ctx        context.Context
+	service    GSuiteAddOnsServer
+	currParent int
+
+	// The parents to use when creating resources.
+	// At least one parent needs to be set. Depending on methods available on the resource,
+	// more may be required. If insufficient number of parents are
+	// provided the test will fail.
+	Parents []string
+	// Patterns of tests to skip.
+	// For example if a service has a Get method:
+	// Skip: ["Get"] will skip all tests for Get.
+	// Skip: ["Get/persisted"] will only skip the subtest called "persisted" of Get.
+	Skip []string
+}
+
+func (fx *InstallStatusTestSuiteConfig) test(t *testing.T) {
+	t.Run("Get", fx.testGet)
+}
+
+func (fx *InstallStatusTestSuiteConfig) testGet(t *testing.T) {
+	// Method should fail with InvalidArgument if no name is provided.
+	t.Run("missing name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.GetInstallStatus(fx.ctx, &GetInstallStatusRequest{
+			Name: "",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument is provided name is not valid.
+	t.Run("invalid name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.GetInstallStatus(fx.ctx, &GetInstallStatusRequest{
+			Name: "invalid resource name",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+}
+
+func (fx *InstallStatusTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
+	if pristine {
+		fx.currParent++
+	}
+	if fx.currParent >= len(fx.Parents) {
+		t.Fatal("need at least", fx.currParent+1, "parents")
+	}
+	return fx.Parents[fx.currParent]
+}
+
+func (fx *InstallStatusTestSuiteConfig) peekNextParent(t *testing.T) string {
+	next := fx.currParent + 1
+	if next >= len(fx.Parents) {
+		t.Fatal("need at least", next+1, "parents")
+	}
+	return fx.Parents[next]
+}
+
+func (fx *InstallStatusTestSuiteConfig) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
 			t.Skip("skipped because of .Skip")

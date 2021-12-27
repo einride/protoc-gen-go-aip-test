@@ -17,14 +17,6 @@ type InstanceAdminTestSuite struct {
 	Server InstanceAdminServer
 }
 
-func (fx InstanceAdminTestSuite) TestInstanceConfig(ctx context.Context, options InstanceConfigTestSuiteConfig) {
-	fx.T.Run("InstanceConfig", func(t *testing.T) {
-		options.ctx = ctx
-		options.service = fx.Server
-		options.test(t)
-	})
-}
-
 func (fx InstanceAdminTestSuite) TestInstance(ctx context.Context, options InstanceTestSuiteConfig) {
 	fx.T.Run("Instance", func(t *testing.T) {
 		options.ctx = ctx
@@ -33,107 +25,12 @@ func (fx InstanceAdminTestSuite) TestInstance(ctx context.Context, options Insta
 	})
 }
 
-type InstanceConfigTestSuiteConfig struct {
-	ctx        context.Context
-	service    InstanceAdminServer
-	currParent int
-
-	// The parents to use when creating resources.
-	// At least one parent needs to be set. Depending on methods available on the resource,
-	// more may be required. If insufficient number of parents are
-	// provided the test will fail.
-	Parents []string
-	// Patterns of tests to skip.
-	// For example if a service has a Get method:
-	// Skip: ["Get"] will skip all tests for Get.
-	// Skip: ["Get/persisted"] will only skip the subtest called "persisted" of Get.
-	Skip []string
-}
-
-func (fx *InstanceConfigTestSuiteConfig) test(t *testing.T) {
-	t.Run("Get", fx.testGet)
-	t.Run("List", fx.testList)
-}
-
-func (fx *InstanceConfigTestSuiteConfig) testGet(t *testing.T) {
-	// Method should fail with InvalidArgument if no name is provided.
-	t.Run("missing name", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.service.GetInstanceConfig(fx.ctx, &GetInstanceConfigRequest{
-			Name: "",
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+func (fx InstanceAdminTestSuite) TestInstanceConfig(ctx context.Context, options InstanceConfigTestSuiteConfig) {
+	fx.T.Run("InstanceConfig", func(t *testing.T) {
+		options.ctx = ctx
+		options.service = fx.Server
+		options.test(t)
 	})
-
-	// Method should fail with InvalidArgument is provided name is not valid.
-	t.Run("invalid name", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.service.GetInstanceConfig(fx.ctx, &GetInstanceConfigRequest{
-			Name: "invalid resource name",
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-}
-
-func (fx *InstanceConfigTestSuiteConfig) testList(t *testing.T) {
-	// Method should fail with InvalidArgument if provided parent is invalid.
-	t.Run("invalid parent", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.service.ListInstanceConfigs(fx.ctx, &ListInstanceConfigsRequest{
-			Parent: "invalid resource name",
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-	// Method should fail with InvalidArgument is provided page token is not valid.
-	t.Run("invalid page token", func(t *testing.T) {
-		fx.maybeSkip(t)
-		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListInstanceConfigs(fx.ctx, &ListInstanceConfigsRequest{
-			Parent:    parent,
-			PageToken: "invalid page token",
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-	// Method should fail with InvalidArgument is provided page size is negative.
-	t.Run("negative page size", func(t *testing.T) {
-		fx.maybeSkip(t)
-		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListInstanceConfigs(fx.ctx, &ListInstanceConfigsRequest{
-			Parent:   parent,
-			PageSize: -10,
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-}
-
-func (fx *InstanceConfigTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
-	if pristine {
-		fx.currParent++
-	}
-	if fx.currParent >= len(fx.Parents) {
-		t.Fatal("need at least", fx.currParent+1, "parents")
-	}
-	return fx.Parents[fx.currParent]
-}
-
-func (fx *InstanceConfigTestSuiteConfig) peekNextParent(t *testing.T) string {
-	next := fx.currParent + 1
-	if next >= len(fx.Parents) {
-		t.Fatal("need at least", next+1, "parents")
-	}
-	return fx.Parents[next]
-}
-
-func (fx *InstanceConfigTestSuiteConfig) maybeSkip(t *testing.T) {
-	for _, skip := range fx.Skip {
-		if strings.Contains(t.Name(), skip) {
-			t.Skip("skipped because of .Skip")
-		}
-	}
 }
 
 type InstanceTestSuiteConfig struct {
@@ -311,6 +208,109 @@ func (fx *InstanceTestSuiteConfig) peekNextParent(t *testing.T) string {
 }
 
 func (fx *InstanceTestSuiteConfig) maybeSkip(t *testing.T) {
+	for _, skip := range fx.Skip {
+		if strings.Contains(t.Name(), skip) {
+			t.Skip("skipped because of .Skip")
+		}
+	}
+}
+
+type InstanceConfigTestSuiteConfig struct {
+	ctx        context.Context
+	service    InstanceAdminServer
+	currParent int
+
+	// The parents to use when creating resources.
+	// At least one parent needs to be set. Depending on methods available on the resource,
+	// more may be required. If insufficient number of parents are
+	// provided the test will fail.
+	Parents []string
+	// Patterns of tests to skip.
+	// For example if a service has a Get method:
+	// Skip: ["Get"] will skip all tests for Get.
+	// Skip: ["Get/persisted"] will only skip the subtest called "persisted" of Get.
+	Skip []string
+}
+
+func (fx *InstanceConfigTestSuiteConfig) test(t *testing.T) {
+	t.Run("Get", fx.testGet)
+	t.Run("List", fx.testList)
+}
+
+func (fx *InstanceConfigTestSuiteConfig) testGet(t *testing.T) {
+	// Method should fail with InvalidArgument if no name is provided.
+	t.Run("missing name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.GetInstanceConfig(fx.ctx, &GetInstanceConfigRequest{
+			Name: "",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument is provided name is not valid.
+	t.Run("invalid name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.GetInstanceConfig(fx.ctx, &GetInstanceConfigRequest{
+			Name: "invalid resource name",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+}
+
+func (fx *InstanceConfigTestSuiteConfig) testList(t *testing.T) {
+	// Method should fail with InvalidArgument if provided parent is invalid.
+	t.Run("invalid parent", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.ListInstanceConfigs(fx.ctx, &ListInstanceConfigsRequest{
+			Parent: "invalid resource name",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument is provided page token is not valid.
+	t.Run("invalid page token", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		_, err := fx.service.ListInstanceConfigs(fx.ctx, &ListInstanceConfigsRequest{
+			Parent:    parent,
+			PageToken: "invalid page token",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument is provided page size is negative.
+	t.Run("negative page size", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		_, err := fx.service.ListInstanceConfigs(fx.ctx, &ListInstanceConfigsRequest{
+			Parent:   parent,
+			PageSize: -10,
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+}
+
+func (fx *InstanceConfigTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
+	if pristine {
+		fx.currParent++
+	}
+	if fx.currParent >= len(fx.Parents) {
+		t.Fatal("need at least", fx.currParent+1, "parents")
+	}
+	return fx.Parents[fx.currParent]
+}
+
+func (fx *InstanceConfigTestSuiteConfig) peekNextParent(t *testing.T) string {
+	next := fx.currParent + 1
+	if next >= len(fx.Parents) {
+		t.Fatal("need at least", next+1, "parents")
+	}
+	return fx.Parents[next]
+}
+
+func (fx *InstanceConfigTestSuiteConfig) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
 			t.Skip("skipped because of .Skip")

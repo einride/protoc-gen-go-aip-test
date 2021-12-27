@@ -96,22 +96,6 @@ func (fx *IndexEndpointTestSuiteConfig) testCreate(t *testing.T) {
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
-		t.Run(".network", func(t *testing.T) {
-			fx.maybeSkip(t)
-			parent := fx.nextParent(t, false)
-			msg := fx.Create(parent)
-			container := msg
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("network")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateIndexEndpoint(fx.ctx, &CreateIndexEndpointRequest{
-				Parent:        parent,
-				IndexEndpoint: msg,
-			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
 	})
 
 }

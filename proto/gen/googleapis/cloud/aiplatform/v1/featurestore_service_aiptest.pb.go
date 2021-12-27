@@ -17,16 +17,16 @@ type FeaturestoreServiceTestSuite struct {
 	Server FeaturestoreServiceServer
 }
 
-func (fx FeaturestoreServiceTestSuite) TestFeature(ctx context.Context, options FeatureTestSuiteConfig) {
-	fx.T.Run("Feature", func(t *testing.T) {
+func (fx FeaturestoreServiceTestSuite) TestEntityType(ctx context.Context, options EntityTypeTestSuiteConfig) {
+	fx.T.Run("EntityType", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
 		options.test(t)
 	})
 }
 
-func (fx FeaturestoreServiceTestSuite) TestEntityType(ctx context.Context, options EntityTypeTestSuiteConfig) {
-	fx.T.Run("EntityType", func(t *testing.T) {
+func (fx FeaturestoreServiceTestSuite) TestFeature(ctx context.Context, options FeatureTestSuiteConfig) {
+	fx.T.Run("Feature", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
 		options.test(t)
@@ -39,6 +39,167 @@ func (fx FeaturestoreServiceTestSuite) TestFeaturestore(ctx context.Context, opt
 		options.service = fx.Server
 		options.test(t)
 	})
+}
+
+type EntityTypeTestSuiteConfig struct {
+	ctx        context.Context
+	service    FeaturestoreServiceServer
+	currParent int
+
+	// The parents to use when creating resources.
+	// At least one parent needs to be set. Depending on methods available on the resource,
+	// more may be required. If insufficient number of parents are
+	// provided the test will fail.
+	Parents []string
+	// Create should return a resource which is valid to create, i.e.
+	// all required fields set.
+	Create func(parent string) *EntityType
+	// Update should return a resource which is valid to update, i.e.
+	// all required fields set.
+	Update func(parent string) *EntityType
+	// Patterns of tests to skip.
+	// For example if a service has a Get method:
+	// Skip: ["Get"] will skip all tests for Get.
+	// Skip: ["Get/persisted"] will only skip the subtest called "persisted" of Get.
+	Skip []string
+}
+
+func (fx *EntityTypeTestSuiteConfig) test(t *testing.T) {
+	t.Run("Create", fx.testCreate)
+	t.Run("Get", fx.testGet)
+	t.Run("Update", fx.testUpdate)
+	t.Run("List", fx.testList)
+}
+
+func (fx *EntityTypeTestSuiteConfig) testCreate(t *testing.T) {
+	// Method should fail with InvalidArgument if no parent is provided.
+	t.Run("missing parent", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.CreateEntityType(fx.ctx, &CreateEntityTypeRequest{
+			Parent:     "",
+			EntityType: fx.Create(""),
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if provided parent is invalid.
+	t.Run("invalid parent", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.CreateEntityType(fx.ctx, &CreateEntityTypeRequest{
+			Parent:     "invalid resource name",
+			EntityType: fx.Create("invalid resource name"),
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+}
+
+func (fx *EntityTypeTestSuiteConfig) testGet(t *testing.T) {
+	// Method should fail with InvalidArgument if no name is provided.
+	t.Run("missing name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.GetEntityType(fx.ctx, &GetEntityTypeRequest{
+			Name: "",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument is provided name is not valid.
+	t.Run("invalid name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.GetEntityType(fx.ctx, &GetEntityTypeRequest{
+			Name: "invalid resource name",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+}
+
+func (fx *EntityTypeTestSuiteConfig) testUpdate(t *testing.T) {
+	// Method should fail with InvalidArgument if no name is provided.
+	t.Run("missing name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		msg := fx.Update(parent)
+		msg.Name = ""
+		_, err := fx.service.UpdateEntityType(fx.ctx, &UpdateEntityTypeRequest{
+			EntityType: msg,
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if provided name is not valid.
+	t.Run("invalid name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		msg := fx.Update(parent)
+		msg.Name = "invalid resource name"
+		_, err := fx.service.UpdateEntityType(fx.ctx, &UpdateEntityTypeRequest{
+			EntityType: msg,
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+}
+
+func (fx *EntityTypeTestSuiteConfig) testList(t *testing.T) {
+	// Method should fail with InvalidArgument if provided parent is invalid.
+	t.Run("invalid parent", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.ListEntityTypes(fx.ctx, &ListEntityTypesRequest{
+			Parent: "invalid resource name",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument is provided page token is not valid.
+	t.Run("invalid page token", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		_, err := fx.service.ListEntityTypes(fx.ctx, &ListEntityTypesRequest{
+			Parent:    parent,
+			PageToken: "invalid page token",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument is provided page size is negative.
+	t.Run("negative page size", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		_, err := fx.service.ListEntityTypes(fx.ctx, &ListEntityTypesRequest{
+			Parent:   parent,
+			PageSize: -10,
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+}
+
+func (fx *EntityTypeTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
+	if pristine {
+		fx.currParent++
+	}
+	if fx.currParent >= len(fx.Parents) {
+		t.Fatal("need at least", fx.currParent+1, "parents")
+	}
+	return fx.Parents[fx.currParent]
+}
+
+func (fx *EntityTypeTestSuiteConfig) peekNextParent(t *testing.T) string {
+	next := fx.currParent + 1
+	if next >= len(fx.Parents) {
+		t.Fatal("need at least", next+1, "parents")
+	}
+	return fx.Parents[next]
+}
+
+func (fx *EntityTypeTestSuiteConfig) maybeSkip(t *testing.T) {
+	for _, skip := range fx.Skip {
+		if strings.Contains(t.Name(), skip) {
+			t.Skip("skipped because of .Skip")
+		}
+	}
 }
 
 type FeatureTestSuiteConfig struct {
@@ -217,167 +378,6 @@ func (fx *FeatureTestSuiteConfig) peekNextParent(t *testing.T) string {
 }
 
 func (fx *FeatureTestSuiteConfig) maybeSkip(t *testing.T) {
-	for _, skip := range fx.Skip {
-		if strings.Contains(t.Name(), skip) {
-			t.Skip("skipped because of .Skip")
-		}
-	}
-}
-
-type EntityTypeTestSuiteConfig struct {
-	ctx        context.Context
-	service    FeaturestoreServiceServer
-	currParent int
-
-	// The parents to use when creating resources.
-	// At least one parent needs to be set. Depending on methods available on the resource,
-	// more may be required. If insufficient number of parents are
-	// provided the test will fail.
-	Parents []string
-	// Create should return a resource which is valid to create, i.e.
-	// all required fields set.
-	Create func(parent string) *EntityType
-	// Update should return a resource which is valid to update, i.e.
-	// all required fields set.
-	Update func(parent string) *EntityType
-	// Patterns of tests to skip.
-	// For example if a service has a Get method:
-	// Skip: ["Get"] will skip all tests for Get.
-	// Skip: ["Get/persisted"] will only skip the subtest called "persisted" of Get.
-	Skip []string
-}
-
-func (fx *EntityTypeTestSuiteConfig) test(t *testing.T) {
-	t.Run("Create", fx.testCreate)
-	t.Run("Get", fx.testGet)
-	t.Run("Update", fx.testUpdate)
-	t.Run("List", fx.testList)
-}
-
-func (fx *EntityTypeTestSuiteConfig) testCreate(t *testing.T) {
-	// Method should fail with InvalidArgument if no parent is provided.
-	t.Run("missing parent", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.service.CreateEntityType(fx.ctx, &CreateEntityTypeRequest{
-			Parent:     "",
-			EntityType: fx.Create(""),
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-	// Method should fail with InvalidArgument if provided parent is invalid.
-	t.Run("invalid parent", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.service.CreateEntityType(fx.ctx, &CreateEntityTypeRequest{
-			Parent:     "invalid resource name",
-			EntityType: fx.Create("invalid resource name"),
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-}
-
-func (fx *EntityTypeTestSuiteConfig) testGet(t *testing.T) {
-	// Method should fail with InvalidArgument if no name is provided.
-	t.Run("missing name", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.service.GetEntityType(fx.ctx, &GetEntityTypeRequest{
-			Name: "",
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-	// Method should fail with InvalidArgument is provided name is not valid.
-	t.Run("invalid name", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.service.GetEntityType(fx.ctx, &GetEntityTypeRequest{
-			Name: "invalid resource name",
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-}
-
-func (fx *EntityTypeTestSuiteConfig) testUpdate(t *testing.T) {
-	// Method should fail with InvalidArgument if no name is provided.
-	t.Run("missing name", func(t *testing.T) {
-		fx.maybeSkip(t)
-		parent := fx.nextParent(t, false)
-		msg := fx.Update(parent)
-		msg.Name = ""
-		_, err := fx.service.UpdateEntityType(fx.ctx, &UpdateEntityTypeRequest{
-			EntityType: msg,
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-	// Method should fail with InvalidArgument if provided name is not valid.
-	t.Run("invalid name", func(t *testing.T) {
-		fx.maybeSkip(t)
-		parent := fx.nextParent(t, false)
-		msg := fx.Update(parent)
-		msg.Name = "invalid resource name"
-		_, err := fx.service.UpdateEntityType(fx.ctx, &UpdateEntityTypeRequest{
-			EntityType: msg,
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-}
-
-func (fx *EntityTypeTestSuiteConfig) testList(t *testing.T) {
-	// Method should fail with InvalidArgument if provided parent is invalid.
-	t.Run("invalid parent", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.service.ListEntityTypes(fx.ctx, &ListEntityTypesRequest{
-			Parent: "invalid resource name",
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-	// Method should fail with InvalidArgument is provided page token is not valid.
-	t.Run("invalid page token", func(t *testing.T) {
-		fx.maybeSkip(t)
-		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListEntityTypes(fx.ctx, &ListEntityTypesRequest{
-			Parent:    parent,
-			PageToken: "invalid page token",
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-	// Method should fail with InvalidArgument is provided page size is negative.
-	t.Run("negative page size", func(t *testing.T) {
-		fx.maybeSkip(t)
-		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListEntityTypes(fx.ctx, &ListEntityTypesRequest{
-			Parent:   parent,
-			PageSize: -10,
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-}
-
-func (fx *EntityTypeTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
-	if pristine {
-		fx.currParent++
-	}
-	if fx.currParent >= len(fx.Parents) {
-		t.Fatal("need at least", fx.currParent+1, "parents")
-	}
-	return fx.Parents[fx.currParent]
-}
-
-func (fx *EntityTypeTestSuiteConfig) peekNextParent(t *testing.T) string {
-	next := fx.currParent + 1
-	if next >= len(fx.Parents) {
-		t.Fatal("need at least", next+1, "parents")
-	}
-	return fx.Parents[next]
-}
-
-func (fx *EntityTypeTestSuiteConfig) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
 			t.Skip("skipped because of .Skip")

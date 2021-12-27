@@ -46,16 +46,16 @@ func (fx JobServiceTestSuite) TestDataLabelingJob(ctx context.Context, options D
 	})
 }
 
-func (fx JobServiceTestSuite) TestModelDeploymentMonitoringJob(ctx context.Context, options ModelDeploymentMonitoringJobTestSuiteConfig) {
-	fx.T.Run("ModelDeploymentMonitoringJob", func(t *testing.T) {
+func (fx JobServiceTestSuite) TestHyperparameterTuningJob(ctx context.Context, options HyperparameterTuningJobTestSuiteConfig) {
+	fx.T.Run("HyperparameterTuningJob", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
 		options.test(t)
 	})
 }
 
-func (fx JobServiceTestSuite) TestHyperparameterTuningJob(ctx context.Context, options HyperparameterTuningJobTestSuiteConfig) {
-	fx.T.Run("HyperparameterTuningJob", func(t *testing.T) {
+func (fx JobServiceTestSuite) TestModelDeploymentMonitoringJob(ctx context.Context, options ModelDeploymentMonitoringJobTestSuiteConfig) {
+	fx.T.Run("ModelDeploymentMonitoringJob", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
 		options.test(t)
@@ -157,15 +157,15 @@ func (fx *BatchPredictionJobTestSuiteConfig) testCreate(t *testing.T) {
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
-		t.Run(".model", func(t *testing.T) {
+		t.Run(".unmanaged_container_model.container_spec.image_uri", func(t *testing.T) {
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
-			container := msg
+			container := msg.GetUnmanagedContainerModel().GetContainerSpec()
 			if container == nil {
 				t.Skip("not reachable")
 			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("model")
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("image_uri")
 			container.ProtoReflect().Clear(fd)
 			_, err := fx.service.CreateBatchPredictionJob(fx.ctx, &CreateBatchPredictionJobRequest{
 				Parent:             parent,
@@ -1551,6 +1551,507 @@ func (fx *DataLabelingJobTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
+type HyperparameterTuningJobTestSuiteConfig struct {
+	ctx        context.Context
+	service    JobServiceServer
+	currParent int
+
+	// The parents to use when creating resources.
+	// At least one parent needs to be set. Depending on methods available on the resource,
+	// more may be required. If insufficient number of parents are
+	// provided the test will fail.
+	Parents []string
+	// Create should return a resource which is valid to create, i.e.
+	// all required fields set.
+	Create func(parent string) *HyperparameterTuningJob
+	// Patterns of tests to skip.
+	// For example if a service has a Get method:
+	// Skip: ["Get"] will skip all tests for Get.
+	// Skip: ["Get/persisted"] will only skip the subtest called "persisted" of Get.
+	Skip []string
+}
+
+func (fx *HyperparameterTuningJobTestSuiteConfig) test(t *testing.T) {
+	t.Run("Create", fx.testCreate)
+	t.Run("Get", fx.testGet)
+	t.Run("List", fx.testList)
+}
+
+func (fx *HyperparameterTuningJobTestSuiteConfig) testCreate(t *testing.T) {
+	// Method should fail with InvalidArgument if no parent is provided.
+	t.Run("missing parent", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.CreateHyperparameterTuningJob(fx.ctx, &CreateHyperparameterTuningJobRequest{
+			Parent:                  "",
+			HyperparameterTuningJob: fx.Create(""),
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if provided parent is invalid.
+	t.Run("invalid parent", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.CreateHyperparameterTuningJob(fx.ctx, &CreateHyperparameterTuningJobRequest{
+			Parent:                  "invalid resource name",
+			HyperparameterTuningJob: fx.Create("invalid resource name"),
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Field create_time should be populated when the resource is created.
+	t.Run("create time", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		msg, err := fx.service.CreateHyperparameterTuningJob(fx.ctx, &CreateHyperparameterTuningJobRequest{
+			Parent:                  parent,
+			HyperparameterTuningJob: fx.Create(parent),
+		})
+		assert.NilError(t, err)
+		assert.Check(t, time.Since(msg.CreateTime.AsTime()) < time.Second)
+	})
+
+	// The created resource should be persisted and reachable with Get.
+	t.Run("persisted", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		msg, err := fx.service.CreateHyperparameterTuningJob(fx.ctx, &CreateHyperparameterTuningJobRequest{
+			Parent:                  parent,
+			HyperparameterTuningJob: fx.Create(parent),
+		})
+		assert.NilError(t, err)
+		persisted, err := fx.service.GetHyperparameterTuningJob(fx.ctx, &GetHyperparameterTuningJobRequest{
+			Name: msg.Name,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(t, msg, persisted, protocmp.Transform())
+	})
+
+	// The method should fail with InvalidArgument if the resource has any
+	// required fields and they are not provided.
+	t.Run("required fields", func(t *testing.T) {
+		fx.maybeSkip(t)
+		t.Run(".display_name", func(t *testing.T) {
+			fx.maybeSkip(t)
+			parent := fx.nextParent(t, false)
+			msg := fx.Create(parent)
+			container := msg
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.CreateHyperparameterTuningJob(fx.ctx, &CreateHyperparameterTuningJobRequest{
+				Parent:                  parent,
+				HyperparameterTuningJob: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+		t.Run(".study_spec", func(t *testing.T) {
+			fx.maybeSkip(t)
+			parent := fx.nextParent(t, false)
+			msg := fx.Create(parent)
+			container := msg
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("study_spec")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.CreateHyperparameterTuningJob(fx.ctx, &CreateHyperparameterTuningJobRequest{
+				Parent:                  parent,
+				HyperparameterTuningJob: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+		t.Run(".study_spec.metrics", func(t *testing.T) {
+			fx.maybeSkip(t)
+			parent := fx.nextParent(t, false)
+			msg := fx.Create(parent)
+			container := msg.GetStudySpec()
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("metrics")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.CreateHyperparameterTuningJob(fx.ctx, &CreateHyperparameterTuningJobRequest{
+				Parent:                  parent,
+				HyperparameterTuningJob: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+		t.Run(".study_spec.parameters", func(t *testing.T) {
+			fx.maybeSkip(t)
+			parent := fx.nextParent(t, false)
+			msg := fx.Create(parent)
+			container := msg.GetStudySpec()
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("parameters")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.CreateHyperparameterTuningJob(fx.ctx, &CreateHyperparameterTuningJobRequest{
+				Parent:                  parent,
+				HyperparameterTuningJob: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+		t.Run(".max_trial_count", func(t *testing.T) {
+			fx.maybeSkip(t)
+			parent := fx.nextParent(t, false)
+			msg := fx.Create(parent)
+			container := msg
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("max_trial_count")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.CreateHyperparameterTuningJob(fx.ctx, &CreateHyperparameterTuningJobRequest{
+				Parent:                  parent,
+				HyperparameterTuningJob: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+		t.Run(".parallel_trial_count", func(t *testing.T) {
+			fx.maybeSkip(t)
+			parent := fx.nextParent(t, false)
+			msg := fx.Create(parent)
+			container := msg
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("parallel_trial_count")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.CreateHyperparameterTuningJob(fx.ctx, &CreateHyperparameterTuningJobRequest{
+				Parent:                  parent,
+				HyperparameterTuningJob: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+		t.Run(".trial_job_spec", func(t *testing.T) {
+			fx.maybeSkip(t)
+			parent := fx.nextParent(t, false)
+			msg := fx.Create(parent)
+			container := msg
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("trial_job_spec")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.CreateHyperparameterTuningJob(fx.ctx, &CreateHyperparameterTuningJobRequest{
+				Parent:                  parent,
+				HyperparameterTuningJob: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+		t.Run(".trial_job_spec.worker_pool_specs", func(t *testing.T) {
+			fx.maybeSkip(t)
+			parent := fx.nextParent(t, false)
+			msg := fx.Create(parent)
+			container := msg.GetTrialJobSpec()
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("worker_pool_specs")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.CreateHyperparameterTuningJob(fx.ctx, &CreateHyperparameterTuningJobRequest{
+				Parent:                  parent,
+				HyperparameterTuningJob: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+		t.Run(".trial_job_spec.base_output_directory.output_uri_prefix", func(t *testing.T) {
+			fx.maybeSkip(t)
+			parent := fx.nextParent(t, false)
+			msg := fx.Create(parent)
+			container := msg.GetTrialJobSpec().GetBaseOutputDirectory()
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("output_uri_prefix")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.CreateHyperparameterTuningJob(fx.ctx, &CreateHyperparameterTuningJobRequest{
+				Parent:                  parent,
+				HyperparameterTuningJob: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+		t.Run(".encryption_spec.kms_key_name", func(t *testing.T) {
+			fx.maybeSkip(t)
+			parent := fx.nextParent(t, false)
+			msg := fx.Create(parent)
+			container := msg.GetEncryptionSpec()
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("kms_key_name")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.CreateHyperparameterTuningJob(fx.ctx, &CreateHyperparameterTuningJobRequest{
+				Parent:                  parent,
+				HyperparameterTuningJob: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+	})
+
+	// The method should fail with InvalidArgument if the resource has any
+	// resource references and they are invalid.
+	t.Run("resource references", func(t *testing.T) {
+		fx.maybeSkip(t)
+		t.Run(".trial_job_spec.network", func(t *testing.T) {
+			fx.maybeSkip(t)
+			parent := fx.nextParent(t, false)
+			msg := fx.Create(parent)
+			container := msg.GetTrialJobSpec()
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			container.Network = "invalid resource name"
+			_, err := fx.service.CreateHyperparameterTuningJob(fx.ctx, &CreateHyperparameterTuningJobRequest{
+				Parent:                  parent,
+				HyperparameterTuningJob: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+		t.Run(".trial_job_spec.tensorboard", func(t *testing.T) {
+			fx.maybeSkip(t)
+			parent := fx.nextParent(t, false)
+			msg := fx.Create(parent)
+			container := msg.GetTrialJobSpec()
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			container.Tensorboard = "invalid resource name"
+			_, err := fx.service.CreateHyperparameterTuningJob(fx.ctx, &CreateHyperparameterTuningJobRequest{
+				Parent:                  parent,
+				HyperparameterTuningJob: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+	})
+
+}
+
+func (fx *HyperparameterTuningJobTestSuiteConfig) testGet(t *testing.T) {
+	// Method should fail with InvalidArgument if no name is provided.
+	t.Run("missing name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.GetHyperparameterTuningJob(fx.ctx, &GetHyperparameterTuningJobRequest{
+			Name: "",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument is provided name is not valid.
+	t.Run("invalid name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.GetHyperparameterTuningJob(fx.ctx, &GetHyperparameterTuningJobRequest{
+			Name: "invalid resource name",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Resource should be returned without errors if it exists.
+	t.Run("exists", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created, err := fx.service.CreateHyperparameterTuningJob(fx.ctx, &CreateHyperparameterTuningJobRequest{
+			Parent:                  parent,
+			HyperparameterTuningJob: fx.Create(parent),
+		})
+		assert.NilError(t, err)
+		msg, err := fx.service.GetHyperparameterTuningJob(fx.ctx, &GetHyperparameterTuningJobRequest{
+			Name: created.Name,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(t, msg, created, protocmp.Transform())
+	})
+
+	// Method should fail with NotFound if the resource does not exist.
+	t.Run("not found", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created, err := fx.service.CreateHyperparameterTuningJob(fx.ctx, &CreateHyperparameterTuningJobRequest{
+			Parent:                  parent,
+			HyperparameterTuningJob: fx.Create(parent),
+		})
+		assert.NilError(t, err)
+		_, err = fx.service.GetHyperparameterTuningJob(fx.ctx, &GetHyperparameterTuningJobRequest{
+			Name: created.Name + "notfound",
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
+}
+
+func (fx *HyperparameterTuningJobTestSuiteConfig) testList(t *testing.T) {
+	// Method should fail with InvalidArgument if provided parent is invalid.
+	t.Run("invalid parent", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.ListHyperparameterTuningJobs(fx.ctx, &ListHyperparameterTuningJobsRequest{
+			Parent: "invalid resource name",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument is provided page token is not valid.
+	t.Run("invalid page token", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		_, err := fx.service.ListHyperparameterTuningJobs(fx.ctx, &ListHyperparameterTuningJobsRequest{
+			Parent:    parent,
+			PageToken: "invalid page token",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument is provided page size is negative.
+	t.Run("negative page size", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		_, err := fx.service.ListHyperparameterTuningJobs(fx.ctx, &ListHyperparameterTuningJobsRequest{
+			Parent:   parent,
+			PageSize: -10,
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	const resourcesCount = 15
+	parent := fx.nextParent(t, true)
+	parentMsgs := make([]*HyperparameterTuningJob, resourcesCount)
+	for i := 0; i < resourcesCount; i++ {
+		msg, err := fx.service.CreateHyperparameterTuningJob(fx.ctx, &CreateHyperparameterTuningJobRequest{
+			Parent:                  parent,
+			HyperparameterTuningJob: fx.Create(parent),
+		})
+		assert.NilError(t, err)
+		parentMsgs[i] = msg
+	}
+
+	// If parent is provided the method must only return resources
+	// under that parent.
+	t.Run("isolation", func(t *testing.T) {
+		fx.maybeSkip(t)
+		response, err := fx.service.ListHyperparameterTuningJobs(fx.ctx, &ListHyperparameterTuningJobsRequest{
+			Parent:   parent,
+			PageSize: 999,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(
+			t,
+			parentMsgs,
+			response.HyperparameterTuningJobs,
+			cmpopts.SortSlices(func(a, b *HyperparameterTuningJob) bool {
+				return a.Name < b.Name
+			}),
+			protocmp.Transform(),
+		)
+	})
+
+	// If there are no more resources, next_page_token should not be set.
+	t.Run("last page", func(t *testing.T) {
+		fx.maybeSkip(t)
+		response, err := fx.service.ListHyperparameterTuningJobs(fx.ctx, &ListHyperparameterTuningJobsRequest{
+			Parent:   parent,
+			PageSize: resourcesCount,
+		})
+		assert.NilError(t, err)
+		assert.Equal(t, "", response.NextPageToken)
+	})
+
+	// If there are more resources, next_page_token should be set.
+	t.Run("more pages", func(t *testing.T) {
+		fx.maybeSkip(t)
+		response, err := fx.service.ListHyperparameterTuningJobs(fx.ctx, &ListHyperparameterTuningJobsRequest{
+			Parent:   parent,
+			PageSize: resourcesCount - 1,
+		})
+		assert.NilError(t, err)
+		assert.Check(t, response.NextPageToken != "")
+	})
+
+	// Listing resource one by one should eventually return all resources.
+	t.Run("one by one", func(t *testing.T) {
+		fx.maybeSkip(t)
+		msgs := make([]*HyperparameterTuningJob, 0, resourcesCount)
+		var nextPageToken string
+		for {
+			response, err := fx.service.ListHyperparameterTuningJobs(fx.ctx, &ListHyperparameterTuningJobsRequest{
+				Parent:    parent,
+				PageSize:  1,
+				PageToken: nextPageToken,
+			})
+			assert.NilError(t, err)
+			assert.Equal(t, 1, len(response.HyperparameterTuningJobs))
+			msgs = append(msgs, response.HyperparameterTuningJobs...)
+			nextPageToken = response.NextPageToken
+			if nextPageToken == "" {
+				break
+			}
+		}
+		assert.DeepEqual(
+			t,
+			parentMsgs,
+			msgs,
+			cmpopts.SortSlices(func(a, b *HyperparameterTuningJob) bool {
+				return a.Name < b.Name
+			}),
+			protocmp.Transform(),
+		)
+	})
+
+	// Method should not return deleted resources.
+	t.Run("deleted", func(t *testing.T) {
+		fx.maybeSkip(t)
+		const deleteCount = 5
+		for i := 0; i < deleteCount; i++ {
+			_, err := fx.service.DeleteHyperparameterTuningJob(fx.ctx, &DeleteHyperparameterTuningJobRequest{
+				Name: parentMsgs[i].Name,
+			})
+			assert.NilError(t, err)
+		}
+		response, err := fx.service.ListHyperparameterTuningJobs(fx.ctx, &ListHyperparameterTuningJobsRequest{
+			Parent:   parent,
+			PageSize: 9999,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(
+			t,
+			parentMsgs[deleteCount:],
+			response.HyperparameterTuningJobs,
+			cmpopts.SortSlices(func(a, b *HyperparameterTuningJob) bool {
+				return a.Name < b.Name
+			}),
+			protocmp.Transform(),
+		)
+	})
+
+}
+
+func (fx *HyperparameterTuningJobTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
+	if pristine {
+		fx.currParent++
+	}
+	if fx.currParent >= len(fx.Parents) {
+		t.Fatal("need at least", fx.currParent+1, "parents")
+	}
+	return fx.Parents[fx.currParent]
+}
+
+func (fx *HyperparameterTuningJobTestSuiteConfig) peekNextParent(t *testing.T) string {
+	next := fx.currParent + 1
+	if next >= len(fx.Parents) {
+		t.Fatal("need at least", next+1, "parents")
+	}
+	return fx.Parents[next]
+}
+
+func (fx *HyperparameterTuningJobTestSuiteConfig) maybeSkip(t *testing.T) {
+	for _, skip := range fx.Skip {
+		if strings.Contains(t.Name(), skip) {
+			t.Skip("skipped because of .Skip")
+		}
+	}
+}
+
 type ModelDeploymentMonitoringJobTestSuiteConfig struct {
 	ctx        context.Context
 	service    JobServiceServer
@@ -2218,507 +2719,6 @@ func (fx *ModelDeploymentMonitoringJobTestSuiteConfig) peekNextParent(t *testing
 }
 
 func (fx *ModelDeploymentMonitoringJobTestSuiteConfig) maybeSkip(t *testing.T) {
-	for _, skip := range fx.Skip {
-		if strings.Contains(t.Name(), skip) {
-			t.Skip("skipped because of .Skip")
-		}
-	}
-}
-
-type HyperparameterTuningJobTestSuiteConfig struct {
-	ctx        context.Context
-	service    JobServiceServer
-	currParent int
-
-	// The parents to use when creating resources.
-	// At least one parent needs to be set. Depending on methods available on the resource,
-	// more may be required. If insufficient number of parents are
-	// provided the test will fail.
-	Parents []string
-	// Create should return a resource which is valid to create, i.e.
-	// all required fields set.
-	Create func(parent string) *HyperparameterTuningJob
-	// Patterns of tests to skip.
-	// For example if a service has a Get method:
-	// Skip: ["Get"] will skip all tests for Get.
-	// Skip: ["Get/persisted"] will only skip the subtest called "persisted" of Get.
-	Skip []string
-}
-
-func (fx *HyperparameterTuningJobTestSuiteConfig) test(t *testing.T) {
-	t.Run("Create", fx.testCreate)
-	t.Run("Get", fx.testGet)
-	t.Run("List", fx.testList)
-}
-
-func (fx *HyperparameterTuningJobTestSuiteConfig) testCreate(t *testing.T) {
-	// Method should fail with InvalidArgument if no parent is provided.
-	t.Run("missing parent", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.service.CreateHyperparameterTuningJob(fx.ctx, &CreateHyperparameterTuningJobRequest{
-			Parent:                  "",
-			HyperparameterTuningJob: fx.Create(""),
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-	// Method should fail with InvalidArgument if provided parent is invalid.
-	t.Run("invalid parent", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.service.CreateHyperparameterTuningJob(fx.ctx, &CreateHyperparameterTuningJobRequest{
-			Parent:                  "invalid resource name",
-			HyperparameterTuningJob: fx.Create("invalid resource name"),
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-	// Field create_time should be populated when the resource is created.
-	t.Run("create time", func(t *testing.T) {
-		fx.maybeSkip(t)
-		parent := fx.nextParent(t, false)
-		msg, err := fx.service.CreateHyperparameterTuningJob(fx.ctx, &CreateHyperparameterTuningJobRequest{
-			Parent:                  parent,
-			HyperparameterTuningJob: fx.Create(parent),
-		})
-		assert.NilError(t, err)
-		assert.Check(t, time.Since(msg.CreateTime.AsTime()) < time.Second)
-	})
-
-	// The created resource should be persisted and reachable with Get.
-	t.Run("persisted", func(t *testing.T) {
-		fx.maybeSkip(t)
-		parent := fx.nextParent(t, false)
-		msg, err := fx.service.CreateHyperparameterTuningJob(fx.ctx, &CreateHyperparameterTuningJobRequest{
-			Parent:                  parent,
-			HyperparameterTuningJob: fx.Create(parent),
-		})
-		assert.NilError(t, err)
-		persisted, err := fx.service.GetHyperparameterTuningJob(fx.ctx, &GetHyperparameterTuningJobRequest{
-			Name: msg.Name,
-		})
-		assert.NilError(t, err)
-		assert.DeepEqual(t, msg, persisted, protocmp.Transform())
-	})
-
-	// The method should fail with InvalidArgument if the resource has any
-	// required fields and they are not provided.
-	t.Run("required fields", func(t *testing.T) {
-		fx.maybeSkip(t)
-		t.Run(".display_name", func(t *testing.T) {
-			fx.maybeSkip(t)
-			parent := fx.nextParent(t, false)
-			msg := fx.Create(parent)
-			container := msg
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateHyperparameterTuningJob(fx.ctx, &CreateHyperparameterTuningJobRequest{
-				Parent:                  parent,
-				HyperparameterTuningJob: msg,
-			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
-		t.Run(".study_spec", func(t *testing.T) {
-			fx.maybeSkip(t)
-			parent := fx.nextParent(t, false)
-			msg := fx.Create(parent)
-			container := msg
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("study_spec")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateHyperparameterTuningJob(fx.ctx, &CreateHyperparameterTuningJobRequest{
-				Parent:                  parent,
-				HyperparameterTuningJob: msg,
-			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
-		t.Run(".study_spec.metrics", func(t *testing.T) {
-			fx.maybeSkip(t)
-			parent := fx.nextParent(t, false)
-			msg := fx.Create(parent)
-			container := msg.GetStudySpec()
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("metrics")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateHyperparameterTuningJob(fx.ctx, &CreateHyperparameterTuningJobRequest{
-				Parent:                  parent,
-				HyperparameterTuningJob: msg,
-			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
-		t.Run(".study_spec.parameters", func(t *testing.T) {
-			fx.maybeSkip(t)
-			parent := fx.nextParent(t, false)
-			msg := fx.Create(parent)
-			container := msg.GetStudySpec()
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("parameters")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateHyperparameterTuningJob(fx.ctx, &CreateHyperparameterTuningJobRequest{
-				Parent:                  parent,
-				HyperparameterTuningJob: msg,
-			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
-		t.Run(".max_trial_count", func(t *testing.T) {
-			fx.maybeSkip(t)
-			parent := fx.nextParent(t, false)
-			msg := fx.Create(parent)
-			container := msg
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("max_trial_count")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateHyperparameterTuningJob(fx.ctx, &CreateHyperparameterTuningJobRequest{
-				Parent:                  parent,
-				HyperparameterTuningJob: msg,
-			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
-		t.Run(".parallel_trial_count", func(t *testing.T) {
-			fx.maybeSkip(t)
-			parent := fx.nextParent(t, false)
-			msg := fx.Create(parent)
-			container := msg
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("parallel_trial_count")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateHyperparameterTuningJob(fx.ctx, &CreateHyperparameterTuningJobRequest{
-				Parent:                  parent,
-				HyperparameterTuningJob: msg,
-			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
-		t.Run(".trial_job_spec", func(t *testing.T) {
-			fx.maybeSkip(t)
-			parent := fx.nextParent(t, false)
-			msg := fx.Create(parent)
-			container := msg
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("trial_job_spec")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateHyperparameterTuningJob(fx.ctx, &CreateHyperparameterTuningJobRequest{
-				Parent:                  parent,
-				HyperparameterTuningJob: msg,
-			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
-		t.Run(".trial_job_spec.worker_pool_specs", func(t *testing.T) {
-			fx.maybeSkip(t)
-			parent := fx.nextParent(t, false)
-			msg := fx.Create(parent)
-			container := msg.GetTrialJobSpec()
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("worker_pool_specs")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateHyperparameterTuningJob(fx.ctx, &CreateHyperparameterTuningJobRequest{
-				Parent:                  parent,
-				HyperparameterTuningJob: msg,
-			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
-		t.Run(".trial_job_spec.base_output_directory.output_uri_prefix", func(t *testing.T) {
-			fx.maybeSkip(t)
-			parent := fx.nextParent(t, false)
-			msg := fx.Create(parent)
-			container := msg.GetTrialJobSpec().GetBaseOutputDirectory()
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("output_uri_prefix")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateHyperparameterTuningJob(fx.ctx, &CreateHyperparameterTuningJobRequest{
-				Parent:                  parent,
-				HyperparameterTuningJob: msg,
-			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
-		t.Run(".encryption_spec.kms_key_name", func(t *testing.T) {
-			fx.maybeSkip(t)
-			parent := fx.nextParent(t, false)
-			msg := fx.Create(parent)
-			container := msg.GetEncryptionSpec()
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("kms_key_name")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateHyperparameterTuningJob(fx.ctx, &CreateHyperparameterTuningJobRequest{
-				Parent:                  parent,
-				HyperparameterTuningJob: msg,
-			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
-	})
-
-	// The method should fail with InvalidArgument if the resource has any
-	// resource references and they are invalid.
-	t.Run("resource references", func(t *testing.T) {
-		fx.maybeSkip(t)
-		t.Run(".trial_job_spec.network", func(t *testing.T) {
-			fx.maybeSkip(t)
-			parent := fx.nextParent(t, false)
-			msg := fx.Create(parent)
-			container := msg.GetTrialJobSpec()
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			container.Network = "invalid resource name"
-			_, err := fx.service.CreateHyperparameterTuningJob(fx.ctx, &CreateHyperparameterTuningJobRequest{
-				Parent:                  parent,
-				HyperparameterTuningJob: msg,
-			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
-		t.Run(".trial_job_spec.tensorboard", func(t *testing.T) {
-			fx.maybeSkip(t)
-			parent := fx.nextParent(t, false)
-			msg := fx.Create(parent)
-			container := msg.GetTrialJobSpec()
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			container.Tensorboard = "invalid resource name"
-			_, err := fx.service.CreateHyperparameterTuningJob(fx.ctx, &CreateHyperparameterTuningJobRequest{
-				Parent:                  parent,
-				HyperparameterTuningJob: msg,
-			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
-	})
-
-}
-
-func (fx *HyperparameterTuningJobTestSuiteConfig) testGet(t *testing.T) {
-	// Method should fail with InvalidArgument if no name is provided.
-	t.Run("missing name", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.service.GetHyperparameterTuningJob(fx.ctx, &GetHyperparameterTuningJobRequest{
-			Name: "",
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-	// Method should fail with InvalidArgument is provided name is not valid.
-	t.Run("invalid name", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.service.GetHyperparameterTuningJob(fx.ctx, &GetHyperparameterTuningJobRequest{
-			Name: "invalid resource name",
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-	// Resource should be returned without errors if it exists.
-	t.Run("exists", func(t *testing.T) {
-		fx.maybeSkip(t)
-		parent := fx.nextParent(t, false)
-		created, err := fx.service.CreateHyperparameterTuningJob(fx.ctx, &CreateHyperparameterTuningJobRequest{
-			Parent:                  parent,
-			HyperparameterTuningJob: fx.Create(parent),
-		})
-		assert.NilError(t, err)
-		msg, err := fx.service.GetHyperparameterTuningJob(fx.ctx, &GetHyperparameterTuningJobRequest{
-			Name: created.Name,
-		})
-		assert.NilError(t, err)
-		assert.DeepEqual(t, msg, created, protocmp.Transform())
-	})
-
-	// Method should fail with NotFound if the resource does not exist.
-	t.Run("not found", func(t *testing.T) {
-		fx.maybeSkip(t)
-		parent := fx.nextParent(t, false)
-		created, err := fx.service.CreateHyperparameterTuningJob(fx.ctx, &CreateHyperparameterTuningJobRequest{
-			Parent:                  parent,
-			HyperparameterTuningJob: fx.Create(parent),
-		})
-		assert.NilError(t, err)
-		_, err = fx.service.GetHyperparameterTuningJob(fx.ctx, &GetHyperparameterTuningJobRequest{
-			Name: created.Name + "notfound",
-		})
-		assert.Equal(t, codes.NotFound, status.Code(err), err)
-	})
-
-}
-
-func (fx *HyperparameterTuningJobTestSuiteConfig) testList(t *testing.T) {
-	// Method should fail with InvalidArgument if provided parent is invalid.
-	t.Run("invalid parent", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.service.ListHyperparameterTuningJobs(fx.ctx, &ListHyperparameterTuningJobsRequest{
-			Parent: "invalid resource name",
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-	// Method should fail with InvalidArgument is provided page token is not valid.
-	t.Run("invalid page token", func(t *testing.T) {
-		fx.maybeSkip(t)
-		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListHyperparameterTuningJobs(fx.ctx, &ListHyperparameterTuningJobsRequest{
-			Parent:    parent,
-			PageToken: "invalid page token",
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-	// Method should fail with InvalidArgument is provided page size is negative.
-	t.Run("negative page size", func(t *testing.T) {
-		fx.maybeSkip(t)
-		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListHyperparameterTuningJobs(fx.ctx, &ListHyperparameterTuningJobsRequest{
-			Parent:   parent,
-			PageSize: -10,
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-	const resourcesCount = 15
-	parent := fx.nextParent(t, true)
-	parentMsgs := make([]*HyperparameterTuningJob, resourcesCount)
-	for i := 0; i < resourcesCount; i++ {
-		msg, err := fx.service.CreateHyperparameterTuningJob(fx.ctx, &CreateHyperparameterTuningJobRequest{
-			Parent:                  parent,
-			HyperparameterTuningJob: fx.Create(parent),
-		})
-		assert.NilError(t, err)
-		parentMsgs[i] = msg
-	}
-
-	// If parent is provided the method must only return resources
-	// under that parent.
-	t.Run("isolation", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.service.ListHyperparameterTuningJobs(fx.ctx, &ListHyperparameterTuningJobsRequest{
-			Parent:   parent,
-			PageSize: 999,
-		})
-		assert.NilError(t, err)
-		assert.DeepEqual(
-			t,
-			parentMsgs,
-			response.HyperparameterTuningJobs,
-			cmpopts.SortSlices(func(a, b *HyperparameterTuningJob) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
-
-	// If there are no more resources, next_page_token should not be set.
-	t.Run("last page", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.service.ListHyperparameterTuningJobs(fx.ctx, &ListHyperparameterTuningJobsRequest{
-			Parent:   parent,
-			PageSize: resourcesCount,
-		})
-		assert.NilError(t, err)
-		assert.Equal(t, "", response.NextPageToken)
-	})
-
-	// If there are more resources, next_page_token should be set.
-	t.Run("more pages", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.service.ListHyperparameterTuningJobs(fx.ctx, &ListHyperparameterTuningJobsRequest{
-			Parent:   parent,
-			PageSize: resourcesCount - 1,
-		})
-		assert.NilError(t, err)
-		assert.Check(t, response.NextPageToken != "")
-	})
-
-	// Listing resource one by one should eventually return all resources.
-	t.Run("one by one", func(t *testing.T) {
-		fx.maybeSkip(t)
-		msgs := make([]*HyperparameterTuningJob, 0, resourcesCount)
-		var nextPageToken string
-		for {
-			response, err := fx.service.ListHyperparameterTuningJobs(fx.ctx, &ListHyperparameterTuningJobsRequest{
-				Parent:    parent,
-				PageSize:  1,
-				PageToken: nextPageToken,
-			})
-			assert.NilError(t, err)
-			assert.Equal(t, 1, len(response.HyperparameterTuningJobs))
-			msgs = append(msgs, response.HyperparameterTuningJobs...)
-			nextPageToken = response.NextPageToken
-			if nextPageToken == "" {
-				break
-			}
-		}
-		assert.DeepEqual(
-			t,
-			parentMsgs,
-			msgs,
-			cmpopts.SortSlices(func(a, b *HyperparameterTuningJob) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
-
-	// Method should not return deleted resources.
-	t.Run("deleted", func(t *testing.T) {
-		fx.maybeSkip(t)
-		const deleteCount = 5
-		for i := 0; i < deleteCount; i++ {
-			_, err := fx.service.DeleteHyperparameterTuningJob(fx.ctx, &DeleteHyperparameterTuningJobRequest{
-				Name: parentMsgs[i].Name,
-			})
-			assert.NilError(t, err)
-		}
-		response, err := fx.service.ListHyperparameterTuningJobs(fx.ctx, &ListHyperparameterTuningJobsRequest{
-			Parent:   parent,
-			PageSize: 9999,
-		})
-		assert.NilError(t, err)
-		assert.DeepEqual(
-			t,
-			parentMsgs[deleteCount:],
-			response.HyperparameterTuningJobs,
-			cmpopts.SortSlices(func(a, b *HyperparameterTuningJob) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
-
-}
-
-func (fx *HyperparameterTuningJobTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
-	if pristine {
-		fx.currParent++
-	}
-	if fx.currParent >= len(fx.Parents) {
-		t.Fatal("need at least", fx.currParent+1, "parents")
-	}
-	return fx.Parents[fx.currParent]
-}
-
-func (fx *HyperparameterTuningJobTestSuiteConfig) peekNextParent(t *testing.T) string {
-	next := fx.currParent + 1
-	if next >= len(fx.Parents) {
-		t.Fatal("need at least", next+1, "parents")
-	}
-	return fx.Parents[next]
-}
-
-func (fx *HyperparameterTuningJobTestSuiteConfig) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
 			t.Skip("skipped because of .Skip")
