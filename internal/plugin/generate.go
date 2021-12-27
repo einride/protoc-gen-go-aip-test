@@ -2,6 +2,7 @@ package plugin
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/einride/protoc-gen-go-aip-test/internal/util"
 	"github.com/einride/protoc-gen-go-aip-test/internal/xrange"
@@ -87,7 +88,7 @@ type resource struct {
 }
 
 func findResourcesPerPackage(plugin *protogen.Plugin) map[protoreflect.FullName][]resource {
-	resources := make(map[protoreflect.FullName][]resource)
+	result := make(map[protoreflect.FullName][]resource)
 	for _, file := range plugin.Files {
 		pkg := file.Desc.Package()
 		xrange.RangeResourceDescriptors(
@@ -97,12 +98,20 @@ func findResourcesPerPackage(plugin *protogen.Plugin) map[protoreflect.FullName]
 				if m == nil {
 					return
 				}
-				resources[pkg] = append(resources[pkg], resource{
+				result[pkg] = append(result[pkg], resource{
 					message:    m,
 					descriptor: r,
 				})
 			},
 		)
 	}
-	return resources
+	// sort resources to ensure deterministic ordering
+	for pkg, resources := range result {
+		resources := resources
+		sort.Slice(resources, func(i, j int) bool {
+			return resources[i].descriptor.GetType() < resources[j].descriptor.GetType()
+		})
+		result[pkg] = resources
+	}
+	return result
 }

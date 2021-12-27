@@ -108,14 +108,6 @@ type SubscriberTestSuite struct {
 	Server SubscriberServer
 }
 
-func (fx SubscriberTestSuite) TestSubscription(ctx context.Context, options SubscriptionTestSuiteConfig) {
-	fx.T.Run("Subscription", func(t *testing.T) {
-		options.ctx = ctx
-		options.service = fx.Server
-		options.test(t)
-	})
-}
-
 func (fx SubscriberTestSuite) TestSnapshot(ctx context.Context, options SnapshotTestSuiteConfig) {
 	fx.T.Run("Snapshot", func(t *testing.T) {
 		options.ctx = ctx
@@ -124,81 +116,12 @@ func (fx SubscriberTestSuite) TestSnapshot(ctx context.Context, options Snapshot
 	})
 }
 
-type SubscriptionTestSuiteConfig struct {
-	ctx        context.Context
-	service    SubscriberServer
-	currParent int
-
-	// The parents to use when creating resources.
-	// At least one parent needs to be set. Depending on methods available on the resource,
-	// more may be required. If insufficient number of parents are
-	// provided the test will fail.
-	Parents []string
-	// Update should return a resource which is valid to update, i.e.
-	// all required fields set.
-	Update func(parent string) *Subscription
-	// Patterns of tests to skip.
-	// For example if a service has a Get method:
-	// Skip: ["Get"] will skip all tests for Get.
-	// Skip: ["Get/persisted"] will only skip the subtest called "persisted" of Get.
-	Skip []string
-}
-
-func (fx *SubscriptionTestSuiteConfig) test(t *testing.T) {
-	t.Run("Update", fx.testUpdate)
-}
-
-func (fx *SubscriptionTestSuiteConfig) testUpdate(t *testing.T) {
-	// Method should fail with InvalidArgument if no name is provided.
-	t.Run("missing name", func(t *testing.T) {
-		fx.maybeSkip(t)
-		parent := fx.nextParent(t, false)
-		msg := fx.Update(parent)
-		msg.Name = ""
-		_, err := fx.service.UpdateSubscription(fx.ctx, &UpdateSubscriptionRequest{
-			Subscription: msg,
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+func (fx SubscriberTestSuite) TestSubscription(ctx context.Context, options SubscriptionTestSuiteConfig) {
+	fx.T.Run("Subscription", func(t *testing.T) {
+		options.ctx = ctx
+		options.service = fx.Server
+		options.test(t)
 	})
-
-	// Method should fail with InvalidArgument if provided name is not valid.
-	t.Run("invalid name", func(t *testing.T) {
-		fx.maybeSkip(t)
-		parent := fx.nextParent(t, false)
-		msg := fx.Update(parent)
-		msg.Name = "invalid resource name"
-		_, err := fx.service.UpdateSubscription(fx.ctx, &UpdateSubscriptionRequest{
-			Subscription: msg,
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-}
-
-func (fx *SubscriptionTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
-	if pristine {
-		fx.currParent++
-	}
-	if fx.currParent >= len(fx.Parents) {
-		t.Fatal("need at least", fx.currParent+1, "parents")
-	}
-	return fx.Parents[fx.currParent]
-}
-
-func (fx *SubscriptionTestSuiteConfig) peekNextParent(t *testing.T) string {
-	next := fx.currParent + 1
-	if next >= len(fx.Parents) {
-		t.Fatal("need at least", next+1, "parents")
-	}
-	return fx.Parents[next]
-}
-
-func (fx *SubscriptionTestSuiteConfig) maybeSkip(t *testing.T) {
-	for _, skip := range fx.Skip {
-		if strings.Contains(t.Name(), skip) {
-			t.Skip("skipped because of .Skip")
-		}
-	}
 }
 
 type SnapshotTestSuiteConfig struct {
@@ -271,6 +194,83 @@ func (fx *SnapshotTestSuiteConfig) peekNextParent(t *testing.T) string {
 }
 
 func (fx *SnapshotTestSuiteConfig) maybeSkip(t *testing.T) {
+	for _, skip := range fx.Skip {
+		if strings.Contains(t.Name(), skip) {
+			t.Skip("skipped because of .Skip")
+		}
+	}
+}
+
+type SubscriptionTestSuiteConfig struct {
+	ctx        context.Context
+	service    SubscriberServer
+	currParent int
+
+	// The parents to use when creating resources.
+	// At least one parent needs to be set. Depending on methods available on the resource,
+	// more may be required. If insufficient number of parents are
+	// provided the test will fail.
+	Parents []string
+	// Update should return a resource which is valid to update, i.e.
+	// all required fields set.
+	Update func(parent string) *Subscription
+	// Patterns of tests to skip.
+	// For example if a service has a Get method:
+	// Skip: ["Get"] will skip all tests for Get.
+	// Skip: ["Get/persisted"] will only skip the subtest called "persisted" of Get.
+	Skip []string
+}
+
+func (fx *SubscriptionTestSuiteConfig) test(t *testing.T) {
+	t.Run("Update", fx.testUpdate)
+}
+
+func (fx *SubscriptionTestSuiteConfig) testUpdate(t *testing.T) {
+	// Method should fail with InvalidArgument if no name is provided.
+	t.Run("missing name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		msg := fx.Update(parent)
+		msg.Name = ""
+		_, err := fx.service.UpdateSubscription(fx.ctx, &UpdateSubscriptionRequest{
+			Subscription: msg,
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if provided name is not valid.
+	t.Run("invalid name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		msg := fx.Update(parent)
+		msg.Name = "invalid resource name"
+		_, err := fx.service.UpdateSubscription(fx.ctx, &UpdateSubscriptionRequest{
+			Subscription: msg,
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+}
+
+func (fx *SubscriptionTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
+	if pristine {
+		fx.currParent++
+	}
+	if fx.currParent >= len(fx.Parents) {
+		t.Fatal("need at least", fx.currParent+1, "parents")
+	}
+	return fx.Parents[fx.currParent]
+}
+
+func (fx *SubscriptionTestSuiteConfig) peekNextParent(t *testing.T) string {
+	next := fx.currParent + 1
+	if next >= len(fx.Parents) {
+		t.Fatal("need at least", next+1, "parents")
+	}
+	return fx.Parents[next]
+}
+
+func (fx *SubscriptionTestSuiteConfig) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
 			t.Skip("skipped because of .Skip")
