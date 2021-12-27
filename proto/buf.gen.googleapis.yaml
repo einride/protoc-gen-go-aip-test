@@ -1,14 +1,17 @@
-version: v1beta1
+version: v1
 
 plugins:
   - name: go
     out: gen
     opt: module=google.golang.org/genproto
+    path: .build/protoc-gen-go
 
   - name: go-grpc
     out: gen
     opt: module=google.golang.org/genproto
+    path: .build/protoc-gen-go-grpc
 
   - name: go-aip-test
     out: gen
     opt: module=google.golang.org/genproto
+    path: .build/protoc-gen-go-aip-test
