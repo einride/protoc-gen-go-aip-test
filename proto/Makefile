@@ -4,26 +4,33 @@ all: \
 	buf-lint \
 	buf-generate
 
-include tools/buf/rules.mk
-include tools/protoc-gen-go/rules.mk
-include tools/protoc-gen-go-grpc/rules.mk
+include .tools/buf/rules.mk
 
+.build/protoc-gen-go: ../go.mod
+	$(info [$@] building binary...)
+	@go build -o $@ google.golang.org/protobuf/cmd/protoc-gen-go
+
+.build/protoc-gen-go-grpc: $(abspath $(lastword $(MAKEFILE_LIST)))
+	$(info [$@] building binary...)
+	@GOBIN=$(abspath $(dir $@)) go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2.0
+
+.PHONY: .build/protoc-gen-go-aip-test
+.build/protoc-gen-go-aip-test:
+	$(info [$@] building binary...)
+	@cd .. && go build -o $(abspath $@) .
 
 .PHONY: buf-lint
 buf-lint: $(buf)
 	$(info [$@] linting protobuf schemas...)
 	@$(buf) lint
 
-protoc_gen_go_aip_test := ./bin/protoc-gen-go-aip-test
-export PATH := $(dir $(abspath $(protoc_gen_go_aip_test))):$(PATH)
-
-.PHONY: $(protoc_gen_go_aip_test)
-$(protoc_gen_go_aip_test):
-	$(info [$@] building binary...)
-	go build -o $@ ../
+protoc_plugins := \
+	.build/protoc-gen-go \
+	.build/protoc-gen-go-grpc \
+	.build/protoc-gen-go-aip-test
 
 .PHONY: buf-generate
-buf-generate: $(buf) $(protoc_gen_go_aip_test) $(protoc_gen_go) $(protoc_gen_go_grpc)
+buf-generate: $(buf) $(protoc_plugins)
 	$(info [$@] generating protobuf stubs...)
 	@rm -rf proto/gen
 	@$(buf) generate --path einride
