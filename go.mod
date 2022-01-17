@@ -11,5 +11,5 @@ require (
 	google.golang.org/genproto v0.0.0-20210805201207-89edb61ffb67
 	google.golang.org/grpc v1.43.0
 	google.golang.org/protobuf v1.27.1
-	gotest.tools/v3 v3.0.3
+	gotest.tools/v3 v3.1.0
 )
