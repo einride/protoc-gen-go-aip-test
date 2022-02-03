@@ -50,6 +50,7 @@ func (fx *TopicTestSuiteConfig) test(t *testing.T) {
 }
 
 func (fx *TopicTestSuiteConfig) testUpdate(t *testing.T) {
+	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -149,6 +150,7 @@ func (fx *SnapshotTestSuiteConfig) test(t *testing.T) {
 }
 
 func (fx *SnapshotTestSuiteConfig) testUpdate(t *testing.T) {
+	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -226,6 +228,7 @@ func (fx *SubscriptionTestSuiteConfig) test(t *testing.T) {
 }
 
 func (fx *SubscriptionTestSuiteConfig) testUpdate(t *testing.T) {
+	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)

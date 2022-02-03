@@ -75,6 +75,7 @@ func (fx *RowTestSuiteConfig) test(t *testing.T) {
 }
 
 func (fx *RowTestSuiteConfig) testCreate(t *testing.T) {
+	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -114,6 +115,7 @@ func (fx *RowTestSuiteConfig) testCreate(t *testing.T) {
 }
 
 func (fx *RowTestSuiteConfig) testGet(t *testing.T) {
+	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -166,6 +168,7 @@ func (fx *RowTestSuiteConfig) testGet(t *testing.T) {
 }
 
 func (fx *RowTestSuiteConfig) testUpdate(t *testing.T) {
+	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -244,6 +247,7 @@ func (fx *RowTestSuiteConfig) testUpdate(t *testing.T) {
 }
 
 func (fx *RowTestSuiteConfig) testList(t *testing.T) {
+	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -431,6 +435,7 @@ func (fx *TableTestSuiteConfig) test(t *testing.T) {
 }
 
 func (fx *TableTestSuiteConfig) testGet(t *testing.T) {
+	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -452,6 +457,7 @@ func (fx *TableTestSuiteConfig) testGet(t *testing.T) {
 }
 
 func (fx *TableTestSuiteConfig) testList(t *testing.T) {
+	fx.maybeSkip(t)
 
 	// Method should fail with InvalidArgument is provided page token is not valid.
 	t.Run("invalid page token", func(t *testing.T) {
@@ -499,6 +505,7 @@ func (fx *WorkspaceTestSuiteConfig) test(t *testing.T) {
 }
 
 func (fx *WorkspaceTestSuiteConfig) testGet(t *testing.T) {
+	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -520,6 +527,7 @@ func (fx *WorkspaceTestSuiteConfig) testGet(t *testing.T) {
 }
 
 func (fx *WorkspaceTestSuiteConfig) testList(t *testing.T) {
+	fx.maybeSkip(t)
 
 	// Method should fail with InvalidArgument is provided page token is not valid.
 	t.Run("invalid page token", func(t *testing.T) {

@@ -47,6 +47,7 @@ func (fx *SessionTestSuiteConfig) test(t *testing.T) {
 }
 
 func (fx *SessionTestSuiteConfig) testGet(t *testing.T) {
+	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
