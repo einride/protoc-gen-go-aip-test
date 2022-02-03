@@ -60,6 +60,7 @@ func (fx *AuthorizationTestSuiteConfig) test(t *testing.T) {
 }
 
 func (fx *AuthorizationTestSuiteConfig) testGet(t *testing.T) {
+	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -115,6 +116,7 @@ func (fx *DeploymentTestSuiteConfig) test(t *testing.T) {
 }
 
 func (fx *DeploymentTestSuiteConfig) testCreate(t *testing.T) {
+	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -224,6 +226,7 @@ func (fx *DeploymentTestSuiteConfig) testCreate(t *testing.T) {
 }
 
 func (fx *DeploymentTestSuiteConfig) testGet(t *testing.T) {
+	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -276,6 +279,7 @@ func (fx *DeploymentTestSuiteConfig) testGet(t *testing.T) {
 }
 
 func (fx *DeploymentTestSuiteConfig) testList(t *testing.T) {
+	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -467,6 +471,7 @@ func (fx *InstallStatusTestSuiteConfig) test(t *testing.T) {
 }
 
 func (fx *InstallStatusTestSuiteConfig) testGet(t *testing.T) {
+	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)

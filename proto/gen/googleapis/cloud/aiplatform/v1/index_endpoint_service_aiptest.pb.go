@@ -56,6 +56,7 @@ func (fx *IndexEndpointTestSuiteConfig) test(t *testing.T) {
 }
 
 func (fx *IndexEndpointTestSuiteConfig) testCreate(t *testing.T) {
+	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -101,6 +102,7 @@ func (fx *IndexEndpointTestSuiteConfig) testCreate(t *testing.T) {
 }
 
 func (fx *IndexEndpointTestSuiteConfig) testGet(t *testing.T) {
+	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -122,6 +124,7 @@ func (fx *IndexEndpointTestSuiteConfig) testGet(t *testing.T) {
 }
 
 func (fx *IndexEndpointTestSuiteConfig) testUpdate(t *testing.T) {
+	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -149,6 +152,7 @@ func (fx *IndexEndpointTestSuiteConfig) testUpdate(t *testing.T) {
 }
 
 func (fx *IndexEndpointTestSuiteConfig) testList(t *testing.T) {
+	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)

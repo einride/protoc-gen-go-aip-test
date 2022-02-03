@@ -71,6 +71,7 @@ func (fx *AnnotationTestSuiteConfig) test(t *testing.T) {
 }
 
 func (fx *AnnotationTestSuiteConfig) testList(t *testing.T) {
+	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -152,6 +153,7 @@ func (fx *AnnotationSpecTestSuiteConfig) test(t *testing.T) {
 }
 
 func (fx *AnnotationSpecTestSuiteConfig) testGet(t *testing.T) {
+	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -220,6 +222,7 @@ func (fx *DataItemTestSuiteConfig) test(t *testing.T) {
 }
 
 func (fx *DataItemTestSuiteConfig) testList(t *testing.T) {
+	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -310,6 +313,7 @@ func (fx *DatasetTestSuiteConfig) test(t *testing.T) {
 }
 
 func (fx *DatasetTestSuiteConfig) testCreate(t *testing.T) {
+	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -403,6 +407,7 @@ func (fx *DatasetTestSuiteConfig) testCreate(t *testing.T) {
 }
 
 func (fx *DatasetTestSuiteConfig) testGet(t *testing.T) {
+	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -424,6 +429,7 @@ func (fx *DatasetTestSuiteConfig) testGet(t *testing.T) {
 }
 
 func (fx *DatasetTestSuiteConfig) testUpdate(t *testing.T) {
+	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -451,6 +457,7 @@ func (fx *DatasetTestSuiteConfig) testUpdate(t *testing.T) {
 }
 
 func (fx *DatasetTestSuiteConfig) testList(t *testing.T) {
+	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)

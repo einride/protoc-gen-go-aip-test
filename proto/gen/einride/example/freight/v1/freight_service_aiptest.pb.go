@@ -64,6 +64,7 @@ func (fx *ShipperTestSuiteConfig) test(t *testing.T) {
 }
 
 func (fx *ShipperTestSuiteConfig) testCreate(t *testing.T) {
+	fx.maybeSkip(t)
 
 	// Field create_time should be populated when the resource is created.
 	t.Run("create time", func(t *testing.T) {
@@ -173,6 +174,7 @@ func (fx *ShipperTestSuiteConfig) testCreate(t *testing.T) {
 }
 
 func (fx *ShipperTestSuiteConfig) testGet(t *testing.T) {
+	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -221,6 +223,7 @@ func (fx *ShipperTestSuiteConfig) testGet(t *testing.T) {
 }
 
 func (fx *ShipperTestSuiteConfig) testUpdate(t *testing.T) {
+	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -351,6 +354,7 @@ func (fx *ShipperTestSuiteConfig) testUpdate(t *testing.T) {
 }
 
 func (fx *ShipperTestSuiteConfig) testList(t *testing.T) {
+	fx.maybeSkip(t)
 
 	// Method should fail with InvalidArgument is provided page token is not valid.
 	t.Run("invalid page token", func(t *testing.T) {
@@ -412,6 +416,7 @@ func (fx *SiteTestSuiteConfig) test(t *testing.T) {
 }
 
 func (fx *SiteTestSuiteConfig) testCreate(t *testing.T) {
+	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -506,6 +511,7 @@ func (fx *SiteTestSuiteConfig) testCreate(t *testing.T) {
 }
 
 func (fx *SiteTestSuiteConfig) testGet(t *testing.T) {
+	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -558,6 +564,7 @@ func (fx *SiteTestSuiteConfig) testGet(t *testing.T) {
 }
 
 func (fx *SiteTestSuiteConfig) testBatchGet(t *testing.T) {
+	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -707,6 +714,7 @@ func (fx *SiteTestSuiteConfig) testBatchGet(t *testing.T) {
 }
 
 func (fx *SiteTestSuiteConfig) testUpdate(t *testing.T) {
+	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -826,6 +834,7 @@ func (fx *SiteTestSuiteConfig) testUpdate(t *testing.T) {
 }
 
 func (fx *SiteTestSuiteConfig) testList(t *testing.T) {
+	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)

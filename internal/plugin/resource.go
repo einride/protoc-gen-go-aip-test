@@ -118,6 +118,7 @@ func (r *resourceGenerator) generateTestCases(f *protogen.GeneratedFile) error {
 			continue
 		}
 		f.P("func (fx *", resourceTestSuiteConfigName(r.resource), ") test", s.Name, "(t *", testingT, ") {")
+		f.P(ident.FixtureMaybeSkip, "(t)")
 		for _, t := range s.Tests {
 			if err := r.generateTestCase(f, t, scope); err != nil {
 				return err
