@@ -458,7 +458,6 @@ func (fx *TableTestSuiteConfig) testGet(t *testing.T) {
 
 func (fx *TableTestSuiteConfig) testList(t *testing.T) {
 	fx.maybeSkip(t)
-
 	// Method should fail with InvalidArgument is provided page token is not valid.
 	t.Run("invalid page token", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -528,7 +527,6 @@ func (fx *WorkspaceTestSuiteConfig) testGet(t *testing.T) {
 
 func (fx *WorkspaceTestSuiteConfig) testList(t *testing.T) {
 	fx.maybeSkip(t)
-
 	// Method should fail with InvalidArgument is provided page token is not valid.
 	t.Run("invalid page token", func(t *testing.T) {
 		fx.maybeSkip(t)
