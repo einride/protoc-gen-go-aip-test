@@ -65,7 +65,6 @@ func (fx *ShipperTestSuiteConfig) test(t *testing.T) {
 
 func (fx *ShipperTestSuiteConfig) testCreate(t *testing.T) {
 	fx.maybeSkip(t)
-
 	// Field create_time should be populated when the resource is created.
 	t.Run("create time", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -355,7 +354,6 @@ func (fx *ShipperTestSuiteConfig) testUpdate(t *testing.T) {
 
 func (fx *ShipperTestSuiteConfig) testList(t *testing.T) {
 	fx.maybeSkip(t)
-
 	// Method should fail with InvalidArgument is provided page token is not valid.
 	t.Run("invalid page token", func(t *testing.T) {
 		fx.maybeSkip(t)

@@ -120,6 +120,9 @@ func (r *resourceGenerator) generateTestCases(f *protogen.GeneratedFile) error {
 		f.P("func (fx *", resourceTestSuiteConfigName(r.resource), ") test", s.Name, "(t *", testingT, ") {")
 		f.P(ident.FixtureMaybeSkip, "(t)")
 		for _, t := range s.Tests {
+			if !t.Enabled(scope) {
+				continue
+			}
 			if err := r.generateTestCase(f, t, scope); err != nil {
 				return err
 			}
@@ -133,6 +136,9 @@ func (r *resourceGenerator) generateTestCases(f *protogen.GeneratedFile) error {
 				return err
 			}
 			for _, t := range group.Tests {
+				if !t.Enabled(scope) {
+					continue
+				}
 				if err := r.generateTestCase(f, t, scope); err != nil {
 					return err
 				}
@@ -150,9 +156,6 @@ func (r *resourceGenerator) generateTestCase(f *protogen.GeneratedFile, test sui
 		GoName:       "T",
 		GoImportPath: "testing",
 	})
-	if !test.Enabled(scope) {
-		return nil
-	}
 	for _, line := range test.Doc {
 		f.P("// ", line)
 	}
