@@ -1,5 +1,3 @@
 .idea
-tools/*/*/
-bin
 **/*.pb.go
 !**/*_aiptest.pb.go

@@ -15,7 +15,7 @@ type MethodCreate struct {
 	UserSettableID string
 }
 
-func (m MethodCreate) Generate(f *protogen.GeneratedFile, response string, err string, assign string) {
+func (m MethodCreate) Generate(f *protogen.GeneratedFile, response, err, assign string) {
 	f.P(response, ", ", err, " ", assign, " fx.service.", m.Method.GoName, "(fx.ctx, &", m.Method.Input.GoIdent, "{")
 	if HasParent(m.Resource) {
 		f.P("Parent: ", m.Parent, ",")
@@ -48,7 +48,7 @@ type MethodGet struct {
 	Name string
 }
 
-func (m MethodGet) Generate(f *protogen.GeneratedFile, response string, err string, assign string) {
+func (m MethodGet) Generate(f *protogen.GeneratedFile, response, err, assign string) {
 	f.P(response, ", ", err, " ", assign, " fx.service.", m.Method.GoName, "(fx.ctx, &", m.Method.Input.GoIdent, "{")
 	f.P("Name: ", m.Name, ",")
 	f.P("})")
@@ -62,7 +62,7 @@ type MethodBatchGet struct {
 	Names  []string
 }
 
-func (m MethodBatchGet) Generate(f *protogen.GeneratedFile, response string, err string, assign string) {
+func (m MethodBatchGet) Generate(f *protogen.GeneratedFile, response, err, assign string) {
 	f.P(response, ", ", err, " ", assign, " fx.service.", m.Method.GoName, "(fx.ctx, &", m.Method.Input.GoIdent, "{")
 	if HasParent(m.Resource) {
 		f.P("Parent: ", m.Parent, ",")
@@ -86,7 +86,7 @@ type MethodUpdate struct {
 	UpdateMask []string
 }
 
-func (m MethodUpdate) Generate(f *protogen.GeneratedFile, response string, err string, assign string) {
+func (m MethodUpdate) Generate(f *protogen.GeneratedFile, response, err, assign string) {
 	upper := strcase.UpperCamelCase(string(FindResourceField(
 		m.Method.Input.Desc,
 		m.Resource,
@@ -131,7 +131,7 @@ type MethodList struct {
 	PageToken string
 }
 
-func (m MethodList) Generate(f *protogen.GeneratedFile, response string, err string, assign string) {
+func (m MethodList) Generate(f *protogen.GeneratedFile, response, err, assign string) {
 	f.P(response, ", ", err, " ", assign, " fx.service.", m.Method.GoName, "(fx.ctx, &", m.Method.Input.GoIdent, "{")
 	if HasParent(m.Resource) {
 		f.P("Parent: ", m.Parent, ",")
@@ -154,7 +154,7 @@ type MethodSearch struct {
 	PageToken string
 }
 
-func (m MethodSearch) Generate(f *protogen.GeneratedFile, response string, err string, assign string) {
+func (m MethodSearch) Generate(f *protogen.GeneratedFile, response, err, assign string) {
 	f.P(response, ", ", err, " ", assign, " fx.service.", m.Method.GoName, "(fx.ctx, &", m.Method.Input.GoIdent, "{")
 	if HasParent(m.Resource) {
 		f.P("Parent: ", m.Parent, ",")
@@ -175,7 +175,7 @@ type MethodDelete struct {
 	Name string
 }
 
-func (m MethodDelete) Generate(f *protogen.GeneratedFile, response string, err string, assign string) {
+func (m MethodDelete) Generate(f *protogen.GeneratedFile, response, err, assign string) {
 	f.P(response, ", ", err, " ", assign, " fx.service.", m.Method.GoName, "(fx.ctx, &", m.Method.Input.GoIdent, "{")
 	f.P("Name: ", m.Name, ",")
 	f.P("})")

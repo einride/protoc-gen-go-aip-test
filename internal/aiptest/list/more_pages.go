@@ -9,6 +9,7 @@ import (
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
+// nolint: gochecknoglobals
 var morePages = suite.Test{
 	Name: "more pages",
 	Doc: []string{

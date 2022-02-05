@@ -9,6 +9,7 @@ import (
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
+// nolint: gochecknoglobals
 var createTime = suite.Test{
 	Name: "create time",
 	Doc: []string{

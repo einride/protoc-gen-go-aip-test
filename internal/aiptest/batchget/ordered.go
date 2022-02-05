@@ -10,6 +10,7 @@ import (
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
+// nolint: gochecknoglobals
 var ordered = suite.Test{
 	Name: "ordered",
 	Doc: []string{

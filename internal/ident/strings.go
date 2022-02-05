@@ -4,4 +4,8 @@ import (
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
-var StringsHasSuffix = protogen.GoIdent{GoName: "HasSuffix", GoImportPath: "strings"}
+// Strings idents.
+// nolint: gochecknoglobals
+var (
+	StringsHasSuffix = protogen.GoIdent{GoName: "HasSuffix", GoImportPath: "strings"}
+)
