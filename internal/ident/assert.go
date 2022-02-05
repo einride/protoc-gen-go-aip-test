@@ -4,22 +4,26 @@ import (
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
-var AssertEqual = protogen.GoIdent{
-	GoName:       "Equal",
-	GoImportPath: "gotest.tools/v3/assert",
-}
+// Assert idents.
+// nolint: gochecknoglobals
+var (
+	AssertEqual = protogen.GoIdent{
+		GoName:       "Equal",
+		GoImportPath: "gotest.tools/v3/assert",
+	}
 
-var AssertDeepEqual = protogen.GoIdent{
-	GoName:       "DeepEqual",
-	GoImportPath: "gotest.tools/v3/assert",
-}
+	AssertDeepEqual = protogen.GoIdent{
+		GoName:       "DeepEqual",
+		GoImportPath: "gotest.tools/v3/assert",
+	}
 
-var AssertNilError = protogen.GoIdent{
-	GoName:       "NilError",
-	GoImportPath: "gotest.tools/v3/assert",
-}
+	AssertNilError = protogen.GoIdent{
+		GoName:       "NilError",
+		GoImportPath: "gotest.tools/v3/assert",
+	}
 
-var AssertCheck = protogen.GoIdent{
-	GoName:       "Check",
-	GoImportPath: "gotest.tools/v3/assert",
-}
+	AssertCheck = protogen.GoIdent{
+		GoName:       "Check",
+		GoImportPath: "gotest.tools/v3/assert",
+	}
+)

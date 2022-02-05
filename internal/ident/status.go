@@ -4,7 +4,8 @@ import (
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
-var StatusCode = protogen.GoIdent{
-	GoName:       "Code",
-	GoImportPath: "google.golang.org/grpc/status",
-}
+// Status idents.
+// nolint: gochecknoglobals
+var (
+	StatusCode = protogen.GoIdent{GoName: "Code", GoImportPath: "google.golang.org/grpc/status"}
+)

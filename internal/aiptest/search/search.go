@@ -9,6 +9,8 @@ import (
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
+// Suite for the Search method.
+// nolint: gochecknoglobals
 var Suite = suite.Suite{
 	Name: "Search",
 	Tests: []suite.Test{
@@ -21,6 +23,7 @@ var Suite = suite.Suite{
 	},
 }
 
+// nolint: gochecknoglobals
 var withResourcesGroup = suite.TestGroup{
 	OnlyIf: suite.OnlyIfs(
 		onlyif.HasParent,

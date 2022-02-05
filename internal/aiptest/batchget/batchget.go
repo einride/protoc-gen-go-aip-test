@@ -11,6 +11,8 @@ import (
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
+// Suite of BatchGet tests.
+// nolint: gochecknoglobals
 var Suite = suite.Suite{
 	Name: "BatchGet",
 	Tests: []suite.Test{
@@ -25,6 +27,7 @@ var Suite = suite.Suite{
 	},
 }
 
+// nolint: gochecknoglobals
 var withResourcesGroup = suite.TestGroup{
 	OnlyIf: suite.OnlyIfs(
 		onlyif.HasMethod(aipreflect.MethodTypeCreate),

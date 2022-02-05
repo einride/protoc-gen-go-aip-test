@@ -9,6 +9,8 @@ import (
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
+// Suite for the Updaet method.
+// nolint: gochecknoglobals
 var Suite = suite.Suite{
 	Name: "Update",
 	Tests: []suite.Test{
@@ -22,6 +24,7 @@ var Suite = suite.Suite{
 	},
 }
 
+// nolint: gochecknoglobals
 var withResourceGroup = suite.TestGroup{
 	OnlyIf: suite.OnlyIfs(
 		onlyif.HasMethod(aipreflect.MethodTypeCreate),

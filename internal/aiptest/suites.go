@@ -10,6 +10,8 @@ import (
 	"github.com/einride/protoc-gen-go-aip-test/internal/suite"
 )
 
+// Suites of tests for standard methods.
+// nolint: gochecknoglobals
 var Suites = []suite.Suite{
 	create.Suite,
 	get.Suite,

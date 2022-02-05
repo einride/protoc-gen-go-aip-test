@@ -14,6 +14,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
+// nolint: gochecknoglobals
 var requiredFields = suite.Test{
 	Name: "required fields",
 	Doc: []string{

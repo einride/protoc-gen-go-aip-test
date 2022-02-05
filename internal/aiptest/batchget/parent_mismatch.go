@@ -10,6 +10,7 @@ import (
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
+// nolint: gochecknoglobals
 var parentMismatch = suite.Test{
 	Name: "parent mismatch",
 	Doc: []string{

@@ -1,3 +1,5 @@
+// Package onlyif provides primitives for running tests only if conditions are met.
+// nolint: gochecknoglobals
 package onlyif
 
 import (

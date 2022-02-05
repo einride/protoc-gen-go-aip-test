@@ -10,6 +10,7 @@ import (
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
+// nolint: gochecknoglobals
 var deleted = suite.Test{
 	Name: "deleted",
 	Doc: []string{

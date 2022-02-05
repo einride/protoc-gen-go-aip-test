@@ -233,7 +233,6 @@ message BatchGetSitesResponse {
   repeated Site sites = 1;
 }
 
-
 // Request message for FreightService.ListSites.
 message ListSitesRequest {
   // The resource name of the parent, which owns this collection of sites.
