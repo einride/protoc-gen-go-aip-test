@@ -32,7 +32,8 @@ func main() {
 }
 
 func All(ctx context.Context) error {
-	sg.Deps(ctx, ConvcoCheck, FormatMarkdown, FormatYAML, Proto.All, ReadmeSnippet)
+	sg.Deps(ctx, ConvcoCheck, FormatYAML, Proto.All)
+	sg.SerialDeps(ctx, ReadmeSnippet, FormatMarkdown)
 	sg.Deps(ctx, GolangciLint, GoReview, GoTest)
 	sg.SerialDeps(ctx, GoModTidy, GitVerifyNoDiff)
 	return nil
@@ -81,8 +82,8 @@ func GitVerifyNoDiff(ctx context.Context) error {
 func ReadmeSnippet(ctx context.Context) error {
 	suites := sg.Output(sg.Command(ctx, "go", "run", "./cmd/doc"))
 	suites = strings.TrimSpace(suites)
-	suites = "<!-- BEGIN suites -->\n\n```\n" + suites
-	suites += "\n```\n\n<!-- END suites -->"
+	suites = "<!-- BEGIN suites -->\n\n" + suites
+	suites += "\n\n<!-- END suites -->"
 	readme, err := os.ReadFile("README.md")
 	if err != nil {
 		return err
