@@ -277,6 +277,26 @@ func (fx *ShipperTestSuiteConfig) testUpdate(t *testing.T) {
 		assert.DeepEqual(t, updated, persisted, protocmp.Transform())
 	})
 
+	// The field create_time should be preserved when a '*'-update mask is used.
+	t.Run("preserve create_time", func(t *testing.T) {
+		fx.maybeSkip(t)
+		created, err := fx.service.CreateShipper(fx.ctx, &CreateShipperRequest{
+			Shipper: fx.Create(),
+		})
+		assert.NilError(t, err)
+		originalCreateTime := created.CreateTime
+		updated, err := fx.service.UpdateShipper(fx.ctx, &UpdateShipperRequest{
+			Shipper: created,
+			UpdateMask: &fieldmaskpb.FieldMask{
+				Paths: []string{
+					"*",
+				},
+			},
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(t, originalCreateTime, updated.CreateTime, protocmp.Transform())
+	})
+
 	created, err := fx.service.CreateShipper(fx.ctx, &CreateShipperRequest{
 		Shipper: fx.Create(),
 	})
@@ -771,6 +791,28 @@ func (fx *SiteTestSuiteConfig) testUpdate(t *testing.T) {
 		})
 		assert.NilError(t, err)
 		assert.DeepEqual(t, updated, persisted, protocmp.Transform())
+	})
+
+	// The field create_time should be preserved when a '*'-update mask is used.
+	t.Run("preserve create_time", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created, err := fx.service.CreateSite(fx.ctx, &CreateSiteRequest{
+			Parent: parent,
+			Site:   fx.Create(parent),
+		})
+		assert.NilError(t, err)
+		originalCreateTime := created.CreateTime
+		updated, err := fx.service.UpdateSite(fx.ctx, &UpdateSiteRequest{
+			Site: created,
+			UpdateMask: &fieldmaskpb.FieldMask{
+				Paths: []string{
+					"*",
+				},
+			},
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(t, originalCreateTime, updated.CreateTime, protocmp.Transform())
 	})
 
 	parent := fx.nextParent(t, false)
