@@ -1,6 +1,8 @@
 package update
 
 import (
+	"strconv"
+
 	"github.com/einride/protoc-gen-go-aip-test/internal/ident"
 	"github.com/einride/protoc-gen-go-aip-test/internal/onlyif"
 	"github.com/einride/protoc-gen-go-aip-test/internal/suite"
@@ -9,29 +11,22 @@ import (
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
-// Suite for the Updaet method.
 // nolint: gochecknoglobals
-var Suite = suite.Suite{
-	Name: "Update",
-	Tests: []suite.Test{
-		missingName,
-		invalidName,
-		updateTime,
-		persisted,
-		preserveCreateTime,
+var preserveCreateTime = suite.Test{
+	Name: "preserve create_time",
+	Doc: []string{
+		"The field create_time should be preserved when a '*'-update mask is used.",
 	},
-	TestGroups: []suite.TestGroup{
-		withResourceGroup,
-	},
-}
 
-// nolint: gochecknoglobals
-var withResourceGroup = suite.TestGroup{
 	OnlyIf: suite.OnlyIfs(
 		onlyif.HasMethod(aipreflect.MethodTypeCreate),
 		onlyif.MethodNotLRO(aipreflect.MethodTypeCreate),
+		onlyif.HasMethod(aipreflect.MethodTypeUpdate),
+		onlyif.MethodNotLRO(aipreflect.MethodTypeUpdate),
+		onlyif.HasField("create_time"),
+		onlyif.HasRequiredFields,
 	),
-	GenerateBefore: func(f *protogen.GeneratedFile, scope suite.Scope) error {
+	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
 		createMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeCreate)
 		if util.HasParent(scope.Resource) {
 			f.P("parent := ", ident.FixtureNextParent, "(t, false)")
@@ -42,13 +37,16 @@ var withResourceGroup = suite.TestGroup{
 			Parent:   "parent",
 		}.Generate(f, "created", "err", ":=")
 		f.P(ident.AssertNilError, "(t, err)")
+		f.P("originalCreateTime := created.CreateTime")
+		updateMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeUpdate)
+		util.MethodUpdate{
+			Resource:   scope.Resource,
+			Method:     updateMethod,
+			Msg:        "created",
+			UpdateMask: []string{strconv.Quote("*")},
+		}.Generate(f, "updated", "err", ":=")
+		f.P(ident.AssertNilError, "(t, err)")
+		f.P(ident.AssertDeepEqual, "(t, originalCreateTime, updated.CreateTime,", ident.ProtocmpTransform, "())")
 		return nil
-	},
-	Tests: []suite.Test{
-		notFound,
-		invalidUpdateMask,
-		requiredFields,
-		// TODO: add test for supplying wildcard as name
-		// TODO: add test for etags
 	},
 }

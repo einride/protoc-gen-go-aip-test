@@ -877,6 +877,28 @@ func (fx *TensorboardRunTestSuiteConfig) testUpdate(t *testing.T) {
 		assert.DeepEqual(t, updated, persisted, protocmp.Transform())
 	})
 
+	// The field create_time should be preserved when a '*'-update mask is used.
+	t.Run("preserve create_time", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created, err := fx.service.CreateTensorboardRun(fx.ctx, &CreateTensorboardRunRequest{
+			Parent:         parent,
+			TensorboardRun: fx.Create(parent),
+		})
+		assert.NilError(t, err)
+		originalCreateTime := created.CreateTime
+		updated, err := fx.service.UpdateTensorboardRun(fx.ctx, &UpdateTensorboardRunRequest{
+			TensorboardRun: created,
+			UpdateMask: &fieldmaskpb.FieldMask{
+				Paths: []string{
+					"*",
+				},
+			},
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(t, originalCreateTime, updated.CreateTime, protocmp.Transform())
+	})
+
 	parent := fx.nextParent(t, false)
 	created, err := fx.service.CreateTensorboardRun(fx.ctx, &CreateTensorboardRunRequest{
 		Parent:         parent,
@@ -1339,6 +1361,28 @@ func (fx *TensorboardTimeSeriesTestSuiteConfig) testUpdate(t *testing.T) {
 		})
 		assert.NilError(t, err)
 		assert.DeepEqual(t, updated, persisted, protocmp.Transform())
+	})
+
+	// The field create_time should be preserved when a '*'-update mask is used.
+	t.Run("preserve create_time", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created, err := fx.service.CreateTensorboardTimeSeries(fx.ctx, &CreateTensorboardTimeSeriesRequest{
+			Parent:                parent,
+			TensorboardTimeSeries: fx.Create(parent),
+		})
+		assert.NilError(t, err)
+		originalCreateTime := created.CreateTime
+		updated, err := fx.service.UpdateTensorboardTimeSeries(fx.ctx, &UpdateTensorboardTimeSeriesRequest{
+			TensorboardTimeSeries: created,
+			UpdateMask: &fieldmaskpb.FieldMask{
+				Paths: []string{
+					"*",
+				},
+			},
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(t, originalCreateTime, updated.CreateTime, protocmp.Transform())
 	})
 
 	parent := fx.nextParent(t, false)
