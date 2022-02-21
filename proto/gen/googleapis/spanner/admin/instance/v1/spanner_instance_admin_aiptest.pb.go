@@ -86,6 +86,60 @@ func (fx *InstanceTestSuiteConfig) testCreate(t *testing.T) {
 	})
 
 	// The method should fail with InvalidArgument if the resource has any
+	// required fields and they are not provided.
+	t.Run("required fields", func(t *testing.T) {
+		fx.maybeSkip(t)
+		t.Run(".name", func(t *testing.T) {
+			fx.maybeSkip(t)
+			parent := fx.nextParent(t, false)
+			msg := fx.Create(parent)
+			container := msg
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("name")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.CreateInstance(fx.ctx, &CreateInstanceRequest{
+				Parent:   parent,
+				Instance: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+		t.Run(".config", func(t *testing.T) {
+			fx.maybeSkip(t)
+			parent := fx.nextParent(t, false)
+			msg := fx.Create(parent)
+			container := msg
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("config")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.CreateInstance(fx.ctx, &CreateInstanceRequest{
+				Parent:   parent,
+				Instance: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+		t.Run(".display_name", func(t *testing.T) {
+			fx.maybeSkip(t)
+			parent := fx.nextParent(t, false)
+			msg := fx.Create(parent)
+			container := msg
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.CreateInstance(fx.ctx, &CreateInstanceRequest{
+				Parent:   parent,
+				Instance: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+	})
+
+	// The method should fail with InvalidArgument if the resource has any
 	// resource references and they are invalid.
 	t.Run("resource references", func(t *testing.T) {
 		fx.maybeSkip(t)
