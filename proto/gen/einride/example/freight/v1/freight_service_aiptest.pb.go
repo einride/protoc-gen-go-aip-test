@@ -440,7 +440,7 @@ func (fx *SiteTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateSite(fx.ctx, &CreateSiteRequest{
 			Parent: "",
-			Site:   fx.Create(""),
+			Site:   fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -450,7 +450,7 @@ func (fx *SiteTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateSite(fx.ctx, &CreateSiteRequest{
 			Parent: "invalid resource name",
-			Site:   fx.Create("invalid resource name"),
+			Site:   fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})

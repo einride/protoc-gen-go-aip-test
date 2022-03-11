@@ -81,7 +81,7 @@ func (fx *RowTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateRow(fx.ctx, &CreateRowRequest{
 			Parent: "",
-			Row:    fx.Create(""),
+			Row:    fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -91,7 +91,7 @@ func (fx *RowTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateRow(fx.ctx, &CreateRowRequest{
 			Parent: "invalid resource name",
-			Row:    fx.Create("invalid resource name"),
+			Row:    fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})

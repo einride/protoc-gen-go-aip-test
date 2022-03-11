@@ -122,7 +122,7 @@ func (fx *DeploymentTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateDeployment(fx.ctx, &CreateDeploymentRequest{
 			Parent:     "",
-			Deployment: fx.Create(""),
+			Deployment: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -132,7 +132,7 @@ func (fx *DeploymentTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateDeployment(fx.ctx, &CreateDeploymentRequest{
 			Parent:     "invalid resource name",
-			Deployment: fx.Create("invalid resource name"),
+			Deployment: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})

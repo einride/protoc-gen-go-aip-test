@@ -62,7 +62,7 @@ func (fx *IndexTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateIndex(fx.ctx, &CreateIndexRequest{
 			Parent: "",
-			Index:  fx.Create(""),
+			Index:  fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -72,7 +72,7 @@ func (fx *IndexTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateIndex(fx.ctx, &CreateIndexRequest{
 			Parent: "invalid resource name",
-			Index:  fx.Create("invalid resource name"),
+			Index:  fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})

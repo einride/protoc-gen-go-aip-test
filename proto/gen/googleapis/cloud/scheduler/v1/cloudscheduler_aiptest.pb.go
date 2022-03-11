@@ -65,7 +65,7 @@ func (fx *JobTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateJob(fx.ctx, &CreateJobRequest{
 			Parent: "",
-			Job:    fx.Create(""),
+			Job:    fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -75,7 +75,7 @@ func (fx *JobTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateJob(fx.ctx, &CreateJobRequest{
 			Parent: "invalid resource name",
-			Job:    fx.Create("invalid resource name"),
+			Job:    fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
