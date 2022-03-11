@@ -319,7 +319,7 @@ func (fx *DatasetTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateDataset(fx.ctx, &CreateDatasetRequest{
 			Parent:  "",
-			Dataset: fx.Create(""),
+			Dataset: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -329,7 +329,7 @@ func (fx *DatasetTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateDataset(fx.ctx, &CreateDatasetRequest{
 			Parent:  "invalid resource name",
-			Dataset: fx.Create("invalid resource name"),
+			Dataset: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})

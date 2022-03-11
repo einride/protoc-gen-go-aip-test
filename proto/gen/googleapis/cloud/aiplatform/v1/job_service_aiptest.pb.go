@@ -95,7 +95,7 @@ func (fx *BatchPredictionJobTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateBatchPredictionJob(fx.ctx, &CreateBatchPredictionJobRequest{
 			Parent:             "",
-			BatchPredictionJob: fx.Create(""),
+			BatchPredictionJob: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -105,7 +105,7 @@ func (fx *BatchPredictionJobTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateBatchPredictionJob(fx.ctx, &CreateBatchPredictionJobRequest{
 			Parent:             "invalid resource name",
-			BatchPredictionJob: fx.Create("invalid resource name"),
+			BatchPredictionJob: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -728,7 +728,7 @@ func (fx *CustomJobTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateCustomJob(fx.ctx, &CreateCustomJobRequest{
 			Parent:    "",
-			CustomJob: fx.Create(""),
+			CustomJob: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -738,7 +738,7 @@ func (fx *CustomJobTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateCustomJob(fx.ctx, &CreateCustomJobRequest{
 			Parent:    "invalid resource name",
-			CustomJob: fx.Create("invalid resource name"),
+			CustomJob: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -1152,7 +1152,7 @@ func (fx *DataLabelingJobTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateDataLabelingJob(fx.ctx, &CreateDataLabelingJobRequest{
 			Parent:          "",
-			DataLabelingJob: fx.Create(""),
+			DataLabelingJob: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -1162,7 +1162,7 @@ func (fx *DataLabelingJobTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateDataLabelingJob(fx.ctx, &CreateDataLabelingJobRequest{
 			Parent:          "invalid resource name",
-			DataLabelingJob: fx.Create("invalid resource name"),
+			DataLabelingJob: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -1593,7 +1593,7 @@ func (fx *HyperparameterTuningJobTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateHyperparameterTuningJob(fx.ctx, &CreateHyperparameterTuningJobRequest{
 			Parent:                  "",
-			HyperparameterTuningJob: fx.Create(""),
+			HyperparameterTuningJob: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -1603,7 +1603,7 @@ func (fx *HyperparameterTuningJobTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateHyperparameterTuningJob(fx.ctx, &CreateHyperparameterTuningJobRequest{
 			Parent:                  "invalid resource name",
-			HyperparameterTuningJob: fx.Create("invalid resource name"),
+			HyperparameterTuningJob: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -2101,7 +2101,7 @@ func (fx *ModelDeploymentMonitoringJobTestSuiteConfig) testCreate(t *testing.T) 
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateModelDeploymentMonitoringJob(fx.ctx, &CreateModelDeploymentMonitoringJobRequest{
 			Parent:                       "",
-			ModelDeploymentMonitoringJob: fx.Create(""),
+			ModelDeploymentMonitoringJob: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -2111,7 +2111,7 @@ func (fx *ModelDeploymentMonitoringJobTestSuiteConfig) testCreate(t *testing.T) 
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateModelDeploymentMonitoringJob(fx.ctx, &CreateModelDeploymentMonitoringJobRequest{
 			Parent:                       "invalid resource name",
-			ModelDeploymentMonitoringJob: fx.Create("invalid resource name"),
+			ModelDeploymentMonitoringJob: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})

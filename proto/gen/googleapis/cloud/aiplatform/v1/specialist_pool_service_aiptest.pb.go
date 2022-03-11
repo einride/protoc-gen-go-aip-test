@@ -62,7 +62,7 @@ func (fx *SpecialistPoolTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateSpecialistPool(fx.ctx, &CreateSpecialistPoolRequest{
 			Parent:         "",
-			SpecialistPool: fx.Create(""),
+			SpecialistPool: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -72,7 +72,7 @@ func (fx *SpecialistPoolTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateSpecialistPool(fx.ctx, &CreateSpecialistPoolRequest{
 			Parent:         "invalid resource name",
-			SpecialistPool: fx.Create("invalid resource name"),
+			SpecialistPool: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})

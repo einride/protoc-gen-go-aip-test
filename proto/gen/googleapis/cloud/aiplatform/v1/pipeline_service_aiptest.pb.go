@@ -69,7 +69,7 @@ func (fx *PipelineJobTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreatePipelineJob(fx.ctx, &CreatePipelineJobRequest{
 			Parent:      "",
-			PipelineJob: fx.Create(""),
+			PipelineJob: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -79,7 +79,7 @@ func (fx *PipelineJobTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreatePipelineJob(fx.ctx, &CreatePipelineJobRequest{
 			Parent:      "invalid resource name",
-			PipelineJob: fx.Create("invalid resource name"),
+			PipelineJob: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -446,7 +446,7 @@ func (fx *TrainingPipelineTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateTrainingPipeline(fx.ctx, &CreateTrainingPipelineRequest{
 			Parent:           "",
-			TrainingPipeline: fx.Create(""),
+			TrainingPipeline: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -456,7 +456,7 @@ func (fx *TrainingPipelineTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateTrainingPipeline(fx.ctx, &CreateTrainingPipelineRequest{
 			Parent:           "invalid resource name",
-			TrainingPipeline: fx.Create("invalid resource name"),
+			TrainingPipeline: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})

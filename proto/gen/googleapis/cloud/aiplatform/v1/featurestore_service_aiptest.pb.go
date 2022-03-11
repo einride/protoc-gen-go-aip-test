@@ -78,7 +78,7 @@ func (fx *EntityTypeTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateEntityType(fx.ctx, &CreateEntityTypeRequest{
 			Parent:     "",
-			EntityType: fx.Create(""),
+			EntityType: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -88,7 +88,7 @@ func (fx *EntityTypeTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateEntityType(fx.ctx, &CreateEntityTypeRequest{
 			Parent:     "invalid resource name",
-			EntityType: fx.Create("invalid resource name"),
+			EntityType: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -243,7 +243,7 @@ func (fx *FeatureTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateFeature(fx.ctx, &CreateFeatureRequest{
 			Parent:  "",
-			Feature: fx.Create(""),
+			Feature: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -253,7 +253,7 @@ func (fx *FeatureTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateFeature(fx.ctx, &CreateFeatureRequest{
 			Parent:  "invalid resource name",
-			Feature: fx.Create("invalid resource name"),
+			Feature: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -430,7 +430,7 @@ func (fx *FeaturestoreTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateFeaturestore(fx.ctx, &CreateFeaturestoreRequest{
 			Parent:       "",
-			Featurestore: fx.Create(""),
+			Featurestore: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -440,7 +440,7 @@ func (fx *FeaturestoreTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateFeaturestore(fx.ctx, &CreateFeaturestoreRequest{
 			Parent:       "invalid resource name",
-			Featurestore: fx.Create("invalid resource name"),
+			Featurestore: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})

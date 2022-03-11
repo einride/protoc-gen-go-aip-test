@@ -62,7 +62,7 @@ func (fx *EndpointTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateEndpoint(fx.ctx, &CreateEndpointRequest{
 			Parent:   "",
-			Endpoint: fx.Create(""),
+			Endpoint: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -72,7 +72,7 @@ func (fx *EndpointTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateEndpoint(fx.ctx, &CreateEndpointRequest{
 			Parent:   "invalid resource name",
-			Endpoint: fx.Create("invalid resource name"),
+			Endpoint: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -106,6 +106,22 @@ func (fx *EndpointTestSuiteConfig) testCreate(t *testing.T) {
 				t.Skip("not reachable")
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("kms_key_name")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.CreateEndpoint(fx.ctx, &CreateEndpointRequest{
+				Parent:   parent,
+				Endpoint: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+		t.Run(".predict_request_response_logging_config.bigquery_destination.output_uri", func(t *testing.T) {
+			fx.maybeSkip(t)
+			parent := fx.nextParent(t, false)
+			msg := fx.Create(parent)
+			container := msg.GetPredictRequestResponseLoggingConfig().GetBigqueryDestination()
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("output_uri")
 			container.ProtoReflect().Clear(fd)
 			_, err := fx.service.CreateEndpoint(fx.ctx, &CreateEndpointRequest{
 				Parent:   parent,

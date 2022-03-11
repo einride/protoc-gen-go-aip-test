@@ -70,7 +70,7 @@ func (fx *BackupTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateBackup(fx.ctx, &CreateBackupRequest{
 			Parent: "",
-			Backup: fx.Create(""),
+			Backup: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -80,7 +80,7 @@ func (fx *BackupTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateBackup(fx.ctx, &CreateBackupRequest{
 			Parent: "invalid resource name",
-			Backup: fx.Create("invalid resource name"),
+			Backup: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})

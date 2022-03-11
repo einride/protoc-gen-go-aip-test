@@ -60,7 +60,7 @@ func (fx *SchemaTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateSchema(fx.ctx, &CreateSchemaRequest{
 			Parent: "",
-			Schema: fx.Create(""),
+			Schema: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -70,7 +70,7 @@ func (fx *SchemaTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateSchema(fx.ctx, &CreateSchemaRequest{
 			Parent: "invalid resource name",
-			Schema: fx.Create("invalid resource name"),
+			Schema: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})

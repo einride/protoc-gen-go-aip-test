@@ -98,7 +98,7 @@ func (fx *ArtifactTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateArtifact(fx.ctx, &CreateArtifactRequest{
 			Parent:   "",
-			Artifact: fx.Create(""),
+			Artifact: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -108,7 +108,7 @@ func (fx *ArtifactTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateArtifact(fx.ctx, &CreateArtifactRequest{
 			Parent:   "invalid resource name",
-			Artifact: fx.Create("invalid resource name"),
+			Artifact: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -499,7 +499,7 @@ func (fx *ContextTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateContext(fx.ctx, &CreateContextRequest{
 			Parent:  "",
-			Context: fx.Create(""),
+			Context: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -509,7 +509,7 @@ func (fx *ContextTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateContext(fx.ctx, &CreateContextRequest{
 			Parent:  "invalid resource name",
-			Context: fx.Create("invalid resource name"),
+			Context: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -900,7 +900,7 @@ func (fx *ExecutionTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateExecution(fx.ctx, &CreateExecutionRequest{
 			Parent:    "",
-			Execution: fx.Create(""),
+			Execution: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -910,7 +910,7 @@ func (fx *ExecutionTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateExecution(fx.ctx, &CreateExecutionRequest{
 			Parent:    "invalid resource name",
-			Execution: fx.Create("invalid resource name"),
+			Execution: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -1297,7 +1297,7 @@ func (fx *MetadataSchemaTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateMetadataSchema(fx.ctx, &CreateMetadataSchemaRequest{
 			Parent:         "",
-			MetadataSchema: fx.Create(""),
+			MetadataSchema: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -1307,7 +1307,7 @@ func (fx *MetadataSchemaTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateMetadataSchema(fx.ctx, &CreateMetadataSchemaRequest{
 			Parent:         "invalid resource name",
-			MetadataSchema: fx.Create("invalid resource name"),
+			MetadataSchema: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -1595,7 +1595,7 @@ func (fx *MetadataStoreTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateMetadataStore(fx.ctx, &CreateMetadataStoreRequest{
 			Parent:        "",
-			MetadataStore: fx.Create(""),
+			MetadataStore: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -1605,7 +1605,7 @@ func (fx *MetadataStoreTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateMetadataStore(fx.ctx, &CreateMetadataStoreRequest{
 			Parent:        "invalid resource name",
-			MetadataStore: fx.Create("invalid resource name"),
+			MetadataStore: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})

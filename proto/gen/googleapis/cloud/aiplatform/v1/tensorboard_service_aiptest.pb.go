@@ -91,7 +91,7 @@ func (fx *TensorboardTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateTensorboard(fx.ctx, &CreateTensorboardRequest{
 			Parent:      "",
-			Tensorboard: fx.Create(""),
+			Tensorboard: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -101,7 +101,7 @@ func (fx *TensorboardTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateTensorboard(fx.ctx, &CreateTensorboardRequest{
 			Parent:      "invalid resource name",
-			Tensorboard: fx.Create("invalid resource name"),
+			Tensorboard: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -294,7 +294,7 @@ func (fx *TensorboardExperimentTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateTensorboardExperiment(fx.ctx, &CreateTensorboardExperimentRequest{
 			Parent:                "",
-			TensorboardExperiment: fx.Create(""),
+			TensorboardExperiment: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -304,7 +304,7 @@ func (fx *TensorboardExperimentTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateTensorboardExperiment(fx.ctx, &CreateTensorboardExperimentRequest{
 			Parent:                "invalid resource name",
-			TensorboardExperiment: fx.Create("invalid resource name"),
+			TensorboardExperiment: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -695,7 +695,7 @@ func (fx *TensorboardRunTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateTensorboardRun(fx.ctx, &CreateTensorboardRunRequest{
 			Parent:         "",
-			TensorboardRun: fx.Create(""),
+			TensorboardRun: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -705,7 +705,7 @@ func (fx *TensorboardRunTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateTensorboardRun(fx.ctx, &CreateTensorboardRunRequest{
 			Parent:         "invalid resource name",
-			TensorboardRun: fx.Create("invalid resource name"),
+			TensorboardRun: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -1165,7 +1165,7 @@ func (fx *TensorboardTimeSeriesTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateTensorboardTimeSeries(fx.ctx, &CreateTensorboardTimeSeriesRequest{
 			Parent:                "",
-			TensorboardTimeSeries: fx.Create(""),
+			TensorboardTimeSeries: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -1175,7 +1175,7 @@ func (fx *TensorboardTimeSeriesTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateTensorboardTimeSeries(fx.ctx, &CreateTensorboardTimeSeriesRequest{
 			Parent:                "invalid resource name",
-			TensorboardTimeSeries: fx.Create("invalid resource name"),
+			TensorboardTimeSeries: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})

@@ -69,7 +69,7 @@ func (fx *StudyTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateStudy(fx.ctx, &CreateStudyRequest{
 			Parent: "",
-			Study:  fx.Create(""),
+			Study:  fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -79,7 +79,7 @@ func (fx *StudyTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateStudy(fx.ctx, &CreateStudyRequest{
 			Parent: "invalid resource name",
-			Study:  fx.Create("invalid resource name"),
+			Study:  fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -441,7 +441,7 @@ func (fx *TrialTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateTrial(fx.ctx, &CreateTrialRequest{
 			Parent: "",
-			Trial:  fx.Create(""),
+			Trial:  fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -451,7 +451,7 @@ func (fx *TrialTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateTrial(fx.ctx, &CreateTrialRequest{
 			Parent: "invalid resource name",
-			Trial:  fx.Create("invalid resource name"),
+			Trial:  fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})

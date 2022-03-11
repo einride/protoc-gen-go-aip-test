@@ -70,7 +70,7 @@ func (fx *InstanceTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateInstance(fx.ctx, &CreateInstanceRequest{
 			Parent:   "",
-			Instance: fx.Create(""),
+			Instance: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -80,7 +80,7 @@ func (fx *InstanceTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.CreateInstance(fx.ctx, &CreateInstanceRequest{
 			Parent:   "invalid resource name",
-			Instance: fx.Create("invalid resource name"),
+			Instance: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})

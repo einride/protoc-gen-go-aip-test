@@ -28,6 +28,7 @@ var parentInvalid = suite.Test{
 		util.MethodCreate{
 			Resource: scope.Resource,
 			Method:   createMethod,
+			Message:  "fx.Create(fx.nextParent(t, false))",
 			Parent:   strconv.Quote("invalid resource name"),
 		}.Generate(f, "_", "err", ":=")
 		f.P(ident.AssertEqual, "(t, ", ident.Codes(codes.InvalidArgument), ", ", ident.StatusCode, "(err), err)")
