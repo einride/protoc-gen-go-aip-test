@@ -12,8 +12,8 @@ import (
 type Proto sg.Namespace
 
 func (Proto) All(ctx context.Context) error {
-	sg.Deps(ctx, Proto.ClangFormatProto, Proto.BufLint, Proto.BufGenerate)
-	sg.Deps(ctx, Proto.BufGenerate, Proto.BufGenerateGoogleapis)
+	sg.Deps(ctx, Proto.ClangFormatProto, Proto.BufLint)
+	sg.SerialDeps(ctx, Proto.BufGenerate, Proto.BufGenerateGoogleapis)
 	return nil
 }
 
