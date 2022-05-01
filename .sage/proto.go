@@ -11,6 +11,13 @@ import (
 
 type Proto sg.Namespace
 
+const (
+	// Version of buf.build/googleapis/googleapis to generate from.
+	// Versions can be found here:
+	// https://buf.build/googleapis/googleapis/history
+	googleapisRef = "f3590c56d388417ebbedefae77ac12bf"
+)
+
 func (Proto) All(ctx context.Context) error {
 	sg.Deps(ctx, Proto.ClangFormatProto, Proto.BufLint)
 	sg.SerialDeps(ctx, Proto.BufGenerate, Proto.BufGenerateGoogleapis)
@@ -60,7 +67,7 @@ func (Proto) BufGenerateGoogleapis(ctx context.Context) error {
 	cmd := sgbuf.Command(
 		ctx,
 		"generate",
-		"buf.build/googleapis/googleapis",
+		"buf.build/googleapis/googleapis:"+googleapisRef,
 		"--template", "buf.gen.googleapis.yaml",
 		"--path", "google/area120/tables/v1alpha1",
 		"--path", "google/cloud/aiplatform/v1",
