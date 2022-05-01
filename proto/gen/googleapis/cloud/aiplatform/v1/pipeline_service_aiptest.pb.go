@@ -116,22 +116,6 @@ func (fx *PipelineJobTestSuiteConfig) testCreate(t *testing.T) {
 	// required fields and they are not provided.
 	t.Run("required fields", func(t *testing.T) {
 		fx.maybeSkip(t)
-		t.Run(".pipeline_spec", func(t *testing.T) {
-			fx.maybeSkip(t)
-			parent := fx.nextParent(t, false)
-			msg := fx.Create(parent)
-			container := msg
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("pipeline_spec")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreatePipelineJob(fx.ctx, &CreatePipelineJobRequest{
-				Parent:      parent,
-				PipelineJob: msg,
-			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
 		t.Run(".runtime_config.gcs_output_directory", func(t *testing.T) {
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
