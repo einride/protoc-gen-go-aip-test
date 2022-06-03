@@ -117,12 +117,13 @@ Suites
 
 ### Get
 
-| Name         | Description                                                            | Only if                                                                                                                                                 |
-|--------------|------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------|
-| missing name | Method should fail with InvalidArgument if no name is provided.        | Generated only if all are true: <ul><li>has Get method</li></ul>                                                                                        |
-| invalid name | Method should fail with InvalidArgument is provided name is not valid. | Generated only if all are true: <ul><li>has Get method</li></ul>                                                                                        |
-| exists       | Resource should be returned without errors if it exists.               | Generated only if all are true: <ul><li>has Create method</li><li>Create method does not return long-running operation</li><li>has Get method</li></ul> |
-| not found    | Method should fail with NotFound if the resource does not exist.       | Generated only if all are true: <ul><li>has Create method</li><li>Create method does not return long-running operation</li><li>has Get method</li></ul> |
+| Name           | Description                                                                                | Only if                                                                                                                                                 |
+|----------------|--------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------|
+| missing name   | Method should fail with InvalidArgument if no name is provided.                            | Generated only if all are true: <ul><li>has Get method</li></ul>                                                                                        |
+| invalid name   | Method should fail with InvalidArgument if the provided name is not valid.                 | Generated only if all are true: <ul><li>has Get method</li></ul>                                                                                        |
+| exists         | Resource should be returned without errors if it exists.                                   | Generated only if all are true: <ul><li>has Create method</li><li>Create method does not return long-running operation</li><li>has Get method</li></ul> |
+| not found      | Method should fail with NotFound if the resource does not exist.                           | Generated only if all are true: <ul><li>has Create method</li><li>Create method does not return long-running operation</li><li>has Get method</li></ul> |
+| only wildcards | Method should fail with InvalidArgument if the provided name only contains wildcards ('-') | Generated only if all are true: <ul><li>has Get method</li></ul>                                                                                        |
 
 ### BatchGet
 

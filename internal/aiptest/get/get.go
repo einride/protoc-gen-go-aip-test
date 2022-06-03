@@ -13,6 +13,6 @@ var Suite = suite.Suite{
 		invalidName,
 		exists,
 		notFound,
-		// TODO: add test for supplying wildcard as name
+		wildcardName,
 	},
 }

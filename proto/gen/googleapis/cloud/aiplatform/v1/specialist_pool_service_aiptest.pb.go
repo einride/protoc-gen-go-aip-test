@@ -128,11 +128,20 @@ func (fx *SpecialistPoolTestSuiteConfig) testGet(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
-	// Method should fail with InvalidArgument is provided name is not valid.
+	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.GetSpecialistPool(fx.ctx, &GetSpecialistPoolRequest{
 			Name: "invalid resource name",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
+	t.Run("only wildcards", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.GetSpecialistPool(fx.ctx, &GetSpecialistPoolRequest{
+			Name: "projects/-/locations/-/specialistPools/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
