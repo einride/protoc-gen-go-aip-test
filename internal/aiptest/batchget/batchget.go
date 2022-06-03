@@ -19,8 +19,8 @@ var Suite = suite.Suite{
 		parentInvalid,
 		namesMissing,
 		namesInvalid,
+		wildcardName,
 		// TODO: add test for supplying wildcard as parent
-		// TODO: add test for supplying wildcard as name
 	},
 	TestGroups: []suite.TestGroup{
 		withResourcesGroup,

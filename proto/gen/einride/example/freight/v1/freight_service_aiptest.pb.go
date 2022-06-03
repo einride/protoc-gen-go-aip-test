@@ -635,6 +635,19 @@ func (fx *SiteTestSuiteConfig) testBatchGet(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
+	// Method should fail with InvalidArgument if a provided name only contains wildcards (-)
+	t.Run("wildcard name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		_, err := fx.service.BatchGetSites(fx.ctx, &BatchGetSitesRequest{
+			Parent: parent,
+			Names: []string{
+				"shippers/-/sites/-",
+			},
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
 	parent := fx.nextParent(t, false)
 	created00, err := fx.service.CreateSite(fx.ctx, &CreateSiteRequest{
 		Parent: parent,
