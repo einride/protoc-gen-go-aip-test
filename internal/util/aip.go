@@ -23,6 +23,19 @@ func HasParent(r *annotations.ResourceDescriptor) bool {
 	return len(resourceNameSegments(r.GetPattern()[0])) > 3
 }
 
+func WildcardResourceName(r *annotations.ResourceDescriptor) string {
+	patternSgments := resourceNameSegments(r.GetPattern()[0])
+	nameSegments := make([]string, 0, len(patternSgments))
+	for _, segment := range patternSgments {
+		if segment.IsVariable() {
+			nameSegments = append(nameSegments, resourcename.Wildcard)
+		} else {
+			nameSegments = append(nameSegments, string(segment))
+		}
+	}
+	return strings.Join(nameSegments, "/")
+}
+
 func resourceNameSegments(pattern string) []resourcename.Segment {
 	var s resourcename.Scanner
 	s.Init(pattern)

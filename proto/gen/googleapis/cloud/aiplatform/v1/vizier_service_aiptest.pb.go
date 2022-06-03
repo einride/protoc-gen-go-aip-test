@@ -195,7 +195,7 @@ func (fx *StudyTestSuiteConfig) testGet(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
-	// Method should fail with InvalidArgument is provided name is not valid.
+	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.GetStudy(fx.ctx, &GetStudyRequest{
@@ -233,6 +233,15 @@ func (fx *StudyTestSuiteConfig) testGet(t *testing.T) {
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
+	t.Run("only wildcards", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.GetStudy(fx.ctx, &GetStudyRequest{
+			Name: "projects/-/locations/-/studies/-",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
 }
@@ -485,7 +494,7 @@ func (fx *TrialTestSuiteConfig) testGet(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
-	// Method should fail with InvalidArgument is provided name is not valid.
+	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.GetTrial(fx.ctx, &GetTrialRequest{
@@ -523,6 +532,15 @@ func (fx *TrialTestSuiteConfig) testGet(t *testing.T) {
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
+	t.Run("only wildcards", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.GetTrial(fx.ctx, &GetTrialRequest{
+			Name: "projects/-/locations/-/studies/-/trials/-",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
 }

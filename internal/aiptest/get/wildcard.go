@@ -13,10 +13,10 @@ import (
 )
 
 // nolint: gochecknoglobals
-var invalidName = suite.Test{
-	Name: "invalid name",
+var wildcardName = suite.Test{
+	Name: "only wildcards",
 	Doc: []string{
-		"Method should fail with InvalidArgument if the provided name is not valid.",
+		"Method should fail with InvalidArgument if the provided name only contains wildcards ('-')",
 	},
 
 	OnlyIf: suite.OnlyIfs(
@@ -27,7 +27,7 @@ var invalidName = suite.Test{
 		util.MethodGet{
 			Resource: scope.Resource,
 			Method:   getMethod,
-			Name:     strconv.Quote("invalid resource name"),
+			Name:     strconv.Quote(util.WildcardResourceName(scope.Resource)),
 		}.Generate(f, "_", "err", ":=")
 		f.P(ident.AssertEqual, "(t, ", ident.Codes(codes.InvalidArgument), ",", ident.StatusCode, "(err), err)")
 		return nil

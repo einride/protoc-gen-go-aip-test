@@ -78,11 +78,20 @@ func (fx *ModelTestSuiteConfig) testGet(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
-	// Method should fail with InvalidArgument is provided name is not valid.
+	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.GetModel(fx.ctx, &GetModelRequest{
 			Name: "invalid resource name",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
+	t.Run("only wildcards", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.GetModel(fx.ctx, &GetModelRequest{
+			Name: "projects/-/locations/-/models/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -211,11 +220,20 @@ func (fx *ModelEvaluationTestSuiteConfig) testGet(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
-	// Method should fail with InvalidArgument is provided name is not valid.
+	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.GetModelEvaluation(fx.ctx, &GetModelEvaluationRequest{
 			Name: "invalid resource name",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
+	t.Run("only wildcards", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.GetModelEvaluation(fx.ctx, &GetModelEvaluationRequest{
+			Name: "projects/-/locations/-/models/-/evaluations/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -316,11 +334,20 @@ func (fx *ModelEvaluationSliceTestSuiteConfig) testGet(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
-	// Method should fail with InvalidArgument is provided name is not valid.
+	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.GetModelEvaluationSlice(fx.ctx, &GetModelEvaluationSliceRequest{
 			Name: "invalid resource name",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
+	t.Run("only wildcards", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.GetModelEvaluationSlice(fx.ctx, &GetModelEvaluationSliceRequest{
+			Name: "projects/-/locations/-/models/-/evaluations/-/slices/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})

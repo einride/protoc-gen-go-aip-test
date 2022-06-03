@@ -184,7 +184,7 @@ func (fx *PipelineJobTestSuiteConfig) testGet(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
-	// Method should fail with InvalidArgument is provided name is not valid.
+	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.GetPipelineJob(fx.ctx, &GetPipelineJobRequest{
@@ -222,6 +222,15 @@ func (fx *PipelineJobTestSuiteConfig) testGet(t *testing.T) {
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
+	t.Run("only wildcards", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.GetPipelineJob(fx.ctx, &GetPipelineJobRequest{
+			Name: "projects/-/locations/-/pipelineJobs/-",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
 }
@@ -844,7 +853,7 @@ func (fx *TrainingPipelineTestSuiteConfig) testGet(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
-	// Method should fail with InvalidArgument is provided name is not valid.
+	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.GetTrainingPipeline(fx.ctx, &GetTrainingPipelineRequest{
@@ -882,6 +891,15 @@ func (fx *TrainingPipelineTestSuiteConfig) testGet(t *testing.T) {
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
+	t.Run("only wildcards", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.GetTrainingPipeline(fx.ctx, &GetTrainingPipelineRequest{
+			Name: "projects/-/locations/-/trainingPipelines/-",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
 }

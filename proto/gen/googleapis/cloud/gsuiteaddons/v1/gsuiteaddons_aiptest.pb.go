@@ -70,11 +70,20 @@ func (fx *AuthorizationTestSuiteConfig) testGet(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
-	// Method should fail with InvalidArgument is provided name is not valid.
+	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.GetAuthorization(fx.ctx, &GetAuthorizationRequest{
 			Name: "invalid resource name",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
+	t.Run("only wildcards", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.GetAuthorization(fx.ctx, &GetAuthorizationRequest{
+			Name: "projects/-/authorization",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -236,7 +245,7 @@ func (fx *DeploymentTestSuiteConfig) testGet(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
-	// Method should fail with InvalidArgument is provided name is not valid.
+	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.GetDeployment(fx.ctx, &GetDeploymentRequest{
@@ -274,6 +283,15 @@ func (fx *DeploymentTestSuiteConfig) testGet(t *testing.T) {
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
+	t.Run("only wildcards", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.GetDeployment(fx.ctx, &GetDeploymentRequest{
+			Name: "projects/-/deployments/-",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
 }
@@ -481,11 +499,20 @@ func (fx *InstallStatusTestSuiteConfig) testGet(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
-	// Method should fail with InvalidArgument is provided name is not valid.
+	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.GetInstallStatus(fx.ctx, &GetInstallStatusRequest{
 			Name: "invalid resource name",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
+	t.Run("only wildcards", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.GetInstallStatus(fx.ctx, &GetInstallStatusRequest{
+			Name: "projects/-/deployments/-/installStatus",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})

@@ -130,7 +130,7 @@ func (fx *JobTestSuiteConfig) testGet(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
-	// Method should fail with InvalidArgument is provided name is not valid.
+	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.GetJob(fx.ctx, &GetJobRequest{
@@ -168,6 +168,15 @@ func (fx *JobTestSuiteConfig) testGet(t *testing.T) {
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
+	t.Run("only wildcards", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.GetJob(fx.ctx, &GetJobRequest{
+			Name: "projects/-/locations/-/jobs/-",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
 }
