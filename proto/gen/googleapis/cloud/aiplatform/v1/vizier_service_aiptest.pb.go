@@ -208,11 +208,7 @@ func (fx *StudyTestSuiteConfig) testGet(t *testing.T) {
 	t.Run("exists", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		created, err := fx.service.CreateStudy(fx.ctx, &CreateStudyRequest{
-			Parent: parent,
-			Study:  fx.Create(parent),
-		})
-		assert.NilError(t, err)
+		created := fx.create(t, parent)
 		msg, err := fx.service.GetStudy(fx.ctx, &GetStudyRequest{
 			Name: created.Name,
 		})
@@ -224,12 +220,8 @@ func (fx *StudyTestSuiteConfig) testGet(t *testing.T) {
 	t.Run("not found", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		created, err := fx.service.CreateStudy(fx.ctx, &CreateStudyRequest{
-			Parent: parent,
-			Study:  fx.Create(parent),
-		})
-		assert.NilError(t, err)
-		_, err = fx.service.GetStudy(fx.ctx, &GetStudyRequest{
+		created := fx.create(t, parent)
+		_, err := fx.service.GetStudy(fx.ctx, &GetStudyRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -283,12 +275,7 @@ func (fx *StudyTestSuiteConfig) testList(t *testing.T) {
 	parent := fx.nextParent(t, true)
 	parentMsgs := make([]*Study, resourcesCount)
 	for i := 0; i < resourcesCount; i++ {
-		msg, err := fx.service.CreateStudy(fx.ctx, &CreateStudyRequest{
-			Parent: parent,
-			Study:  fx.Create(parent),
-		})
-		assert.NilError(t, err)
-		parentMsgs[i] = msg
+		parentMsgs[i] = fx.create(t, parent)
 	}
 
 	// If parent is provided the method must only return resources
@@ -417,6 +404,16 @@ func (fx *StudyTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
+func (fx *StudyTestSuiteConfig) create(t *testing.T, parent string) *Study {
+	t.Helper()
+	created, err := fx.service.CreateStudy(fx.ctx, &CreateStudyRequest{
+		Parent: parent,
+		Study:  fx.Create(parent),
+	})
+	assert.NilError(t, err)
+	return created
+}
+
 type TrialTestSuiteConfig struct {
 	ctx        context.Context
 	service    VizierServiceServer
@@ -507,11 +504,7 @@ func (fx *TrialTestSuiteConfig) testGet(t *testing.T) {
 	t.Run("exists", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		created, err := fx.service.CreateTrial(fx.ctx, &CreateTrialRequest{
-			Parent: parent,
-			Trial:  fx.Create(parent),
-		})
-		assert.NilError(t, err)
+		created := fx.create(t, parent)
 		msg, err := fx.service.GetTrial(fx.ctx, &GetTrialRequest{
 			Name: created.Name,
 		})
@@ -523,12 +516,8 @@ func (fx *TrialTestSuiteConfig) testGet(t *testing.T) {
 	t.Run("not found", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		created, err := fx.service.CreateTrial(fx.ctx, &CreateTrialRequest{
-			Parent: parent,
-			Trial:  fx.Create(parent),
-		})
-		assert.NilError(t, err)
-		_, err = fx.service.GetTrial(fx.ctx, &GetTrialRequest{
+		created := fx.create(t, parent)
+		_, err := fx.service.GetTrial(fx.ctx, &GetTrialRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -582,12 +571,7 @@ func (fx *TrialTestSuiteConfig) testList(t *testing.T) {
 	parent := fx.nextParent(t, true)
 	parentMsgs := make([]*Trial, resourcesCount)
 	for i := 0; i < resourcesCount; i++ {
-		msg, err := fx.service.CreateTrial(fx.ctx, &CreateTrialRequest{
-			Parent: parent,
-			Trial:  fx.Create(parent),
-		})
-		assert.NilError(t, err)
-		parentMsgs[i] = msg
+		parentMsgs[i] = fx.create(t, parent)
 	}
 
 	// If parent is provided the method must only return resources
@@ -714,4 +698,14 @@ func (fx *TrialTestSuiteConfig) maybeSkip(t *testing.T) {
 			t.Skip("skipped because of .Skip")
 		}
 	}
+}
+
+func (fx *TrialTestSuiteConfig) create(t *testing.T, parent string) *Trial {
+	t.Helper()
+	created, err := fx.service.CreateTrial(fx.ctx, &CreateTrialRequest{
+		Parent: parent,
+		Trial:  fx.Create(parent),
+	})
+	assert.NilError(t, err)
+	return created
 }

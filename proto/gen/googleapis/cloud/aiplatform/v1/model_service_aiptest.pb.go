@@ -187,6 +187,12 @@ func (fx *ModelTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
+func (fx *ModelTestSuiteConfig) create(t *testing.T, parent string) *Model {
+	t.Helper()
+	t.Skip("Service does expose a Create method, not supported.")
+	return nil
+}
+
 type ModelEvaluationTestSuiteConfig struct {
 	ctx        context.Context
 	service    ModelServiceServer
@@ -301,6 +307,12 @@ func (fx *ModelEvaluationTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
+func (fx *ModelEvaluationTestSuiteConfig) create(t *testing.T, parent string) *ModelEvaluation {
+	t.Helper()
+	t.Skip("Service does expose a Create method, not supported.")
+	return nil
+}
+
 type ModelEvaluationSliceTestSuiteConfig struct {
 	ctx        context.Context
 	service    ModelServiceServer
@@ -413,4 +425,10 @@ func (fx *ModelEvaluationSliceTestSuiteConfig) maybeSkip(t *testing.T) {
 			t.Skip("skipped because of .Skip")
 		}
 	}
+}
+
+func (fx *ModelEvaluationSliceTestSuiteConfig) create(t *testing.T, parent string) *ModelEvaluationSlice {
+	t.Helper()
+	t.Skip("Service does expose a Create method, not supported.")
+	return nil
 }

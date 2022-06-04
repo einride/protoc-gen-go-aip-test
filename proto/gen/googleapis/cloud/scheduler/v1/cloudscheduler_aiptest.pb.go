@@ -143,11 +143,7 @@ func (fx *JobTestSuiteConfig) testGet(t *testing.T) {
 	t.Run("exists", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		created, err := fx.service.CreateJob(fx.ctx, &CreateJobRequest{
-			Parent: parent,
-			Job:    fx.Create(parent),
-		})
-		assert.NilError(t, err)
+		created := fx.create(t, parent)
 		msg, err := fx.service.GetJob(fx.ctx, &GetJobRequest{
 			Name: created.Name,
 		})
@@ -159,12 +155,8 @@ func (fx *JobTestSuiteConfig) testGet(t *testing.T) {
 	t.Run("not found", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		created, err := fx.service.CreateJob(fx.ctx, &CreateJobRequest{
-			Parent: parent,
-			Job:    fx.Create(parent),
-		})
-		assert.NilError(t, err)
-		_, err = fx.service.GetJob(fx.ctx, &GetJobRequest{
+		created := fx.create(t, parent)
+		_, err := fx.service.GetJob(fx.ctx, &GetJobRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -211,11 +203,7 @@ func (fx *JobTestSuiteConfig) testUpdate(t *testing.T) {
 	t.Run("persisted", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		created, err := fx.service.CreateJob(fx.ctx, &CreateJobRequest{
-			Parent: parent,
-			Job:    fx.Create(parent),
-		})
-		assert.NilError(t, err)
+		created := fx.create(t, parent)
 		updated, err := fx.service.UpdateJob(fx.ctx, &UpdateJobRequest{
 			Job: created,
 		})
@@ -228,11 +216,7 @@ func (fx *JobTestSuiteConfig) testUpdate(t *testing.T) {
 	})
 
 	parent := fx.nextParent(t, false)
-	created, err := fx.service.CreateJob(fx.ctx, &CreateJobRequest{
-		Parent: parent,
-		Job:    fx.Create(parent),
-	})
-	assert.NilError(t, err)
+	created := fx.create(t, parent)
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -297,12 +281,7 @@ func (fx *JobTestSuiteConfig) testList(t *testing.T) {
 	parent := fx.nextParent(t, true)
 	parentMsgs := make([]*Job, resourcesCount)
 	for i := 0; i < resourcesCount; i++ {
-		msg, err := fx.service.CreateJob(fx.ctx, &CreateJobRequest{
-			Parent: parent,
-			Job:    fx.Create(parent),
-		})
-		assert.NilError(t, err)
-		parentMsgs[i] = msg
+		parentMsgs[i] = fx.create(t, parent)
 	}
 
 	// If parent is provided the method must only return resources
@@ -429,4 +408,14 @@ func (fx *JobTestSuiteConfig) maybeSkip(t *testing.T) {
 			t.Skip("skipped because of .Skip")
 		}
 	}
+}
+
+func (fx *JobTestSuiteConfig) create(t *testing.T, parent string) *Job {
+	t.Helper()
+	created, err := fx.service.CreateJob(fx.ctx, &CreateJobRequest{
+		Parent: parent,
+		Job:    fx.Create(parent),
+	})
+	assert.NilError(t, err)
+	return created
 }

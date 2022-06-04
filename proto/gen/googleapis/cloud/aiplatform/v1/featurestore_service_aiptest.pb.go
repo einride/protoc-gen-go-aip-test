@@ -215,6 +215,12 @@ func (fx *EntityTypeTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
+func (fx *EntityTypeTestSuiteConfig) create(t *testing.T, parent string) *EntityType {
+	t.Helper()
+	t.Skip("Long running create method not supported")
+	return nil
+}
+
 type FeatureTestSuiteConfig struct {
 	ctx        context.Context
 	service    FeaturestoreServiceServer
@@ -411,6 +417,12 @@ func (fx *FeatureTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
+func (fx *FeatureTestSuiteConfig) create(t *testing.T, parent string) *Feature {
+	t.Helper()
+	t.Skip("Long running create method not supported")
+	return nil
+}
+
 type FeaturestoreTestSuiteConfig struct {
 	ctx        context.Context
 	service    FeaturestoreServiceServer
@@ -605,4 +617,10 @@ func (fx *FeaturestoreTestSuiteConfig) maybeSkip(t *testing.T) {
 			t.Skip("skipped because of .Skip")
 		}
 	}
+}
+
+func (fx *FeaturestoreTestSuiteConfig) create(t *testing.T, parent string) *Featurestore {
+	t.Helper()
+	t.Skip("Long running create method not supported")
+	return nil
 }

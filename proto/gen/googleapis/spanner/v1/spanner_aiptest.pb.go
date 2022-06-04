@@ -102,3 +102,9 @@ func (fx *SessionTestSuiteConfig) maybeSkip(t *testing.T) {
 		}
 	}
 }
+
+func (fx *SessionTestSuiteConfig) create(t *testing.T, parent string) *Session {
+	t.Helper()
+	t.Skip("Service does expose a Create method, not supported.")
+	return nil
+}

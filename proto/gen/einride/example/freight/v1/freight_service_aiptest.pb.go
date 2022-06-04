@@ -195,10 +195,7 @@ func (fx *ShipperTestSuiteConfig) testGet(t *testing.T) {
 	// Resource should be returned without errors if it exists.
 	t.Run("exists", func(t *testing.T) {
 		fx.maybeSkip(t)
-		created, err := fx.service.CreateShipper(fx.ctx, &CreateShipperRequest{
-			Shipper: fx.Create(),
-		})
-		assert.NilError(t, err)
+		created := fx.create(t)
 		msg, err := fx.service.GetShipper(fx.ctx, &GetShipperRequest{
 			Name: created.Name,
 		})
@@ -209,11 +206,8 @@ func (fx *ShipperTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
 		fx.maybeSkip(t)
-		created, err := fx.service.CreateShipper(fx.ctx, &CreateShipperRequest{
-			Shipper: fx.Create(),
-		})
-		assert.NilError(t, err)
-		_, err = fx.service.GetShipper(fx.ctx, &GetShipperRequest{
+		created := fx.create(t)
+		_, err := fx.service.GetShipper(fx.ctx, &GetShipperRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -257,10 +251,7 @@ func (fx *ShipperTestSuiteConfig) testUpdate(t *testing.T) {
 	// Field update_time should be updated when the resource is updated.
 	t.Run("update time", func(t *testing.T) {
 		fx.maybeSkip(t)
-		created, err := fx.service.CreateShipper(fx.ctx, &CreateShipperRequest{
-			Shipper: fx.Create(),
-		})
-		assert.NilError(t, err)
+		created := fx.create(t)
 		updated, err := fx.service.UpdateShipper(fx.ctx, &UpdateShipperRequest{
 			Shipper: created,
 		})
@@ -271,10 +262,7 @@ func (fx *ShipperTestSuiteConfig) testUpdate(t *testing.T) {
 	// The updated resource should be persisted and reachable with Get.
 	t.Run("persisted", func(t *testing.T) {
 		fx.maybeSkip(t)
-		created, err := fx.service.CreateShipper(fx.ctx, &CreateShipperRequest{
-			Shipper: fx.Create(),
-		})
-		assert.NilError(t, err)
+		created := fx.create(t)
 		updated, err := fx.service.UpdateShipper(fx.ctx, &UpdateShipperRequest{
 			Shipper: created,
 		})
@@ -289,10 +277,7 @@ func (fx *ShipperTestSuiteConfig) testUpdate(t *testing.T) {
 	// The field create_time should be preserved when a '*'-update mask is used.
 	t.Run("preserve create_time", func(t *testing.T) {
 		fx.maybeSkip(t)
-		created, err := fx.service.CreateShipper(fx.ctx, &CreateShipperRequest{
-			Shipper: fx.Create(),
-		})
-		assert.NilError(t, err)
+		created := fx.create(t)
 		originalCreateTime := created.CreateTime
 		updated, err := fx.service.UpdateShipper(fx.ctx, &UpdateShipperRequest{
 			Shipper: created,
@@ -306,10 +291,7 @@ func (fx *ShipperTestSuiteConfig) testUpdate(t *testing.T) {
 		assert.DeepEqual(t, originalCreateTime, updated.CreateTime, protocmp.Transform())
 	})
 
-	created, err := fx.service.CreateShipper(fx.ctx, &CreateShipperRequest{
-		Shipper: fx.Create(),
-	})
-	assert.NilError(t, err)
+	created := fx.create(t)
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -409,6 +391,15 @@ func (fx *ShipperTestSuiteConfig) maybeSkip(t *testing.T) {
 			t.Skip("skipped because of .Skip")
 		}
 	}
+}
+
+func (fx *ShipperTestSuiteConfig) create(t *testing.T) *Shipper {
+	t.Helper()
+	created, err := fx.service.CreateShipper(fx.ctx, &CreateShipperRequest{
+		Shipper: fx.Create(),
+	})
+	assert.NilError(t, err)
+	return created
 }
 
 type SiteTestSuiteConfig struct {
@@ -561,11 +552,7 @@ func (fx *SiteTestSuiteConfig) testGet(t *testing.T) {
 	t.Run("exists", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		created, err := fx.service.CreateSite(fx.ctx, &CreateSiteRequest{
-			Parent: parent,
-			Site:   fx.Create(parent),
-		})
-		assert.NilError(t, err)
+		created := fx.create(t, parent)
 		msg, err := fx.service.GetSite(fx.ctx, &GetSiteRequest{
 			Name: created.Name,
 		})
@@ -577,12 +564,8 @@ func (fx *SiteTestSuiteConfig) testGet(t *testing.T) {
 	t.Run("not found", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		created, err := fx.service.CreateSite(fx.ctx, &CreateSiteRequest{
-			Parent: parent,
-			Site:   fx.Create(parent),
-		})
-		assert.NilError(t, err)
-		_, err = fx.service.GetSite(fx.ctx, &GetSiteRequest{
+		created := fx.create(t, parent)
+		_, err := fx.service.GetSite(fx.ctx, &GetSiteRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -649,21 +632,9 @@ func (fx *SiteTestSuiteConfig) testBatchGet(t *testing.T) {
 	})
 
 	parent := fx.nextParent(t, false)
-	created00, err := fx.service.CreateSite(fx.ctx, &CreateSiteRequest{
-		Parent: parent,
-		Site:   fx.Create(parent),
-	})
-	assert.NilError(t, err)
-	created01, err := fx.service.CreateSite(fx.ctx, &CreateSiteRequest{
-		Parent: parent,
-		Site:   fx.Create(parent),
-	})
-	assert.NilError(t, err)
-	created02, err := fx.service.CreateSite(fx.ctx, &CreateSiteRequest{
-		Parent: parent,
-		Site:   fx.Create(parent),
-	})
-	assert.NilError(t, err)
+	created00 := fx.create(t, parent)
+	created01 := fx.create(t, parent)
+	created02 := fx.create(t, parent)
 	// Resources should be returned without errors if they exist.
 	t.Run("all exists", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -792,11 +763,7 @@ func (fx *SiteTestSuiteConfig) testUpdate(t *testing.T) {
 	t.Run("update time", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		created, err := fx.service.CreateSite(fx.ctx, &CreateSiteRequest{
-			Parent: parent,
-			Site:   fx.Create(parent),
-		})
-		assert.NilError(t, err)
+		created := fx.create(t, parent)
 		updated, err := fx.service.UpdateSite(fx.ctx, &UpdateSiteRequest{
 			Site: created,
 		})
@@ -808,11 +775,7 @@ func (fx *SiteTestSuiteConfig) testUpdate(t *testing.T) {
 	t.Run("persisted", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		created, err := fx.service.CreateSite(fx.ctx, &CreateSiteRequest{
-			Parent: parent,
-			Site:   fx.Create(parent),
-		})
-		assert.NilError(t, err)
+		created := fx.create(t, parent)
 		updated, err := fx.service.UpdateSite(fx.ctx, &UpdateSiteRequest{
 			Site: created,
 		})
@@ -828,11 +791,7 @@ func (fx *SiteTestSuiteConfig) testUpdate(t *testing.T) {
 	t.Run("preserve create_time", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		created, err := fx.service.CreateSite(fx.ctx, &CreateSiteRequest{
-			Parent: parent,
-			Site:   fx.Create(parent),
-		})
-		assert.NilError(t, err)
+		created := fx.create(t, parent)
 		originalCreateTime := created.CreateTime
 		updated, err := fx.service.UpdateSite(fx.ctx, &UpdateSiteRequest{
 			Site: created,
@@ -847,11 +806,7 @@ func (fx *SiteTestSuiteConfig) testUpdate(t *testing.T) {
 	})
 
 	parent := fx.nextParent(t, false)
-	created, err := fx.service.CreateSite(fx.ctx, &CreateSiteRequest{
-		Parent: parent,
-		Site:   fx.Create(parent),
-	})
-	assert.NilError(t, err)
+	created := fx.create(t, parent)
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -941,12 +896,7 @@ func (fx *SiteTestSuiteConfig) testList(t *testing.T) {
 	parent := fx.nextParent(t, true)
 	parentMsgs := make([]*Site, resourcesCount)
 	for i := 0; i < resourcesCount; i++ {
-		msg, err := fx.service.CreateSite(fx.ctx, &CreateSiteRequest{
-			Parent: parent,
-			Site:   fx.Create(parent),
-		})
-		assert.NilError(t, err)
-		parentMsgs[i] = msg
+		parentMsgs[i] = fx.create(t, parent)
 	}
 
 	// If parent is provided the method must only return resources
@@ -1073,4 +1023,14 @@ func (fx *SiteTestSuiteConfig) maybeSkip(t *testing.T) {
 			t.Skip("skipped because of .Skip")
 		}
 	}
+}
+
+func (fx *SiteTestSuiteConfig) create(t *testing.T, parent string) *Site {
+	t.Helper()
+	created, err := fx.service.CreateSite(fx.ctx, &CreateSiteRequest{
+		Parent: parent,
+		Site:   fx.Create(parent),
+	})
+	assert.NilError(t, err)
+	return created
 }

@@ -26,6 +26,7 @@ func (r *resourceGenerator) Generate(f *protogen.GeneratedFile) error {
 	}
 	r.generateParentMethods(f)
 	r.generateSkip(f)
+	r.generateCreate(f)
 	return nil
 }
 
@@ -185,6 +186,40 @@ func (r *resourceGenerator) generateSkip(f *protogen.GeneratedFile) {
 	f.P("}")
 	f.P("}")
 	f.P()
+}
+
+func (r *resourceGenerator) generateCreate(f *protogen.GeneratedFile) {
+	testingT := f.QualifiedGoIdent(protogen.GoIdent{
+		GoName:       "T",
+		GoImportPath: "testing",
+	})
+	fixtureName := resourceTestSuiteConfigName(r.resource)
+	var parentFuncArg string
+	if util.HasParent(r.resource) {
+		parentFuncArg = ", parent string"
+	}
+	createMethod, hasCreate := util.StandardMethod(r.service, r.resource, aipreflect.MethodTypeCreate)
+	isLROCreate := hasCreate && util.ReturnsLRO(createMethod.Desc)
+
+	f.P("func (fx *", fixtureName, ") create(t *", testingT, parentFuncArg, ") *", r.message.GoIdent, "{")
+	f.P("t.Helper()")
+	switch {
+	case hasCreate && isLROCreate:
+		f.P("t.Skip(\"Long running create method not supported\")")
+		f.P("return nil")
+	case hasCreate:
+		util.MethodCreate{
+			Resource: r.resource,
+			Method:   createMethod,
+			Parent:   "parent",
+		}.Generate(f, "created", "err", ":=")
+		f.P(ident.AssertNilError, "(t, err)")
+		f.P("return created")
+	default:
+		f.P("t.Skip(\"Service does expose a Create method, not supported.\")")
+		f.P("return nil")
+	}
+	f.P("}")
 }
 
 func (r *resourceGenerator) generateParentMethods(f *protogen.GeneratedFile) {

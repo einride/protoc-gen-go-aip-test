@@ -32,16 +32,12 @@ var withResourceGroup = suite.TestGroup{
 		onlyif.MethodNotLRO(aipreflect.MethodTypeCreate),
 	),
 	GenerateBefore: func(f *protogen.GeneratedFile, scope suite.Scope) error {
-		createMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeCreate)
 		if util.HasParent(scope.Resource) {
 			f.P("parent := ", ident.FixtureNextParent, "(t, false)")
+			f.P("created := fx.create(t, parent)")
+		} else {
+			f.P("created := fx.create(t)")
 		}
-		util.MethodCreate{
-			Resource: scope.Resource,
-			Method:   createMethod,
-			Parent:   "parent",
-		}.Generate(f, "created", "err", ":=")
-		f.P(ident.AssertNilError, "(t, err)")
 		return nil
 	},
 	Tests: []suite.Test{

@@ -131,6 +131,12 @@ func (fx *AnnotationTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
+func (fx *AnnotationTestSuiteConfig) create(t *testing.T, parent string) *Annotation {
+	t.Helper()
+	t.Skip("Service does expose a Create method, not supported.")
+	return nil
+}
+
 type AnnotationSpecTestSuiteConfig struct {
 	ctx        context.Context
 	service    DatasetServiceServer
@@ -207,6 +213,12 @@ func (fx *AnnotationSpecTestSuiteConfig) maybeSkip(t *testing.T) {
 			t.Skip("skipped because of .Skip")
 		}
 	}
+}
+
+func (fx *AnnotationSpecTestSuiteConfig) create(t *testing.T, parent string) *AnnotationSpec {
+	t.Helper()
+	t.Skip("Service does expose a Create method, not supported.")
+	return nil
 }
 
 type DataItemTestSuiteConfig struct {
@@ -289,6 +301,12 @@ func (fx *DataItemTestSuiteConfig) maybeSkip(t *testing.T) {
 			t.Skip("skipped because of .Skip")
 		}
 	}
+}
+
+func (fx *DataItemTestSuiteConfig) create(t *testing.T, parent string) *DataItem {
+	t.Helper()
+	t.Skip("Service does expose a Create method, not supported.")
+	return nil
 }
 
 type DatasetTestSuiteConfig struct {
@@ -533,4 +551,10 @@ func (fx *DatasetTestSuiteConfig) maybeSkip(t *testing.T) {
 			t.Skip("skipped because of .Skip")
 		}
 	}
+}
+
+func (fx *DatasetTestSuiteConfig) create(t *testing.T, parent string) *Dataset {
+	t.Helper()
+	t.Skip("Long running create method not supported")
+	return nil
 }

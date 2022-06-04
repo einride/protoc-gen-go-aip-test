@@ -236,3 +236,9 @@ func (fx *SpecialistPoolTestSuiteConfig) maybeSkip(t *testing.T) {
 		}
 	}
 }
+
+func (fx *SpecialistPoolTestSuiteConfig) create(t *testing.T, parent string) *SpecialistPool {
+	t.Helper()
+	t.Skip("Long running create method not supported")
+	return nil
+}

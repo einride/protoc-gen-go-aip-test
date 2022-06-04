@@ -24,17 +24,14 @@ var updateTime = suite.Test{
 		onlyif.HasField("update_time"),
 	),
 	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
-		createMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeCreate)
+		updateMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeUpdate)
+
 		if util.HasParent(scope.Resource) {
 			f.P("parent := ", ident.FixtureNextParent, "(t, false)")
+			f.P("created := fx.create(t, parent)")
+		} else {
+			f.P("created := fx.create(t)")
 		}
-		util.MethodCreate{
-			Resource: scope.Resource,
-			Method:   createMethod,
-			Parent:   "parent",
-		}.Generate(f, "created", "err", ":=")
-		f.P(ident.AssertNilError, "(t, err)")
-		updateMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeUpdate)
 		util.MethodUpdate{
 			Resource: scope.Resource,
 			Method:   updateMethod,
