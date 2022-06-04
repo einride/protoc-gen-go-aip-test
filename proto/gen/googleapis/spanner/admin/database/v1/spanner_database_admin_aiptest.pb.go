@@ -4,8 +4,11 @@ package database
 
 import (
 	context "context"
+	cmpopts "github.com/google/go-cmp/cmp/cmpopts"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	protocmp "google.golang.org/protobuf/testing/protocmp"
+	fieldmaskpb "google.golang.org/protobuf/types/known/fieldmaskpb"
 	assert "gotest.tools/v3/assert"
 	strings "strings"
 	testing "testing"
@@ -128,6 +131,29 @@ func (fx *BackupTestSuiteConfig) testGet(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
+	// Resource should be returned without errors if it exists.
+	t.Run("exists", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		msg, err := fx.service.GetBackup(fx.ctx, &GetBackupRequest{
+			Name: created.Name,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(t, msg, created, protocmp.Transform())
+	})
+
+	// Method should fail with NotFound if the resource does not exist.
+	t.Run("not found", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.GetBackup(fx.ctx, &GetBackupRequest{
+			Name: created.Name + "notfound",
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -165,6 +191,49 @@ func (fx *BackupTestSuiteConfig) testUpdate(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
+	// The updated resource should be persisted and reachable with Get.
+	t.Run("persisted", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		updated, err := fx.service.UpdateBackup(fx.ctx, &UpdateBackupRequest{
+			Backup: created,
+		})
+		assert.NilError(t, err)
+		persisted, err := fx.service.GetBackup(fx.ctx, &GetBackupRequest{
+			Name: updated.Name,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(t, updated, persisted, protocmp.Transform())
+	})
+
+	parent := fx.nextParent(t, false)
+	created := fx.create(t, parent)
+	// Method should fail with NotFound if the resource does not exist.
+	t.Run("not found", func(t *testing.T) {
+		fx.maybeSkip(t)
+		msg := fx.Update(parent)
+		msg.Name = created.Name + "notfound"
+		_, err := fx.service.UpdateBackup(fx.ctx, &UpdateBackupRequest{
+			Backup: msg,
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
+	// The method should fail with InvalidArgument if the update_mask is invalid.
+	t.Run("invalid update mask", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.UpdateBackup(fx.ctx, &UpdateBackupRequest{
+			Backup: created,
+			UpdateMask: &fieldmaskpb.FieldMask{
+				Paths: []string{
+					"invalid_field_xyz",
+				},
+			},
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
 }
 
 func (fx *BackupTestSuiteConfig) testList(t *testing.T) {
@@ -198,6 +267,111 @@ func (fx *BackupTestSuiteConfig) testList(t *testing.T) {
 			PageSize: -10,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	const resourcesCount = 15
+	parent := fx.nextParent(t, true)
+	parentMsgs := make([]*Backup, resourcesCount)
+	for i := 0; i < resourcesCount; i++ {
+		parentMsgs[i] = fx.create(t, parent)
+	}
+
+	// If parent is provided the method must only return resources
+	// under that parent.
+	t.Run("isolation", func(t *testing.T) {
+		fx.maybeSkip(t)
+		response, err := fx.service.ListBackups(fx.ctx, &ListBackupsRequest{
+			Parent:   parent,
+			PageSize: 999,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(
+			t,
+			parentMsgs,
+			response.Backups,
+			cmpopts.SortSlices(func(a, b *Backup) bool {
+				return a.Name < b.Name
+			}),
+			protocmp.Transform(),
+		)
+	})
+
+	// If there are no more resources, next_page_token should not be set.
+	t.Run("last page", func(t *testing.T) {
+		fx.maybeSkip(t)
+		response, err := fx.service.ListBackups(fx.ctx, &ListBackupsRequest{
+			Parent:   parent,
+			PageSize: resourcesCount,
+		})
+		assert.NilError(t, err)
+		assert.Equal(t, "", response.NextPageToken)
+	})
+
+	// If there are more resources, next_page_token should be set.
+	t.Run("more pages", func(t *testing.T) {
+		fx.maybeSkip(t)
+		response, err := fx.service.ListBackups(fx.ctx, &ListBackupsRequest{
+			Parent:   parent,
+			PageSize: resourcesCount - 1,
+		})
+		assert.NilError(t, err)
+		assert.Check(t, response.NextPageToken != "")
+	})
+
+	// Listing resource one by one should eventually return all resources.
+	t.Run("one by one", func(t *testing.T) {
+		fx.maybeSkip(t)
+		msgs := make([]*Backup, 0, resourcesCount)
+		var nextPageToken string
+		for {
+			response, err := fx.service.ListBackups(fx.ctx, &ListBackupsRequest{
+				Parent:    parent,
+				PageSize:  1,
+				PageToken: nextPageToken,
+			})
+			assert.NilError(t, err)
+			assert.Equal(t, 1, len(response.Backups))
+			msgs = append(msgs, response.Backups...)
+			nextPageToken = response.NextPageToken
+			if nextPageToken == "" {
+				break
+			}
+		}
+		assert.DeepEqual(
+			t,
+			parentMsgs,
+			msgs,
+			cmpopts.SortSlices(func(a, b *Backup) bool {
+				return a.Name < b.Name
+			}),
+			protocmp.Transform(),
+		)
+	})
+
+	// Method should not return deleted resources.
+	t.Run("deleted", func(t *testing.T) {
+		fx.maybeSkip(t)
+		const deleteCount = 5
+		for i := 0; i < deleteCount; i++ {
+			_, err := fx.service.DeleteBackup(fx.ctx, &DeleteBackupRequest{
+				Name: parentMsgs[i].Name,
+			})
+			assert.NilError(t, err)
+		}
+		response, err := fx.service.ListBackups(fx.ctx, &ListBackupsRequest{
+			Parent:   parent,
+			PageSize: 9999,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(
+			t,
+			parentMsgs[deleteCount:],
+			response.Backups,
+			cmpopts.SortSlices(func(a, b *Backup) bool {
+				return a.Name < b.Name
+			}),
+			protocmp.Transform(),
+		)
 	})
 
 }
@@ -244,6 +418,12 @@ type DatabaseTestSuiteConfig struct {
 	// more may be required. If insufficient number of parents are
 	// provided the test will fail.
 	Parents []string
+	// CreateResource should create a Database and return it.
+	// If the field is not set, some tests will be skipped.
+	//
+	// This method is generated because service does not expose a Create
+	// method (or it does not comply with AIP).
+	CreateResource func(ctx context.Context, parent string) (*Database, error)
 	// Patterns of tests to skip.
 	// For example if a service has a Get method:
 	// Skip: ["Get"] will skip all tests for Get.
@@ -274,6 +454,29 @@ func (fx *DatabaseTestSuiteConfig) testGet(t *testing.T) {
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Resource should be returned without errors if it exists.
+	t.Run("exists", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		msg, err := fx.service.GetDatabase(fx.ctx, &GetDatabaseRequest{
+			Name: created.Name,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(t, msg, created, protocmp.Transform())
+	})
+
+	// Method should fail with NotFound if the resource does not exist.
+	t.Run("not found", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.GetDatabase(fx.ctx, &GetDatabaseRequest{
+			Name: created.Name + "notfound",
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
 	})
 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
@@ -320,6 +523,85 @@ func (fx *DatabaseTestSuiteConfig) testList(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
+	const resourcesCount = 15
+	parent := fx.nextParent(t, true)
+	parentMsgs := make([]*Database, resourcesCount)
+	for i := 0; i < resourcesCount; i++ {
+		parentMsgs[i] = fx.create(t, parent)
+	}
+
+	// If parent is provided the method must only return resources
+	// under that parent.
+	t.Run("isolation", func(t *testing.T) {
+		fx.maybeSkip(t)
+		response, err := fx.service.ListDatabases(fx.ctx, &ListDatabasesRequest{
+			Parent:   parent,
+			PageSize: 999,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(
+			t,
+			parentMsgs,
+			response.Databases,
+			cmpopts.SortSlices(func(a, b *Database) bool {
+				return a.Name < b.Name
+			}),
+			protocmp.Transform(),
+		)
+	})
+
+	// If there are no more resources, next_page_token should not be set.
+	t.Run("last page", func(t *testing.T) {
+		fx.maybeSkip(t)
+		response, err := fx.service.ListDatabases(fx.ctx, &ListDatabasesRequest{
+			Parent:   parent,
+			PageSize: resourcesCount,
+		})
+		assert.NilError(t, err)
+		assert.Equal(t, "", response.NextPageToken)
+	})
+
+	// If there are more resources, next_page_token should be set.
+	t.Run("more pages", func(t *testing.T) {
+		fx.maybeSkip(t)
+		response, err := fx.service.ListDatabases(fx.ctx, &ListDatabasesRequest{
+			Parent:   parent,
+			PageSize: resourcesCount - 1,
+		})
+		assert.NilError(t, err)
+		assert.Check(t, response.NextPageToken != "")
+	})
+
+	// Listing resource one by one should eventually return all resources.
+	t.Run("one by one", func(t *testing.T) {
+		fx.maybeSkip(t)
+		msgs := make([]*Database, 0, resourcesCount)
+		var nextPageToken string
+		for {
+			response, err := fx.service.ListDatabases(fx.ctx, &ListDatabasesRequest{
+				Parent:    parent,
+				PageSize:  1,
+				PageToken: nextPageToken,
+			})
+			assert.NilError(t, err)
+			assert.Equal(t, 1, len(response.Databases))
+			msgs = append(msgs, response.Databases...)
+			nextPageToken = response.NextPageToken
+			if nextPageToken == "" {
+				break
+			}
+		}
+		assert.DeepEqual(
+			t,
+			parentMsgs,
+			msgs,
+			cmpopts.SortSlices(func(a, b *Database) bool {
+				return a.Name < b.Name
+			}),
+			protocmp.Transform(),
+		)
+	})
+
 }
 
 func (fx *DatabaseTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
@@ -350,6 +632,10 @@ func (fx *DatabaseTestSuiteConfig) maybeSkip(t *testing.T) {
 
 func (fx *DatabaseTestSuiteConfig) create(t *testing.T, parent string) *Database {
 	t.Helper()
-	t.Skip("Service does expose a Create method, not supported.")
-	return nil
+	if fx.CreateResource == nil {
+		t.Skip("Test skipped because CreateResource not specified on DatabaseTestSuiteConfig")
+	}
+	created, err := fx.CreateResource(fx.ctx, parent)
+	assert.NilError(t, err)
+	return created
 }

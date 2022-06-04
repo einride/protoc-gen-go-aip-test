@@ -6,6 +6,7 @@ import (
 	context "context"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	protocmp "google.golang.org/protobuf/testing/protocmp"
 	assert "gotest.tools/v3/assert"
 	strings "strings"
 	testing "testing"
@@ -35,6 +36,12 @@ type SessionTestSuiteConfig struct {
 	// more may be required. If insufficient number of parents are
 	// provided the test will fail.
 	Parents []string
+	// CreateResource should create a Session and return it.
+	// If the field is not set, some tests will be skipped.
+	//
+	// This method is generated because service does not expose a Create
+	// method (or it does not comply with AIP).
+	CreateResource func(ctx context.Context, parent string) (*Session, error)
 	// Patterns of tests to skip.
 	// For example if a service has a Get method:
 	// Skip: ["Get"] will skip all tests for Get.
@@ -64,6 +71,29 @@ func (fx *SessionTestSuiteConfig) testGet(t *testing.T) {
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Resource should be returned without errors if it exists.
+	t.Run("exists", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		msg, err := fx.service.GetSession(fx.ctx, &GetSessionRequest{
+			Name: created.Name,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(t, msg, created, protocmp.Transform())
+	})
+
+	// Method should fail with NotFound if the resource does not exist.
+	t.Run("not found", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.GetSession(fx.ctx, &GetSessionRequest{
+			Name: created.Name + "notfound",
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
 	})
 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
@@ -105,6 +135,10 @@ func (fx *SessionTestSuiteConfig) maybeSkip(t *testing.T) {
 
 func (fx *SessionTestSuiteConfig) create(t *testing.T, parent string) *Session {
 	t.Helper()
-	t.Skip("Service does expose a Create method, not supported.")
-	return nil
+	if fx.CreateResource == nil {
+		t.Skip("Test skipped because CreateResource not specified on SessionTestSuiteConfig")
+	}
+	created, err := fx.CreateResource(fx.ctx, parent)
+	assert.NilError(t, err)
+	return created
 }

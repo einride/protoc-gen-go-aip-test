@@ -2,10 +2,8 @@ package update
 
 import (
 	"github.com/einride/protoc-gen-go-aip-test/internal/ident"
-	"github.com/einride/protoc-gen-go-aip-test/internal/onlyif"
 	"github.com/einride/protoc-gen-go-aip-test/internal/suite"
 	"github.com/einride/protoc-gen-go-aip-test/internal/util"
-	"go.einride.tech/aip/reflect/aipreflect"
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
@@ -27,10 +25,6 @@ var Suite = suite.Suite{
 
 // nolint: gochecknoglobals
 var withResourceGroup = suite.TestGroup{
-	OnlyIf: suite.OnlyIfs(
-		onlyif.HasMethod(aipreflect.MethodTypeCreate),
-		onlyif.MethodNotLRO(aipreflect.MethodTypeCreate),
-	),
 	GenerateBefore: func(f *protogen.GeneratedFile, scope suite.Scope) error {
 		if util.HasParent(scope.Resource) {
 			f.P("parent := ", ident.FixtureNextParent, "(t, false)")

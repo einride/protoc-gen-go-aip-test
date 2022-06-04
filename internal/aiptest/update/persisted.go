@@ -17,8 +17,6 @@ var persisted = suite.Test{
 	},
 
 	OnlyIf: suite.OnlyIfs(
-		onlyif.HasMethod(aipreflect.MethodTypeCreate),
-		onlyif.MethodNotLRO(aipreflect.MethodTypeCreate),
 		onlyif.HasMethod(aipreflect.MethodTypeUpdate),
 		onlyif.MethodNotLRO(aipreflect.MethodTypeUpdate),
 		onlyif.HasMethod(aipreflect.MethodTypeGet),

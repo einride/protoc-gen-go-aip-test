@@ -48,6 +48,12 @@ type AuthorizationTestSuiteConfig struct {
 	service    GSuiteAddOnsServer
 	currParent int
 
+	// CreateResource should create a Authorization and return it.
+	// If the field is not set, some tests will be skipped.
+	//
+	// This method is generated because service does not expose a Create
+	// method (or it does not comply with AIP).
+	CreateResource func(ctx context.Context) (*Authorization, error)
 	// Patterns of tests to skip.
 	// For example if a service has a Get method:
 	// Skip: ["Get"] will skip all tests for Get.
@@ -79,6 +85,27 @@ func (fx *AuthorizationTestSuiteConfig) testGet(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
+	// Resource should be returned without errors if it exists.
+	t.Run("exists", func(t *testing.T) {
+		fx.maybeSkip(t)
+		created := fx.create(t)
+		msg, err := fx.service.GetAuthorization(fx.ctx, &GetAuthorizationRequest{
+			Name: created.Name,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(t, msg, created, protocmp.Transform())
+	})
+
+	// Method should fail with NotFound if the resource does not exist.
+	t.Run("not found", func(t *testing.T) {
+		fx.maybeSkip(t)
+		created := fx.create(t)
+		_, err := fx.service.GetAuthorization(fx.ctx, &GetAuthorizationRequest{
+			Name: created.Name + "notfound",
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -100,8 +127,12 @@ func (fx *AuthorizationTestSuiteConfig) maybeSkip(t *testing.T) {
 
 func (fx *AuthorizationTestSuiteConfig) create(t *testing.T) *Authorization {
 	t.Helper()
-	t.Skip("Service does expose a Create method, not supported.")
-	return nil
+	if fx.CreateResource == nil {
+		t.Skip("Test skipped because CreateResource not specified on AuthorizationTestSuiteConfig")
+	}
+	created, err := fx.CreateResource(fx.ctx)
+	assert.NilError(t, err)
+	return created
 }
 
 type DeploymentTestSuiteConfig struct {
@@ -480,6 +511,12 @@ type InstallStatusTestSuiteConfig struct {
 	// more may be required. If insufficient number of parents are
 	// provided the test will fail.
 	Parents []string
+	// CreateResource should create a InstallStatus and return it.
+	// If the field is not set, some tests will be skipped.
+	//
+	// This method is generated because service does not expose a Create
+	// method (or it does not comply with AIP).
+	CreateResource func(ctx context.Context, parent string) (*InstallStatus, error)
 	// Patterns of tests to skip.
 	// For example if a service has a Get method:
 	// Skip: ["Get"] will skip all tests for Get.
@@ -509,6 +546,29 @@ func (fx *InstallStatusTestSuiteConfig) testGet(t *testing.T) {
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Resource should be returned without errors if it exists.
+	t.Run("exists", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		msg, err := fx.service.GetInstallStatus(fx.ctx, &GetInstallStatusRequest{
+			Name: created.Name,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(t, msg, created, protocmp.Transform())
+	})
+
+	// Method should fail with NotFound if the resource does not exist.
+	t.Run("not found", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.GetInstallStatus(fx.ctx, &GetInstallStatusRequest{
+			Name: created.Name + "notfound",
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
 	})
 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
@@ -550,6 +610,10 @@ func (fx *InstallStatusTestSuiteConfig) maybeSkip(t *testing.T) {
 
 func (fx *InstallStatusTestSuiteConfig) create(t *testing.T, parent string) *InstallStatus {
 	t.Helper()
-	t.Skip("Service does expose a Create method, not supported.")
-	return nil
+	if fx.CreateResource == nil {
+		t.Skip("Test skipped because CreateResource not specified on InstallStatusTestSuiteConfig")
+	}
+	created, err := fx.CreateResource(fx.ctx, parent)
+	assert.NilError(t, err)
+	return created
 }

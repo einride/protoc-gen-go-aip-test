@@ -6,6 +6,8 @@ import (
 	context "context"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	proto "google.golang.org/protobuf/proto"
+	fieldmaskpb "google.golang.org/protobuf/types/known/fieldmaskpb"
 	assert "gotest.tools/v3/assert"
 	strings "strings"
 	testing "testing"
@@ -35,6 +37,12 @@ type TopicTestSuiteConfig struct {
 	// more may be required. If insufficient number of parents are
 	// provided the test will fail.
 	Parents []string
+	// CreateResource should create a Topic and return it.
+	// If the field is not set, some tests will be skipped.
+	//
+	// This method is generated because service does not expose a Create
+	// method (or it does not comply with AIP).
+	CreateResource func(ctx context.Context, parent string) (*Topic, error)
 	// Update should return a resource which is valid to update, i.e.
 	// all required fields set.
 	Update func(parent string) *Topic
@@ -75,6 +83,77 @@ func (fx *TopicTestSuiteConfig) testUpdate(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
+	parent := fx.nextParent(t, false)
+	created := fx.create(t, parent)
+	// Method should fail with NotFound if the resource does not exist.
+	t.Run("not found", func(t *testing.T) {
+		fx.maybeSkip(t)
+		msg := fx.Update(parent)
+		msg.Name = created.Name + "notfound"
+		_, err := fx.service.UpdateTopic(fx.ctx, &UpdateTopicRequest{
+			Topic: msg,
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
+	// The method should fail with InvalidArgument if the update_mask is invalid.
+	t.Run("invalid update mask", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.UpdateTopic(fx.ctx, &UpdateTopicRequest{
+			Topic: created,
+			UpdateMask: &fieldmaskpb.FieldMask{
+				Paths: []string{
+					"invalid_field_xyz",
+				},
+			},
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if any required field is missing
+	// when called with '*' update_mask.
+	t.Run("required fields", func(t *testing.T) {
+		fx.maybeSkip(t)
+		t.Run(".name", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msg := proto.Clone(created).(*Topic)
+			container := msg
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("name")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.UpdateTopic(fx.ctx, &UpdateTopicRequest{
+				Topic: msg,
+				UpdateMask: &fieldmaskpb.FieldMask{
+					Paths: []string{
+						"*",
+					},
+				},
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+		t.Run(".schema_settings.schema", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msg := proto.Clone(created).(*Topic)
+			container := msg.GetSchemaSettings()
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("schema")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.UpdateTopic(fx.ctx, &UpdateTopicRequest{
+				Topic: msg,
+				UpdateMask: &fieldmaskpb.FieldMask{
+					Paths: []string{
+						"*",
+					},
+				},
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+	})
+
 }
 
 func (fx *TopicTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
@@ -105,8 +184,12 @@ func (fx *TopicTestSuiteConfig) maybeSkip(t *testing.T) {
 
 func (fx *TopicTestSuiteConfig) create(t *testing.T, parent string) *Topic {
 	t.Helper()
-	t.Skip("Service does expose a Create method, not supported.")
-	return nil
+	if fx.CreateResource == nil {
+		t.Skip("Test skipped because CreateResource not specified on TopicTestSuiteConfig")
+	}
+	created, err := fx.CreateResource(fx.ctx, parent)
+	assert.NilError(t, err)
+	return created
 }
 
 type SubscriberTestSuite struct {
@@ -141,6 +224,12 @@ type SnapshotTestSuiteConfig struct {
 	// more may be required. If insufficient number of parents are
 	// provided the test will fail.
 	Parents []string
+	// CreateResource should create a Snapshot and return it.
+	// If the field is not set, some tests will be skipped.
+	//
+	// This method is generated because service does not expose a Create
+	// method (or it does not comply with AIP).
+	CreateResource func(ctx context.Context, parent string) (*Snapshot, error)
 	// Update should return a resource which is valid to update, i.e.
 	// all required fields set.
 	Update func(parent string) *Snapshot
@@ -181,6 +270,33 @@ func (fx *SnapshotTestSuiteConfig) testUpdate(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
+	parent := fx.nextParent(t, false)
+	created := fx.create(t, parent)
+	// Method should fail with NotFound if the resource does not exist.
+	t.Run("not found", func(t *testing.T) {
+		fx.maybeSkip(t)
+		msg := fx.Update(parent)
+		msg.Name = created.Name + "notfound"
+		_, err := fx.service.UpdateSnapshot(fx.ctx, &UpdateSnapshotRequest{
+			Snapshot: msg,
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
+	// The method should fail with InvalidArgument if the update_mask is invalid.
+	t.Run("invalid update mask", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.UpdateSnapshot(fx.ctx, &UpdateSnapshotRequest{
+			Snapshot: created,
+			UpdateMask: &fieldmaskpb.FieldMask{
+				Paths: []string{
+					"invalid_field_xyz",
+				},
+			},
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
 }
 
 func (fx *SnapshotTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
@@ -211,8 +327,12 @@ func (fx *SnapshotTestSuiteConfig) maybeSkip(t *testing.T) {
 
 func (fx *SnapshotTestSuiteConfig) create(t *testing.T, parent string) *Snapshot {
 	t.Helper()
-	t.Skip("Service does expose a Create method, not supported.")
-	return nil
+	if fx.CreateResource == nil {
+		t.Skip("Test skipped because CreateResource not specified on SnapshotTestSuiteConfig")
+	}
+	created, err := fx.CreateResource(fx.ctx, parent)
+	assert.NilError(t, err)
+	return created
 }
 
 type SubscriptionTestSuiteConfig struct {
@@ -225,6 +345,12 @@ type SubscriptionTestSuiteConfig struct {
 	// more may be required. If insufficient number of parents are
 	// provided the test will fail.
 	Parents []string
+	// CreateResource should create a Subscription and return it.
+	// If the field is not set, some tests will be skipped.
+	//
+	// This method is generated because service does not expose a Create
+	// method (or it does not comply with AIP).
+	CreateResource func(ctx context.Context, parent string) (*Subscription, error)
 	// Update should return a resource which is valid to update, i.e.
 	// all required fields set.
 	Update func(parent string) *Subscription
@@ -265,6 +391,77 @@ func (fx *SubscriptionTestSuiteConfig) testUpdate(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
+	parent := fx.nextParent(t, false)
+	created := fx.create(t, parent)
+	// Method should fail with NotFound if the resource does not exist.
+	t.Run("not found", func(t *testing.T) {
+		fx.maybeSkip(t)
+		msg := fx.Update(parent)
+		msg.Name = created.Name + "notfound"
+		_, err := fx.service.UpdateSubscription(fx.ctx, &UpdateSubscriptionRequest{
+			Subscription: msg,
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
+	// The method should fail with InvalidArgument if the update_mask is invalid.
+	t.Run("invalid update mask", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.UpdateSubscription(fx.ctx, &UpdateSubscriptionRequest{
+			Subscription: created,
+			UpdateMask: &fieldmaskpb.FieldMask{
+				Paths: []string{
+					"invalid_field_xyz",
+				},
+			},
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if any required field is missing
+	// when called with '*' update_mask.
+	t.Run("required fields", func(t *testing.T) {
+		fx.maybeSkip(t)
+		t.Run(".name", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msg := proto.Clone(created).(*Subscription)
+			container := msg
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("name")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.UpdateSubscription(fx.ctx, &UpdateSubscriptionRequest{
+				Subscription: msg,
+				UpdateMask: &fieldmaskpb.FieldMask{
+					Paths: []string{
+						"*",
+					},
+				},
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+		t.Run(".topic", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msg := proto.Clone(created).(*Subscription)
+			container := msg
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("topic")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.UpdateSubscription(fx.ctx, &UpdateSubscriptionRequest{
+				Subscription: msg,
+				UpdateMask: &fieldmaskpb.FieldMask{
+					Paths: []string{
+						"*",
+					},
+				},
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+	})
+
 }
 
 func (fx *SubscriptionTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
@@ -295,6 +492,10 @@ func (fx *SubscriptionTestSuiteConfig) maybeSkip(t *testing.T) {
 
 func (fx *SubscriptionTestSuiteConfig) create(t *testing.T, parent string) *Subscription {
 	t.Helper()
-	t.Skip("Service does expose a Create method, not supported.")
-	return nil
+	if fx.CreateResource == nil {
+		t.Skip("Test skipped because CreateResource not specified on SubscriptionTestSuiteConfig")
+	}
+	created, err := fx.CreateResource(fx.ctx, parent)
+	assert.NilError(t, err)
+	return created
 }

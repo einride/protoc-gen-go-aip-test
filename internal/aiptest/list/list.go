@@ -4,7 +4,6 @@ import (
 	"github.com/einride/protoc-gen-go-aip-test/internal/ident"
 	"github.com/einride/protoc-gen-go-aip-test/internal/onlyif"
 	"github.com/einride/protoc-gen-go-aip-test/internal/suite"
-	"go.einride.tech/aip/reflect/aipreflect"
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
@@ -26,8 +25,6 @@ var Suite = suite.Suite{
 var withResourcesGroup = suite.TestGroup{
 	OnlyIf: suite.OnlyIfs(
 		onlyif.HasParent,
-		onlyif.HasMethod(aipreflect.MethodTypeCreate),
-		onlyif.MethodNotLRO(aipreflect.MethodTypeCreate),
 	),
 	GenerateBefore: func(f *protogen.GeneratedFile, scope suite.Scope) error {
 		f.P("const resourcesCount = 15")

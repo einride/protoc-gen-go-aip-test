@@ -1642,6 +1642,29 @@ func (fx *MetadataStoreTestSuiteConfig) testGet(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
+	// Resource should be returned without errors if it exists.
+	t.Run("exists", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		msg, err := fx.service.GetMetadataStore(fx.ctx, &GetMetadataStoreRequest{
+			Name: created.Name,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(t, msg, created, protocmp.Transform())
+	})
+
+	// Method should fail with NotFound if the resource does not exist.
+	t.Run("not found", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.GetMetadataStore(fx.ctx, &GetMetadataStoreRequest{
+			Name: created.Name + "notfound",
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -1684,6 +1707,111 @@ func (fx *MetadataStoreTestSuiteConfig) testList(t *testing.T) {
 			PageSize: -10,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	const resourcesCount = 15
+	parent := fx.nextParent(t, true)
+	parentMsgs := make([]*MetadataStore, resourcesCount)
+	for i := 0; i < resourcesCount; i++ {
+		parentMsgs[i] = fx.create(t, parent)
+	}
+
+	// If parent is provided the method must only return resources
+	// under that parent.
+	t.Run("isolation", func(t *testing.T) {
+		fx.maybeSkip(t)
+		response, err := fx.service.ListMetadataStores(fx.ctx, &ListMetadataStoresRequest{
+			Parent:   parent,
+			PageSize: 999,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(
+			t,
+			parentMsgs,
+			response.MetadataStores,
+			cmpopts.SortSlices(func(a, b *MetadataStore) bool {
+				return a.Name < b.Name
+			}),
+			protocmp.Transform(),
+		)
+	})
+
+	// If there are no more resources, next_page_token should not be set.
+	t.Run("last page", func(t *testing.T) {
+		fx.maybeSkip(t)
+		response, err := fx.service.ListMetadataStores(fx.ctx, &ListMetadataStoresRequest{
+			Parent:   parent,
+			PageSize: resourcesCount,
+		})
+		assert.NilError(t, err)
+		assert.Equal(t, "", response.NextPageToken)
+	})
+
+	// If there are more resources, next_page_token should be set.
+	t.Run("more pages", func(t *testing.T) {
+		fx.maybeSkip(t)
+		response, err := fx.service.ListMetadataStores(fx.ctx, &ListMetadataStoresRequest{
+			Parent:   parent,
+			PageSize: resourcesCount - 1,
+		})
+		assert.NilError(t, err)
+		assert.Check(t, response.NextPageToken != "")
+	})
+
+	// Listing resource one by one should eventually return all resources.
+	t.Run("one by one", func(t *testing.T) {
+		fx.maybeSkip(t)
+		msgs := make([]*MetadataStore, 0, resourcesCount)
+		var nextPageToken string
+		for {
+			response, err := fx.service.ListMetadataStores(fx.ctx, &ListMetadataStoresRequest{
+				Parent:    parent,
+				PageSize:  1,
+				PageToken: nextPageToken,
+			})
+			assert.NilError(t, err)
+			assert.Equal(t, 1, len(response.MetadataStores))
+			msgs = append(msgs, response.MetadataStores...)
+			nextPageToken = response.NextPageToken
+			if nextPageToken == "" {
+				break
+			}
+		}
+		assert.DeepEqual(
+			t,
+			parentMsgs,
+			msgs,
+			cmpopts.SortSlices(func(a, b *MetadataStore) bool {
+				return a.Name < b.Name
+			}),
+			protocmp.Transform(),
+		)
+	})
+
+	// Method should not return deleted resources.
+	t.Run("deleted", func(t *testing.T) {
+		fx.maybeSkip(t)
+		const deleteCount = 5
+		for i := 0; i < deleteCount; i++ {
+			_, err := fx.service.DeleteMetadataStore(fx.ctx, &DeleteMetadataStoreRequest{
+				Name: parentMsgs[i].Name,
+			})
+			assert.NilError(t, err)
+		}
+		response, err := fx.service.ListMetadataStores(fx.ctx, &ListMetadataStoresRequest{
+			Parent:   parent,
+			PageSize: 9999,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(
+			t,
+			parentMsgs[deleteCount:],
+			response.MetadataStores,
+			cmpopts.SortSlices(func(a, b *MetadataStore) bool {
+				return a.Name < b.Name
+			}),
+			protocmp.Transform(),
+		)
 	})
 
 }

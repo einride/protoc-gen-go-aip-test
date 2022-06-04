@@ -4,8 +4,12 @@ package aiplatform
 
 import (
 	context "context"
+	cmpopts "github.com/google/go-cmp/cmp/cmpopts"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	proto "google.golang.org/protobuf/proto"
+	protocmp "google.golang.org/protobuf/testing/protocmp"
+	fieldmaskpb "google.golang.org/protobuf/types/known/fieldmaskpb"
 	assert "gotest.tools/v3/assert"
 	strings "strings"
 	testing "testing"
@@ -115,6 +119,29 @@ func (fx *EntityTypeTestSuiteConfig) testGet(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
+	// Resource should be returned without errors if it exists.
+	t.Run("exists", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		msg, err := fx.service.GetEntityType(fx.ctx, &GetEntityTypeRequest{
+			Name: created.Name,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(t, msg, created, protocmp.Transform())
+	})
+
+	// Method should fail with NotFound if the resource does not exist.
+	t.Run("not found", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.GetEntityType(fx.ctx, &GetEntityTypeRequest{
+			Name: created.Name + "notfound",
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -152,6 +179,49 @@ func (fx *EntityTypeTestSuiteConfig) testUpdate(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
+	// The updated resource should be persisted and reachable with Get.
+	t.Run("persisted", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		updated, err := fx.service.UpdateEntityType(fx.ctx, &UpdateEntityTypeRequest{
+			EntityType: created,
+		})
+		assert.NilError(t, err)
+		persisted, err := fx.service.GetEntityType(fx.ctx, &GetEntityTypeRequest{
+			Name: updated.Name,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(t, updated, persisted, protocmp.Transform())
+	})
+
+	parent := fx.nextParent(t, false)
+	created := fx.create(t, parent)
+	// Method should fail with NotFound if the resource does not exist.
+	t.Run("not found", func(t *testing.T) {
+		fx.maybeSkip(t)
+		msg := fx.Update(parent)
+		msg.Name = created.Name + "notfound"
+		_, err := fx.service.UpdateEntityType(fx.ctx, &UpdateEntityTypeRequest{
+			EntityType: msg,
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
+	// The method should fail with InvalidArgument if the update_mask is invalid.
+	t.Run("invalid update mask", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.UpdateEntityType(fx.ctx, &UpdateEntityTypeRequest{
+			EntityType: created,
+			UpdateMask: &fieldmaskpb.FieldMask{
+				Paths: []string{
+					"invalid_field_xyz",
+				},
+			},
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
 }
 
 func (fx *EntityTypeTestSuiteConfig) testList(t *testing.T) {
@@ -185,6 +255,111 @@ func (fx *EntityTypeTestSuiteConfig) testList(t *testing.T) {
 			PageSize: -10,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	const resourcesCount = 15
+	parent := fx.nextParent(t, true)
+	parentMsgs := make([]*EntityType, resourcesCount)
+	for i := 0; i < resourcesCount; i++ {
+		parentMsgs[i] = fx.create(t, parent)
+	}
+
+	// If parent is provided the method must only return resources
+	// under that parent.
+	t.Run("isolation", func(t *testing.T) {
+		fx.maybeSkip(t)
+		response, err := fx.service.ListEntityTypes(fx.ctx, &ListEntityTypesRequest{
+			Parent:   parent,
+			PageSize: 999,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(
+			t,
+			parentMsgs,
+			response.EntityTypes,
+			cmpopts.SortSlices(func(a, b *EntityType) bool {
+				return a.Name < b.Name
+			}),
+			protocmp.Transform(),
+		)
+	})
+
+	// If there are no more resources, next_page_token should not be set.
+	t.Run("last page", func(t *testing.T) {
+		fx.maybeSkip(t)
+		response, err := fx.service.ListEntityTypes(fx.ctx, &ListEntityTypesRequest{
+			Parent:   parent,
+			PageSize: resourcesCount,
+		})
+		assert.NilError(t, err)
+		assert.Equal(t, "", response.NextPageToken)
+	})
+
+	// If there are more resources, next_page_token should be set.
+	t.Run("more pages", func(t *testing.T) {
+		fx.maybeSkip(t)
+		response, err := fx.service.ListEntityTypes(fx.ctx, &ListEntityTypesRequest{
+			Parent:   parent,
+			PageSize: resourcesCount - 1,
+		})
+		assert.NilError(t, err)
+		assert.Check(t, response.NextPageToken != "")
+	})
+
+	// Listing resource one by one should eventually return all resources.
+	t.Run("one by one", func(t *testing.T) {
+		fx.maybeSkip(t)
+		msgs := make([]*EntityType, 0, resourcesCount)
+		var nextPageToken string
+		for {
+			response, err := fx.service.ListEntityTypes(fx.ctx, &ListEntityTypesRequest{
+				Parent:    parent,
+				PageSize:  1,
+				PageToken: nextPageToken,
+			})
+			assert.NilError(t, err)
+			assert.Equal(t, 1, len(response.EntityTypes))
+			msgs = append(msgs, response.EntityTypes...)
+			nextPageToken = response.NextPageToken
+			if nextPageToken == "" {
+				break
+			}
+		}
+		assert.DeepEqual(
+			t,
+			parentMsgs,
+			msgs,
+			cmpopts.SortSlices(func(a, b *EntityType) bool {
+				return a.Name < b.Name
+			}),
+			protocmp.Transform(),
+		)
+	})
+
+	// Method should not return deleted resources.
+	t.Run("deleted", func(t *testing.T) {
+		fx.maybeSkip(t)
+		const deleteCount = 5
+		for i := 0; i < deleteCount; i++ {
+			_, err := fx.service.DeleteEntityType(fx.ctx, &DeleteEntityTypeRequest{
+				Name: parentMsgs[i].Name,
+			})
+			assert.NilError(t, err)
+		}
+		response, err := fx.service.ListEntityTypes(fx.ctx, &ListEntityTypesRequest{
+			Parent:   parent,
+			PageSize: 9999,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(
+			t,
+			parentMsgs[deleteCount:],
+			response.EntityTypes,
+			cmpopts.SortSlices(func(a, b *EntityType) bool {
+				return a.Name < b.Name
+			}),
+			protocmp.Transform(),
+		)
 	})
 
 }
@@ -317,6 +492,29 @@ func (fx *FeatureTestSuiteConfig) testGet(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
+	// Resource should be returned without errors if it exists.
+	t.Run("exists", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		msg, err := fx.service.GetFeature(fx.ctx, &GetFeatureRequest{
+			Name: created.Name,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(t, msg, created, protocmp.Transform())
+	})
+
+	// Method should fail with NotFound if the resource does not exist.
+	t.Run("not found", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.GetFeature(fx.ctx, &GetFeatureRequest{
+			Name: created.Name + "notfound",
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -354,6 +552,92 @@ func (fx *FeatureTestSuiteConfig) testUpdate(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
+	// The updated resource should be persisted and reachable with Get.
+	t.Run("persisted", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		updated, err := fx.service.UpdateFeature(fx.ctx, &UpdateFeatureRequest{
+			Feature: created,
+		})
+		assert.NilError(t, err)
+		persisted, err := fx.service.GetFeature(fx.ctx, &GetFeatureRequest{
+			Name: updated.Name,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(t, updated, persisted, protocmp.Transform())
+	})
+
+	// The field create_time should be preserved when a '*'-update mask is used.
+	t.Run("preserve create_time", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		originalCreateTime := created.CreateTime
+		updated, err := fx.service.UpdateFeature(fx.ctx, &UpdateFeatureRequest{
+			Feature: created,
+			UpdateMask: &fieldmaskpb.FieldMask{
+				Paths: []string{
+					"*",
+				},
+			},
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(t, originalCreateTime, updated.CreateTime, protocmp.Transform())
+	})
+
+	parent := fx.nextParent(t, false)
+	created := fx.create(t, parent)
+	// Method should fail with NotFound if the resource does not exist.
+	t.Run("not found", func(t *testing.T) {
+		fx.maybeSkip(t)
+		msg := fx.Update(parent)
+		msg.Name = created.Name + "notfound"
+		_, err := fx.service.UpdateFeature(fx.ctx, &UpdateFeatureRequest{
+			Feature: msg,
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
+	// The method should fail with InvalidArgument if the update_mask is invalid.
+	t.Run("invalid update mask", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.UpdateFeature(fx.ctx, &UpdateFeatureRequest{
+			Feature: created,
+			UpdateMask: &fieldmaskpb.FieldMask{
+				Paths: []string{
+					"invalid_field_xyz",
+				},
+			},
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if any required field is missing
+	// when called with '*' update_mask.
+	t.Run("required fields", func(t *testing.T) {
+		fx.maybeSkip(t)
+		t.Run(".value_type", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msg := proto.Clone(created).(*Feature)
+			container := msg
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("value_type")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.UpdateFeature(fx.ctx, &UpdateFeatureRequest{
+				Feature: msg,
+				UpdateMask: &fieldmaskpb.FieldMask{
+					Paths: []string{
+						"*",
+					},
+				},
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+	})
+
 }
 
 func (fx *FeatureTestSuiteConfig) testList(t *testing.T) {
@@ -387,6 +671,111 @@ func (fx *FeatureTestSuiteConfig) testList(t *testing.T) {
 			PageSize: -10,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	const resourcesCount = 15
+	parent := fx.nextParent(t, true)
+	parentMsgs := make([]*Feature, resourcesCount)
+	for i := 0; i < resourcesCount; i++ {
+		parentMsgs[i] = fx.create(t, parent)
+	}
+
+	// If parent is provided the method must only return resources
+	// under that parent.
+	t.Run("isolation", func(t *testing.T) {
+		fx.maybeSkip(t)
+		response, err := fx.service.ListFeatures(fx.ctx, &ListFeaturesRequest{
+			Parent:   parent,
+			PageSize: 999,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(
+			t,
+			parentMsgs,
+			response.Features,
+			cmpopts.SortSlices(func(a, b *Feature) bool {
+				return a.Name < b.Name
+			}),
+			protocmp.Transform(),
+		)
+	})
+
+	// If there are no more resources, next_page_token should not be set.
+	t.Run("last page", func(t *testing.T) {
+		fx.maybeSkip(t)
+		response, err := fx.service.ListFeatures(fx.ctx, &ListFeaturesRequest{
+			Parent:   parent,
+			PageSize: resourcesCount,
+		})
+		assert.NilError(t, err)
+		assert.Equal(t, "", response.NextPageToken)
+	})
+
+	// If there are more resources, next_page_token should be set.
+	t.Run("more pages", func(t *testing.T) {
+		fx.maybeSkip(t)
+		response, err := fx.service.ListFeatures(fx.ctx, &ListFeaturesRequest{
+			Parent:   parent,
+			PageSize: resourcesCount - 1,
+		})
+		assert.NilError(t, err)
+		assert.Check(t, response.NextPageToken != "")
+	})
+
+	// Listing resource one by one should eventually return all resources.
+	t.Run("one by one", func(t *testing.T) {
+		fx.maybeSkip(t)
+		msgs := make([]*Feature, 0, resourcesCount)
+		var nextPageToken string
+		for {
+			response, err := fx.service.ListFeatures(fx.ctx, &ListFeaturesRequest{
+				Parent:    parent,
+				PageSize:  1,
+				PageToken: nextPageToken,
+			})
+			assert.NilError(t, err)
+			assert.Equal(t, 1, len(response.Features))
+			msgs = append(msgs, response.Features...)
+			nextPageToken = response.NextPageToken
+			if nextPageToken == "" {
+				break
+			}
+		}
+		assert.DeepEqual(
+			t,
+			parentMsgs,
+			msgs,
+			cmpopts.SortSlices(func(a, b *Feature) bool {
+				return a.Name < b.Name
+			}),
+			protocmp.Transform(),
+		)
+	})
+
+	// Method should not return deleted resources.
+	t.Run("deleted", func(t *testing.T) {
+		fx.maybeSkip(t)
+		const deleteCount = 5
+		for i := 0; i < deleteCount; i++ {
+			_, err := fx.service.DeleteFeature(fx.ctx, &DeleteFeatureRequest{
+				Name: parentMsgs[i].Name,
+			})
+			assert.NilError(t, err)
+		}
+		response, err := fx.service.ListFeatures(fx.ctx, &ListFeaturesRequest{
+			Parent:   parent,
+			PageSize: 9999,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(
+			t,
+			parentMsgs[deleteCount:],
+			response.Features,
+			cmpopts.SortSlices(func(a, b *Feature) bool {
+				return a.Name < b.Name
+			}),
+			protocmp.Transform(),
+		)
 	})
 
 }
@@ -519,6 +908,29 @@ func (fx *FeaturestoreTestSuiteConfig) testGet(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
+	// Resource should be returned without errors if it exists.
+	t.Run("exists", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		msg, err := fx.service.GetFeaturestore(fx.ctx, &GetFeaturestoreRequest{
+			Name: created.Name,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(t, msg, created, protocmp.Transform())
+	})
+
+	// Method should fail with NotFound if the resource does not exist.
+	t.Run("not found", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.GetFeaturestore(fx.ctx, &GetFeaturestoreRequest{
+			Name: created.Name + "notfound",
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -556,6 +968,58 @@ func (fx *FeaturestoreTestSuiteConfig) testUpdate(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
+	parent := fx.nextParent(t, false)
+	created := fx.create(t, parent)
+	// Method should fail with NotFound if the resource does not exist.
+	t.Run("not found", func(t *testing.T) {
+		fx.maybeSkip(t)
+		msg := fx.Update(parent)
+		msg.Name = created.Name + "notfound"
+		_, err := fx.service.UpdateFeaturestore(fx.ctx, &UpdateFeaturestoreRequest{
+			Featurestore: msg,
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
+	// The method should fail with InvalidArgument if the update_mask is invalid.
+	t.Run("invalid update mask", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.UpdateFeaturestore(fx.ctx, &UpdateFeaturestoreRequest{
+			Featurestore: created,
+			UpdateMask: &fieldmaskpb.FieldMask{
+				Paths: []string{
+					"invalid_field_xyz",
+				},
+			},
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if any required field is missing
+	// when called with '*' update_mask.
+	t.Run("required fields", func(t *testing.T) {
+		fx.maybeSkip(t)
+		t.Run(".encryption_spec.kms_key_name", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msg := proto.Clone(created).(*Featurestore)
+			container := msg.GetEncryptionSpec()
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("kms_key_name")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.UpdateFeaturestore(fx.ctx, &UpdateFeaturestoreRequest{
+				Featurestore: msg,
+				UpdateMask: &fieldmaskpb.FieldMask{
+					Paths: []string{
+						"*",
+					},
+				},
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+	})
+
 }
 
 func (fx *FeaturestoreTestSuiteConfig) testList(t *testing.T) {
@@ -589,6 +1053,111 @@ func (fx *FeaturestoreTestSuiteConfig) testList(t *testing.T) {
 			PageSize: -10,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	const resourcesCount = 15
+	parent := fx.nextParent(t, true)
+	parentMsgs := make([]*Featurestore, resourcesCount)
+	for i := 0; i < resourcesCount; i++ {
+		parentMsgs[i] = fx.create(t, parent)
+	}
+
+	// If parent is provided the method must only return resources
+	// under that parent.
+	t.Run("isolation", func(t *testing.T) {
+		fx.maybeSkip(t)
+		response, err := fx.service.ListFeaturestores(fx.ctx, &ListFeaturestoresRequest{
+			Parent:   parent,
+			PageSize: 999,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(
+			t,
+			parentMsgs,
+			response.Featurestores,
+			cmpopts.SortSlices(func(a, b *Featurestore) bool {
+				return a.Name < b.Name
+			}),
+			protocmp.Transform(),
+		)
+	})
+
+	// If there are no more resources, next_page_token should not be set.
+	t.Run("last page", func(t *testing.T) {
+		fx.maybeSkip(t)
+		response, err := fx.service.ListFeaturestores(fx.ctx, &ListFeaturestoresRequest{
+			Parent:   parent,
+			PageSize: resourcesCount,
+		})
+		assert.NilError(t, err)
+		assert.Equal(t, "", response.NextPageToken)
+	})
+
+	// If there are more resources, next_page_token should be set.
+	t.Run("more pages", func(t *testing.T) {
+		fx.maybeSkip(t)
+		response, err := fx.service.ListFeaturestores(fx.ctx, &ListFeaturestoresRequest{
+			Parent:   parent,
+			PageSize: resourcesCount - 1,
+		})
+		assert.NilError(t, err)
+		assert.Check(t, response.NextPageToken != "")
+	})
+
+	// Listing resource one by one should eventually return all resources.
+	t.Run("one by one", func(t *testing.T) {
+		fx.maybeSkip(t)
+		msgs := make([]*Featurestore, 0, resourcesCount)
+		var nextPageToken string
+		for {
+			response, err := fx.service.ListFeaturestores(fx.ctx, &ListFeaturestoresRequest{
+				Parent:    parent,
+				PageSize:  1,
+				PageToken: nextPageToken,
+			})
+			assert.NilError(t, err)
+			assert.Equal(t, 1, len(response.Featurestores))
+			msgs = append(msgs, response.Featurestores...)
+			nextPageToken = response.NextPageToken
+			if nextPageToken == "" {
+				break
+			}
+		}
+		assert.DeepEqual(
+			t,
+			parentMsgs,
+			msgs,
+			cmpopts.SortSlices(func(a, b *Featurestore) bool {
+				return a.Name < b.Name
+			}),
+			protocmp.Transform(),
+		)
+	})
+
+	// Method should not return deleted resources.
+	t.Run("deleted", func(t *testing.T) {
+		fx.maybeSkip(t)
+		const deleteCount = 5
+		for i := 0; i < deleteCount; i++ {
+			_, err := fx.service.DeleteFeaturestore(fx.ctx, &DeleteFeaturestoreRequest{
+				Name: parentMsgs[i].Name,
+			})
+			assert.NilError(t, err)
+		}
+		response, err := fx.service.ListFeaturestores(fx.ctx, &ListFeaturestoresRequest{
+			Parent:   parent,
+			PageSize: 9999,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(
+			t,
+			parentMsgs[deleteCount:],
+			response.Featurestores,
+			cmpopts.SortSlices(func(a, b *Featurestore) bool {
+				return a.Name < b.Name
+			}),
+			protocmp.Transform(),
+		)
 	})
 
 }
