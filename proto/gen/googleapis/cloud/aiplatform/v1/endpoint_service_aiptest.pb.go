@@ -273,3 +273,9 @@ func (fx *EndpointTestSuiteConfig) maybeSkip(t *testing.T) {
 		}
 	}
 }
+
+func (fx *EndpointTestSuiteConfig) create(t *testing.T, parent string) *Endpoint {
+	t.Helper()
+	t.Skip("Long running create method not supported")
+	return nil
+}

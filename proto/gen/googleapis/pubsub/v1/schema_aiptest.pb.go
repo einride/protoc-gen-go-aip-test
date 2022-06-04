@@ -139,11 +139,7 @@ func (fx *SchemaTestSuiteConfig) testGet(t *testing.T) {
 	t.Run("exists", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		created, err := fx.service.CreateSchema(fx.ctx, &CreateSchemaRequest{
-			Parent: parent,
-			Schema: fx.Create(parent),
-		})
-		assert.NilError(t, err)
+		created := fx.create(t, parent)
 		msg, err := fx.service.GetSchema(fx.ctx, &GetSchemaRequest{
 			Name: created.Name,
 		})
@@ -155,12 +151,8 @@ func (fx *SchemaTestSuiteConfig) testGet(t *testing.T) {
 	t.Run("not found", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		created, err := fx.service.CreateSchema(fx.ctx, &CreateSchemaRequest{
-			Parent: parent,
-			Schema: fx.Create(parent),
-		})
-		assert.NilError(t, err)
-		_, err = fx.service.GetSchema(fx.ctx, &GetSchemaRequest{
+		created := fx.create(t, parent)
+		_, err := fx.service.GetSchema(fx.ctx, &GetSchemaRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -214,12 +206,7 @@ func (fx *SchemaTestSuiteConfig) testList(t *testing.T) {
 	parent := fx.nextParent(t, true)
 	parentMsgs := make([]*Schema, resourcesCount)
 	for i := 0; i < resourcesCount; i++ {
-		msg, err := fx.service.CreateSchema(fx.ctx, &CreateSchemaRequest{
-			Parent: parent,
-			Schema: fx.Create(parent),
-		})
-		assert.NilError(t, err)
-		parentMsgs[i] = msg
+		parentMsgs[i] = fx.create(t, parent)
 	}
 
 	// If parent is provided the method must only return resources
@@ -346,4 +333,14 @@ func (fx *SchemaTestSuiteConfig) maybeSkip(t *testing.T) {
 			t.Skip("skipped because of .Skip")
 		}
 	}
+}
+
+func (fx *SchemaTestSuiteConfig) create(t *testing.T, parent string) *Schema {
+	t.Helper()
+	created, err := fx.service.CreateSchema(fx.ctx, &CreateSchemaRequest{
+		Parent: parent,
+		Schema: fx.Create(parent),
+	})
+	assert.NilError(t, err)
+	return created
 }

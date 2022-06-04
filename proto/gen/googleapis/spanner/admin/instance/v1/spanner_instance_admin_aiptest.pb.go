@@ -282,6 +282,12 @@ func (fx *InstanceTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
+func (fx *InstanceTestSuiteConfig) create(t *testing.T, parent string) *Instance {
+	t.Helper()
+	t.Skip("Long running create method not supported")
+	return nil
+}
+
 type InstanceConfigTestSuiteConfig struct {
 	ctx        context.Context
 	service    InstanceAdminServer
@@ -394,4 +400,10 @@ func (fx *InstanceConfigTestSuiteConfig) maybeSkip(t *testing.T) {
 			t.Skip("skipped because of .Skip")
 		}
 	}
+}
+
+func (fx *InstanceConfigTestSuiteConfig) create(t *testing.T, parent string) *InstanceConfig {
+	t.Helper()
+	t.Skip("Service does expose a Create method, not supported.")
+	return nil
 }

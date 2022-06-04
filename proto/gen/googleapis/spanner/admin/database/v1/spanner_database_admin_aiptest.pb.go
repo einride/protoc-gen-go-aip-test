@@ -228,6 +228,12 @@ func (fx *BackupTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
+func (fx *BackupTestSuiteConfig) create(t *testing.T, parent string) *Backup {
+	t.Helper()
+	t.Skip("Long running create method not supported")
+	return nil
+}
+
 type DatabaseTestSuiteConfig struct {
 	ctx        context.Context
 	service    DatabaseAdminServer
@@ -340,4 +346,10 @@ func (fx *DatabaseTestSuiteConfig) maybeSkip(t *testing.T) {
 			t.Skip("skipped because of .Skip")
 		}
 	}
+}
+
+func (fx *DatabaseTestSuiteConfig) create(t *testing.T, parent string) *Database {
+	t.Helper()
+	t.Skip("Service does expose a Create method, not supported.")
+	return nil
 }

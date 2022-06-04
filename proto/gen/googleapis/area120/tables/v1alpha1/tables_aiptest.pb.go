@@ -138,11 +138,7 @@ func (fx *RowTestSuiteConfig) testGet(t *testing.T) {
 	t.Run("exists", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		created, err := fx.service.CreateRow(fx.ctx, &CreateRowRequest{
-			Parent: parent,
-			Row:    fx.Create(parent),
-		})
-		assert.NilError(t, err)
+		created := fx.create(t, parent)
 		msg, err := fx.service.GetRow(fx.ctx, &GetRowRequest{
 			Name: created.Name,
 		})
@@ -154,12 +150,8 @@ func (fx *RowTestSuiteConfig) testGet(t *testing.T) {
 	t.Run("not found", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		created, err := fx.service.CreateRow(fx.ctx, &CreateRowRequest{
-			Parent: parent,
-			Row:    fx.Create(parent),
-		})
-		assert.NilError(t, err)
-		_, err = fx.service.GetRow(fx.ctx, &GetRowRequest{
+		created := fx.create(t, parent)
+		_, err := fx.service.GetRow(fx.ctx, &GetRowRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -206,11 +198,7 @@ func (fx *RowTestSuiteConfig) testUpdate(t *testing.T) {
 	t.Run("persisted", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		created, err := fx.service.CreateRow(fx.ctx, &CreateRowRequest{
-			Parent: parent,
-			Row:    fx.Create(parent),
-		})
-		assert.NilError(t, err)
+		created := fx.create(t, parent)
 		updated, err := fx.service.UpdateRow(fx.ctx, &UpdateRowRequest{
 			Row: created,
 		})
@@ -223,11 +211,7 @@ func (fx *RowTestSuiteConfig) testUpdate(t *testing.T) {
 	})
 
 	parent := fx.nextParent(t, false)
-	created, err := fx.service.CreateRow(fx.ctx, &CreateRowRequest{
-		Parent: parent,
-		Row:    fx.Create(parent),
-	})
-	assert.NilError(t, err)
+	created := fx.create(t, parent)
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -292,12 +276,7 @@ func (fx *RowTestSuiteConfig) testList(t *testing.T) {
 	parent := fx.nextParent(t, true)
 	parentMsgs := make([]*Row, resourcesCount)
 	for i := 0; i < resourcesCount; i++ {
-		msg, err := fx.service.CreateRow(fx.ctx, &CreateRowRequest{
-			Parent: parent,
-			Row:    fx.Create(parent),
-		})
-		assert.NilError(t, err)
-		parentMsgs[i] = msg
+		parentMsgs[i] = fx.create(t, parent)
 	}
 
 	// If parent is provided the method must only return resources
@@ -426,6 +405,16 @@ func (fx *RowTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
+func (fx *RowTestSuiteConfig) create(t *testing.T, parent string) *Row {
+	t.Helper()
+	created, err := fx.service.CreateRow(fx.ctx, &CreateRowRequest{
+		Parent: parent,
+		Row:    fx.Create(parent),
+	})
+	assert.NilError(t, err)
+	return created
+}
+
 type TableTestSuiteConfig struct {
 	ctx        context.Context
 	service    TablesServiceServer
@@ -504,6 +493,12 @@ func (fx *TableTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
+func (fx *TableTestSuiteConfig) create(t *testing.T) *Table {
+	t.Helper()
+	t.Skip("Service does expose a Create method, not supported.")
+	return nil
+}
+
 type WorkspaceTestSuiteConfig struct {
 	ctx        context.Context
 	service    TablesServiceServer
@@ -580,4 +575,10 @@ func (fx *WorkspaceTestSuiteConfig) maybeSkip(t *testing.T) {
 			t.Skip("skipped because of .Skip")
 		}
 	}
+}
+
+func (fx *WorkspaceTestSuiteConfig) create(t *testing.T) *Workspace {
+	t.Helper()
+	t.Skip("Service does expose a Create method, not supported.")
+	return nil
 }

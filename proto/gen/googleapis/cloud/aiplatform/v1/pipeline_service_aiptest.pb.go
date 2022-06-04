@@ -197,11 +197,7 @@ func (fx *PipelineJobTestSuiteConfig) testGet(t *testing.T) {
 	t.Run("exists", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		created, err := fx.service.CreatePipelineJob(fx.ctx, &CreatePipelineJobRequest{
-			Parent:      parent,
-			PipelineJob: fx.Create(parent),
-		})
-		assert.NilError(t, err)
+		created := fx.create(t, parent)
 		msg, err := fx.service.GetPipelineJob(fx.ctx, &GetPipelineJobRequest{
 			Name: created.Name,
 		})
@@ -213,12 +209,8 @@ func (fx *PipelineJobTestSuiteConfig) testGet(t *testing.T) {
 	t.Run("not found", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		created, err := fx.service.CreatePipelineJob(fx.ctx, &CreatePipelineJobRequest{
-			Parent:      parent,
-			PipelineJob: fx.Create(parent),
-		})
-		assert.NilError(t, err)
-		_, err = fx.service.GetPipelineJob(fx.ctx, &GetPipelineJobRequest{
+		created := fx.create(t, parent)
+		_, err := fx.service.GetPipelineJob(fx.ctx, &GetPipelineJobRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -272,12 +264,7 @@ func (fx *PipelineJobTestSuiteConfig) testList(t *testing.T) {
 	parent := fx.nextParent(t, true)
 	parentMsgs := make([]*PipelineJob, resourcesCount)
 	for i := 0; i < resourcesCount; i++ {
-		msg, err := fx.service.CreatePipelineJob(fx.ctx, &CreatePipelineJobRequest{
-			Parent:      parent,
-			PipelineJob: fx.Create(parent),
-		})
-		assert.NilError(t, err)
-		parentMsgs[i] = msg
+		parentMsgs[i] = fx.create(t, parent)
 	}
 
 	// If parent is provided the method must only return resources
@@ -404,6 +391,16 @@ func (fx *PipelineJobTestSuiteConfig) maybeSkip(t *testing.T) {
 			t.Skip("skipped because of .Skip")
 		}
 	}
+}
+
+func (fx *PipelineJobTestSuiteConfig) create(t *testing.T, parent string) *PipelineJob {
+	t.Helper()
+	created, err := fx.service.CreatePipelineJob(fx.ctx, &CreatePipelineJobRequest{
+		Parent:      parent,
+		PipelineJob: fx.Create(parent),
+	})
+	assert.NilError(t, err)
+	return created
 }
 
 type TrainingPipelineTestSuiteConfig struct {
@@ -866,11 +863,7 @@ func (fx *TrainingPipelineTestSuiteConfig) testGet(t *testing.T) {
 	t.Run("exists", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		created, err := fx.service.CreateTrainingPipeline(fx.ctx, &CreateTrainingPipelineRequest{
-			Parent:           parent,
-			TrainingPipeline: fx.Create(parent),
-		})
-		assert.NilError(t, err)
+		created := fx.create(t, parent)
 		msg, err := fx.service.GetTrainingPipeline(fx.ctx, &GetTrainingPipelineRequest{
 			Name: created.Name,
 		})
@@ -882,12 +875,8 @@ func (fx *TrainingPipelineTestSuiteConfig) testGet(t *testing.T) {
 	t.Run("not found", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		created, err := fx.service.CreateTrainingPipeline(fx.ctx, &CreateTrainingPipelineRequest{
-			Parent:           parent,
-			TrainingPipeline: fx.Create(parent),
-		})
-		assert.NilError(t, err)
-		_, err = fx.service.GetTrainingPipeline(fx.ctx, &GetTrainingPipelineRequest{
+		created := fx.create(t, parent)
+		_, err := fx.service.GetTrainingPipeline(fx.ctx, &GetTrainingPipelineRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -941,12 +930,7 @@ func (fx *TrainingPipelineTestSuiteConfig) testList(t *testing.T) {
 	parent := fx.nextParent(t, true)
 	parentMsgs := make([]*TrainingPipeline, resourcesCount)
 	for i := 0; i < resourcesCount; i++ {
-		msg, err := fx.service.CreateTrainingPipeline(fx.ctx, &CreateTrainingPipelineRequest{
-			Parent:           parent,
-			TrainingPipeline: fx.Create(parent),
-		})
-		assert.NilError(t, err)
-		parentMsgs[i] = msg
+		parentMsgs[i] = fx.create(t, parent)
 	}
 
 	// If parent is provided the method must only return resources
@@ -1073,4 +1057,14 @@ func (fx *TrainingPipelineTestSuiteConfig) maybeSkip(t *testing.T) {
 			t.Skip("skipped because of .Skip")
 		}
 	}
+}
+
+func (fx *TrainingPipelineTestSuiteConfig) create(t *testing.T, parent string) *TrainingPipeline {
+	t.Helper()
+	created, err := fx.service.CreateTrainingPipeline(fx.ctx, &CreateTrainingPipelineRequest{
+		Parent:           parent,
+		TrainingPipeline: fx.Create(parent),
+	})
+	assert.NilError(t, err)
+	return created
 }

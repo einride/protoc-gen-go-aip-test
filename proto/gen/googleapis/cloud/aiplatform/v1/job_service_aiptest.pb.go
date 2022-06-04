@@ -495,11 +495,7 @@ func (fx *BatchPredictionJobTestSuiteConfig) testGet(t *testing.T) {
 	t.Run("exists", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		created, err := fx.service.CreateBatchPredictionJob(fx.ctx, &CreateBatchPredictionJobRequest{
-			Parent:             parent,
-			BatchPredictionJob: fx.Create(parent),
-		})
-		assert.NilError(t, err)
+		created := fx.create(t, parent)
 		msg, err := fx.service.GetBatchPredictionJob(fx.ctx, &GetBatchPredictionJobRequest{
 			Name: created.Name,
 		})
@@ -511,12 +507,8 @@ func (fx *BatchPredictionJobTestSuiteConfig) testGet(t *testing.T) {
 	t.Run("not found", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		created, err := fx.service.CreateBatchPredictionJob(fx.ctx, &CreateBatchPredictionJobRequest{
-			Parent:             parent,
-			BatchPredictionJob: fx.Create(parent),
-		})
-		assert.NilError(t, err)
-		_, err = fx.service.GetBatchPredictionJob(fx.ctx, &GetBatchPredictionJobRequest{
+		created := fx.create(t, parent)
+		_, err := fx.service.GetBatchPredictionJob(fx.ctx, &GetBatchPredictionJobRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -570,12 +562,7 @@ func (fx *BatchPredictionJobTestSuiteConfig) testList(t *testing.T) {
 	parent := fx.nextParent(t, true)
 	parentMsgs := make([]*BatchPredictionJob, resourcesCount)
 	for i := 0; i < resourcesCount; i++ {
-		msg, err := fx.service.CreateBatchPredictionJob(fx.ctx, &CreateBatchPredictionJobRequest{
-			Parent:             parent,
-			BatchPredictionJob: fx.Create(parent),
-		})
-		assert.NilError(t, err)
-		parentMsgs[i] = msg
+		parentMsgs[i] = fx.create(t, parent)
 	}
 
 	// If parent is provided the method must only return resources
@@ -702,6 +689,16 @@ func (fx *BatchPredictionJobTestSuiteConfig) maybeSkip(t *testing.T) {
 			t.Skip("skipped because of .Skip")
 		}
 	}
+}
+
+func (fx *BatchPredictionJobTestSuiteConfig) create(t *testing.T, parent string) *BatchPredictionJob {
+	t.Helper()
+	created, err := fx.service.CreateBatchPredictionJob(fx.ctx, &CreateBatchPredictionJobRequest{
+		Parent:             parent,
+		BatchPredictionJob: fx.Create(parent),
+	})
+	assert.NilError(t, err)
+	return created
 }
 
 type CustomJobTestSuiteConfig struct {
@@ -928,11 +925,7 @@ func (fx *CustomJobTestSuiteConfig) testGet(t *testing.T) {
 	t.Run("exists", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		created, err := fx.service.CreateCustomJob(fx.ctx, &CreateCustomJobRequest{
-			Parent:    parent,
-			CustomJob: fx.Create(parent),
-		})
-		assert.NilError(t, err)
+		created := fx.create(t, parent)
 		msg, err := fx.service.GetCustomJob(fx.ctx, &GetCustomJobRequest{
 			Name: created.Name,
 		})
@@ -944,12 +937,8 @@ func (fx *CustomJobTestSuiteConfig) testGet(t *testing.T) {
 	t.Run("not found", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		created, err := fx.service.CreateCustomJob(fx.ctx, &CreateCustomJobRequest{
-			Parent:    parent,
-			CustomJob: fx.Create(parent),
-		})
-		assert.NilError(t, err)
-		_, err = fx.service.GetCustomJob(fx.ctx, &GetCustomJobRequest{
+		created := fx.create(t, parent)
+		_, err := fx.service.GetCustomJob(fx.ctx, &GetCustomJobRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -1003,12 +992,7 @@ func (fx *CustomJobTestSuiteConfig) testList(t *testing.T) {
 	parent := fx.nextParent(t, true)
 	parentMsgs := make([]*CustomJob, resourcesCount)
 	for i := 0; i < resourcesCount; i++ {
-		msg, err := fx.service.CreateCustomJob(fx.ctx, &CreateCustomJobRequest{
-			Parent:    parent,
-			CustomJob: fx.Create(parent),
-		})
-		assert.NilError(t, err)
-		parentMsgs[i] = msg
+		parentMsgs[i] = fx.create(t, parent)
 	}
 
 	// If parent is provided the method must only return resources
@@ -1135,6 +1119,16 @@ func (fx *CustomJobTestSuiteConfig) maybeSkip(t *testing.T) {
 			t.Skip("skipped because of .Skip")
 		}
 	}
+}
+
+func (fx *CustomJobTestSuiteConfig) create(t *testing.T, parent string) *CustomJob {
+	t.Helper()
+	created, err := fx.service.CreateCustomJob(fx.ctx, &CreateCustomJobRequest{
+		Parent:    parent,
+		CustomJob: fx.Create(parent),
+	})
+	assert.NilError(t, err)
+	return created
 }
 
 type DataLabelingJobTestSuiteConfig struct {
@@ -1378,11 +1372,7 @@ func (fx *DataLabelingJobTestSuiteConfig) testGet(t *testing.T) {
 	t.Run("exists", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		created, err := fx.service.CreateDataLabelingJob(fx.ctx, &CreateDataLabelingJobRequest{
-			Parent:          parent,
-			DataLabelingJob: fx.Create(parent),
-		})
-		assert.NilError(t, err)
+		created := fx.create(t, parent)
 		msg, err := fx.service.GetDataLabelingJob(fx.ctx, &GetDataLabelingJobRequest{
 			Name: created.Name,
 		})
@@ -1394,12 +1384,8 @@ func (fx *DataLabelingJobTestSuiteConfig) testGet(t *testing.T) {
 	t.Run("not found", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		created, err := fx.service.CreateDataLabelingJob(fx.ctx, &CreateDataLabelingJobRequest{
-			Parent:          parent,
-			DataLabelingJob: fx.Create(parent),
-		})
-		assert.NilError(t, err)
-		_, err = fx.service.GetDataLabelingJob(fx.ctx, &GetDataLabelingJobRequest{
+		created := fx.create(t, parent)
+		_, err := fx.service.GetDataLabelingJob(fx.ctx, &GetDataLabelingJobRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -1453,12 +1439,7 @@ func (fx *DataLabelingJobTestSuiteConfig) testList(t *testing.T) {
 	parent := fx.nextParent(t, true)
 	parentMsgs := make([]*DataLabelingJob, resourcesCount)
 	for i := 0; i < resourcesCount; i++ {
-		msg, err := fx.service.CreateDataLabelingJob(fx.ctx, &CreateDataLabelingJobRequest{
-			Parent:          parent,
-			DataLabelingJob: fx.Create(parent),
-		})
-		assert.NilError(t, err)
-		parentMsgs[i] = msg
+		parentMsgs[i] = fx.create(t, parent)
 	}
 
 	// If parent is provided the method must only return resources
@@ -1585,6 +1566,16 @@ func (fx *DataLabelingJobTestSuiteConfig) maybeSkip(t *testing.T) {
 			t.Skip("skipped because of .Skip")
 		}
 	}
+}
+
+func (fx *DataLabelingJobTestSuiteConfig) create(t *testing.T, parent string) *DataLabelingJob {
+	t.Helper()
+	created, err := fx.service.CreateDataLabelingJob(fx.ctx, &CreateDataLabelingJobRequest{
+		Parent:          parent,
+		DataLabelingJob: fx.Create(parent),
+	})
+	assert.NilError(t, err)
+	return created
 }
 
 type HyperparameterTuningJobTestSuiteConfig struct {
@@ -1891,11 +1882,7 @@ func (fx *HyperparameterTuningJobTestSuiteConfig) testGet(t *testing.T) {
 	t.Run("exists", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		created, err := fx.service.CreateHyperparameterTuningJob(fx.ctx, &CreateHyperparameterTuningJobRequest{
-			Parent:                  parent,
-			HyperparameterTuningJob: fx.Create(parent),
-		})
-		assert.NilError(t, err)
+		created := fx.create(t, parent)
 		msg, err := fx.service.GetHyperparameterTuningJob(fx.ctx, &GetHyperparameterTuningJobRequest{
 			Name: created.Name,
 		})
@@ -1907,12 +1894,8 @@ func (fx *HyperparameterTuningJobTestSuiteConfig) testGet(t *testing.T) {
 	t.Run("not found", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		created, err := fx.service.CreateHyperparameterTuningJob(fx.ctx, &CreateHyperparameterTuningJobRequest{
-			Parent:                  parent,
-			HyperparameterTuningJob: fx.Create(parent),
-		})
-		assert.NilError(t, err)
-		_, err = fx.service.GetHyperparameterTuningJob(fx.ctx, &GetHyperparameterTuningJobRequest{
+		created := fx.create(t, parent)
+		_, err := fx.service.GetHyperparameterTuningJob(fx.ctx, &GetHyperparameterTuningJobRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -1966,12 +1949,7 @@ func (fx *HyperparameterTuningJobTestSuiteConfig) testList(t *testing.T) {
 	parent := fx.nextParent(t, true)
 	parentMsgs := make([]*HyperparameterTuningJob, resourcesCount)
 	for i := 0; i < resourcesCount; i++ {
-		msg, err := fx.service.CreateHyperparameterTuningJob(fx.ctx, &CreateHyperparameterTuningJobRequest{
-			Parent:                  parent,
-			HyperparameterTuningJob: fx.Create(parent),
-		})
-		assert.NilError(t, err)
-		parentMsgs[i] = msg
+		parentMsgs[i] = fx.create(t, parent)
 	}
 
 	// If parent is provided the method must only return resources
@@ -2098,6 +2076,16 @@ func (fx *HyperparameterTuningJobTestSuiteConfig) maybeSkip(t *testing.T) {
 			t.Skip("skipped because of .Skip")
 		}
 	}
+}
+
+func (fx *HyperparameterTuningJobTestSuiteConfig) create(t *testing.T, parent string) *HyperparameterTuningJob {
+	t.Helper()
+	created, err := fx.service.CreateHyperparameterTuningJob(fx.ctx, &CreateHyperparameterTuningJobRequest{
+		Parent:                  parent,
+		HyperparameterTuningJob: fx.Create(parent),
+	})
+	assert.NilError(t, err)
+	return created
 }
 
 type ModelDeploymentMonitoringJobTestSuiteConfig struct {
@@ -2361,11 +2349,7 @@ func (fx *ModelDeploymentMonitoringJobTestSuiteConfig) testGet(t *testing.T) {
 	t.Run("exists", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		created, err := fx.service.CreateModelDeploymentMonitoringJob(fx.ctx, &CreateModelDeploymentMonitoringJobRequest{
-			Parent:                       parent,
-			ModelDeploymentMonitoringJob: fx.Create(parent),
-		})
-		assert.NilError(t, err)
+		created := fx.create(t, parent)
 		msg, err := fx.service.GetModelDeploymentMonitoringJob(fx.ctx, &GetModelDeploymentMonitoringJobRequest{
 			Name: created.Name,
 		})
@@ -2377,12 +2361,8 @@ func (fx *ModelDeploymentMonitoringJobTestSuiteConfig) testGet(t *testing.T) {
 	t.Run("not found", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		created, err := fx.service.CreateModelDeploymentMonitoringJob(fx.ctx, &CreateModelDeploymentMonitoringJobRequest{
-			Parent:                       parent,
-			ModelDeploymentMonitoringJob: fx.Create(parent),
-		})
-		assert.NilError(t, err)
-		_, err = fx.service.GetModelDeploymentMonitoringJob(fx.ctx, &GetModelDeploymentMonitoringJobRequest{
+		created := fx.create(t, parent)
+		_, err := fx.service.GetModelDeploymentMonitoringJob(fx.ctx, &GetModelDeploymentMonitoringJobRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -2426,11 +2406,7 @@ func (fx *ModelDeploymentMonitoringJobTestSuiteConfig) testUpdate(t *testing.T) 
 	})
 
 	parent := fx.nextParent(t, false)
-	created, err := fx.service.CreateModelDeploymentMonitoringJob(fx.ctx, &CreateModelDeploymentMonitoringJobRequest{
-		Parent:                       parent,
-		ModelDeploymentMonitoringJob: fx.Create(parent),
-	})
-	assert.NilError(t, err)
+	created := fx.create(t, parent)
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -2653,12 +2629,7 @@ func (fx *ModelDeploymentMonitoringJobTestSuiteConfig) testList(t *testing.T) {
 	parent := fx.nextParent(t, true)
 	parentMsgs := make([]*ModelDeploymentMonitoringJob, resourcesCount)
 	for i := 0; i < resourcesCount; i++ {
-		msg, err := fx.service.CreateModelDeploymentMonitoringJob(fx.ctx, &CreateModelDeploymentMonitoringJobRequest{
-			Parent:                       parent,
-			ModelDeploymentMonitoringJob: fx.Create(parent),
-		})
-		assert.NilError(t, err)
-		parentMsgs[i] = msg
+		parentMsgs[i] = fx.create(t, parent)
 	}
 
 	// If parent is provided the method must only return resources
@@ -2785,4 +2756,14 @@ func (fx *ModelDeploymentMonitoringJobTestSuiteConfig) maybeSkip(t *testing.T) {
 			t.Skip("skipped because of .Skip")
 		}
 	}
+}
+
+func (fx *ModelDeploymentMonitoringJobTestSuiteConfig) create(t *testing.T, parent string) *ModelDeploymentMonitoringJob {
+	t.Helper()
+	created, err := fx.service.CreateModelDeploymentMonitoringJob(fx.ctx, &CreateModelDeploymentMonitoringJobRequest{
+		Parent:                       parent,
+		ModelDeploymentMonitoringJob: fx.Create(parent),
+	})
+	assert.NilError(t, err)
+	return created
 }

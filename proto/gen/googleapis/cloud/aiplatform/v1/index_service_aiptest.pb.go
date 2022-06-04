@@ -220,3 +220,9 @@ func (fx *IndexTestSuiteConfig) maybeSkip(t *testing.T) {
 		}
 	}
 }
+
+func (fx *IndexTestSuiteConfig) create(t *testing.T, parent string) *Index {
+	t.Helper()
+	t.Skip("Long running create method not supported")
+	return nil
+}
