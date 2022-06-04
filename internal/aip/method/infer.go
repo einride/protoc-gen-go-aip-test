@@ -128,7 +128,7 @@ func listMethod(method protoreflect.MethodDescriptor) *annotations.ResourceDescr
 }
 
 func searchMethod(method protoreflect.MethodDescriptor) *annotations.ResourceDescriptor {
-	if !hasNamePrefix(method, aipreflect.MethodTypeList) {
+	if !hasNamePrefix(method, aipreflect.MethodTypeSearch) {
 		return nil
 	}
 	output := method.Output()
