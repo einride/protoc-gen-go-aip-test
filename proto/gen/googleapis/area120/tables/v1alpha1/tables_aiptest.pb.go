@@ -420,6 +420,12 @@ type TableTestSuiteConfig struct {
 	service    TablesServiceServer
 	currParent int
 
+	// CreateResource should create a Table and return it.
+	// If the field is not set, some tests will be skipped.
+	//
+	// This method is generated because service does not expose a Create
+	// method (or it does not comply with AIP).
+	CreateResource func(ctx context.Context) (*Table, error)
 	// Patterns of tests to skip.
 	// For example if a service has a Get method:
 	// Skip: ["Get"] will skip all tests for Get.
@@ -450,6 +456,27 @@ func (fx *TableTestSuiteConfig) testGet(t *testing.T) {
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Resource should be returned without errors if it exists.
+	t.Run("exists", func(t *testing.T) {
+		fx.maybeSkip(t)
+		created := fx.create(t)
+		msg, err := fx.service.GetTable(fx.ctx, &GetTableRequest{
+			Name: created.Name,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(t, msg, created, protocmp.Transform())
+	})
+
+	// Method should fail with NotFound if the resource does not exist.
+	t.Run("not found", func(t *testing.T) {
+		fx.maybeSkip(t)
+		created := fx.create(t)
+		_, err := fx.service.GetTable(fx.ctx, &GetTableRequest{
+			Name: created.Name + "notfound",
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
 	})
 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
@@ -495,8 +522,12 @@ func (fx *TableTestSuiteConfig) maybeSkip(t *testing.T) {
 
 func (fx *TableTestSuiteConfig) create(t *testing.T) *Table {
 	t.Helper()
-	t.Skip("Service does expose a Create method, not supported.")
-	return nil
+	if fx.CreateResource == nil {
+		t.Skip("Test skipped because CreateResource not specified on TableTestSuiteConfig")
+	}
+	created, err := fx.CreateResource(fx.ctx)
+	assert.NilError(t, err)
+	return created
 }
 
 type WorkspaceTestSuiteConfig struct {
@@ -504,6 +535,12 @@ type WorkspaceTestSuiteConfig struct {
 	service    TablesServiceServer
 	currParent int
 
+	// CreateResource should create a Workspace and return it.
+	// If the field is not set, some tests will be skipped.
+	//
+	// This method is generated because service does not expose a Create
+	// method (or it does not comply with AIP).
+	CreateResource func(ctx context.Context) (*Workspace, error)
 	// Patterns of tests to skip.
 	// For example if a service has a Get method:
 	// Skip: ["Get"] will skip all tests for Get.
@@ -534,6 +571,27 @@ func (fx *WorkspaceTestSuiteConfig) testGet(t *testing.T) {
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Resource should be returned without errors if it exists.
+	t.Run("exists", func(t *testing.T) {
+		fx.maybeSkip(t)
+		created := fx.create(t)
+		msg, err := fx.service.GetWorkspace(fx.ctx, &GetWorkspaceRequest{
+			Name: created.Name,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(t, msg, created, protocmp.Transform())
+	})
+
+	// Method should fail with NotFound if the resource does not exist.
+	t.Run("not found", func(t *testing.T) {
+		fx.maybeSkip(t)
+		created := fx.create(t)
+		_, err := fx.service.GetWorkspace(fx.ctx, &GetWorkspaceRequest{
+			Name: created.Name + "notfound",
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
 	})
 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
@@ -579,6 +637,10 @@ func (fx *WorkspaceTestSuiteConfig) maybeSkip(t *testing.T) {
 
 func (fx *WorkspaceTestSuiteConfig) create(t *testing.T) *Workspace {
 	t.Helper()
-	t.Skip("Service does expose a Create method, not supported.")
-	return nil
+	if fx.CreateResource == nil {
+		t.Skip("Test skipped because CreateResource not specified on WorkspaceTestSuiteConfig")
+	}
+	created, err := fx.CreateResource(fx.ctx)
+	assert.NilError(t, err)
+	return created
 }

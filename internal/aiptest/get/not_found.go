@@ -18,8 +18,6 @@ var notFound = suite.Test{
 	},
 
 	OnlyIf: suite.OnlyIfs(
-		onlyif.HasMethod(aipreflect.MethodTypeCreate),
-		onlyif.MethodNotLRO(aipreflect.MethodTypeCreate),
 		onlyif.HasMethod(aipreflect.MethodTypeGet),
 	),
 	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {

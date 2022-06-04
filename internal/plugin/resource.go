@@ -62,6 +62,17 @@ func (r *resourceGenerator) generateFixture(f *protogen.GeneratedFile) {
 		} else {
 			f.P("Create func() *", r.message.GoIdent)
 		}
+	} else {
+		f.P("// CreateResource should create a ", r.message.Desc.Name(), " and return it.")
+		f.P("// If the field is not set, some tests will be skipped.")
+		f.P("//")
+		f.P("// This method is generated because service does not expose a Create")
+		f.P("// method (or it does not comply with AIP).")
+		if util.HasParent(r.resource) {
+			f.P("CreateResource func(ctx ", context, ", parent string) (*", r.message.GoIdent, ", error)")
+		} else {
+			f.P("CreateResource func(ctx ", context, ") (*", r.message.GoIdent, ", error)")
+		}
 	}
 	_, hasUpdate := util.StandardMethod(r.service, r.resource, aipreflect.MethodTypeUpdate)
 	if hasUpdate {
@@ -195,8 +206,10 @@ func (r *resourceGenerator) generateCreate(f *protogen.GeneratedFile) {
 	})
 	fixtureName := resourceTestSuiteConfigName(r.resource)
 	var parentFuncArg string
+	var parentCallArg string
 	if util.HasParent(r.resource) {
 		parentFuncArg = ", parent string"
+		parentCallArg = ", parent"
 	}
 	createMethod, hasCreate := util.StandardMethod(r.service, r.resource, aipreflect.MethodTypeCreate)
 	isLROCreate := hasCreate && util.ReturnsLRO(createMethod.Desc)
@@ -216,8 +229,12 @@ func (r *resourceGenerator) generateCreate(f *protogen.GeneratedFile) {
 		f.P(ident.AssertNilError, "(t, err)")
 		f.P("return created")
 	default:
-		f.P("t.Skip(\"Service does expose a Create method, not supported.\")")
-		f.P("return nil")
+		f.P("if fx.CreateResource == nil {")
+		f.P("t.Skip(\"Test skipped because CreateResource not specified on ", fixtureName, "\")")
+		f.P("}")
+		f.P("created, err := fx.CreateResource(fx.ctx", parentCallArg, ")")
+		f.P(ident.AssertNilError, "(t, err)")
+		f.P("return created")
 	}
 	f.P("}")
 }
