@@ -28,7 +28,7 @@ func (f *ranger) rangeMessageFields(
 	fields := message.Fields()
 	for i := 0; i < fields.Len(); i++ {
 		field := fields.Get(i)
-		// nolint: gocritic
+		//nolint: gocritic
 		nextP := append(p, protopath.FieldAccess(field))
 		fn(nextP, field)
 		if !field.IsList() && !field.IsMap() && field.Kind() == protoreflect.MessageKind {

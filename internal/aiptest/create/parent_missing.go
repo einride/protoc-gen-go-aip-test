@@ -12,7 +12,7 @@ import (
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
-// nolint: gochecknoglobals
+//nolint: gochecknoglobals
 var parentMissing = suite.Test{
 	Name: "missing parent",
 	Doc: []string{

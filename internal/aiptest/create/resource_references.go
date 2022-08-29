@@ -16,7 +16,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-// nolint: gochecknoglobals
+//nolint: gochecknoglobals
 var resourceReferences = suite.Test{
 	Name: "resource references",
 	Doc: []string{

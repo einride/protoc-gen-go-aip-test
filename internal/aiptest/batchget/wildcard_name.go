@@ -12,7 +12,7 @@ import (
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
-// nolint: gochecknoglobals
+//nolint: gochecknoglobals
 var wildcardName = suite.Test{
 	Name: "wildcard name",
 	Doc: []string{
