@@ -10,7 +10,7 @@ import (
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
-// nolint: gochecknoglobals
+//nolint: gochecknoglobals
 var duplicateNames = suite.Test{
 	Name: "duplicate names",
 	Doc: []string{

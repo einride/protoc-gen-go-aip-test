@@ -5,7 +5,7 @@ import (
 )
 
 // Suite of Create tests.
-// nolint: gochecknoglobals
+//nolint: gochecknoglobals
 var Suite = suite.Suite{
 	Name: "Create",
 	Tests: []suite.Test{

@@ -10,7 +10,7 @@ import (
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
-// nolint: gochecknoglobals
+//nolint: gochecknoglobals
 var notFound = suite.Test{
 	Name: "not found",
 	Doc: []string{

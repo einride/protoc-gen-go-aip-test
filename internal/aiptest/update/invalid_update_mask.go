@@ -12,7 +12,7 @@ import (
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
-// nolint: gochecknoglobals
+//nolint: gochecknoglobals
 var invalidUpdateMask = suite.Test{
 	Name: "invalid update mask",
 	Doc: []string{

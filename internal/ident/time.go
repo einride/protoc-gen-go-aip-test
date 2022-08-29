@@ -5,7 +5,7 @@ import (
 )
 
 // Time idents.
-// nolint: gochecknoglobals
+//nolint: gochecknoglobals
 var (
 	TimeSecond = protogen.GoIdent{GoName: "Second", GoImportPath: "time"}
 	TimeSince  = protogen.GoIdent{GoName: "Since", GoImportPath: "time"}

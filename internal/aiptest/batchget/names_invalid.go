@@ -12,7 +12,7 @@ import (
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
-// nolint: gochecknoglobals
+//nolint: gochecknoglobals
 var namesInvalid = suite.Test{
 	Name: "invalid names",
 	Doc: []string{

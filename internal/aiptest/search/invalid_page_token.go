@@ -12,7 +12,7 @@ import (
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
-// nolint: gochecknoglobals
+//nolint: gochecknoglobals
 var invalidPageToken = suite.Test{
 	Name: "invalid page token",
 	Doc: []string{

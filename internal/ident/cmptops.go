@@ -5,7 +5,7 @@ import (
 )
 
 // Cmpopts idents.
-// nolint: gochecknoglobals
+//nolint: gochecknoglobals
 var (
 	CmpoptsSortSlices = protogen.GoIdent{
 		GoName:       "SortSlices",

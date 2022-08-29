@@ -12,7 +12,7 @@ import (
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
-// nolint: gochecknoglobals
+//nolint: gochecknoglobals
 var parentInvalid = suite.Test{
 	Name: "invalid parent",
 	Doc: []string{

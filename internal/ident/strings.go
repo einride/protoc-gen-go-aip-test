@@ -5,7 +5,7 @@ import (
 )
 
 // Strings idents.
-// nolint: gochecknoglobals
+//nolint: gochecknoglobals
 var (
 	StringsHasSuffix = protogen.GoIdent{GoName: "HasSuffix", GoImportPath: "strings"}
 )

@@ -5,7 +5,7 @@ import (
 )
 
 // Testing idents.
-// nolint: gochecknoglobals
+//nolint: gochecknoglobals
 var (
 	TestingT = protogen.GoIdent{GoName: "T", GoImportPath: "testing"}
 )

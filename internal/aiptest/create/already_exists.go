@@ -12,7 +12,7 @@ import (
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
-// nolint: gochecknoglobals
+//nolint: gochecknoglobals
 var alreadyExists = suite.Test{
 	Name: "already exists",
 	Doc: []string{
