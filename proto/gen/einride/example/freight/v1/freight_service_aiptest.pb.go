@@ -503,6 +503,22 @@ func (fx *SiteTestSuiteConfig) testCreate(t *testing.T) {
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
+		t.Run(".region", func(t *testing.T) {
+			fx.maybeSkip(t)
+			parent := fx.nextParent(t, false)
+			msg := fx.Create(parent)
+			container := msg
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("region")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.CreateSite(fx.ctx, &CreateSiteRequest{
+				Parent: parent,
+				Site:   msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
 	})
 
 	// The method should fail with InvalidArgument if the resource has any
@@ -844,6 +860,25 @@ func (fx *SiteTestSuiteConfig) testUpdate(t *testing.T) {
 				t.Skip("not reachable")
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.UpdateSite(fx.ctx, &UpdateSiteRequest{
+				Site: msg,
+				UpdateMask: &fieldmaskpb.FieldMask{
+					Paths: []string{
+						"*",
+					},
+				},
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+		t.Run(".region", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msg := proto.Clone(created).(*Site)
+			container := msg
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("region")
 			container.ProtoReflect().Clear(fd)
 			_, err := fx.service.UpdateSite(fx.ctx, &UpdateSiteRequest{
 				Site: msg,

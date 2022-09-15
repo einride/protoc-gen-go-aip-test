@@ -37,6 +37,13 @@ message Site {
   google.type.LatLng lat_lng = 6;
   // Billing information on the site.
   Billing billing = 7;
+  // Region of this site.
+  //
+  // Must be provided during creation, but cannot be changed later.
+  Region region = 8 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.field_behavior) = IMMUTABLE
+  ];
 }
 
 message Billing {
@@ -45,4 +52,10 @@ message Billing {
   string billing_account = 1 [
     (google.api.resource_reference).type = "freight-example.einride.tech/BillingAccount"
   ];
+}
+
+enum Region {
+  REGION_UNSPECIFIED = 0;
+  EU_WEST_1 = 1;
+  US_EAST_1 = 2;
 }
