@@ -12,10 +12,11 @@ import (
 type Proto sg.Namespace
 
 const (
-	// Version of buf.build/googleapis/googleapis to generate from.
-	// Versions can be found here:
-	// https://buf.build/googleapis/googleapis/history
-	googleapisRef = "f3590c56d388417ebbedefae77ac12bf"
+	// Version of github.com/googleapis/googleapis to generate from.
+	// Since there are no tags or branches to generate from in that repository,
+	// this will fail once more than 1_000 commits have been added in that repository
+	// since this commit.
+	googleapisRef = "0487c63ac8292e507e0f3fecb3c01efdadea4967"
 )
 
 func (Proto) All(ctx context.Context) error {
@@ -67,7 +68,7 @@ func (Proto) BufGenerateGoogleapis(ctx context.Context) error {
 	cmd := sgbuf.Command(
 		ctx,
 		"generate",
-		"buf.build/googleapis/googleapis:"+googleapisRef,
+		"https://github.com/googleapis/googleapis.git#depth=1000,ref="+googleapisRef,
 		"--template", "buf.gen.googleapis.yaml",
 		"--path", "google/area120/tables/v1alpha1",
 		"--path", "google/cloud/aiplatform/v1",

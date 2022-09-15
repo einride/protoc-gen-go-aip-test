@@ -382,22 +382,6 @@ func (fx *BatchPredictionJobTestSuiteConfig) testCreate(t *testing.T) {
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
-		t.Run(".explanation_spec.metadata", func(t *testing.T) {
-			fx.maybeSkip(t)
-			parent := fx.nextParent(t, false)
-			msg := fx.Create(parent)
-			container := msg.GetExplanationSpec()
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("metadata")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateBatchPredictionJob(fx.ctx, &CreateBatchPredictionJobRequest{
-				Parent:             parent,
-				BatchPredictionJob: msg,
-			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
 		t.Run(".explanation_spec.metadata.inputs", func(t *testing.T) {
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
