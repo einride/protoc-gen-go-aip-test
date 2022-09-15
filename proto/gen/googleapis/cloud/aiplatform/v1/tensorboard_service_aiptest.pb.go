@@ -1622,25 +1622,6 @@ func (fx *TensorboardTimeSeriesTestSuiteConfig) testUpdate(t *testing.T) {
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
-		t.Run(".value_type", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msg := proto.Clone(created).(*TensorboardTimeSeries)
-			container := msg
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("value_type")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateTensorboardTimeSeries(fx.ctx, &UpdateTensorboardTimeSeriesRequest{
-				TensorboardTimeSeries: msg,
-				UpdateMask: &fieldmaskpb.FieldMask{
-					Paths: []string{
-						"*",
-					},
-				},
-			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
 	})
 
 }

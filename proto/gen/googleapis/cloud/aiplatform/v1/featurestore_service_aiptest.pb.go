@@ -617,25 +617,6 @@ func (fx *FeatureTestSuiteConfig) testUpdate(t *testing.T) {
 	// when called with '*' update_mask.
 	t.Run("required fields", func(t *testing.T) {
 		fx.maybeSkip(t)
-		t.Run(".value_type", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msg := proto.Clone(created).(*Feature)
-			container := msg
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("value_type")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateFeature(fx.ctx, &UpdateFeatureRequest{
-				Feature: msg,
-				UpdateMask: &fieldmaskpb.FieldMask{
-					Paths: []string{
-						"*",
-					},
-				},
-			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
 	})
 
 }

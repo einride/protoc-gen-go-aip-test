@@ -871,25 +871,6 @@ func (fx *SiteTestSuiteConfig) testUpdate(t *testing.T) {
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
-		t.Run(".region", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msg := proto.Clone(created).(*Site)
-			container := msg
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("region")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateSite(fx.ctx, &UpdateSiteRequest{
-				Site: msg,
-				UpdateMask: &fieldmaskpb.FieldMask{
-					Paths: []string{
-						"*",
-					},
-				},
-			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
 	})
 
 }
