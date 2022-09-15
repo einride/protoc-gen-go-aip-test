@@ -7,7 +7,9 @@ import (
 	"github.com/einride/protoc-gen-go-aip-test/internal/onlyif"
 	"github.com/einride/protoc-gen-go-aip-test/internal/suite"
 	"github.com/einride/protoc-gen-go-aip-test/internal/util"
+	"go.einride.tech/aip/fieldbehavior"
 	"go.einride.tech/aip/reflect/aipreflect"
+	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/reflect/protopath"
@@ -29,6 +31,11 @@ var requiredFields = suite.Test{
 	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
 		updateMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeUpdate)
 		util.RangeRequiredFields(scope.Message.Desc, func(p protopath.Path, field protoreflect.FieldDescriptor) {
+			if fieldbehavior.Has(field, annotations.FieldBehavior_IMMUTABLE) {
+				// ignore IMMUTABLE fields
+				return
+			}
+
 			// strip root step
 			p = p[1:]
 			containerPath := p[:len(p)-1]

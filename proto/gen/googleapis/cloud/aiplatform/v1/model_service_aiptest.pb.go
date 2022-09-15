@@ -241,25 +241,6 @@ func (fx *ModelTestSuiteConfig) testUpdate(t *testing.T) {
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
-		t.Run(".container_spec.image_uri", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msg := proto.Clone(created).(*Model)
-			container := msg.GetContainerSpec()
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("image_uri")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateModel(fx.ctx, &UpdateModelRequest{
-				Model: msg,
-				UpdateMask: &fieldmaskpb.FieldMask{
-					Paths: []string{
-						"*",
-					},
-				},
-			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
 		t.Run(".explanation_spec.parameters", func(t *testing.T) {
 			fx.maybeSkip(t)
 			msg := proto.Clone(created).(*Model)
