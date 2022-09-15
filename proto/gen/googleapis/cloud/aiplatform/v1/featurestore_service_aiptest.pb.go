@@ -868,6 +868,22 @@ func (fx *FeaturestoreTestSuiteConfig) testCreate(t *testing.T) {
 	// required fields and they are not provided.
 	t.Run("required fields", func(t *testing.T) {
 		fx.maybeSkip(t)
+		t.Run(".online_serving_config.scaling.min_node_count", func(t *testing.T) {
+			fx.maybeSkip(t)
+			parent := fx.nextParent(t, false)
+			msg := fx.Create(parent)
+			container := msg.GetOnlineServingConfig().GetScaling()
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("min_node_count")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.CreateFeaturestore(fx.ctx, &CreateFeaturestoreRequest{
+				Parent:       parent,
+				Featurestore: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
 		t.Run(".encryption_spec.kms_key_name", func(t *testing.T) {
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
@@ -999,6 +1015,25 @@ func (fx *FeaturestoreTestSuiteConfig) testUpdate(t *testing.T) {
 	// when called with '*' update_mask.
 	t.Run("required fields", func(t *testing.T) {
 		fx.maybeSkip(t)
+		t.Run(".online_serving_config.scaling.min_node_count", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msg := proto.Clone(created).(*Featurestore)
+			container := msg.GetOnlineServingConfig().GetScaling()
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("min_node_count")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.UpdateFeaturestore(fx.ctx, &UpdateFeaturestoreRequest{
+				Featurestore: msg,
+				UpdateMask: &fieldmaskpb.FieldMask{
+					Paths: []string{
+						"*",
+					},
+				},
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
 		t.Run(".encryption_spec.kms_key_name", func(t *testing.T) {
 			fx.maybeSkip(t)
 			msg := proto.Clone(created).(*Featurestore)

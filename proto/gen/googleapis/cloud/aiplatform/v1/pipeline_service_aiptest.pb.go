@@ -771,22 +771,6 @@ func (fx *TrainingPipelineTestSuiteConfig) testCreate(t *testing.T) {
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
-		t.Run(".model_to_upload.explanation_spec.metadata", func(t *testing.T) {
-			fx.maybeSkip(t)
-			parent := fx.nextParent(t, false)
-			msg := fx.Create(parent)
-			container := msg.GetModelToUpload().GetExplanationSpec()
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("metadata")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateTrainingPipeline(fx.ctx, &CreateTrainingPipelineRequest{
-				Parent:           parent,
-				TrainingPipeline: msg,
-			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
 		t.Run(".model_to_upload.explanation_spec.metadata.inputs", func(t *testing.T) {
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
