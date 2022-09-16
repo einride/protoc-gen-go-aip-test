@@ -46,6 +46,10 @@ type ShipperTestSuiteConfig struct {
 	// Create should return a resource which is valid to create, i.e.
 	// all required fields set.
 	Create func() *Shipper
+	// IDGenerator should return a valid and unique ID to use in the Create call.
+	// If non-nil, this function will be called to set the ID on all Create calls.
+	// If the ID field is required, tests will fail if this is nil.
+	IDGenerator func() string
 	// Update should return a resource which is valid to update, i.e.
 	// all required fields set.
 	Update func() *Shipper
@@ -68,8 +72,13 @@ func (fx *ShipperTestSuiteConfig) testCreate(t *testing.T) {
 	// Field create_time should be populated when the resource is created.
 	t.Run("create time", func(t *testing.T) {
 		fx.maybeSkip(t)
+		userSetID := ""
+		if fx.IDGenerator != nil {
+			userSetID = fx.IDGenerator()
+		}
 		msg, err := fx.service.CreateShipper(fx.ctx, &CreateShipperRequest{
-			Shipper: fx.Create(),
+			Shipper:   fx.Create(),
+			ShipperId: userSetID,
 		})
 		assert.NilError(t, err)
 		assert.Check(t, time.Since(msg.CreateTime.AsTime()) < time.Second)
@@ -78,8 +87,13 @@ func (fx *ShipperTestSuiteConfig) testCreate(t *testing.T) {
 	// The created resource should be persisted and reachable with Get.
 	t.Run("persisted", func(t *testing.T) {
 		fx.maybeSkip(t)
+		userSetID := ""
+		if fx.IDGenerator != nil {
+			userSetID = fx.IDGenerator()
+		}
 		msg, err := fx.service.CreateShipper(fx.ctx, &CreateShipperRequest{
-			Shipper: fx.Create(),
+			Shipper:   fx.Create(),
+			ShipperId: userSetID,
 		})
 		assert.NilError(t, err)
 		persisted, err := fx.service.GetShipper(fx.ctx, &GetShipperRequest{
@@ -130,8 +144,13 @@ func (fx *ShipperTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
 			container.ProtoReflect().Clear(fd)
+			userSetID := ""
+			if fx.IDGenerator != nil {
+				userSetID = fx.IDGenerator()
+			}
 			_, err := fx.service.CreateShipper(fx.ctx, &CreateShipperRequest{
-				Shipper: msg,
+				Shipper:   msg,
+				ShipperId: userSetID,
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
@@ -144,8 +163,13 @@ func (fx *ShipperTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("billing_account")
 			container.ProtoReflect().Clear(fd)
+			userSetID := ""
+			if fx.IDGenerator != nil {
+				userSetID = fx.IDGenerator()
+			}
 			_, err := fx.service.CreateShipper(fx.ctx, &CreateShipperRequest{
-				Shipper: msg,
+				Shipper:   msg,
+				ShipperId: userSetID,
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
@@ -163,8 +187,13 @@ func (fx *ShipperTestSuiteConfig) testCreate(t *testing.T) {
 				t.Skip("not reachable")
 			}
 			container.BillingAccount = "invalid resource name"
+			userSetID := ""
+			if fx.IDGenerator != nil {
+				userSetID = fx.IDGenerator()
+			}
 			_, err := fx.service.CreateShipper(fx.ctx, &CreateShipperRequest{
-				Shipper: msg,
+				Shipper:   msg,
+				ShipperId: userSetID,
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
@@ -395,8 +424,13 @@ func (fx *ShipperTestSuiteConfig) maybeSkip(t *testing.T) {
 
 func (fx *ShipperTestSuiteConfig) create(t *testing.T) *Shipper {
 	t.Helper()
+	userSetID := ""
+	if fx.IDGenerator != nil {
+		userSetID = fx.IDGenerator()
+	}
 	created, err := fx.service.CreateShipper(fx.ctx, &CreateShipperRequest{
-		Shipper: fx.Create(),
+		Shipper:   fx.Create(),
+		ShipperId: userSetID,
 	})
 	assert.NilError(t, err)
 	return created

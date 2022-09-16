@@ -16,6 +16,15 @@ type MethodCreate struct {
 }
 
 func (m MethodCreate) Generate(f *protogen.GeneratedFile, response, err, assign string) {
+	userSetID := m.UserSettableID
+	if userSetID == "" && HasUserSettableIDField(m.Resource, m.Method.Input.Desc) {
+		userSetID = "userSetID"
+		f.P(userSetID + " := \"\"")
+		f.P("if fx.IDGenerator != nil {")
+		f.P(userSetID + " = fx.IDGenerator()")
+		f.P("}")
+	}
+
 	f.P(response, ", ", err, " ", assign, " fx.service.", m.Method.GoName, "(fx.ctx, &", m.Method.Input.GoIdent, "{")
 	if HasParent(m.Resource) {
 		f.P("Parent: ", m.Parent, ",")
@@ -35,9 +44,10 @@ func (m MethodCreate) Generate(f *protogen.GeneratedFile, response, err, assign 
 		f.P(upper, ": fx.Create(", m.Parent, "),")
 	}
 
-	if m.UserSettableID != "" && HasUserSettableIDField(m.Resource, m.Method.Input.Desc) {
-		f.P(upper, "Id: ", m.UserSettableID, ",")
+	if userSetID != "" && HasUserSettableIDField(m.Resource, m.Method.Input.Desc) {
+		f.P(upper, "Id: ", userSetID, ",")
 	}
+
 	f.P("})")
 }
 

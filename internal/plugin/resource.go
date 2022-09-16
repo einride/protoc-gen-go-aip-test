@@ -53,7 +53,7 @@ func (r *resourceGenerator) generateFixture(f *protogen.GeneratedFile) {
 		f.P("// provided the test will fail.")
 		f.P("Parents []string")
 	}
-	_, hasCreate := util.StandardMethod(r.service, r.resource, aipreflect.MethodTypeCreate)
+	createMethod, hasCreate := util.StandardMethod(r.service, r.resource, aipreflect.MethodTypeCreate)
 	if hasCreate {
 		f.P("// Create should return a resource which is valid to create, i.e.")
 		f.P("// all required fields set.")
@@ -61,6 +61,13 @@ func (r *resourceGenerator) generateFixture(f *protogen.GeneratedFile) {
 			f.P("Create func(parent string) *", r.message.GoIdent)
 		} else {
 			f.P("Create func() *", r.message.GoIdent)
+		}
+
+		if util.HasUserSettableIDField(r.resource, createMethod.Input.Desc) {
+			f.P("// IDGenerator should return a valid and unique ID to use in the Create call.")
+			f.P("// If non-nil, this function will be called to set the ID on all Create calls.")
+			f.P("// If the ID field is required, tests will fail if this is nil.")
+			f.P("IDGenerator func() string")
 		}
 	} else {
 		f.P("// CreateResource should create a ", r.message.Desc.Name(), " and return it.")
