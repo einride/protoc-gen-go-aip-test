@@ -2,13 +2,12 @@ syntax = "proto3";
 
 package einride.example.freight.v1;
 
+import "google/api/resource.proto";
+
 option go_package = "github.com/einride/protoc-gen-go-aip-test/proto/gen/einride/example/freight/v1;examplefreightv1";
 option java_multiple_files = true;
 option java_outer_classname = "ResourceDefinitionsProto";
 option java_package = "tech.einride.example.freight.v1";
-
-import "google/api/resource.proto";
-
 option (google.api.resource_definition) = {
   type: "freight-example.einride.tech/BillingAccount"
   pattern: "billingAccount/{billing_account}"

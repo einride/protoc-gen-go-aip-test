@@ -2,14 +2,14 @@ syntax = "proto3";
 
 package einride.example.freight.v1;
 
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/timestamp.proto";
+
 option go_package = "github.com/einride/protoc-gen-go-aip-test/proto/gen/einride/example/freight/v1;examplefreightv1";
 option java_multiple_files = true;
 option java_outer_classname = "ShipperProto";
 option java_package = "tech.einride.example.freight.v1";
-
-import "google/api/field_behavior.proto";
-import "google/api/resource.proto";
-import "google/protobuf/timestamp.proto";
 
 // A shipper is a supplier or owner of goods to be transported.
 message Shipper {
