@@ -4,14 +4,11 @@ plugins:
   - name: go
     out: gen
     opt: module=google.golang.org/genproto
-    path: ../.sage/bin/protoc-gen-go
 
   - name: go-grpc
     out: gen
     opt: module=google.golang.org/genproto
-    path: ../.sage/bin/protoc-gen-go-grpc
 
   - name: go-aip-test
     out: gen
     opt: module=google.golang.org/genproto
-    path: ../.sage/bin/protoc-gen-go-aip-test

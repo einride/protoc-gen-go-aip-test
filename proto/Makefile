@@ -8,6 +8,7 @@ sagefile := $(abspath $(cwd)/../.sage/bin/sagefile)
 
 # Setup Go.
 go := $(shell command -v go 2>/dev/null)
+export GOWORK ?= off
 ifndef go
 SAGE_GO_VERSION ?= 1.18.4
 export GOROOT := $(abspath $(cwd)/../.sage/tools/go/$(SAGE_GO_VERSION)/go)
@@ -46,6 +47,10 @@ clean-sage:
 all: $(sagefile)
 	@$(sagefile) Proto:All
 
+.PHONY: buf-format
+buf-format: $(sagefile)
+	@$(sagefile) Proto:BufFormat
+
 .PHONY: buf-generate
 buf-generate: $(sagefile)
 	@$(sagefile) Proto:BufGenerate
@@ -57,10 +62,6 @@ buf-generate-googleapis: $(sagefile)
 .PHONY: buf-lint
 buf-lint: $(sagefile)
 	@$(sagefile) Proto:BufLint
-
-.PHONY: clang-format-proto
-clang-format-proto: $(sagefile)
-	@$(sagefile) Proto:ClangFormatProto
 
 .PHONY: protoc-gen-go
 protoc-gen-go: $(sagefile)

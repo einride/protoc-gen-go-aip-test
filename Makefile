@@ -8,6 +8,7 @@ sagefile := $(abspath $(cwd)/.sage/bin/sagefile)
 
 # Setup Go.
 go := $(shell command -v go 2>/dev/null)
+export GOWORK ?= off
 ifndef go
 SAGE_GO_VERSION ?= 1.18.4
 export GOROOT := $(abspath $(cwd)/.sage/tools/go/$(SAGE_GO_VERSION)/go)
@@ -62,6 +63,10 @@ format-yaml: $(sagefile)
 git-verify-no-diff: $(sagefile)
 	@$(sagefile) GitVerifyNoDiff
 
+.PHONY: go-lint
+go-lint: $(sagefile)
+	@$(sagefile) GoLint
+
 .PHONY: go-mod-tidy
 go-mod-tidy: $(sagefile)
 	@$(sagefile) GoModTidy
@@ -73,10 +78,6 @@ go-review: $(sagefile)
 .PHONY: go-test
 go-test: $(sagefile)
 	@$(sagefile) GoTest
-
-.PHONY: golangci-lint
-golangci-lint: $(sagefile)
-	@$(sagefile) GolangciLint
 
 .PHONY: readme-snippet
 readme-snippet: $(sagefile)

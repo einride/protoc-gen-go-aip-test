@@ -6,7 +6,6 @@ import (
 	"go.einride.tech/sage/sg"
 	"go.einride.tech/sage/sgtool"
 	"go.einride.tech/sage/tools/sgbuf"
-	"go.einride.tech/sage/tools/sgclangformat"
 )
 
 type Proto sg.Namespace
@@ -20,7 +19,7 @@ const (
 )
 
 func (Proto) All(ctx context.Context) error {
-	sg.Deps(ctx, Proto.ClangFormatProto, Proto.BufLint)
+	sg.Deps(ctx, Proto.BufFormat, Proto.BufLint)
 	sg.SerialDeps(ctx, Proto.BufGenerate, Proto.BufGenerateGoogleapis)
 	return nil
 }
@@ -32,9 +31,11 @@ func (Proto) BufLint(ctx context.Context) error {
 	return cmd.Run()
 }
 
-func (Proto) ClangFormatProto(ctx context.Context) error {
+func (Proto) BufFormat(ctx context.Context) error {
 	sg.Logger(ctx).Println("formatting proto files...")
-	return sgclangformat.FormatProto(ctx)
+	cmd := sgbuf.Command(ctx, "format", "--write")
+	cmd.Dir = sg.FromGitRoot("proto")
+	return cmd.Run()
 }
 
 func (Proto) ProtocGenGo(ctx context.Context) error {

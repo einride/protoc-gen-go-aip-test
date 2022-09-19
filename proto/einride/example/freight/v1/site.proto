@@ -2,15 +2,15 @@ syntax = "proto3";
 
 package einride.example.freight.v1;
 
-option go_package = "github.com/einride/protoc-gen-go-aip-test/proto/gen/einride/example/freight/v1;examplefreightv1";
-option java_multiple_files = true;
-option java_outer_classname = "SiteProto";
-option java_package = "tech.einride.example.freight.v1";
-
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 import "google/protobuf/timestamp.proto";
 import "google/type/latlng.proto";
+
+option go_package = "github.com/einride/protoc-gen-go-aip-test/proto/gen/einride/example/freight/v1;examplefreightv1";
+option java_multiple_files = true;
+option java_outer_classname = "SiteProto";
+option java_package = "tech.einride.example.freight.v1";
 
 // A site is a node in a [shipper][einride.example.freight.v1.Shipper]'s
 // transport network.
@@ -42,7 +42,5 @@ message Site {
 message Billing {
   // The billing account used by this site.
   // If not specified the shippers billing accout is used.
-  string billing_account = 1 [
-    (google.api.resource_reference).type = "freight-example.einride.tech/BillingAccount"
-  ];
+  string billing_account = 1 [(google.api.resource_reference).type = "freight-example.einride.tech/BillingAccount"];
 }

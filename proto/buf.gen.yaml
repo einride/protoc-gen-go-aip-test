@@ -3,14 +3,11 @@ plugins:
   - name: go
     out: gen
     opt: module=github.com/einride/protoc-gen-go-aip-test/proto/gen
-    path: ../.sage/bin/protoc-gen-go
 
   - name: go-grpc
     out: gen
     opt: module=github.com/einride/protoc-gen-go-aip-test/proto/gen
-    path: ../.sage/bin/protoc-gen-go-grpc
 
   - name: go-aip-test
     out: gen
     opt: module=github.com/einride/protoc-gen-go-aip-test/proto/gen
-    path: ../.sage/bin/protoc-gen-go-aip-test

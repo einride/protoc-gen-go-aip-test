@@ -1,7 +1,9 @@
 version: v1
 name: buf.build/einride/protoc-gen-go-aip-test
+
 deps:
   - buf.build/googleapis/googleapis
+
 lint:
   use:
     - DEFAULT
