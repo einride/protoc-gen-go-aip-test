@@ -82,6 +82,7 @@ func (fx *TensorboardTestSuiteConfig) test(t *testing.T) {
 	t.Run("Get", fx.testGet)
 	t.Run("Update", fx.testUpdate)
 	t.Run("List", fx.testList)
+	t.Run("Delete", fx.testDelete)
 }
 
 func (fx *TensorboardTestSuiteConfig) testCreate(t *testing.T) {
@@ -439,6 +440,59 @@ func (fx *TensorboardTestSuiteConfig) testList(t *testing.T) {
 
 }
 
+func (fx *TensorboardTestSuiteConfig) testDelete(t *testing.T) {
+	fx.maybeSkip(t)
+	// Method should fail with InvalidArgument if no name is provided.
+	t.Run("missing name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteTensorboard(fx.ctx, &DeleteTensorboardRequest{
+			Name: "",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name is not valid.
+	t.Run("invalid name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteTensorboard(fx.ctx, &DeleteTensorboardRequest{
+			Name: "invalid resource name",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Resource should be deleted without errors if it exists.
+	t.Run("exists", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteTensorboard(fx.ctx, &DeleteTensorboardRequest{
+			Name: created.Name,
+		})
+		assert.NilError(t, err)
+	})
+
+	// Method should fail with NotFound if the resource does not exist.
+	t.Run("not found", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteTensorboard(fx.ctx, &DeleteTensorboardRequest{
+			Name: created.Name + "notfound",
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
+	t.Run("only wildcards", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteTensorboard(fx.ctx, &DeleteTensorboardRequest{
+			Name: "projects/-/locations/-/tensorboards/-",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+}
+
 func (fx *TensorboardTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	if pristine {
 		fx.currParent++
@@ -499,6 +553,7 @@ func (fx *TensorboardExperimentTestSuiteConfig) test(t *testing.T) {
 	t.Run("Get", fx.testGet)
 	t.Run("Update", fx.testUpdate)
 	t.Run("List", fx.testList)
+	t.Run("Delete", fx.testDelete)
 }
 
 func (fx *TensorboardExperimentTestSuiteConfig) testCreate(t *testing.T) {
@@ -830,6 +885,59 @@ func (fx *TensorboardExperimentTestSuiteConfig) testList(t *testing.T) {
 
 }
 
+func (fx *TensorboardExperimentTestSuiteConfig) testDelete(t *testing.T) {
+	fx.maybeSkip(t)
+	// Method should fail with InvalidArgument if no name is provided.
+	t.Run("missing name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteTensorboardExperiment(fx.ctx, &DeleteTensorboardExperimentRequest{
+			Name: "",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name is not valid.
+	t.Run("invalid name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteTensorboardExperiment(fx.ctx, &DeleteTensorboardExperimentRequest{
+			Name: "invalid resource name",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Resource should be deleted without errors if it exists.
+	t.Run("exists", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteTensorboardExperiment(fx.ctx, &DeleteTensorboardExperimentRequest{
+			Name: created.Name,
+		})
+		assert.NilError(t, err)
+	})
+
+	// Method should fail with NotFound if the resource does not exist.
+	t.Run("not found", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteTensorboardExperiment(fx.ctx, &DeleteTensorboardExperimentRequest{
+			Name: created.Name + "notfound",
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
+	t.Run("only wildcards", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteTensorboardExperiment(fx.ctx, &DeleteTensorboardExperimentRequest{
+			Name: "projects/-/locations/-/tensorboards/-/experiments/-",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+}
+
 func (fx *TensorboardExperimentTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	if pristine {
 		fx.currParent++
@@ -894,6 +1002,7 @@ func (fx *TensorboardRunTestSuiteConfig) test(t *testing.T) {
 	t.Run("Get", fx.testGet)
 	t.Run("Update", fx.testUpdate)
 	t.Run("List", fx.testList)
+	t.Run("Delete", fx.testDelete)
 }
 
 func (fx *TensorboardRunTestSuiteConfig) testCreate(t *testing.T) {
@@ -1290,6 +1399,59 @@ func (fx *TensorboardRunTestSuiteConfig) testList(t *testing.T) {
 
 }
 
+func (fx *TensorboardRunTestSuiteConfig) testDelete(t *testing.T) {
+	fx.maybeSkip(t)
+	// Method should fail with InvalidArgument if no name is provided.
+	t.Run("missing name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteTensorboardRun(fx.ctx, &DeleteTensorboardRunRequest{
+			Name: "",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name is not valid.
+	t.Run("invalid name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteTensorboardRun(fx.ctx, &DeleteTensorboardRunRequest{
+			Name: "invalid resource name",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Resource should be deleted without errors if it exists.
+	t.Run("exists", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteTensorboardRun(fx.ctx, &DeleteTensorboardRunRequest{
+			Name: created.Name,
+		})
+		assert.NilError(t, err)
+	})
+
+	// Method should fail with NotFound if the resource does not exist.
+	t.Run("not found", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteTensorboardRun(fx.ctx, &DeleteTensorboardRunRequest{
+			Name: created.Name + "notfound",
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
+	t.Run("only wildcards", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteTensorboardRun(fx.ctx, &DeleteTensorboardRunRequest{
+			Name: "projects/-/locations/-/tensorboards/-/experiments/-/runs/-",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+}
+
 func (fx *TensorboardRunTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	if pristine {
 		fx.currParent++
@@ -1354,6 +1516,7 @@ func (fx *TensorboardTimeSeriesTestSuiteConfig) test(t *testing.T) {
 	t.Run("Get", fx.testGet)
 	t.Run("Update", fx.testUpdate)
 	t.Run("List", fx.testList)
+	t.Run("Delete", fx.testDelete)
 }
 
 func (fx *TensorboardTimeSeriesTestSuiteConfig) testCreate(t *testing.T) {
@@ -1762,6 +1925,59 @@ func (fx *TensorboardTimeSeriesTestSuiteConfig) testList(t *testing.T) {
 			}),
 			protocmp.Transform(),
 		)
+	})
+
+}
+
+func (fx *TensorboardTimeSeriesTestSuiteConfig) testDelete(t *testing.T) {
+	fx.maybeSkip(t)
+	// Method should fail with InvalidArgument if no name is provided.
+	t.Run("missing name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteTensorboardTimeSeries(fx.ctx, &DeleteTensorboardTimeSeriesRequest{
+			Name: "",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name is not valid.
+	t.Run("invalid name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteTensorboardTimeSeries(fx.ctx, &DeleteTensorboardTimeSeriesRequest{
+			Name: "invalid resource name",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Resource should be deleted without errors if it exists.
+	t.Run("exists", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteTensorboardTimeSeries(fx.ctx, &DeleteTensorboardTimeSeriesRequest{
+			Name: created.Name,
+		})
+		assert.NilError(t, err)
+	})
+
+	// Method should fail with NotFound if the resource does not exist.
+	t.Run("not found", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteTensorboardTimeSeries(fx.ctx, &DeleteTensorboardTimeSeriesRequest{
+			Name: created.Name + "notfound",
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
+	t.Run("only wildcards", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteTensorboardTimeSeries(fx.ctx, &DeleteTensorboardTimeSeriesRequest{
+			Name: "projects/-/locations/-/tensorboards/-/experiments/-/runs/-/timeSeries/-",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
 }

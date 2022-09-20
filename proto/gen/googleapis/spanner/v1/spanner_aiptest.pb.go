@@ -51,6 +51,7 @@ type SessionTestSuiteConfig struct {
 
 func (fx *SessionTestSuiteConfig) test(t *testing.T) {
 	t.Run("Get", fx.testGet)
+	t.Run("Delete", fx.testDelete)
 }
 
 func (fx *SessionTestSuiteConfig) testGet(t *testing.T) {
@@ -100,6 +101,59 @@ func (fx *SessionTestSuiteConfig) testGet(t *testing.T) {
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.GetSession(fx.ctx, &GetSessionRequest{
+			Name: "projects/-/instances/-/databases/-/sessions/-",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+}
+
+func (fx *SessionTestSuiteConfig) testDelete(t *testing.T) {
+	fx.maybeSkip(t)
+	// Method should fail with InvalidArgument if no name is provided.
+	t.Run("missing name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteSession(fx.ctx, &DeleteSessionRequest{
+			Name: "",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name is not valid.
+	t.Run("invalid name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteSession(fx.ctx, &DeleteSessionRequest{
+			Name: "invalid resource name",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Resource should be deleted without errors if it exists.
+	t.Run("exists", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteSession(fx.ctx, &DeleteSessionRequest{
+			Name: created.Name,
+		})
+		assert.NilError(t, err)
+	})
+
+	// Method should fail with NotFound if the resource does not exist.
+	t.Run("not found", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteSession(fx.ctx, &DeleteSessionRequest{
+			Name: created.Name + "notfound",
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
+	t.Run("only wildcards", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteSession(fx.ctx, &DeleteSessionRequest{
 			Name: "projects/-/instances/-/databases/-/sessions/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)

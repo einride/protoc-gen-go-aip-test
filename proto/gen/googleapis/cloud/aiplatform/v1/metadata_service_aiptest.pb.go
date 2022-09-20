@@ -89,6 +89,7 @@ func (fx *ArtifactTestSuiteConfig) test(t *testing.T) {
 	t.Run("Get", fx.testGet)
 	t.Run("Update", fx.testUpdate)
 	t.Run("List", fx.testList)
+	t.Run("Delete", fx.testDelete)
 }
 
 func (fx *ArtifactTestSuiteConfig) testCreate(t *testing.T) {
@@ -420,6 +421,59 @@ func (fx *ArtifactTestSuiteConfig) testList(t *testing.T) {
 
 }
 
+func (fx *ArtifactTestSuiteConfig) testDelete(t *testing.T) {
+	fx.maybeSkip(t)
+	// Method should fail with InvalidArgument if no name is provided.
+	t.Run("missing name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteArtifact(fx.ctx, &DeleteArtifactRequest{
+			Name: "",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name is not valid.
+	t.Run("invalid name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteArtifact(fx.ctx, &DeleteArtifactRequest{
+			Name: "invalid resource name",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Resource should be deleted without errors if it exists.
+	t.Run("exists", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteArtifact(fx.ctx, &DeleteArtifactRequest{
+			Name: created.Name,
+		})
+		assert.NilError(t, err)
+	})
+
+	// Method should fail with NotFound if the resource does not exist.
+	t.Run("not found", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteArtifact(fx.ctx, &DeleteArtifactRequest{
+			Name: created.Name + "notfound",
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
+	t.Run("only wildcards", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteArtifact(fx.ctx, &DeleteArtifactRequest{
+			Name: "projects/-/locations/-/metadataStores/-/artifacts/-",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+}
+
 func (fx *ArtifactTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	if pristine {
 		fx.currParent++
@@ -484,6 +538,7 @@ func (fx *ContextTestSuiteConfig) test(t *testing.T) {
 	t.Run("Get", fx.testGet)
 	t.Run("Update", fx.testUpdate)
 	t.Run("List", fx.testList)
+	t.Run("Delete", fx.testDelete)
 }
 
 func (fx *ContextTestSuiteConfig) testCreate(t *testing.T) {
@@ -815,6 +870,59 @@ func (fx *ContextTestSuiteConfig) testList(t *testing.T) {
 
 }
 
+func (fx *ContextTestSuiteConfig) testDelete(t *testing.T) {
+	fx.maybeSkip(t)
+	// Method should fail with InvalidArgument if no name is provided.
+	t.Run("missing name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteContext(fx.ctx, &DeleteContextRequest{
+			Name: "",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name is not valid.
+	t.Run("invalid name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteContext(fx.ctx, &DeleteContextRequest{
+			Name: "invalid resource name",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Resource should be deleted without errors if it exists.
+	t.Run("exists", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteContext(fx.ctx, &DeleteContextRequest{
+			Name: created.Name,
+		})
+		assert.NilError(t, err)
+	})
+
+	// Method should fail with NotFound if the resource does not exist.
+	t.Run("not found", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteContext(fx.ctx, &DeleteContextRequest{
+			Name: created.Name + "notfound",
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
+	t.Run("only wildcards", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteContext(fx.ctx, &DeleteContextRequest{
+			Name: "projects/-/locations/-/metadataStores/-/contexts/-",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+}
+
 func (fx *ContextTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	if pristine {
 		fx.currParent++
@@ -879,6 +987,7 @@ func (fx *ExecutionTestSuiteConfig) test(t *testing.T) {
 	t.Run("Get", fx.testGet)
 	t.Run("Update", fx.testUpdate)
 	t.Run("List", fx.testList)
+	t.Run("Delete", fx.testDelete)
 }
 
 func (fx *ExecutionTestSuiteConfig) testCreate(t *testing.T) {
@@ -1206,6 +1315,59 @@ func (fx *ExecutionTestSuiteConfig) testList(t *testing.T) {
 			}),
 			protocmp.Transform(),
 		)
+	})
+
+}
+
+func (fx *ExecutionTestSuiteConfig) testDelete(t *testing.T) {
+	fx.maybeSkip(t)
+	// Method should fail with InvalidArgument if no name is provided.
+	t.Run("missing name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteExecution(fx.ctx, &DeleteExecutionRequest{
+			Name: "",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name is not valid.
+	t.Run("invalid name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteExecution(fx.ctx, &DeleteExecutionRequest{
+			Name: "invalid resource name",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Resource should be deleted without errors if it exists.
+	t.Run("exists", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteExecution(fx.ctx, &DeleteExecutionRequest{
+			Name: created.Name,
+		})
+		assert.NilError(t, err)
+	})
+
+	// Method should fail with NotFound if the resource does not exist.
+	t.Run("not found", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteExecution(fx.ctx, &DeleteExecutionRequest{
+			Name: created.Name + "notfound",
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
+	t.Run("only wildcards", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteExecution(fx.ctx, &DeleteExecutionRequest{
+			Name: "projects/-/locations/-/metadataStores/-/executions/-",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
 }
@@ -1574,6 +1736,7 @@ func (fx *MetadataStoreTestSuiteConfig) test(t *testing.T) {
 	t.Run("Create", fx.testCreate)
 	t.Run("Get", fx.testGet)
 	t.Run("List", fx.testList)
+	t.Run("Delete", fx.testDelete)
 }
 
 func (fx *MetadataStoreTestSuiteConfig) testCreate(t *testing.T) {
@@ -1812,6 +1975,59 @@ func (fx *MetadataStoreTestSuiteConfig) testList(t *testing.T) {
 			}),
 			protocmp.Transform(),
 		)
+	})
+
+}
+
+func (fx *MetadataStoreTestSuiteConfig) testDelete(t *testing.T) {
+	fx.maybeSkip(t)
+	// Method should fail with InvalidArgument if no name is provided.
+	t.Run("missing name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteMetadataStore(fx.ctx, &DeleteMetadataStoreRequest{
+			Name: "",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name is not valid.
+	t.Run("invalid name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteMetadataStore(fx.ctx, &DeleteMetadataStoreRequest{
+			Name: "invalid resource name",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Resource should be deleted without errors if it exists.
+	t.Run("exists", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteMetadataStore(fx.ctx, &DeleteMetadataStoreRequest{
+			Name: created.Name,
+		})
+		assert.NilError(t, err)
+	})
+
+	// Method should fail with NotFound if the resource does not exist.
+	t.Run("not found", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteMetadataStore(fx.ctx, &DeleteMetadataStoreRequest{
+			Name: created.Name + "notfound",
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
+	t.Run("only wildcards", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteMetadataStore(fx.ctx, &DeleteMetadataStoreRequest{
+			Name: "projects/-/locations/-/metadataStores/-",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
 }

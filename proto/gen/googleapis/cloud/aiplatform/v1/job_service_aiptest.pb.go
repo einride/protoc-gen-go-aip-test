@@ -86,6 +86,7 @@ func (fx *BatchPredictionJobTestSuiteConfig) test(t *testing.T) {
 	t.Run("Create", fx.testCreate)
 	t.Run("Get", fx.testGet)
 	t.Run("List", fx.testList)
+	t.Run("Delete", fx.testDelete)
 }
 
 func (fx *BatchPredictionJobTestSuiteConfig) testCreate(t *testing.T) {
@@ -649,6 +650,59 @@ func (fx *BatchPredictionJobTestSuiteConfig) testList(t *testing.T) {
 
 }
 
+func (fx *BatchPredictionJobTestSuiteConfig) testDelete(t *testing.T) {
+	fx.maybeSkip(t)
+	// Method should fail with InvalidArgument if no name is provided.
+	t.Run("missing name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteBatchPredictionJob(fx.ctx, &DeleteBatchPredictionJobRequest{
+			Name: "",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name is not valid.
+	t.Run("invalid name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteBatchPredictionJob(fx.ctx, &DeleteBatchPredictionJobRequest{
+			Name: "invalid resource name",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Resource should be deleted without errors if it exists.
+	t.Run("exists", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteBatchPredictionJob(fx.ctx, &DeleteBatchPredictionJobRequest{
+			Name: created.Name,
+		})
+		assert.NilError(t, err)
+	})
+
+	// Method should fail with NotFound if the resource does not exist.
+	t.Run("not found", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteBatchPredictionJob(fx.ctx, &DeleteBatchPredictionJobRequest{
+			Name: created.Name + "notfound",
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
+	t.Run("only wildcards", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteBatchPredictionJob(fx.ctx, &DeleteBatchPredictionJobRequest{
+			Name: "projects/-/locations/-/batchPredictionJobs/-",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+}
+
 func (fx *BatchPredictionJobTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	if pristine {
 		fx.currParent++
@@ -709,6 +763,7 @@ func (fx *CustomJobTestSuiteConfig) test(t *testing.T) {
 	t.Run("Create", fx.testCreate)
 	t.Run("Get", fx.testGet)
 	t.Run("List", fx.testList)
+	t.Run("Delete", fx.testDelete)
 }
 
 func (fx *CustomJobTestSuiteConfig) testCreate(t *testing.T) {
@@ -1079,6 +1134,59 @@ func (fx *CustomJobTestSuiteConfig) testList(t *testing.T) {
 
 }
 
+func (fx *CustomJobTestSuiteConfig) testDelete(t *testing.T) {
+	fx.maybeSkip(t)
+	// Method should fail with InvalidArgument if no name is provided.
+	t.Run("missing name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteCustomJob(fx.ctx, &DeleteCustomJobRequest{
+			Name: "",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name is not valid.
+	t.Run("invalid name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteCustomJob(fx.ctx, &DeleteCustomJobRequest{
+			Name: "invalid resource name",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Resource should be deleted without errors if it exists.
+	t.Run("exists", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteCustomJob(fx.ctx, &DeleteCustomJobRequest{
+			Name: created.Name,
+		})
+		assert.NilError(t, err)
+	})
+
+	// Method should fail with NotFound if the resource does not exist.
+	t.Run("not found", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteCustomJob(fx.ctx, &DeleteCustomJobRequest{
+			Name: created.Name + "notfound",
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
+	t.Run("only wildcards", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteCustomJob(fx.ctx, &DeleteCustomJobRequest{
+			Name: "projects/-/locations/-/customJobs/-",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+}
+
 func (fx *CustomJobTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	if pristine {
 		fx.currParent++
@@ -1139,6 +1247,7 @@ func (fx *DataLabelingJobTestSuiteConfig) test(t *testing.T) {
 	t.Run("Create", fx.testCreate)
 	t.Run("Get", fx.testGet)
 	t.Run("List", fx.testList)
+	t.Run("Delete", fx.testDelete)
 }
 
 func (fx *DataLabelingJobTestSuiteConfig) testCreate(t *testing.T) {
@@ -1526,6 +1635,59 @@ func (fx *DataLabelingJobTestSuiteConfig) testList(t *testing.T) {
 
 }
 
+func (fx *DataLabelingJobTestSuiteConfig) testDelete(t *testing.T) {
+	fx.maybeSkip(t)
+	// Method should fail with InvalidArgument if no name is provided.
+	t.Run("missing name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteDataLabelingJob(fx.ctx, &DeleteDataLabelingJobRequest{
+			Name: "",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name is not valid.
+	t.Run("invalid name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteDataLabelingJob(fx.ctx, &DeleteDataLabelingJobRequest{
+			Name: "invalid resource name",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Resource should be deleted without errors if it exists.
+	t.Run("exists", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteDataLabelingJob(fx.ctx, &DeleteDataLabelingJobRequest{
+			Name: created.Name,
+		})
+		assert.NilError(t, err)
+	})
+
+	// Method should fail with NotFound if the resource does not exist.
+	t.Run("not found", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteDataLabelingJob(fx.ctx, &DeleteDataLabelingJobRequest{
+			Name: created.Name + "notfound",
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
+	t.Run("only wildcards", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteDataLabelingJob(fx.ctx, &DeleteDataLabelingJobRequest{
+			Name: "projects/-/locations/-/dataLabelingJobs/-",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+}
+
 func (fx *DataLabelingJobTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	if pristine {
 		fx.currParent++
@@ -1586,6 +1748,7 @@ func (fx *HyperparameterTuningJobTestSuiteConfig) test(t *testing.T) {
 	t.Run("Create", fx.testCreate)
 	t.Run("Get", fx.testGet)
 	t.Run("List", fx.testList)
+	t.Run("Delete", fx.testDelete)
 }
 
 func (fx *HyperparameterTuningJobTestSuiteConfig) testCreate(t *testing.T) {
@@ -2036,6 +2199,59 @@ func (fx *HyperparameterTuningJobTestSuiteConfig) testList(t *testing.T) {
 
 }
 
+func (fx *HyperparameterTuningJobTestSuiteConfig) testDelete(t *testing.T) {
+	fx.maybeSkip(t)
+	// Method should fail with InvalidArgument if no name is provided.
+	t.Run("missing name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteHyperparameterTuningJob(fx.ctx, &DeleteHyperparameterTuningJobRequest{
+			Name: "",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name is not valid.
+	t.Run("invalid name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteHyperparameterTuningJob(fx.ctx, &DeleteHyperparameterTuningJobRequest{
+			Name: "invalid resource name",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Resource should be deleted without errors if it exists.
+	t.Run("exists", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteHyperparameterTuningJob(fx.ctx, &DeleteHyperparameterTuningJobRequest{
+			Name: created.Name,
+		})
+		assert.NilError(t, err)
+	})
+
+	// Method should fail with NotFound if the resource does not exist.
+	t.Run("not found", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteHyperparameterTuningJob(fx.ctx, &DeleteHyperparameterTuningJobRequest{
+			Name: created.Name + "notfound",
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
+	t.Run("only wildcards", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteHyperparameterTuningJob(fx.ctx, &DeleteHyperparameterTuningJobRequest{
+			Name: "projects/-/locations/-/hyperparameterTuningJobs/-",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+}
+
 func (fx *HyperparameterTuningJobTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	if pristine {
 		fx.currParent++
@@ -2100,6 +2316,7 @@ func (fx *ModelDeploymentMonitoringJobTestSuiteConfig) test(t *testing.T) {
 	t.Run("Get", fx.testGet)
 	t.Run("Update", fx.testUpdate)
 	t.Run("List", fx.testList)
+	t.Run("Delete", fx.testDelete)
 }
 
 func (fx *ModelDeploymentMonitoringJobTestSuiteConfig) testCreate(t *testing.T) {
@@ -2712,6 +2929,59 @@ func (fx *ModelDeploymentMonitoringJobTestSuiteConfig) testList(t *testing.T) {
 			}),
 			protocmp.Transform(),
 		)
+	})
+
+}
+
+func (fx *ModelDeploymentMonitoringJobTestSuiteConfig) testDelete(t *testing.T) {
+	fx.maybeSkip(t)
+	// Method should fail with InvalidArgument if no name is provided.
+	t.Run("missing name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteModelDeploymentMonitoringJob(fx.ctx, &DeleteModelDeploymentMonitoringJobRequest{
+			Name: "",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name is not valid.
+	t.Run("invalid name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteModelDeploymentMonitoringJob(fx.ctx, &DeleteModelDeploymentMonitoringJobRequest{
+			Name: "invalid resource name",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Resource should be deleted without errors if it exists.
+	t.Run("exists", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteModelDeploymentMonitoringJob(fx.ctx, &DeleteModelDeploymentMonitoringJobRequest{
+			Name: created.Name,
+		})
+		assert.NilError(t, err)
+	})
+
+	// Method should fail with NotFound if the resource does not exist.
+	t.Run("not found", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteModelDeploymentMonitoringJob(fx.ctx, &DeleteModelDeploymentMonitoringJobRequest{
+			Name: created.Name + "notfound",
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
+	t.Run("only wildcards", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteModelDeploymentMonitoringJob(fx.ctx, &DeleteModelDeploymentMonitoringJobRequest{
+			Name: "projects/-/locations/-/modelDeploymentMonitoringJobs/-",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
 }
