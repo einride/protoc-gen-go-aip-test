@@ -178,4 +178,14 @@ Suites
 | one by one         | Searching resource one by one should eventually return all resources.          | Generated only if all are true: <ul><li>resource has a parent</li><li>has Search method</li><li>resource has a parent</li></ul>                           |
 | deleted            | Method should not return deleted resources.                                    | Generated only if all are true: <ul><li>resource has a parent</li><li>has Search method</li><li>has Delete method</li><li>resource has a parent</li></ul> |
 
+### Delete
+
+| Name           | Description                                                                                | Only if                                                             |
+|----------------|--------------------------------------------------------------------------------------------|---------------------------------------------------------------------|
+| missing name   | Method should fail with InvalidArgument if no name is provided.                            | Generated only if all are true: <ul><li>has Delete method</li></ul> |
+| invalid name   | Method should fail with InvalidArgument if the provided name is not valid.                 | Generated only if all are true: <ul><li>has Delete method</li></ul> |
+| exists         | Resource should be deleted without errors if it exists.                                    | Generated only if all are true: <ul><li>has Delete method</li></ul> |
+| not found      | Method should fail with NotFound if the resource does not exist.                           | Generated only if all are true: <ul><li>has Delete method</li></ul> |
+| only wildcards | Method should fail with InvalidArgument if the provided name only contains wildcards ('-') | Generated only if all are true: <ul><li>has Delete method</li></ul> |
+
 <!-- END suites -->
