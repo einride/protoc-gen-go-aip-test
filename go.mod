@@ -3,7 +3,7 @@ module github.com/einride/protoc-gen-go-aip-test
 go 1.15
 
 require (
-	github.com/google/go-cmp v0.5.8
+	github.com/google/go-cmp v0.5.9
 	github.com/stoewer/go-strcase v1.2.0
 	go.einride.tech/aip v0.57.0
 	golang.org/x/net v0.0.0-20210805182204-aaa1db679c0d // indirect
