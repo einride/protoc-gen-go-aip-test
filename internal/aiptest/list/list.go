@@ -8,7 +8,8 @@ import (
 )
 
 // Suite of List tests.
-//nolint: gochecknoglobals
+//
+//nolint:gochecknoglobals
 var Suite = suite.Suite{
 	Name: "List",
 	Tests: []suite.Test{
@@ -21,7 +22,7 @@ var Suite = suite.Suite{
 	},
 }
 
-//nolint: gochecknoglobals
+//nolint:gochecknoglobals
 var withResourcesGroup = suite.TestGroup{
 	OnlyIf: suite.OnlyIfs(
 		onlyif.HasParent,

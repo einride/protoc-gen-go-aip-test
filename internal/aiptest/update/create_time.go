@@ -11,7 +11,7 @@ import (
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
-//nolint: gochecknoglobals
+//nolint:gochecknoglobals
 var preserveCreateTime = suite.Test{
 	Name: "preserve create_time",
 	Doc: []string{

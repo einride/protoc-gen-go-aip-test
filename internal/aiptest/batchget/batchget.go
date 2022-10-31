@@ -8,7 +8,8 @@ import (
 )
 
 // Suite of BatchGet tests.
-//nolint: gochecknoglobals
+//
+//nolint:gochecknoglobals
 var Suite = suite.Suite{
 	Name: "BatchGet",
 	Tests: []suite.Test{
@@ -23,7 +24,7 @@ var Suite = suite.Suite{
 	},
 }
 
-//nolint: gochecknoglobals
+//nolint:gochecknoglobals
 var withResourcesGroup = suite.TestGroup{
 	GenerateBefore: func(f *protogen.GeneratedFile, scope suite.Scope) error {
 		if util.HasParent(scope.Resource) {

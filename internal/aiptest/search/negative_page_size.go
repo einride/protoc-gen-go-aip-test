@@ -10,7 +10,7 @@ import (
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
-//nolint: gochecknoglobals
+//nolint:gochecknoglobals
 var negativePageSize = suite.Test{
 	Name: "negative page size",
 	Doc: []string{

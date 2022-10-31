@@ -5,7 +5,8 @@ import (
 )
 
 // Suite of Delete tests.
-//nolint: gochecknoglobals
+//
+//nolint:gochecknoglobals
 var Suite = suite.Suite{
 	Name: "Delete",
 	Tests: []suite.Test{

@@ -8,7 +8,8 @@ import (
 )
 
 // Suite for the Updaet method.
-//nolint: gochecknoglobals
+//
+//nolint:gochecknoglobals
 var Suite = suite.Suite{
 	Name: "Update",
 	Tests: []suite.Test{
@@ -23,7 +24,7 @@ var Suite = suite.Suite{
 	},
 }
 
-//nolint: gochecknoglobals
+//nolint:gochecknoglobals
 var withResourceGroup = suite.TestGroup{
 	GenerateBefore: func(f *protogen.GeneratedFile, scope suite.Scope) error {
 		if util.HasParent(scope.Resource) {

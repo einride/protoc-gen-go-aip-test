@@ -5,7 +5,8 @@ import (
 )
 
 // Protocmp idents.
-//nolint: gochecknoglobals
+//
+//nolint:gochecknoglobals
 var (
 	ProtocmpTransform = protogen.GoIdent{
 		GoName:       "Transform",

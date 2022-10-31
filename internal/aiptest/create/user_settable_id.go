@@ -11,7 +11,7 @@ import (
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
-//nolint: gochecknoglobals
+//nolint:gochecknoglobals
 var userSettableID = suite.Test{
 	Name: "user settable id",
 	Doc: []string{
