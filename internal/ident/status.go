@@ -5,7 +5,8 @@ import (
 )
 
 // Status idents.
-//nolint: gochecknoglobals
+//
+//nolint:gochecknoglobals
 var (
 	StatusCode = protogen.GoIdent{GoName: "Code", GoImportPath: "google.golang.org/grpc/status"}
 )

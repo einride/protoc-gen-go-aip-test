@@ -1,5 +1,4 @@
 // Package onlyif provides primitives for running tests only if conditions are met.
-//nolint: gochecknoglobals
 package onlyif
 
 import (
@@ -46,6 +45,7 @@ func MethodNotLRO(methodType aipreflect.MethodType) suite.OnlyIf {
 	}
 }
 
+//nolint:gochecknoglobals
 var HasUserSettableID = onlyIf{
 	f: func(scope suite.Scope) bool {
 		method, ok := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeCreate)
@@ -54,6 +54,7 @@ var HasUserSettableID = onlyIf{
 	doc: "has user settable ID",
 }
 
+//nolint:gochecknoglobals
 var HasUpdateMask = onlyIf{
 	f: func(scope suite.Scope) bool {
 		method, ok := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeUpdate)
@@ -62,6 +63,7 @@ var HasUpdateMask = onlyIf{
 	doc: "Update method has update_mask",
 }
 
+//nolint:gochecknoglobals
 var HasParent = onlyIf{
 	f: func(scope suite.Scope) bool {
 		return util.HasParent(scope.Resource)
@@ -69,6 +71,7 @@ var HasParent = onlyIf{
 	doc: "resource has a parent",
 }
 
+//nolint:gochecknoglobals
 var HasRequiredFields = onlyIf{
 	f: func(scope suite.Scope) bool {
 		return util.HasRequiredFields(scope.Message.Desc)
@@ -85,6 +88,7 @@ func HasField(name string) suite.OnlyIf {
 	}
 }
 
+//nolint:gochecknoglobals
 var HasMutableResourceReferences = onlyIf{
 	f: func(scope suite.Scope) bool {
 		return util.HasMutableResourceReferences(scope.Message.Desc)

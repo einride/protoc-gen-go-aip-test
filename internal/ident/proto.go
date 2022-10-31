@@ -5,7 +5,8 @@ import (
 )
 
 // Proto idents.
-//nolint: gochecknoglobals
+//
+//nolint:gochecknoglobals
 var (
 	ProtoClone = protogen.GoIdent{
 		GoName:       "Clone",

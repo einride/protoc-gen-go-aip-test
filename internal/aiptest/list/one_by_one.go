@@ -10,7 +10,7 @@ import (
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
-//nolint: gochecknoglobals
+//nolint:gochecknoglobals
 var oneByOne = suite.Test{
 	Name: "one by one",
 	Doc: []string{

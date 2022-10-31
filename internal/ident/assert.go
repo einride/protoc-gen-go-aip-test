@@ -5,7 +5,8 @@ import (
 )
 
 // Assert idents.
-//nolint: gochecknoglobals
+//
+//nolint:gochecknoglobals
 var (
 	AssertEqual = protogen.GoIdent{
 		GoName:       "Equal",

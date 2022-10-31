@@ -12,7 +12,8 @@ import (
 )
 
 // Suites of tests for standard methods.
-//nolint: gochecknoglobals
+//
+//nolint:gochecknoglobals
 var Suites = []suite.Suite{
 	create.Suite,
 	get.Suite,
