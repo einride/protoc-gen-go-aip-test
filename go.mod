@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/google/go-cmp v0.5.9
-	github.com/stoewer/go-strcase v1.2.1
+	github.com/stoewer/go-strcase v1.3.0
 	go.einride.tech/aip v0.60.0
 	google.golang.org/genproto v0.0.0-20220926220553-6981cbe3cfce
 	google.golang.org/grpc v1.51.0
