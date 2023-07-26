@@ -16,6 +16,7 @@ const (
 )
 
 func Generate(plugin *protogen.Plugin) error {
+	plugin.SupportedFeatures |= 1 // proto3 optional
 	pkgResources := findResourcesPerPackage(plugin)
 	for _, file := range plugin.Files {
 		if len(file.Services) == 0 || !file.Generate {

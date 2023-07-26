@@ -33,18 +33,14 @@ service FreightService {
   // Get a shipper.
   // See: https://google.aip.dev/131 (Standard methods: Get).
   rpc GetShipper(GetShipperRequest) returns (Shipper) {
-    option (google.api.http) = {
-      get: "/v1/{name=shippers/*}"
-    };
+    option (google.api.http) = {get: "/v1/{name=shippers/*}"};
     option (google.api.method_signature) = "name";
   }
 
   // List shippers.
   // See: https://google.aip.dev/132 (Standard methods: List).
   rpc ListShippers(ListShippersRequest) returns (ListShippersResponse) {
-    option (google.api.http) = {
-      get: "/v1/shippers"
-    };
+    option (google.api.http) = {get: "/v1/shippers"};
   }
 
   // Create a shipper.
@@ -71,36 +67,28 @@ service FreightService {
   // See: https://google.aip.dev/135 (Standard methods: Delete).
   // See: https://google.aip.dev/164 (Soft delete).
   rpc DeleteShipper(DeleteShipperRequest) returns (Shipper) {
-    option (google.api.http) = {
-      delete: "/v1/{name=shippers/*}"
-    };
+    option (google.api.http) = {delete: "/v1/{name=shippers/*}"};
     option (google.api.method_signature) = "name";
   }
 
   // Get a site.
   // See: https://google.aip.dev/131 (Standard methods: Get).
   rpc GetSite(GetSiteRequest) returns (Site) {
-    option (google.api.http) = {
-      get: "/v1/{name=shippers/*/sites/*}"
-    };
+    option (google.api.http) = {get: "/v1/{name=shippers/*/sites/*}"};
     option (google.api.method_signature) = "name";
   }
 
   // Batch get sites.
   // See: https://google.aip.dev/231 (Standard methods: Get).
   rpc BatchGetSites(BatchGetSitesRequest) returns (BatchGetSitesResponse) {
-    option (google.api.http) = {
-      get: "/v1/{parent=shippers/*}/sites:batchGet"
-    };
+    option (google.api.http) = {get: "/v1/{parent=shippers/*}/sites:batchGet"};
     option (google.api.method_signature) = "parent";
   }
 
   // List sites for a shipper.
   // See: https://google.aip.dev/132 (Standard methods: List).
   rpc ListSites(ListSitesRequest) returns (ListSitesResponse) {
-    option (google.api.http) = {
-      get: "/v1/{parent=shippers/*}/sites"
-    };
+    option (google.api.http) = {get: "/v1/{parent=shippers/*}/sites"};
     option (google.api.method_signature) = "parent";
   }
 
@@ -128,9 +116,7 @@ service FreightService {
   // See: https://google.aip.dev/135 (Standard methods: Delete).
   // See: https://google.aip.dev/164 (Soft delete).
   rpc DeleteSite(DeleteSiteRequest) returns (Site) {
-    option (google.api.http) = {
-      delete: "/v1/{name=shippers/*/sites/*}"
-    };
+    option (google.api.http) = {delete: "/v1/{name=shippers/*/sites/*}"};
     option (google.api.method_signature) = "name";
   }
 }
@@ -274,9 +260,7 @@ message CreateSiteRequest {
   // Format: shippers/{shipper}
   string parent = 1 [
     (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {
-      child_type: "freight-example.einride.tech/Shipper"
-    }
+    (google.api.resource_reference) = {child_type: "freight-example.einride.tech/Shipper"}
   ];
   // The site to create.
   Site site = 2 [(google.api.field_behavior) = REQUIRED];

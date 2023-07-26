@@ -3,10 +3,10 @@ package method
 import (
 	"strings"
 
+	longrunningpb "cloud.google.com/go/longrunning/autogen/longrunningpb"
 	"go.einride.tech/aip/reflect/aipreflect"
 	"go.einride.tech/aip/resourcename"
 	"google.golang.org/genproto/googleapis/api/annotations"
-	longrunningpb "google.golang.org/genproto/googleapis/longrunning"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )

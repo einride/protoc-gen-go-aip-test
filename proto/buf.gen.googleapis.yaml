@@ -2,13 +2,13 @@ version: v1
 
 plugins:
   - name: go
-    out: gen
-    opt: module=google.golang.org/genproto
+    out: gen/googleapis
+    opt: module=cloud.google.com/go
 
   - name: go-grpc
-    out: gen
-    opt: module=google.golang.org/genproto
+    out: gen/googleapis
+    opt: module=cloud.google.com/go
 
   - name: go-aip-test
-    out: gen
-    opt: module=google.golang.org/genproto
+    out: gen/googleapis
+    opt: module=cloud.google.com/go
