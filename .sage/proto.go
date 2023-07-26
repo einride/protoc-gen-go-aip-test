@@ -15,7 +15,7 @@ const (
 	// Since there are no tags or branches to generate from in that repository,
 	// this will fail once more than 1_000 commits have been added in that repository
 	// since this commit.
-	googleapisRef = "0487c63ac8292e507e0f3fecb3c01efdadea4967"
+	googleapisRef = "5096eae6a449e0ee66b68cfd2634cac97b682e88"
 )
 
 func (Proto) All(ctx context.Context) error {
