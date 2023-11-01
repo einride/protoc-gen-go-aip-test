@@ -5,7 +5,7 @@ go 1.19
 require (
 	cloud.google.com/go/iam v1.1.1
 	cloud.google.com/go/longrunning v0.5.1
-	github.com/google/go-cmp v0.5.9
+	github.com/google/go-cmp v0.6.0
 	github.com/stoewer/go-strcase v1.3.0
 	go.einride.tech/aip v0.62.0
 	google.golang.org/genproto v0.0.0-20230725213213-b022f6e96895
