@@ -22,8 +22,8 @@ github.com/stretchr/testify v1.7.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/
 github.com/stretchr/testify v1.8.0/go.mod h1:yNjHg4UonilssWZ8iaSj1OCr/vHnekPRkoO+kdMU+MU=
 github.com/stretchr/testify v1.8.1 h1:w7B6lhMri9wdJUVmEZPGGhZzrYTPvgJArz7wNPgYKsk=
 github.com/stretchr/testify v1.8.1/go.mod h1:w2LPCIKwWwSfY2zedu0+kehJoqGctiVI29o6fzry7u4=
-go.einride.tech/aip v0.62.0 h1:DVHT0kgIhHfEqcbTUZ/tKTc+YButvOuTVT4JQFWDGo0=
-go.einride.tech/aip v0.62.0/go.mod h1:YVrCQRL7SCB5Mv7i2ZF1R6vkLPh844RQBCLrrLcefaU=
+go.einride.tech/aip v0.64.0 h1:awFSNPnhLLfwcnIM6iLmDP94fSAlJD86Sl12XqY/lpk=
+go.einride.tech/aip v0.64.0/go.mod h1:kK5nO4xh3JoniXp64dxgT474Egmr5L7SlsGD6xvP6fU=
 golang.org/x/net v0.17.0 h1:pVaXccu2ozPjCXewfr1S7xza/zcXTity9cCdXQYSjIM=
 golang.org/x/net v0.17.0/go.mod h1:NxSsAGuq816PNPmqtQdLE42eU2Fs7NoRIZrHJAlaCOE=
 golang.org/x/sys v0.13.0 h1:Af8nKPmuFypiUBjVoU9V20FiaFXOcuZI21p0ycVYYGE=

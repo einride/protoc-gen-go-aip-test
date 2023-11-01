@@ -7,7 +7,7 @@ require (
 	cloud.google.com/go/longrunning v0.5.1
 	github.com/google/go-cmp v0.5.9
 	github.com/stoewer/go-strcase v1.3.0
-	go.einride.tech/aip v0.62.0
+	go.einride.tech/aip v0.64.0
 	google.golang.org/genproto v0.0.0-20230725213213-b022f6e96895
 	google.golang.org/genproto/googleapis/api v0.0.0-20230725213213-b022f6e96895
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230725213213-b022f6e96895
