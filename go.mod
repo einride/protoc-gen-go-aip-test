@@ -8,10 +8,10 @@ require (
 	github.com/google/go-cmp v0.5.9
 	github.com/stoewer/go-strcase v1.3.0
 	go.einride.tech/aip v0.62.0
-	google.golang.org/genproto v0.0.0-20230725213213-b022f6e96895
-	google.golang.org/genproto/googleapis/api v0.0.0-20230725213213-b022f6e96895
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20230725213213-b022f6e96895
-	google.golang.org/grpc v1.58.2
+	google.golang.org/genproto v0.0.0-20230822172742-b8732ec3820d
+	google.golang.org/genproto/googleapis/api v0.0.0-20230822172742-b8732ec3820d
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20230822172742-b8732ec3820d
+	google.golang.org/grpc v1.59.0
 	google.golang.org/protobuf v1.31.0
 	gotest.tools/v3 v3.5.1
 )
