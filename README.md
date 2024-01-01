@@ -1,14 +1,16 @@
-protoc-gen-go-aip-test
-======================
+# protoc-gen-go-aip-test
 
-Generate test suites for protobuf services implementing [standard AIP methods](https://google.aip.dev/121#methods).
+Generate test suites for protobuf services implementing
+[standard AIP methods](https://google.aip.dev/121#methods).
 
-The generated test suites are based on guidance for standard methods, and experience from implementing these methods in practice. See [Suites](#suites) for a list of the generated tests.
+The generated test suites are based on guidance for standard methods, and
+experience from implementing these methods in practice. See [Suites](#suites)
+for a list of the generated tests.
 
-**Experimental**: This plugin is experimental, and breaking changes with regard to the generated tests suites should be expected.
+**Experimental**: This plugin is experimental, and breaking changes with regard
+to the generated tests suites should be expected.
 
-Usage
------
+## Usage
 
 ### Step 1: Declare a service with AIP standard methods
 
@@ -44,7 +46,9 @@ protoc
   [.proto files ...]
 ```
 
-This can also be done via a [buf generate](https://docs.buf.build/generate/usage) template. See [buf.gen.yaml](./buf.gen.yaml) for an example.
+This can also be done via a
+[buf generate](https://docs.buf.build/generate/usage) template. See
+[buf.gen.yaml](./buf.gen.yaml) for an example.
 
 ### Step 4: Run tests
 
@@ -88,24 +92,28 @@ func Test_FreightService(t *testing.T) {
 
 ### Skipping tests
 
-There may be multiple reasons for an API to deviate from the guidance for standard methods (for examples see [AIP-200](https://google.aip.dev/200)). This plugin supports skipping individual or groups of tests using the `Skip` field generated for each test suite config.
+There may be multiple reasons for an API to deviate from the guidance for
+standard methods (for examples see [AIP-200](https://google.aip.dev/200)). This
+plugin supports skipping individual or groups of tests using the `Skip` field
+generated for each test suite config.
 
-Each test are compared, using `strings.Contains`, against a list of skipped test patterns. The full name of each test will follow the format `[resource]/[method type]/[test_name]`.
+Each test are compared, using `strings.Contains`, against a list of skipped test
+patterns. The full name of each test will follow the format
+`[resource]/[method type]/[test_name]`.
 
 Sample skips:
 
--	`"Get/invalid_name"` skips the "invalid name" test for Get standard method.
--	`"Get"` skips all tests for a Get standard method.
+- `"Get/invalid_name"` skips the "invalid name" test for Get standard method.
+- `"Get"` skips all tests for a Get standard method.
 
-Suites
-------
+## Suites
 
 <!-- BEGIN suites -->
 
 ### Create
 
 | Name                | Description                                                                                                    | Only if                                                                                                                                                          |
-|---------------------|----------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ------------------- | -------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | missing parent      | Method should fail with InvalidArgument if no parent is provided.                                              | Generated only if all are true: <ul><li>has Create method</li><li>resource has a parent</li></ul>                                                                |
 | invalid parent      | Method should fail with InvalidArgument if provided parent is invalid.                                         | Generated only if all are true: <ul><li>has Create method</li><li>resource has a parent</li></ul>                                                                |
 | create time         | Field create_time should be populated when the resource is created.                                            | Generated only if all are true: <ul><li>has Create method</li><li>Create method does not return long-running operation</li><li>has field 'create_time'</li></ul> |
@@ -118,7 +126,7 @@ Suites
 ### Get
 
 | Name           | Description                                                                                | Only if                                                          |
-|----------------|--------------------------------------------------------------------------------------------|------------------------------------------------------------------|
+| -------------- | ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------- |
 | missing name   | Method should fail with InvalidArgument if no name is provided.                            | Generated only if all are true: <ul><li>has Get method</li></ul> |
 | invalid name   | Method should fail with InvalidArgument if the provided name is not valid.                 | Generated only if all are true: <ul><li>has Get method</li></ul> |
 | exists         | Resource should be returned without errors if it exists.                                   | Generated only if all are true: <ul><li>has Get method</li></ul> |
@@ -128,7 +136,7 @@ Suites
 ### BatchGet
 
 | Name            | Description                                                                                                                                 | Only if                                                                                                                                              |
-|-----------------|---------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
 | invalid parent  | Method should fail with InvalidArgument if provided parent is invalid.                                                                      | Generated only if all are true: <ul><li>resource has a parent</li><li>has BatchGet method</li><li>is not alternative batch request message</li></ul> |
 | names missing   | Method should fail with InvalidArgument if no names are provided.                                                                           | Generated only if all are true: <ul><li>has BatchGet method</li><li>is not alternative batch request message</li></ul>                               |
 | invalid names   | Method should fail with InvalidArgument if a provided name is not valid.                                                                    | Generated only if all are true: <ul><li>has BatchGet method</li><li>is not alternative batch request message</li></ul>                               |
@@ -141,21 +149,21 @@ Suites
 
 ### Update
 
-| Name                 | Description                                                                                                | Only if                                                                                                                                                                                                                                                 |
-|----------------------|------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| missing name         | Method should fail with InvalidArgument if no name is provided.                                            | Generated only if all are true: <ul><li>has Update method</li></ul>                                                                                                                                                                                     |
-| invalid name         | Method should fail with InvalidArgument if provided name is not valid.                                     | Generated only if all are true: <ul><li>has Update method</li></ul>                                                                                                                                                                                     |
-| update time          | Field update_time should be updated when the resource is updated.                                          | Generated only if all are true: <ul><li>has Create method</li><li>Create method does not return long-running operation</li><li>has Update method</li><li>Update method does not return long-running operation</li><li>has field 'update_time'</li></ul> |
-| persisted            | The updated resource should be persisted and reachable with Get.                                           | Generated only if all are true: <ul><li>has Update method</li><li>Update method does not return long-running operation</li><li>has Get method</li></ul>                                                                                                 |
-| preserve create_time | The field create_time should be preserved when a '*'-update mask is used.                                  | Generated only if all are true: <ul><li>has Update method</li><li>Update method does not return long-running operation</li><li>has field 'create_time'</li><li>resource has any required fields</li></ul>                                               |
-| not found            | Method should fail with NotFound if the resource does not exist.                                           | Generated only if all are true: <ul><li>has Update method</li></ul>                                                                                                                                                                                     |
-| invalid update mask  | The method should fail with InvalidArgument if the update_mask is invalid.                                 | Generated only if all are true: <ul><li>has Update method</li><li>Update method has update_mask</li></ul>                                                                                                                                               |
-| required fields      | Method should fail with InvalidArgument if any required field is missing when called with '*' update_mask. | Generated only if all are true: <ul><li>has Update method</li><li>resource has any required fields</li></ul>                                                                                                                                            |
+| Name                 | Description                                                                                                 | Only if                                                                                                                                                                                                                                                 |
+| -------------------- | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| missing name         | Method should fail with InvalidArgument if no name is provided.                                             | Generated only if all are true: <ul><li>has Update method</li></ul>                                                                                                                                                                                     |
+| invalid name         | Method should fail with InvalidArgument if provided name is not valid.                                      | Generated only if all are true: <ul><li>has Update method</li></ul>                                                                                                                                                                                     |
+| update time          | Field update_time should be updated when the resource is updated.                                           | Generated only if all are true: <ul><li>has Create method</li><li>Create method does not return long-running operation</li><li>has Update method</li><li>Update method does not return long-running operation</li><li>has field 'update_time'</li></ul> |
+| persisted            | The updated resource should be persisted and reachable with Get.                                            | Generated only if all are true: <ul><li>has Update method</li><li>Update method does not return long-running operation</li><li>has Get method</li></ul>                                                                                                 |
+| preserve create_time | The field create_time should be preserved when a '\*'-update mask is used.                                  | Generated only if all are true: <ul><li>has Update method</li><li>Update method does not return long-running operation</li><li>has field 'create_time'</li><li>resource has any required fields</li></ul>                                               |
+| not found            | Method should fail with NotFound if the resource does not exist.                                            | Generated only if all are true: <ul><li>has Update method</li></ul>                                                                                                                                                                                     |
+| invalid update mask  | The method should fail with InvalidArgument if the update_mask is invalid.                                  | Generated only if all are true: <ul><li>has Update method</li><li>Update method has update_mask</li></ul>                                                                                                                                               |
+| required fields      | Method should fail with InvalidArgument if any required field is missing when called with '\*' update_mask. | Generated only if all are true: <ul><li>has Update method</li><li>resource has any required fields</li></ul>                                                                                                                                            |
 
 ### List
 
 | Name               | Description                                                                    | Only if                                                                                                                                                 |
-|--------------------|--------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ------------------ | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | invalid parent     | Method should fail with InvalidArgument if provided parent is invalid.         | Generated only if all are true: <ul><li>has List method</li><li>resource has a parent</li></ul>                                                         |
 | invalid page token | Method should fail with InvalidArgument is provided page token is not valid.   | Generated only if all are true: <ul><li>has List method</li></ul>                                                                                       |
 | negative page size | Method should fail with InvalidArgument is provided page size is negative.     | Generated only if all are true: <ul><li>has List method</li></ul>                                                                                       |
@@ -168,7 +176,7 @@ Suites
 ### Search
 
 | Name               | Description                                                                    | Only if                                                                                                                                                   |
-|--------------------|--------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ------------------ | ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | invalid parent     | Method should fail with InvalidArgument if provided parent is invalid.         | Generated only if all are true: <ul><li>has Search method</li><li>resource has a parent</li></ul>                                                         |
 | invalid page token | Method should fail with InvalidArgument is provided page token is not valid.   | Generated only if all are true: <ul><li>has Search method</li></ul>                                                                                       |
 | negative page size | Method should fail with InvalidArgument is provided page size is negative.     | Generated only if all are true: <ul><li>has Search method</li></ul>                                                                                       |
@@ -181,7 +189,7 @@ Suites
 ### Delete
 
 | Name           | Description                                                                                | Only if                                                             |
-|----------------|--------------------------------------------------------------------------------------------|---------------------------------------------------------------------|
+| -------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------- |
 | missing name   | Method should fail with InvalidArgument if no name is provided.                            | Generated only if all are true: <ul><li>has Delete method</li></ul> |
 | invalid name   | Method should fail with InvalidArgument if the provided name is not valid.                 | Generated only if all are true: <ul><li>has Delete method</li></ul> |
 | exists         | Resource should be deleted without errors if it exists.                                    | Generated only if all are true: <ul><li>has Delete method</li></ul> |
