@@ -3,7 +3,7 @@ module github.com/einride/protoc-gen-go-aip-test
 go 1.19
 
 require (
-	cloud.google.com/go/iam v1.1.3
+	cloud.google.com/go/iam v1.1.5
 	cloud.google.com/go/longrunning v0.5.4
 	github.com/google/go-cmp v0.6.0
 	github.com/stoewer/go-strcase v1.3.0
