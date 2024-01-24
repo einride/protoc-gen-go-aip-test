@@ -5,13 +5,25 @@ updates:
     directory: /
     schedule:
       interval: monthly
+    groups:
+      all dependencies:
+        patterns:
+          - "*"
 
   - package-ecosystem: gomod
     directory: /
     schedule:
       interval: monthly
+    groups:
+      all dependencies:
+        patterns:
+          - "*"
 
   - package-ecosystem: gomod
     directory: .sage
     schedule:
       interval: monthly
+    groups:
+      all dependencies:
+        patterns:
+          - "*"
