@@ -288,7 +288,7 @@ func (fx *ShipperTestSuiteConfig) testUpdate(t *testing.T) {
 			Shipper: created,
 		})
 		assert.NilError(t, err)
-		assert.Check(t, !created.UpdateTime.AsTime().After(updated.UpdateTime.AsTime()))
+		assert.Check(t, updated.UpdateTime.AsTime().After(created.UpdateTime.AsTime()))
 	})
 
 	// The updated resource should be persisted and reachable with Get.
@@ -875,7 +875,7 @@ func (fx *SiteTestSuiteConfig) testUpdate(t *testing.T) {
 			Site: created,
 		})
 		assert.NilError(t, err)
-		assert.Check(t, !created.UpdateTime.AsTime().After(updated.UpdateTime.AsTime()))
+		assert.Check(t, updated.UpdateTime.AsTime().After(created.UpdateTime.AsTime()))
 	})
 
 	// The updated resource should be persisted and reachable with Get.

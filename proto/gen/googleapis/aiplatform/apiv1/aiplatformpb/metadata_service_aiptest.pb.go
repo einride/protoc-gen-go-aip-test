@@ -235,7 +235,7 @@ func (fx *ArtifactTestSuiteConfig) testUpdate(t *testing.T) {
 			Artifact: created,
 		})
 		assert.NilError(t, err)
-		assert.Check(t, !created.UpdateTime.AsTime().After(updated.UpdateTime.AsTime()))
+		assert.Check(t, updated.UpdateTime.AsTime().After(created.UpdateTime.AsTime()))
 	})
 
 	// The updated resource should be persisted and reachable with Get.
@@ -686,7 +686,7 @@ func (fx *ContextTestSuiteConfig) testUpdate(t *testing.T) {
 			Context: created,
 		})
 		assert.NilError(t, err)
-		assert.Check(t, !created.UpdateTime.AsTime().After(updated.UpdateTime.AsTime()))
+		assert.Check(t, updated.UpdateTime.AsTime().After(created.UpdateTime.AsTime()))
 	})
 
 	// The updated resource should be persisted and reachable with Get.
@@ -1137,7 +1137,7 @@ func (fx *ExecutionTestSuiteConfig) testUpdate(t *testing.T) {
 			Execution: created,
 		})
 		assert.NilError(t, err)
-		assert.Check(t, !created.UpdateTime.AsTime().After(updated.UpdateTime.AsTime()))
+		assert.Check(t, updated.UpdateTime.AsTime().After(created.UpdateTime.AsTime()))
 	})
 
 	// The updated resource should be persisted and reachable with Get.
