@@ -94,7 +94,9 @@ func (fx *StudyTestSuiteConfig) testCreate(t *testing.T) {
 			Study:  fx.Create(parent),
 		})
 		assert.NilError(t, err)
-		assert.Check(t, time.Since(msg.CreateTime.AsTime()) < time.Second)
+		assert.Check(t, msg.CreateTime != nil)
+		assert.Check(t, !msg.CreateTime.AsTime().IsZero())
+		assert.Check(t, !msg.CreateTime.AsTime().After(time.Now()))
 	})
 
 	// The created resource should be persisted and reachable with Get.

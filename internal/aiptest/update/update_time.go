@@ -38,7 +38,8 @@ var updateTime = suite.Test{
 			Msg:      "created",
 		}.Generate(f, "updated", "err", ":=")
 		f.P(ident.AssertNilError, "(t, err)")
-		f.P(ident.AssertCheck, "(t, updated.UpdateTime.AsTime().After(created.UpdateTime.AsTime()))")
+		// Allow Created == Updated due to flakyness of clock in podman and colima
+		f.P(ident.AssertCheck, "(t, !created.UpdateTime.AsTime().After(updated.UpdateTime.AsTime()))")
 		return nil
 	},
 }

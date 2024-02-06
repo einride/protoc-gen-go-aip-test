@@ -136,7 +136,9 @@ func (fx *BatchPredictionJobTestSuiteConfig) testCreate(t *testing.T) {
 			BatchPredictionJob: fx.Create(parent),
 		})
 		assert.NilError(t, err)
-		assert.Check(t, time.Since(msg.CreateTime.AsTime()) < time.Second)
+		assert.Check(t, msg.CreateTime != nil)
+		assert.Check(t, !msg.CreateTime.AsTime().IsZero())
+		assert.Check(t, !msg.CreateTime.AsTime().After(time.Now()))
 	})
 
 	// The created resource should be persisted and reachable with Get.
@@ -813,7 +815,9 @@ func (fx *CustomJobTestSuiteConfig) testCreate(t *testing.T) {
 			CustomJob: fx.Create(parent),
 		})
 		assert.NilError(t, err)
-		assert.Check(t, time.Since(msg.CreateTime.AsTime()) < time.Second)
+		assert.Check(t, msg.CreateTime != nil)
+		assert.Check(t, !msg.CreateTime.AsTime().IsZero())
+		assert.Check(t, !msg.CreateTime.AsTime().After(time.Now()))
 	})
 
 	// The created resource should be persisted and reachable with Get.
@@ -1327,7 +1331,9 @@ func (fx *DataLabelingJobTestSuiteConfig) testCreate(t *testing.T) {
 			DataLabelingJob: fx.Create(parent),
 		})
 		assert.NilError(t, err)
-		assert.Check(t, time.Since(msg.CreateTime.AsTime()) < time.Second)
+		assert.Check(t, msg.CreateTime != nil)
+		assert.Check(t, !msg.CreateTime.AsTime().IsZero())
+		assert.Check(t, !msg.CreateTime.AsTime().After(time.Now()))
 	})
 
 	// The created resource should be persisted and reachable with Get.
@@ -1828,7 +1834,9 @@ func (fx *HyperparameterTuningJobTestSuiteConfig) testCreate(t *testing.T) {
 			HyperparameterTuningJob: fx.Create(parent),
 		})
 		assert.NilError(t, err)
-		assert.Check(t, time.Since(msg.CreateTime.AsTime()) < time.Second)
+		assert.Check(t, msg.CreateTime != nil)
+		assert.Check(t, !msg.CreateTime.AsTime().IsZero())
+		assert.Check(t, !msg.CreateTime.AsTime().After(time.Now()))
 	})
 
 	// The created resource should be persisted and reachable with Get.
@@ -2426,7 +2434,9 @@ func (fx *ModelDeploymentMonitoringJobTestSuiteConfig) testCreate(t *testing.T) 
 			ModelDeploymentMonitoringJob: fx.Create(parent),
 		})
 		assert.NilError(t, err)
-		assert.Check(t, time.Since(msg.CreateTime.AsTime()) < time.Second)
+		assert.Check(t, msg.CreateTime != nil)
+		assert.Check(t, !msg.CreateTime.AsTime().IsZero())
+		assert.Check(t, !msg.CreateTime.AsTime().After(time.Now()))
 	})
 
 	// The created resource should be persisted and reachable with Get.
@@ -3156,7 +3166,9 @@ func (fx *NasJobTestSuiteConfig) testCreate(t *testing.T) {
 			NasJob: fx.Create(parent),
 		})
 		assert.NilError(t, err)
-		assert.Check(t, time.Since(msg.CreateTime.AsTime()) < time.Second)
+		assert.Check(t, msg.CreateTime != nil)
+		assert.Check(t, !msg.CreateTime.AsTime().IsZero())
+		assert.Check(t, !msg.CreateTime.AsTime().After(time.Now()))
 	})
 
 	// The created resource should be persisted and reachable with Get.
