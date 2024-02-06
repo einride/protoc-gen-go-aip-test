@@ -699,7 +699,7 @@ func (fx *TensorboardExperimentTestSuiteConfig) testUpdate(t *testing.T) {
 			TensorboardExperiment: created,
 		})
 		assert.NilError(t, err)
-		assert.Check(t, !created.UpdateTime.AsTime().After(updated.UpdateTime.AsTime()))
+		assert.Check(t, updated.UpdateTime.AsTime().After(created.UpdateTime.AsTime()))
 	})
 
 	// The updated resource should be persisted and reachable with Get.
@@ -1172,7 +1172,7 @@ func (fx *TensorboardRunTestSuiteConfig) testUpdate(t *testing.T) {
 			TensorboardRun: created,
 		})
 		assert.NilError(t, err)
-		assert.Check(t, !created.UpdateTime.AsTime().After(updated.UpdateTime.AsTime()))
+		assert.Check(t, updated.UpdateTime.AsTime().After(created.UpdateTime.AsTime()))
 	})
 
 	// The updated resource should be persisted and reachable with Get.
@@ -1704,7 +1704,7 @@ func (fx *TensorboardTimeSeriesTestSuiteConfig) testUpdate(t *testing.T) {
 			TensorboardTimeSeries: created,
 		})
 		assert.NilError(t, err)
-		assert.Check(t, !created.UpdateTime.AsTime().After(updated.UpdateTime.AsTime()))
+		assert.Check(t, updated.UpdateTime.AsTime().After(created.UpdateTime.AsTime()))
 	})
 
 	// The updated resource should be persisted and reachable with Get.
