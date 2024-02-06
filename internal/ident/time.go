@@ -10,4 +10,5 @@ import (
 var (
 	TimeSecond = protogen.GoIdent{GoName: "Second", GoImportPath: "time"}
 	TimeSince  = protogen.GoIdent{GoName: "Since", GoImportPath: "time"}
+	TimeNow    = protogen.GoIdent{GoName: "Now", GoImportPath: "time"}
 )

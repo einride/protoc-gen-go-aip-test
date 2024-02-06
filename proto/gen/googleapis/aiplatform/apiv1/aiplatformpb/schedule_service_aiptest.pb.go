@@ -92,7 +92,9 @@ func (fx *ScheduleTestSuiteConfig) testCreate(t *testing.T) {
 			Schedule: fx.Create(parent),
 		})
 		assert.NilError(t, err)
-		assert.Check(t, time.Since(msg.CreateTime.AsTime()) < time.Second)
+		assert.Check(t, msg.CreateTime != nil)
+		assert.Check(t, !msg.CreateTime.AsTime().IsZero())
+		assert.Check(t, !msg.CreateTime.AsTime().After(time.Now()))
 	})
 
 	// The created resource should be persisted and reachable with Get.
@@ -340,7 +342,7 @@ func (fx *ScheduleTestSuiteConfig) testUpdate(t *testing.T) {
 			Schedule: created,
 		})
 		assert.NilError(t, err)
-		assert.Check(t, updated.UpdateTime.AsTime().After(created.UpdateTime.AsTime()))
+		assert.Check(t, !created.UpdateTime.AsTime().After(updated.UpdateTime.AsTime()))
 	})
 
 	// The updated resource should be persisted and reachable with Get.

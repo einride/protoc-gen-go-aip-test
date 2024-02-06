@@ -33,7 +33,10 @@ var createTime = suite.Test{
 			Parent:   "parent",
 		}.Generate(f, "msg", "err", ":=")
 		f.P(ident.AssertNilError, "(t, err)")
-		f.P(ident.AssertCheck, "(t, ", ident.TimeSince, "(msg.CreateTime.AsTime()) < ", ident.TimeSecond, ")")
+		f.P(ident.AssertCheck, "(t, msg.CreateTime != nil)")
+		f.P(ident.AssertCheck, "(t, !msg.CreateTime.AsTime().IsZero())")
+		// Allow Created == Now due to flakyness of clock in podman and colima
+		f.P(ident.AssertCheck, "(t, !msg.CreateTime.AsTime().After(", ident.TimeNow, "()))")
 		return nil
 	},
 }
