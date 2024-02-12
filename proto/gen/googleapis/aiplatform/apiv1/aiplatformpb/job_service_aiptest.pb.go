@@ -11,6 +11,7 @@ import (
 	protocmp "google.golang.org/protobuf/testing/protocmp"
 	fieldmaskpb "google.golang.org/protobuf/types/known/fieldmaskpb"
 	assert "gotest.tools/v3/assert"
+	runtime "runtime"
 	strings "strings"
 	testing "testing"
 	time "time"
@@ -131,6 +132,7 @@ func (fx *BatchPredictionJobTestSuiteConfig) testCreate(t *testing.T) {
 	t.Run("create time", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
+		beforeCreate := time.Now()
 		msg, err := fx.service.CreateBatchPredictionJob(fx.ctx, &CreateBatchPredictionJobRequest{
 			Parent:             parent,
 			BatchPredictionJob: fx.Create(parent),
@@ -138,7 +140,11 @@ func (fx *BatchPredictionJobTestSuiteConfig) testCreate(t *testing.T) {
 		assert.NilError(t, err)
 		assert.Check(t, msg.CreateTime != nil)
 		assert.Check(t, !msg.CreateTime.AsTime().IsZero())
-		assert.Check(t, !msg.CreateTime.AsTime().After(time.Now()))
+		if runtime.GOOS == "darwin" {
+			assert.Check(t, msg.CreateTime.AsTime().After(beforeCreate.Add(1*time.Second)))
+		} else {
+			assert.Check(t, msg.CreateTime.AsTime().After(beforeCreate))
+		}
 	})
 
 	// The created resource should be persisted and reachable with Get.
@@ -810,6 +816,7 @@ func (fx *CustomJobTestSuiteConfig) testCreate(t *testing.T) {
 	t.Run("create time", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
+		beforeCreate := time.Now()
 		msg, err := fx.service.CreateCustomJob(fx.ctx, &CreateCustomJobRequest{
 			Parent:    parent,
 			CustomJob: fx.Create(parent),
@@ -817,7 +824,11 @@ func (fx *CustomJobTestSuiteConfig) testCreate(t *testing.T) {
 		assert.NilError(t, err)
 		assert.Check(t, msg.CreateTime != nil)
 		assert.Check(t, !msg.CreateTime.AsTime().IsZero())
-		assert.Check(t, !msg.CreateTime.AsTime().After(time.Now()))
+		if runtime.GOOS == "darwin" {
+			assert.Check(t, msg.CreateTime.AsTime().After(beforeCreate.Add(1*time.Second)))
+		} else {
+			assert.Check(t, msg.CreateTime.AsTime().After(beforeCreate))
+		}
 	})
 
 	// The created resource should be persisted and reachable with Get.
@@ -1326,6 +1337,7 @@ func (fx *DataLabelingJobTestSuiteConfig) testCreate(t *testing.T) {
 	t.Run("create time", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
+		beforeCreate := time.Now()
 		msg, err := fx.service.CreateDataLabelingJob(fx.ctx, &CreateDataLabelingJobRequest{
 			Parent:          parent,
 			DataLabelingJob: fx.Create(parent),
@@ -1333,7 +1345,11 @@ func (fx *DataLabelingJobTestSuiteConfig) testCreate(t *testing.T) {
 		assert.NilError(t, err)
 		assert.Check(t, msg.CreateTime != nil)
 		assert.Check(t, !msg.CreateTime.AsTime().IsZero())
-		assert.Check(t, !msg.CreateTime.AsTime().After(time.Now()))
+		if runtime.GOOS == "darwin" {
+			assert.Check(t, msg.CreateTime.AsTime().After(beforeCreate.Add(1*time.Second)))
+		} else {
+			assert.Check(t, msg.CreateTime.AsTime().After(beforeCreate))
+		}
 	})
 
 	// The created resource should be persisted and reachable with Get.
@@ -1829,6 +1845,7 @@ func (fx *HyperparameterTuningJobTestSuiteConfig) testCreate(t *testing.T) {
 	t.Run("create time", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
+		beforeCreate := time.Now()
 		msg, err := fx.service.CreateHyperparameterTuningJob(fx.ctx, &CreateHyperparameterTuningJobRequest{
 			Parent:                  parent,
 			HyperparameterTuningJob: fx.Create(parent),
@@ -1836,7 +1853,11 @@ func (fx *HyperparameterTuningJobTestSuiteConfig) testCreate(t *testing.T) {
 		assert.NilError(t, err)
 		assert.Check(t, msg.CreateTime != nil)
 		assert.Check(t, !msg.CreateTime.AsTime().IsZero())
-		assert.Check(t, !msg.CreateTime.AsTime().After(time.Now()))
+		if runtime.GOOS == "darwin" {
+			assert.Check(t, msg.CreateTime.AsTime().After(beforeCreate.Add(1*time.Second)))
+		} else {
+			assert.Check(t, msg.CreateTime.AsTime().After(beforeCreate))
+		}
 	})
 
 	// The created resource should be persisted and reachable with Get.
@@ -2429,6 +2450,7 @@ func (fx *ModelDeploymentMonitoringJobTestSuiteConfig) testCreate(t *testing.T) 
 	t.Run("create time", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
+		beforeCreate := time.Now()
 		msg, err := fx.service.CreateModelDeploymentMonitoringJob(fx.ctx, &CreateModelDeploymentMonitoringJobRequest{
 			Parent:                       parent,
 			ModelDeploymentMonitoringJob: fx.Create(parent),
@@ -2436,7 +2458,11 @@ func (fx *ModelDeploymentMonitoringJobTestSuiteConfig) testCreate(t *testing.T) 
 		assert.NilError(t, err)
 		assert.Check(t, msg.CreateTime != nil)
 		assert.Check(t, !msg.CreateTime.AsTime().IsZero())
-		assert.Check(t, !msg.CreateTime.AsTime().After(time.Now()))
+		if runtime.GOOS == "darwin" {
+			assert.Check(t, msg.CreateTime.AsTime().After(beforeCreate.Add(1*time.Second)))
+		} else {
+			assert.Check(t, msg.CreateTime.AsTime().After(beforeCreate))
+		}
 	})
 
 	// The created resource should be persisted and reachable with Get.
@@ -3161,6 +3187,7 @@ func (fx *NasJobTestSuiteConfig) testCreate(t *testing.T) {
 	t.Run("create time", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
+		beforeCreate := time.Now()
 		msg, err := fx.service.CreateNasJob(fx.ctx, &CreateNasJobRequest{
 			Parent: parent,
 			NasJob: fx.Create(parent),
@@ -3168,7 +3195,11 @@ func (fx *NasJobTestSuiteConfig) testCreate(t *testing.T) {
 		assert.NilError(t, err)
 		assert.Check(t, msg.CreateTime != nil)
 		assert.Check(t, !msg.CreateTime.AsTime().IsZero())
-		assert.Check(t, !msg.CreateTime.AsTime().After(time.Now()))
+		if runtime.GOOS == "darwin" {
+			assert.Check(t, msg.CreateTime.AsTime().After(beforeCreate.Add(1*time.Second)))
+		} else {
+			assert.Check(t, msg.CreateTime.AsTime().After(beforeCreate))
+		}
 	})
 
 	// The created resource should be persisted and reachable with Get.
