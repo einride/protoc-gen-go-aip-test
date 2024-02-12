@@ -36,13 +36,7 @@ var createTime = suite.Test{
 		f.P(ident.AssertNilError, "(t, err)")
 		f.P(ident.AssertCheck, "(t, msg.CreateTime != nil)")
 		f.P(ident.AssertCheck, "(t, !msg.CreateTime.AsTime().IsZero())")
-		f.P("if ", protogen.GoIdent{GoImportPath: "runtime", GoName: "GOOS"}, " == \"darwin\" {")
-		// Allow Created == Now+1s due to flakyness of clock in podman and colima.
-		f.P(ident.AssertCheck, "(t, msg.CreateTime.AsTime().After(beforeCreate.Add(1 * ", ident.TimeSecond, ")))")
-		f.P("} else {")
-		// Enforce tighter check on Linux.
 		f.P(ident.AssertCheck, "(t, msg.CreateTime.AsTime().After(beforeCreate))")
-		f.P("}")
 		return nil
 	},
 }
