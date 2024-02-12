@@ -11,6 +11,7 @@ import (
 	protocmp "google.golang.org/protobuf/testing/protocmp"
 	fieldmaskpb "google.golang.org/protobuf/types/known/fieldmaskpb"
 	assert "gotest.tools/v3/assert"
+	runtime "runtime"
 	strings "strings"
 	testing "testing"
 	time "time"
@@ -87,6 +88,7 @@ func (fx *ScheduleTestSuiteConfig) testCreate(t *testing.T) {
 	t.Run("create time", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
+		beforeCreate := time.Now()
 		msg, err := fx.service.CreateSchedule(fx.ctx, &CreateScheduleRequest{
 			Parent:   parent,
 			Schedule: fx.Create(parent),
@@ -94,7 +96,11 @@ func (fx *ScheduleTestSuiteConfig) testCreate(t *testing.T) {
 		assert.NilError(t, err)
 		assert.Check(t, msg.CreateTime != nil)
 		assert.Check(t, !msg.CreateTime.AsTime().IsZero())
-		assert.Check(t, !msg.CreateTime.AsTime().After(time.Now()))
+		if runtime.GOOS == "darwin" {
+			assert.Check(t, msg.CreateTime.AsTime().After(beforeCreate.Add(1*time.Second)))
+		} else {
+			assert.Check(t, msg.CreateTime.AsTime().After(beforeCreate))
+		}
 	})
 
 	// The created resource should be persisted and reachable with Get.

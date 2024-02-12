@@ -11,6 +11,7 @@ import (
 	protocmp "google.golang.org/protobuf/testing/protocmp"
 	fieldmaskpb "google.golang.org/protobuf/types/known/fieldmaskpb"
 	assert "gotest.tools/v3/assert"
+	runtime "runtime"
 	strings "strings"
 	testing "testing"
 	time "time"
@@ -582,6 +583,7 @@ func (fx *TensorboardExperimentTestSuiteConfig) testCreate(t *testing.T) {
 	t.Run("create time", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
+		beforeCreate := time.Now()
 		msg, err := fx.service.CreateTensorboardExperiment(fx.ctx, &CreateTensorboardExperimentRequest{
 			Parent:                parent,
 			TensorboardExperiment: fx.Create(parent),
@@ -589,7 +591,11 @@ func (fx *TensorboardExperimentTestSuiteConfig) testCreate(t *testing.T) {
 		assert.NilError(t, err)
 		assert.Check(t, msg.CreateTime != nil)
 		assert.Check(t, !msg.CreateTime.AsTime().IsZero())
-		assert.Check(t, !msg.CreateTime.AsTime().After(time.Now()))
+		if runtime.GOOS == "darwin" {
+			assert.Check(t, msg.CreateTime.AsTime().After(beforeCreate.Add(1*time.Second)))
+		} else {
+			assert.Check(t, msg.CreateTime.AsTime().After(beforeCreate))
+		}
 	})
 
 	// The created resource should be persisted and reachable with Get.
@@ -1033,6 +1039,7 @@ func (fx *TensorboardRunTestSuiteConfig) testCreate(t *testing.T) {
 	t.Run("create time", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
+		beforeCreate := time.Now()
 		msg, err := fx.service.CreateTensorboardRun(fx.ctx, &CreateTensorboardRunRequest{
 			Parent:         parent,
 			TensorboardRun: fx.Create(parent),
@@ -1040,7 +1047,11 @@ func (fx *TensorboardRunTestSuiteConfig) testCreate(t *testing.T) {
 		assert.NilError(t, err)
 		assert.Check(t, msg.CreateTime != nil)
 		assert.Check(t, !msg.CreateTime.AsTime().IsZero())
-		assert.Check(t, !msg.CreateTime.AsTime().After(time.Now()))
+		if runtime.GOOS == "darwin" {
+			assert.Check(t, msg.CreateTime.AsTime().After(beforeCreate.Add(1*time.Second)))
+		} else {
+			assert.Check(t, msg.CreateTime.AsTime().After(beforeCreate))
+		}
 	})
 
 	// The created resource should be persisted and reachable with Get.
@@ -1549,6 +1560,7 @@ func (fx *TensorboardTimeSeriesTestSuiteConfig) testCreate(t *testing.T) {
 	t.Run("create time", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
+		beforeCreate := time.Now()
 		msg, err := fx.service.CreateTensorboardTimeSeries(fx.ctx, &CreateTensorboardTimeSeriesRequest{
 			Parent:                parent,
 			TensorboardTimeSeries: fx.Create(parent),
@@ -1556,7 +1568,11 @@ func (fx *TensorboardTimeSeriesTestSuiteConfig) testCreate(t *testing.T) {
 		assert.NilError(t, err)
 		assert.Check(t, msg.CreateTime != nil)
 		assert.Check(t, !msg.CreateTime.AsTime().IsZero())
-		assert.Check(t, !msg.CreateTime.AsTime().After(time.Now()))
+		if runtime.GOOS == "darwin" {
+			assert.Check(t, msg.CreateTime.AsTime().After(beforeCreate.Add(1*time.Second)))
+		} else {
+			assert.Check(t, msg.CreateTime.AsTime().After(beforeCreate))
+		}
 	})
 
 	// The created resource should be persisted and reachable with Get.
