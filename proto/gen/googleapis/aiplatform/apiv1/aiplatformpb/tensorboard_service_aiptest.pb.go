@@ -11,7 +11,6 @@ import (
 	protocmp "google.golang.org/protobuf/testing/protocmp"
 	fieldmaskpb "google.golang.org/protobuf/types/known/fieldmaskpb"
 	assert "gotest.tools/v3/assert"
-	runtime "runtime"
 	strings "strings"
 	testing "testing"
 	time "time"
@@ -591,11 +590,7 @@ func (fx *TensorboardExperimentTestSuiteConfig) testCreate(t *testing.T) {
 		assert.NilError(t, err)
 		assert.Check(t, msg.CreateTime != nil)
 		assert.Check(t, !msg.CreateTime.AsTime().IsZero())
-		if runtime.GOOS == "darwin" {
-			assert.Check(t, msg.CreateTime.AsTime().After(beforeCreate.Add(1*time.Second)))
-		} else {
-			assert.Check(t, msg.CreateTime.AsTime().After(beforeCreate))
-		}
+		assert.Check(t, msg.CreateTime.AsTime().After(beforeCreate))
 	})
 
 	// The created resource should be persisted and reachable with Get.
@@ -1047,11 +1042,7 @@ func (fx *TensorboardRunTestSuiteConfig) testCreate(t *testing.T) {
 		assert.NilError(t, err)
 		assert.Check(t, msg.CreateTime != nil)
 		assert.Check(t, !msg.CreateTime.AsTime().IsZero())
-		if runtime.GOOS == "darwin" {
-			assert.Check(t, msg.CreateTime.AsTime().After(beforeCreate.Add(1*time.Second)))
-		} else {
-			assert.Check(t, msg.CreateTime.AsTime().After(beforeCreate))
-		}
+		assert.Check(t, msg.CreateTime.AsTime().After(beforeCreate))
 	})
 
 	// The created resource should be persisted and reachable with Get.
@@ -1568,11 +1559,7 @@ func (fx *TensorboardTimeSeriesTestSuiteConfig) testCreate(t *testing.T) {
 		assert.NilError(t, err)
 		assert.Check(t, msg.CreateTime != nil)
 		assert.Check(t, !msg.CreateTime.AsTime().IsZero())
-		if runtime.GOOS == "darwin" {
-			assert.Check(t, msg.CreateTime.AsTime().After(beforeCreate.Add(1*time.Second)))
-		} else {
-			assert.Check(t, msg.CreateTime.AsTime().After(beforeCreate))
-		}
+		assert.Check(t, msg.CreateTime.AsTime().After(beforeCreate))
 	})
 
 	// The created resource should be persisted and reachable with Get.
