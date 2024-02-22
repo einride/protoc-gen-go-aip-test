@@ -126,7 +126,7 @@ func (fx *ArtifactTestSuiteConfig) testCreate(t *testing.T) {
 		assert.NilError(t, err)
 		assert.Check(t, msg.CreateTime != nil)
 		assert.Check(t, !msg.CreateTime.AsTime().IsZero())
-		assert.Check(t, msg.CreateTime.AsTime().After(beforeCreate))
+		assert.Check(t, msg.CreateTime.AsTime().After(beforeCreate), "msg.CreateTime (%v) is not after beforeCreate (%v)", msg.CreateTime.AsTime(), beforeCreate)
 	})
 
 	// The created resource should be persisted and reachable with Get.
@@ -578,7 +578,7 @@ func (fx *ContextTestSuiteConfig) testCreate(t *testing.T) {
 		assert.NilError(t, err)
 		assert.Check(t, msg.CreateTime != nil)
 		assert.Check(t, !msg.CreateTime.AsTime().IsZero())
-		assert.Check(t, msg.CreateTime.AsTime().After(beforeCreate))
+		assert.Check(t, msg.CreateTime.AsTime().After(beforeCreate), "msg.CreateTime (%v) is not after beforeCreate (%v)", msg.CreateTime.AsTime(), beforeCreate)
 	})
 
 	// The created resource should be persisted and reachable with Get.
@@ -1030,7 +1030,7 @@ func (fx *ExecutionTestSuiteConfig) testCreate(t *testing.T) {
 		assert.NilError(t, err)
 		assert.Check(t, msg.CreateTime != nil)
 		assert.Check(t, !msg.CreateTime.AsTime().IsZero())
-		assert.Check(t, msg.CreateTime.AsTime().After(beforeCreate))
+		assert.Check(t, msg.CreateTime.AsTime().After(beforeCreate), "msg.CreateTime (%v) is not after beforeCreate (%v)", msg.CreateTime.AsTime(), beforeCreate)
 	})
 
 	// The created resource should be persisted and reachable with Get.
@@ -1477,7 +1477,7 @@ func (fx *MetadataSchemaTestSuiteConfig) testCreate(t *testing.T) {
 		assert.NilError(t, err)
 		assert.Check(t, msg.CreateTime != nil)
 		assert.Check(t, !msg.CreateTime.AsTime().IsZero())
-		assert.Check(t, msg.CreateTime.AsTime().After(beforeCreate))
+		assert.Check(t, msg.CreateTime.AsTime().After(beforeCreate), "msg.CreateTime (%v) is not after beforeCreate (%v)", msg.CreateTime.AsTime(), beforeCreate)
 	})
 
 	// The created resource should be persisted and reachable with Get.
