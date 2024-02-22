@@ -36,7 +36,11 @@ var createTime = suite.Test{
 		f.P(ident.AssertNilError, "(t, err)")
 		f.P(ident.AssertCheck, "(t, msg.CreateTime != nil)")
 		f.P(ident.AssertCheck, "(t, !msg.CreateTime.AsTime().IsZero())")
-		f.P(ident.AssertCheck, "(t, msg.CreateTime.AsTime().After(beforeCreate))")
+		f.P(
+			ident.AssertCheck,
+			"(t, msg.CreateTime.AsTime().After(beforeCreate), ",
+			"\"msg.CreateTime (%v) is not after beforeCreate (%v)\", msg.CreateTime.AsTime(), beforeCreate)",
+		)
 		return nil
 	},
 }
