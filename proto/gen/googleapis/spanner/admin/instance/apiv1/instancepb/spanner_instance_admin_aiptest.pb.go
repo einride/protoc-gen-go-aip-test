@@ -21,7 +21,7 @@ type InstanceAdminTestSuite struct {
 	Server InstanceAdminServer
 }
 
-func (fx InstanceAdminTestSuite) TestInstance(ctx context.Context, options InstanceTestSuiteConfig) {
+func (fx InstanceAdminTestSuite) TestInstance(ctx context.Context, options InstanceAdminInstanceTestSuiteConfig) {
 	fx.T.Run("Instance", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
@@ -29,7 +29,7 @@ func (fx InstanceAdminTestSuite) TestInstance(ctx context.Context, options Insta
 	})
 }
 
-func (fx InstanceAdminTestSuite) TestInstanceConfig(ctx context.Context, options InstanceConfigTestSuiteConfig) {
+func (fx InstanceAdminTestSuite) TestInstanceConfig(ctx context.Context, options InstanceAdminInstanceConfigTestSuiteConfig) {
 	fx.T.Run("InstanceConfig", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
@@ -37,7 +37,15 @@ func (fx InstanceAdminTestSuite) TestInstanceConfig(ctx context.Context, options
 	})
 }
 
-type InstanceTestSuiteConfig struct {
+func (fx InstanceAdminTestSuite) TestInstancePartition(ctx context.Context, options InstanceAdminInstancePartitionTestSuiteConfig) {
+	fx.T.Run("InstancePartition", func(t *testing.T) {
+		options.ctx = ctx
+		options.service = fx.Server
+		options.test(t)
+	})
+}
+
+type InstanceAdminInstanceTestSuiteConfig struct {
 	ctx        context.Context
 	service    InstanceAdminServer
 	currParent int
@@ -60,7 +68,7 @@ type InstanceTestSuiteConfig struct {
 	Skip []string
 }
 
-func (fx *InstanceTestSuiteConfig) test(t *testing.T) {
+func (fx *InstanceAdminInstanceTestSuiteConfig) test(t *testing.T) {
 	t.Run("Create", fx.testCreate)
 	t.Run("Get", fx.testGet)
 	t.Run("Update", fx.testUpdate)
@@ -68,7 +76,7 @@ func (fx *InstanceTestSuiteConfig) test(t *testing.T) {
 	t.Run("Delete", fx.testDelete)
 }
 
-func (fx *InstanceTestSuiteConfig) testCreate(t *testing.T) {
+func (fx *InstanceAdminInstanceTestSuiteConfig) testCreate(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
@@ -142,6 +150,70 @@ func (fx *InstanceTestSuiteConfig) testCreate(t *testing.T) {
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
+		t.Run(".autoscaling_config.autoscaling_limits", func(t *testing.T) {
+			fx.maybeSkip(t)
+			parent := fx.nextParent(t, false)
+			msg := fx.Create(parent)
+			container := msg.GetAutoscalingConfig()
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("autoscaling_limits")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.CreateInstance(fx.ctx, &CreateInstanceRequest{
+				Parent:   parent,
+				Instance: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+		t.Run(".autoscaling_config.autoscaling_targets", func(t *testing.T) {
+			fx.maybeSkip(t)
+			parent := fx.nextParent(t, false)
+			msg := fx.Create(parent)
+			container := msg.GetAutoscalingConfig()
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("autoscaling_targets")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.CreateInstance(fx.ctx, &CreateInstanceRequest{
+				Parent:   parent,
+				Instance: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+		t.Run(".autoscaling_config.autoscaling_targets.high_priority_cpu_utilization_percent", func(t *testing.T) {
+			fx.maybeSkip(t)
+			parent := fx.nextParent(t, false)
+			msg := fx.Create(parent)
+			container := msg.GetAutoscalingConfig().GetAutoscalingTargets()
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("high_priority_cpu_utilization_percent")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.CreateInstance(fx.ctx, &CreateInstanceRequest{
+				Parent:   parent,
+				Instance: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+		t.Run(".autoscaling_config.autoscaling_targets.storage_utilization_percent", func(t *testing.T) {
+			fx.maybeSkip(t)
+			parent := fx.nextParent(t, false)
+			msg := fx.Create(parent)
+			container := msg.GetAutoscalingConfig().GetAutoscalingTargets()
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("storage_utilization_percent")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.CreateInstance(fx.ctx, &CreateInstanceRequest{
+				Parent:   parent,
+				Instance: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
 	})
 
 	// The method should fail with InvalidArgument if the resource has any
@@ -167,7 +239,7 @@ func (fx *InstanceTestSuiteConfig) testCreate(t *testing.T) {
 
 }
 
-func (fx *InstanceTestSuiteConfig) testGet(t *testing.T) {
+func (fx *InstanceAdminInstanceTestSuiteConfig) testGet(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -221,7 +293,7 @@ func (fx *InstanceTestSuiteConfig) testGet(t *testing.T) {
 
 }
 
-func (fx *InstanceTestSuiteConfig) testUpdate(t *testing.T) {
+func (fx *InstanceAdminInstanceTestSuiteConfig) testUpdate(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -306,11 +378,67 @@ func (fx *InstanceTestSuiteConfig) testUpdate(t *testing.T) {
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
+		t.Run(".autoscaling_config.autoscaling_limits", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msg := proto.Clone(created).(*Instance)
+			container := msg.GetAutoscalingConfig()
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("autoscaling_limits")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.UpdateInstance(fx.ctx, &UpdateInstanceRequest{
+				Instance: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+		t.Run(".autoscaling_config.autoscaling_targets", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msg := proto.Clone(created).(*Instance)
+			container := msg.GetAutoscalingConfig()
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("autoscaling_targets")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.UpdateInstance(fx.ctx, &UpdateInstanceRequest{
+				Instance: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+		t.Run(".autoscaling_config.autoscaling_targets.high_priority_cpu_utilization_percent", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msg := proto.Clone(created).(*Instance)
+			container := msg.GetAutoscalingConfig().GetAutoscalingTargets()
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("high_priority_cpu_utilization_percent")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.UpdateInstance(fx.ctx, &UpdateInstanceRequest{
+				Instance: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+		t.Run(".autoscaling_config.autoscaling_targets.storage_utilization_percent", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msg := proto.Clone(created).(*Instance)
+			container := msg.GetAutoscalingConfig().GetAutoscalingTargets()
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("storage_utilization_percent")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.UpdateInstance(fx.ctx, &UpdateInstanceRequest{
+				Instance: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
 	})
 
 }
 
-func (fx *InstanceTestSuiteConfig) testList(t *testing.T) {
+func (fx *InstanceAdminInstanceTestSuiteConfig) testList(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
@@ -450,7 +578,7 @@ func (fx *InstanceTestSuiteConfig) testList(t *testing.T) {
 
 }
 
-func (fx *InstanceTestSuiteConfig) testDelete(t *testing.T) {
+func (fx *InstanceAdminInstanceTestSuiteConfig) testDelete(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -503,7 +631,7 @@ func (fx *InstanceTestSuiteConfig) testDelete(t *testing.T) {
 
 }
 
-func (fx *InstanceTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
+func (fx *InstanceAdminInstanceTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	if pristine {
 		fx.currParent++
 	}
@@ -513,7 +641,7 @@ func (fx *InstanceTestSuiteConfig) nextParent(t *testing.T, pristine bool) strin
 	return fx.Parents[fx.currParent]
 }
 
-func (fx *InstanceTestSuiteConfig) peekNextParent(t *testing.T) string {
+func (fx *InstanceAdminInstanceTestSuiteConfig) peekNextParent(t *testing.T) string {
 	next := fx.currParent + 1
 	if next >= len(fx.Parents) {
 		t.Fatal("need at least", next+1, "parents")
@@ -521,7 +649,7 @@ func (fx *InstanceTestSuiteConfig) peekNextParent(t *testing.T) string {
 	return fx.Parents[next]
 }
 
-func (fx *InstanceTestSuiteConfig) maybeSkip(t *testing.T) {
+func (fx *InstanceAdminInstanceTestSuiteConfig) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
 			t.Skip("skipped because of .Skip")
@@ -529,13 +657,13 @@ func (fx *InstanceTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
-func (fx *InstanceTestSuiteConfig) create(t *testing.T, parent string) *Instance {
+func (fx *InstanceAdminInstanceTestSuiteConfig) create(t *testing.T, parent string) *Instance {
 	t.Helper()
 	t.Skip("Long running create method not supported")
 	return nil
 }
 
-type InstanceConfigTestSuiteConfig struct {
+type InstanceAdminInstanceConfigTestSuiteConfig struct {
 	ctx        context.Context
 	service    InstanceAdminServer
 	currParent int
@@ -558,7 +686,7 @@ type InstanceConfigTestSuiteConfig struct {
 	Skip []string
 }
 
-func (fx *InstanceConfigTestSuiteConfig) test(t *testing.T) {
+func (fx *InstanceAdminInstanceConfigTestSuiteConfig) test(t *testing.T) {
 	t.Run("Create", fx.testCreate)
 	t.Run("Get", fx.testGet)
 	t.Run("Update", fx.testUpdate)
@@ -566,7 +694,7 @@ func (fx *InstanceConfigTestSuiteConfig) test(t *testing.T) {
 	t.Run("Delete", fx.testDelete)
 }
 
-func (fx *InstanceConfigTestSuiteConfig) testCreate(t *testing.T) {
+func (fx *InstanceAdminInstanceConfigTestSuiteConfig) testCreate(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
@@ -611,7 +739,7 @@ func (fx *InstanceConfigTestSuiteConfig) testCreate(t *testing.T) {
 
 }
 
-func (fx *InstanceConfigTestSuiteConfig) testGet(t *testing.T) {
+func (fx *InstanceAdminInstanceConfigTestSuiteConfig) testGet(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -665,7 +793,7 @@ func (fx *InstanceConfigTestSuiteConfig) testGet(t *testing.T) {
 
 }
 
-func (fx *InstanceConfigTestSuiteConfig) testUpdate(t *testing.T) {
+func (fx *InstanceAdminInstanceConfigTestSuiteConfig) testUpdate(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -720,7 +848,7 @@ func (fx *InstanceConfigTestSuiteConfig) testUpdate(t *testing.T) {
 
 }
 
-func (fx *InstanceConfigTestSuiteConfig) testList(t *testing.T) {
+func (fx *InstanceAdminInstanceConfigTestSuiteConfig) testList(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
@@ -860,7 +988,7 @@ func (fx *InstanceConfigTestSuiteConfig) testList(t *testing.T) {
 
 }
 
-func (fx *InstanceConfigTestSuiteConfig) testDelete(t *testing.T) {
+func (fx *InstanceAdminInstanceConfigTestSuiteConfig) testDelete(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -913,7 +1041,7 @@ func (fx *InstanceConfigTestSuiteConfig) testDelete(t *testing.T) {
 
 }
 
-func (fx *InstanceConfigTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
+func (fx *InstanceAdminInstanceConfigTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	if pristine {
 		fx.currParent++
 	}
@@ -923,7 +1051,7 @@ func (fx *InstanceConfigTestSuiteConfig) nextParent(t *testing.T, pristine bool)
 	return fx.Parents[fx.currParent]
 }
 
-func (fx *InstanceConfigTestSuiteConfig) peekNextParent(t *testing.T) string {
+func (fx *InstanceAdminInstanceConfigTestSuiteConfig) peekNextParent(t *testing.T) string {
 	next := fx.currParent + 1
 	if next >= len(fx.Parents) {
 		t.Fatal("need at least", next+1, "parents")
@@ -931,7 +1059,7 @@ func (fx *InstanceConfigTestSuiteConfig) peekNextParent(t *testing.T) string {
 	return fx.Parents[next]
 }
 
-func (fx *InstanceConfigTestSuiteConfig) maybeSkip(t *testing.T) {
+func (fx *InstanceAdminInstanceConfigTestSuiteConfig) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
 			t.Skip("skipped because of .Skip")
@@ -939,7 +1067,505 @@ func (fx *InstanceConfigTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
-func (fx *InstanceConfigTestSuiteConfig) create(t *testing.T, parent string) *InstanceConfig {
+func (fx *InstanceAdminInstanceConfigTestSuiteConfig) create(t *testing.T, parent string) *InstanceConfig {
+	t.Helper()
+	t.Skip("Long running create method not supported")
+	return nil
+}
+
+type InstanceAdminInstancePartitionTestSuiteConfig struct {
+	ctx        context.Context
+	service    InstanceAdminServer
+	currParent int
+
+	// The parents to use when creating resources.
+	// At least one parent needs to be set. Depending on methods available on the resource,
+	// more may be required. If insufficient number of parents are
+	// provided the test will fail.
+	Parents []string
+	// Create should return a resource which is valid to create, i.e.
+	// all required fields set.
+	Create func(parent string) *InstancePartition
+	// Update should return a resource which is valid to update, i.e.
+	// all required fields set.
+	Update func(parent string) *InstancePartition
+	// Patterns of tests to skip.
+	// For example if a service has a Get method:
+	// Skip: ["Get"] will skip all tests for Get.
+	// Skip: ["Get/persisted"] will only skip the subtest called "persisted" of Get.
+	Skip []string
+}
+
+func (fx *InstanceAdminInstancePartitionTestSuiteConfig) test(t *testing.T) {
+	t.Run("Create", fx.testCreate)
+	t.Run("Get", fx.testGet)
+	t.Run("Update", fx.testUpdate)
+	t.Run("List", fx.testList)
+	t.Run("Delete", fx.testDelete)
+}
+
+func (fx *InstanceAdminInstancePartitionTestSuiteConfig) testCreate(t *testing.T) {
+	fx.maybeSkip(t)
+	// Method should fail with InvalidArgument if no parent is provided.
+	t.Run("missing parent", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.CreateInstancePartition(fx.ctx, &CreateInstancePartitionRequest{
+			Parent:            "",
+			InstancePartition: fx.Create(fx.nextParent(t, false)),
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if provided parent is invalid.
+	t.Run("invalid parent", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.CreateInstancePartition(fx.ctx, &CreateInstancePartitionRequest{
+			Parent:            "invalid resource name",
+			InstancePartition: fx.Create(fx.nextParent(t, false)),
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// The method should fail with InvalidArgument if the resource has any
+	// required fields and they are not provided.
+	t.Run("required fields", func(t *testing.T) {
+		fx.maybeSkip(t)
+		t.Run(".name", func(t *testing.T) {
+			fx.maybeSkip(t)
+			parent := fx.nextParent(t, false)
+			msg := fx.Create(parent)
+			container := msg
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("name")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.CreateInstancePartition(fx.ctx, &CreateInstancePartitionRequest{
+				Parent:            parent,
+				InstancePartition: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+		t.Run(".config", func(t *testing.T) {
+			fx.maybeSkip(t)
+			parent := fx.nextParent(t, false)
+			msg := fx.Create(parent)
+			container := msg
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("config")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.CreateInstancePartition(fx.ctx, &CreateInstancePartitionRequest{
+				Parent:            parent,
+				InstancePartition: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+		t.Run(".display_name", func(t *testing.T) {
+			fx.maybeSkip(t)
+			parent := fx.nextParent(t, false)
+			msg := fx.Create(parent)
+			container := msg
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.CreateInstancePartition(fx.ctx, &CreateInstancePartitionRequest{
+				Parent:            parent,
+				InstancePartition: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+	})
+
+	// The method should fail with InvalidArgument if the resource has any
+	// resource references and they are invalid.
+	t.Run("resource references", func(t *testing.T) {
+		fx.maybeSkip(t)
+		t.Run(".config", func(t *testing.T) {
+			fx.maybeSkip(t)
+			parent := fx.nextParent(t, false)
+			msg := fx.Create(parent)
+			container := msg
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			container.Config = "invalid resource name"
+			_, err := fx.service.CreateInstancePartition(fx.ctx, &CreateInstancePartitionRequest{
+				Parent:            parent,
+				InstancePartition: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+	})
+
+}
+
+func (fx *InstanceAdminInstancePartitionTestSuiteConfig) testGet(t *testing.T) {
+	fx.maybeSkip(t)
+	// Method should fail with InvalidArgument if no name is provided.
+	t.Run("missing name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.GetInstancePartition(fx.ctx, &GetInstancePartitionRequest{
+			Name: "",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name is not valid.
+	t.Run("invalid name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.GetInstancePartition(fx.ctx, &GetInstancePartitionRequest{
+			Name: "invalid resource name",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Resource should be returned without errors if it exists.
+	t.Run("exists", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		msg, err := fx.service.GetInstancePartition(fx.ctx, &GetInstancePartitionRequest{
+			Name: created.Name,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(t, msg, created, protocmp.Transform())
+	})
+
+	// Method should fail with NotFound if the resource does not exist.
+	t.Run("not found", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.GetInstancePartition(fx.ctx, &GetInstancePartitionRequest{
+			Name: created.Name + "notfound",
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
+	t.Run("only wildcards", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.GetInstancePartition(fx.ctx, &GetInstancePartitionRequest{
+			Name: "projects/-/instances/-/instancePartitions/-",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+}
+
+func (fx *InstanceAdminInstancePartitionTestSuiteConfig) testUpdate(t *testing.T) {
+	fx.maybeSkip(t)
+	// Method should fail with InvalidArgument if no name is provided.
+	t.Run("missing name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		msg := fx.Update(parent)
+		msg.Name = ""
+		_, err := fx.service.UpdateInstancePartition(fx.ctx, &UpdateInstancePartitionRequest{
+			InstancePartition: msg,
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if provided name is not valid.
+	t.Run("invalid name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		msg := fx.Update(parent)
+		msg.Name = "invalid resource name"
+		_, err := fx.service.UpdateInstancePartition(fx.ctx, &UpdateInstancePartitionRequest{
+			InstancePartition: msg,
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	parent := fx.nextParent(t, false)
+	created := fx.create(t, parent)
+	// Method should fail with NotFound if the resource does not exist.
+	t.Run("not found", func(t *testing.T) {
+		fx.maybeSkip(t)
+		msg := fx.Update(parent)
+		msg.Name = created.Name + "notfound"
+		_, err := fx.service.UpdateInstancePartition(fx.ctx, &UpdateInstancePartitionRequest{
+			InstancePartition: msg,
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if any required field is missing
+	// when called with '*' update_mask.
+	t.Run("required fields", func(t *testing.T) {
+		fx.maybeSkip(t)
+		t.Run(".name", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msg := proto.Clone(created).(*InstancePartition)
+			container := msg
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("name")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.UpdateInstancePartition(fx.ctx, &UpdateInstancePartitionRequest{
+				InstancePartition: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+		t.Run(".config", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msg := proto.Clone(created).(*InstancePartition)
+			container := msg
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("config")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.UpdateInstancePartition(fx.ctx, &UpdateInstancePartitionRequest{
+				InstancePartition: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+		t.Run(".display_name", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msg := proto.Clone(created).(*InstancePartition)
+			container := msg
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.UpdateInstancePartition(fx.ctx, &UpdateInstancePartitionRequest{
+				InstancePartition: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+	})
+
+}
+
+func (fx *InstanceAdminInstancePartitionTestSuiteConfig) testList(t *testing.T) {
+	fx.maybeSkip(t)
+	// Method should fail with InvalidArgument if provided parent is invalid.
+	t.Run("invalid parent", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.ListInstancePartitions(fx.ctx, &ListInstancePartitionsRequest{
+			Parent: "invalid resource name",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument is provided page token is not valid.
+	t.Run("invalid page token", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		_, err := fx.service.ListInstancePartitions(fx.ctx, &ListInstancePartitionsRequest{
+			Parent:    parent,
+			PageToken: "invalid page token",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument is provided page size is negative.
+	t.Run("negative page size", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		_, err := fx.service.ListInstancePartitions(fx.ctx, &ListInstancePartitionsRequest{
+			Parent:   parent,
+			PageSize: -10,
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	const resourcesCount = 15
+	parent := fx.nextParent(t, true)
+	parentMsgs := make([]*InstancePartition, resourcesCount)
+	for i := 0; i < resourcesCount; i++ {
+		parentMsgs[i] = fx.create(t, parent)
+	}
+
+	// If parent is provided the method must only return resources
+	// under that parent.
+	t.Run("isolation", func(t *testing.T) {
+		fx.maybeSkip(t)
+		response, err := fx.service.ListInstancePartitions(fx.ctx, &ListInstancePartitionsRequest{
+			Parent:   parent,
+			PageSize: 999,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(
+			t,
+			parentMsgs,
+			response.InstancePartitions,
+			cmpopts.SortSlices(func(a, b *InstancePartition) bool {
+				return a.Name < b.Name
+			}),
+			protocmp.Transform(),
+		)
+	})
+
+	// If there are no more resources, next_page_token should not be set.
+	t.Run("last page", func(t *testing.T) {
+		fx.maybeSkip(t)
+		response, err := fx.service.ListInstancePartitions(fx.ctx, &ListInstancePartitionsRequest{
+			Parent:   parent,
+			PageSize: resourcesCount,
+		})
+		assert.NilError(t, err)
+		assert.Equal(t, "", response.NextPageToken)
+	})
+
+	// If there are more resources, next_page_token should be set.
+	t.Run("more pages", func(t *testing.T) {
+		fx.maybeSkip(t)
+		response, err := fx.service.ListInstancePartitions(fx.ctx, &ListInstancePartitionsRequest{
+			Parent:   parent,
+			PageSize: resourcesCount - 1,
+		})
+		assert.NilError(t, err)
+		assert.Check(t, response.NextPageToken != "")
+	})
+
+	// Listing resource one by one should eventually return all resources.
+	t.Run("one by one", func(t *testing.T) {
+		fx.maybeSkip(t)
+		msgs := make([]*InstancePartition, 0, resourcesCount)
+		var nextPageToken string
+		for {
+			response, err := fx.service.ListInstancePartitions(fx.ctx, &ListInstancePartitionsRequest{
+				Parent:    parent,
+				PageSize:  1,
+				PageToken: nextPageToken,
+			})
+			assert.NilError(t, err)
+			assert.Equal(t, 1, len(response.InstancePartitions))
+			msgs = append(msgs, response.InstancePartitions...)
+			nextPageToken = response.NextPageToken
+			if nextPageToken == "" {
+				break
+			}
+		}
+		assert.DeepEqual(
+			t,
+			parentMsgs,
+			msgs,
+			cmpopts.SortSlices(func(a, b *InstancePartition) bool {
+				return a.Name < b.Name
+			}),
+			protocmp.Transform(),
+		)
+	})
+
+	// Method should not return deleted resources.
+	t.Run("deleted", func(t *testing.T) {
+		fx.maybeSkip(t)
+		const deleteCount = 5
+		for i := 0; i < deleteCount; i++ {
+			_, err := fx.service.DeleteInstancePartition(fx.ctx, &DeleteInstancePartitionRequest{
+				Name: parentMsgs[i].Name,
+			})
+			assert.NilError(t, err)
+		}
+		response, err := fx.service.ListInstancePartitions(fx.ctx, &ListInstancePartitionsRequest{
+			Parent:   parent,
+			PageSize: 9999,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(
+			t,
+			parentMsgs[deleteCount:],
+			response.InstancePartitions,
+			cmpopts.SortSlices(func(a, b *InstancePartition) bool {
+				return a.Name < b.Name
+			}),
+			protocmp.Transform(),
+		)
+	})
+
+}
+
+func (fx *InstanceAdminInstancePartitionTestSuiteConfig) testDelete(t *testing.T) {
+	fx.maybeSkip(t)
+	// Method should fail with InvalidArgument if no name is provided.
+	t.Run("missing name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteInstancePartition(fx.ctx, &DeleteInstancePartitionRequest{
+			Name: "",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name is not valid.
+	t.Run("invalid name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteInstancePartition(fx.ctx, &DeleteInstancePartitionRequest{
+			Name: "invalid resource name",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Resource should be deleted without errors if it exists.
+	t.Run("exists", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteInstancePartition(fx.ctx, &DeleteInstancePartitionRequest{
+			Name: created.Name,
+		})
+		assert.NilError(t, err)
+	})
+
+	// Method should fail with NotFound if the resource does not exist.
+	t.Run("not found", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteInstancePartition(fx.ctx, &DeleteInstancePartitionRequest{
+			Name: created.Name + "notfound",
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
+	t.Run("only wildcards", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteInstancePartition(fx.ctx, &DeleteInstancePartitionRequest{
+			Name: "projects/-/instances/-/instancePartitions/-",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+}
+
+func (fx *InstanceAdminInstancePartitionTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
+	if pristine {
+		fx.currParent++
+	}
+	if fx.currParent >= len(fx.Parents) {
+		t.Fatal("need at least", fx.currParent+1, "parents")
+	}
+	return fx.Parents[fx.currParent]
+}
+
+func (fx *InstanceAdminInstancePartitionTestSuiteConfig) peekNextParent(t *testing.T) string {
+	next := fx.currParent + 1
+	if next >= len(fx.Parents) {
+		t.Fatal("need at least", next+1, "parents")
+	}
+	return fx.Parents[next]
+}
+
+func (fx *InstanceAdminInstancePartitionTestSuiteConfig) maybeSkip(t *testing.T) {
+	for _, skip := range fx.Skip {
+		if strings.Contains(t.Name(), skip) {
+			t.Skip("skipped because of .Skip")
+		}
+	}
+}
+
+func (fx *InstanceAdminInstancePartitionTestSuiteConfig) create(t *testing.T, parent string) *InstancePartition {
 	t.Helper()
 	t.Skip("Long running create method not supported")
 	return nil

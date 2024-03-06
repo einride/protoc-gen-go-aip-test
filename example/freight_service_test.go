@@ -25,7 +25,7 @@ func Test_FreightService(t *testing.T) {
 
 	// run tests for each resource in the service
 	ctx := context.Background()
-	suite.TestShipper(ctx, examplefreightv1.ShipperTestSuiteConfig{
+	suite.TestShipper(ctx, examplefreightv1.FreightServiceShipperTestSuiteConfig{
 		// Create should return a resource which is valid to create, i.e.
 		// all required fields set.
 		Create: func() *examplefreightv1.Shipper {

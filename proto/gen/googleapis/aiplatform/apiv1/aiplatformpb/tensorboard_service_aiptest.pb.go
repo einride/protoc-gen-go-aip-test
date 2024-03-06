@@ -22,7 +22,7 @@ type TensorboardServiceTestSuite struct {
 	Server TensorboardServiceServer
 }
 
-func (fx TensorboardServiceTestSuite) TestTensorboard(ctx context.Context, options TensorboardTestSuiteConfig) {
+func (fx TensorboardServiceTestSuite) TestTensorboard(ctx context.Context, options TensorboardServiceTensorboardTestSuiteConfig) {
 	fx.T.Run("Tensorboard", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
@@ -30,7 +30,7 @@ func (fx TensorboardServiceTestSuite) TestTensorboard(ctx context.Context, optio
 	})
 }
 
-func (fx TensorboardServiceTestSuite) TestTensorboardExperiment(ctx context.Context, options TensorboardExperimentTestSuiteConfig) {
+func (fx TensorboardServiceTestSuite) TestTensorboardExperiment(ctx context.Context, options TensorboardServiceTensorboardExperimentTestSuiteConfig) {
 	fx.T.Run("TensorboardExperiment", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
@@ -38,7 +38,7 @@ func (fx TensorboardServiceTestSuite) TestTensorboardExperiment(ctx context.Cont
 	})
 }
 
-func (fx TensorboardServiceTestSuite) TestTensorboardRun(ctx context.Context, options TensorboardRunTestSuiteConfig) {
+func (fx TensorboardServiceTestSuite) TestTensorboardRun(ctx context.Context, options TensorboardServiceTensorboardRunTestSuiteConfig) {
 	fx.T.Run("TensorboardRun", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
@@ -46,7 +46,7 @@ func (fx TensorboardServiceTestSuite) TestTensorboardRun(ctx context.Context, op
 	})
 }
 
-func (fx TensorboardServiceTestSuite) TestTensorboardTimeSeries(ctx context.Context, options TensorboardTimeSeriesTestSuiteConfig) {
+func (fx TensorboardServiceTestSuite) TestTensorboardTimeSeries(ctx context.Context, options TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) {
 	fx.T.Run("TensorboardTimeSeries", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
@@ -54,7 +54,7 @@ func (fx TensorboardServiceTestSuite) TestTensorboardTimeSeries(ctx context.Cont
 	})
 }
 
-type TensorboardTestSuiteConfig struct {
+type TensorboardServiceTensorboardTestSuiteConfig struct {
 	ctx        context.Context
 	service    TensorboardServiceServer
 	currParent int
@@ -77,7 +77,7 @@ type TensorboardTestSuiteConfig struct {
 	Skip []string
 }
 
-func (fx *TensorboardTestSuiteConfig) test(t *testing.T) {
+func (fx *TensorboardServiceTensorboardTestSuiteConfig) test(t *testing.T) {
 	t.Run("Create", fx.testCreate)
 	t.Run("Get", fx.testGet)
 	t.Run("Update", fx.testUpdate)
@@ -85,7 +85,7 @@ func (fx *TensorboardTestSuiteConfig) test(t *testing.T) {
 	t.Run("Delete", fx.testDelete)
 }
 
-func (fx *TensorboardTestSuiteConfig) testCreate(t *testing.T) {
+func (fx *TensorboardServiceTensorboardTestSuiteConfig) testCreate(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
@@ -147,7 +147,7 @@ func (fx *TensorboardTestSuiteConfig) testCreate(t *testing.T) {
 
 }
 
-func (fx *TensorboardTestSuiteConfig) testGet(t *testing.T) {
+func (fx *TensorboardServiceTensorboardTestSuiteConfig) testGet(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -201,7 +201,7 @@ func (fx *TensorboardTestSuiteConfig) testGet(t *testing.T) {
 
 }
 
-func (fx *TensorboardTestSuiteConfig) testUpdate(t *testing.T) {
+func (fx *TensorboardServiceTensorboardTestSuiteConfig) testUpdate(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -300,7 +300,7 @@ func (fx *TensorboardTestSuiteConfig) testUpdate(t *testing.T) {
 
 }
 
-func (fx *TensorboardTestSuiteConfig) testList(t *testing.T) {
+func (fx *TensorboardServiceTensorboardTestSuiteConfig) testList(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
@@ -440,7 +440,7 @@ func (fx *TensorboardTestSuiteConfig) testList(t *testing.T) {
 
 }
 
-func (fx *TensorboardTestSuiteConfig) testDelete(t *testing.T) {
+func (fx *TensorboardServiceTensorboardTestSuiteConfig) testDelete(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -493,7 +493,7 @@ func (fx *TensorboardTestSuiteConfig) testDelete(t *testing.T) {
 
 }
 
-func (fx *TensorboardTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
+func (fx *TensorboardServiceTensorboardTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	if pristine {
 		fx.currParent++
 	}
@@ -503,7 +503,7 @@ func (fx *TensorboardTestSuiteConfig) nextParent(t *testing.T, pristine bool) st
 	return fx.Parents[fx.currParent]
 }
 
-func (fx *TensorboardTestSuiteConfig) peekNextParent(t *testing.T) string {
+func (fx *TensorboardServiceTensorboardTestSuiteConfig) peekNextParent(t *testing.T) string {
 	next := fx.currParent + 1
 	if next >= len(fx.Parents) {
 		t.Fatal("need at least", next+1, "parents")
@@ -511,7 +511,7 @@ func (fx *TensorboardTestSuiteConfig) peekNextParent(t *testing.T) string {
 	return fx.Parents[next]
 }
 
-func (fx *TensorboardTestSuiteConfig) maybeSkip(t *testing.T) {
+func (fx *TensorboardServiceTensorboardTestSuiteConfig) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
 			t.Skip("skipped because of .Skip")
@@ -519,13 +519,13 @@ func (fx *TensorboardTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
-func (fx *TensorboardTestSuiteConfig) create(t *testing.T, parent string) *Tensorboard {
+func (fx *TensorboardServiceTensorboardTestSuiteConfig) create(t *testing.T, parent string) *Tensorboard {
 	t.Helper()
 	t.Skip("Long running create method not supported")
 	return nil
 }
 
-type TensorboardExperimentTestSuiteConfig struct {
+type TensorboardServiceTensorboardExperimentTestSuiteConfig struct {
 	ctx        context.Context
 	service    TensorboardServiceServer
 	currParent int
@@ -548,7 +548,7 @@ type TensorboardExperimentTestSuiteConfig struct {
 	Skip []string
 }
 
-func (fx *TensorboardExperimentTestSuiteConfig) test(t *testing.T) {
+func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) test(t *testing.T) {
 	t.Run("Create", fx.testCreate)
 	t.Run("Get", fx.testGet)
 	t.Run("Update", fx.testUpdate)
@@ -556,7 +556,7 @@ func (fx *TensorboardExperimentTestSuiteConfig) test(t *testing.T) {
 	t.Run("Delete", fx.testDelete)
 }
 
-func (fx *TensorboardExperimentTestSuiteConfig) testCreate(t *testing.T) {
+func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testCreate(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
@@ -611,7 +611,7 @@ func (fx *TensorboardExperimentTestSuiteConfig) testCreate(t *testing.T) {
 
 }
 
-func (fx *TensorboardExperimentTestSuiteConfig) testGet(t *testing.T) {
+func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testGet(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -665,7 +665,7 @@ func (fx *TensorboardExperimentTestSuiteConfig) testGet(t *testing.T) {
 
 }
 
-func (fx *TensorboardExperimentTestSuiteConfig) testUpdate(t *testing.T) {
+func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testUpdate(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -748,7 +748,7 @@ func (fx *TensorboardExperimentTestSuiteConfig) testUpdate(t *testing.T) {
 
 }
 
-func (fx *TensorboardExperimentTestSuiteConfig) testList(t *testing.T) {
+func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testList(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
@@ -888,7 +888,7 @@ func (fx *TensorboardExperimentTestSuiteConfig) testList(t *testing.T) {
 
 }
 
-func (fx *TensorboardExperimentTestSuiteConfig) testDelete(t *testing.T) {
+func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testDelete(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -941,7 +941,7 @@ func (fx *TensorboardExperimentTestSuiteConfig) testDelete(t *testing.T) {
 
 }
 
-func (fx *TensorboardExperimentTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
+func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	if pristine {
 		fx.currParent++
 	}
@@ -951,7 +951,7 @@ func (fx *TensorboardExperimentTestSuiteConfig) nextParent(t *testing.T, pristin
 	return fx.Parents[fx.currParent]
 }
 
-func (fx *TensorboardExperimentTestSuiteConfig) peekNextParent(t *testing.T) string {
+func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) peekNextParent(t *testing.T) string {
 	next := fx.currParent + 1
 	if next >= len(fx.Parents) {
 		t.Fatal("need at least", next+1, "parents")
@@ -959,7 +959,7 @@ func (fx *TensorboardExperimentTestSuiteConfig) peekNextParent(t *testing.T) str
 	return fx.Parents[next]
 }
 
-func (fx *TensorboardExperimentTestSuiteConfig) maybeSkip(t *testing.T) {
+func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
 			t.Skip("skipped because of .Skip")
@@ -967,7 +967,7 @@ func (fx *TensorboardExperimentTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
-func (fx *TensorboardExperimentTestSuiteConfig) create(t *testing.T, parent string) *TensorboardExperiment {
+func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) create(t *testing.T, parent string) *TensorboardExperiment {
 	t.Helper()
 	created, err := fx.service.CreateTensorboardExperiment(fx.ctx, &CreateTensorboardExperimentRequest{
 		Parent:                parent,
@@ -977,7 +977,7 @@ func (fx *TensorboardExperimentTestSuiteConfig) create(t *testing.T, parent stri
 	return created
 }
 
-type TensorboardRunTestSuiteConfig struct {
+type TensorboardServiceTensorboardRunTestSuiteConfig struct {
 	ctx        context.Context
 	service    TensorboardServiceServer
 	currParent int
@@ -1000,7 +1000,7 @@ type TensorboardRunTestSuiteConfig struct {
 	Skip []string
 }
 
-func (fx *TensorboardRunTestSuiteConfig) test(t *testing.T) {
+func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) test(t *testing.T) {
 	t.Run("Create", fx.testCreate)
 	t.Run("Get", fx.testGet)
 	t.Run("Update", fx.testUpdate)
@@ -1008,7 +1008,7 @@ func (fx *TensorboardRunTestSuiteConfig) test(t *testing.T) {
 	t.Run("Delete", fx.testDelete)
 }
 
-func (fx *TensorboardRunTestSuiteConfig) testCreate(t *testing.T) {
+func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testCreate(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
@@ -1085,7 +1085,7 @@ func (fx *TensorboardRunTestSuiteConfig) testCreate(t *testing.T) {
 
 }
 
-func (fx *TensorboardRunTestSuiteConfig) testGet(t *testing.T) {
+func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testGet(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -1139,7 +1139,7 @@ func (fx *TensorboardRunTestSuiteConfig) testGet(t *testing.T) {
 
 }
 
-func (fx *TensorboardRunTestSuiteConfig) testUpdate(t *testing.T) {
+func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testUpdate(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -1265,7 +1265,7 @@ func (fx *TensorboardRunTestSuiteConfig) testUpdate(t *testing.T) {
 
 }
 
-func (fx *TensorboardRunTestSuiteConfig) testList(t *testing.T) {
+func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testList(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
@@ -1405,7 +1405,7 @@ func (fx *TensorboardRunTestSuiteConfig) testList(t *testing.T) {
 
 }
 
-func (fx *TensorboardRunTestSuiteConfig) testDelete(t *testing.T) {
+func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testDelete(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -1458,7 +1458,7 @@ func (fx *TensorboardRunTestSuiteConfig) testDelete(t *testing.T) {
 
 }
 
-func (fx *TensorboardRunTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
+func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	if pristine {
 		fx.currParent++
 	}
@@ -1468,7 +1468,7 @@ func (fx *TensorboardRunTestSuiteConfig) nextParent(t *testing.T, pristine bool)
 	return fx.Parents[fx.currParent]
 }
 
-func (fx *TensorboardRunTestSuiteConfig) peekNextParent(t *testing.T) string {
+func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) peekNextParent(t *testing.T) string {
 	next := fx.currParent + 1
 	if next >= len(fx.Parents) {
 		t.Fatal("need at least", next+1, "parents")
@@ -1476,7 +1476,7 @@ func (fx *TensorboardRunTestSuiteConfig) peekNextParent(t *testing.T) string {
 	return fx.Parents[next]
 }
 
-func (fx *TensorboardRunTestSuiteConfig) maybeSkip(t *testing.T) {
+func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
 			t.Skip("skipped because of .Skip")
@@ -1484,7 +1484,7 @@ func (fx *TensorboardRunTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
-func (fx *TensorboardRunTestSuiteConfig) create(t *testing.T, parent string) *TensorboardRun {
+func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) create(t *testing.T, parent string) *TensorboardRun {
 	t.Helper()
 	created, err := fx.service.CreateTensorboardRun(fx.ctx, &CreateTensorboardRunRequest{
 		Parent:         parent,
@@ -1494,7 +1494,7 @@ func (fx *TensorboardRunTestSuiteConfig) create(t *testing.T, parent string) *Te
 	return created
 }
 
-type TensorboardTimeSeriesTestSuiteConfig struct {
+type TensorboardServiceTensorboardTimeSeriesTestSuiteConfig struct {
 	ctx        context.Context
 	service    TensorboardServiceServer
 	currParent int
@@ -1517,7 +1517,7 @@ type TensorboardTimeSeriesTestSuiteConfig struct {
 	Skip []string
 }
 
-func (fx *TensorboardTimeSeriesTestSuiteConfig) test(t *testing.T) {
+func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) test(t *testing.T) {
 	t.Run("Create", fx.testCreate)
 	t.Run("Get", fx.testGet)
 	t.Run("Update", fx.testUpdate)
@@ -1525,7 +1525,7 @@ func (fx *TensorboardTimeSeriesTestSuiteConfig) test(t *testing.T) {
 	t.Run("Delete", fx.testDelete)
 }
 
-func (fx *TensorboardTimeSeriesTestSuiteConfig) testCreate(t *testing.T) {
+func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testCreate(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
@@ -1618,7 +1618,7 @@ func (fx *TensorboardTimeSeriesTestSuiteConfig) testCreate(t *testing.T) {
 
 }
 
-func (fx *TensorboardTimeSeriesTestSuiteConfig) testGet(t *testing.T) {
+func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testGet(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -1672,7 +1672,7 @@ func (fx *TensorboardTimeSeriesTestSuiteConfig) testGet(t *testing.T) {
 
 }
 
-func (fx *TensorboardTimeSeriesTestSuiteConfig) testUpdate(t *testing.T) {
+func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testUpdate(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -1798,7 +1798,7 @@ func (fx *TensorboardTimeSeriesTestSuiteConfig) testUpdate(t *testing.T) {
 
 }
 
-func (fx *TensorboardTimeSeriesTestSuiteConfig) testList(t *testing.T) {
+func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testList(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
@@ -1938,7 +1938,7 @@ func (fx *TensorboardTimeSeriesTestSuiteConfig) testList(t *testing.T) {
 
 }
 
-func (fx *TensorboardTimeSeriesTestSuiteConfig) testDelete(t *testing.T) {
+func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testDelete(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -1991,7 +1991,7 @@ func (fx *TensorboardTimeSeriesTestSuiteConfig) testDelete(t *testing.T) {
 
 }
 
-func (fx *TensorboardTimeSeriesTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
+func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	if pristine {
 		fx.currParent++
 	}
@@ -2001,7 +2001,7 @@ func (fx *TensorboardTimeSeriesTestSuiteConfig) nextParent(t *testing.T, pristin
 	return fx.Parents[fx.currParent]
 }
 
-func (fx *TensorboardTimeSeriesTestSuiteConfig) peekNextParent(t *testing.T) string {
+func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) peekNextParent(t *testing.T) string {
 	next := fx.currParent + 1
 	if next >= len(fx.Parents) {
 		t.Fatal("need at least", next+1, "parents")
@@ -2009,7 +2009,7 @@ func (fx *TensorboardTimeSeriesTestSuiteConfig) peekNextParent(t *testing.T) str
 	return fx.Parents[next]
 }
 
-func (fx *TensorboardTimeSeriesTestSuiteConfig) maybeSkip(t *testing.T) {
+func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
 			t.Skip("skipped because of .Skip")
@@ -2017,7 +2017,7 @@ func (fx *TensorboardTimeSeriesTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
-func (fx *TensorboardTimeSeriesTestSuiteConfig) create(t *testing.T, parent string) *TensorboardTimeSeries {
+func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) create(t *testing.T, parent string) *TensorboardTimeSeries {
 	t.Helper()
 	created, err := fx.service.CreateTensorboardTimeSeries(fx.ctx, &CreateTensorboardTimeSeriesRequest{
 		Parent:                parent,

@@ -15,39 +15,39 @@ import (
 	testing "testing"
 )
 
-type FeaturestoreServiceTestSuite struct {
+type FeatureOnlineStoreAdminServiceTestSuite struct {
 	T *testing.T
 	// Server to test.
-	Server FeaturestoreServiceServer
+	Server FeatureOnlineStoreAdminServiceServer
 }
 
-func (fx FeaturestoreServiceTestSuite) TestEntityType(ctx context.Context, options FeaturestoreServiceEntityTypeTestSuiteConfig) {
-	fx.T.Run("EntityType", func(t *testing.T) {
+func (fx FeatureOnlineStoreAdminServiceTestSuite) TestFeatureOnlineStore(ctx context.Context, options FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) {
+	fx.T.Run("FeatureOnlineStore", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
 		options.test(t)
 	})
 }
 
-func (fx FeaturestoreServiceTestSuite) TestFeature(ctx context.Context, options FeaturestoreServiceFeatureTestSuiteConfig) {
-	fx.T.Run("Feature", func(t *testing.T) {
+func (fx FeatureOnlineStoreAdminServiceTestSuite) TestFeatureView(ctx context.Context, options FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) {
+	fx.T.Run("FeatureView", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
 		options.test(t)
 	})
 }
 
-func (fx FeaturestoreServiceTestSuite) TestFeaturestore(ctx context.Context, options FeaturestoreServiceFeaturestoreTestSuiteConfig) {
-	fx.T.Run("Featurestore", func(t *testing.T) {
+func (fx FeatureOnlineStoreAdminServiceTestSuite) TestFeatureViewSync(ctx context.Context, options FeatureOnlineStoreAdminServiceFeatureViewSyncTestSuiteConfig) {
+	fx.T.Run("FeatureViewSync", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
 		options.test(t)
 	})
 }
 
-type FeaturestoreServiceEntityTypeTestSuiteConfig struct {
+type FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig struct {
 	ctx        context.Context
-	service    FeaturestoreServiceServer
+	service    FeatureOnlineStoreAdminServiceServer
 	currParent int
 
 	// The parents to use when creating resources.
@@ -57,10 +57,10 @@ type FeaturestoreServiceEntityTypeTestSuiteConfig struct {
 	Parents []string
 	// Create should return a resource which is valid to create, i.e.
 	// all required fields set.
-	Create func(parent string) *EntityType
+	Create func(parent string) *FeatureOnlineStore
 	// Update should return a resource which is valid to update, i.e.
 	// all required fields set.
-	Update func(parent string) *EntityType
+	Update func(parent string) *FeatureOnlineStore
 	// Patterns of tests to skip.
 	// For example if a service has a Get method:
 	// Skip: ["Get"] will skip all tests for Get.
@@ -68,7 +68,7 @@ type FeaturestoreServiceEntityTypeTestSuiteConfig struct {
 	Skip []string
 }
 
-func (fx *FeaturestoreServiceEntityTypeTestSuiteConfig) test(t *testing.T) {
+func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) test(t *testing.T) {
 	t.Run("Create", fx.testCreate)
 	t.Run("Get", fx.testGet)
 	t.Run("Update", fx.testUpdate)
@@ -76,14 +76,14 @@ func (fx *FeaturestoreServiceEntityTypeTestSuiteConfig) test(t *testing.T) {
 	t.Run("Delete", fx.testDelete)
 }
 
-func (fx *FeaturestoreServiceEntityTypeTestSuiteConfig) testCreate(t *testing.T) {
+func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testCreate(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateEntityType(fx.ctx, &CreateEntityTypeRequest{
-			Parent:     "",
-			EntityType: fx.Create(fx.nextParent(t, false)),
+		_, err := fx.service.CreateFeatureOnlineStore(fx.ctx, &CreateFeatureOnlineStoreRequest{
+			Parent:             "",
+			FeatureOnlineStore: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -91,833 +91,9 @@ func (fx *FeaturestoreServiceEntityTypeTestSuiteConfig) testCreate(t *testing.T)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateEntityType(fx.ctx, &CreateEntityTypeRequest{
-			Parent:     "invalid resource name",
-			EntityType: fx.Create(fx.nextParent(t, false)),
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-}
-
-func (fx *FeaturestoreServiceEntityTypeTestSuiteConfig) testGet(t *testing.T) {
-	fx.maybeSkip(t)
-	// Method should fail with InvalidArgument if no name is provided.
-	t.Run("missing name", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.service.GetEntityType(fx.ctx, &GetEntityTypeRequest{
-			Name: "",
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-	// Method should fail with InvalidArgument if the provided name is not valid.
-	t.Run("invalid name", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.service.GetEntityType(fx.ctx, &GetEntityTypeRequest{
-			Name: "invalid resource name",
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-	// Resource should be returned without errors if it exists.
-	t.Run("exists", func(t *testing.T) {
-		fx.maybeSkip(t)
-		parent := fx.nextParent(t, false)
-		created := fx.create(t, parent)
-		msg, err := fx.service.GetEntityType(fx.ctx, &GetEntityTypeRequest{
-			Name: created.Name,
-		})
-		assert.NilError(t, err)
-		assert.DeepEqual(t, msg, created, protocmp.Transform())
-	})
-
-	// Method should fail with NotFound if the resource does not exist.
-	t.Run("not found", func(t *testing.T) {
-		fx.maybeSkip(t)
-		parent := fx.nextParent(t, false)
-		created := fx.create(t, parent)
-		_, err := fx.service.GetEntityType(fx.ctx, &GetEntityTypeRequest{
-			Name: created.Name + "notfound",
-		})
-		assert.Equal(t, codes.NotFound, status.Code(err), err)
-	})
-
-	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
-	t.Run("only wildcards", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.service.GetEntityType(fx.ctx, &GetEntityTypeRequest{
-			Name: "projects/-/locations/-/featurestores/-/entityTypes/-",
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-}
-
-func (fx *FeaturestoreServiceEntityTypeTestSuiteConfig) testUpdate(t *testing.T) {
-	fx.maybeSkip(t)
-	// Method should fail with InvalidArgument if no name is provided.
-	t.Run("missing name", func(t *testing.T) {
-		fx.maybeSkip(t)
-		parent := fx.nextParent(t, false)
-		msg := fx.Update(parent)
-		msg.Name = ""
-		_, err := fx.service.UpdateEntityType(fx.ctx, &UpdateEntityTypeRequest{
-			EntityType: msg,
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-	// Method should fail with InvalidArgument if provided name is not valid.
-	t.Run("invalid name", func(t *testing.T) {
-		fx.maybeSkip(t)
-		parent := fx.nextParent(t, false)
-		msg := fx.Update(parent)
-		msg.Name = "invalid resource name"
-		_, err := fx.service.UpdateEntityType(fx.ctx, &UpdateEntityTypeRequest{
-			EntityType: msg,
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-	// The updated resource should be persisted and reachable with Get.
-	t.Run("persisted", func(t *testing.T) {
-		fx.maybeSkip(t)
-		parent := fx.nextParent(t, false)
-		created := fx.create(t, parent)
-		updated, err := fx.service.UpdateEntityType(fx.ctx, &UpdateEntityTypeRequest{
-			EntityType: created,
-		})
-		assert.NilError(t, err)
-		persisted, err := fx.service.GetEntityType(fx.ctx, &GetEntityTypeRequest{
-			Name: updated.Name,
-		})
-		assert.NilError(t, err)
-		assert.DeepEqual(t, updated, persisted, protocmp.Transform())
-	})
-
-	parent := fx.nextParent(t, false)
-	created := fx.create(t, parent)
-	// Method should fail with NotFound if the resource does not exist.
-	t.Run("not found", func(t *testing.T) {
-		fx.maybeSkip(t)
-		msg := fx.Update(parent)
-		msg.Name = created.Name + "notfound"
-		_, err := fx.service.UpdateEntityType(fx.ctx, &UpdateEntityTypeRequest{
-			EntityType: msg,
-		})
-		assert.Equal(t, codes.NotFound, status.Code(err), err)
-	})
-
-	// The method should fail with InvalidArgument if the update_mask is invalid.
-	t.Run("invalid update mask", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.service.UpdateEntityType(fx.ctx, &UpdateEntityTypeRequest{
-			EntityType: created,
-			UpdateMask: &fieldmaskpb.FieldMask{
-				Paths: []string{
-					"invalid_field_xyz",
-				},
-			},
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-}
-
-func (fx *FeaturestoreServiceEntityTypeTestSuiteConfig) testList(t *testing.T) {
-	fx.maybeSkip(t)
-	// Method should fail with InvalidArgument if provided parent is invalid.
-	t.Run("invalid parent", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.service.ListEntityTypes(fx.ctx, &ListEntityTypesRequest{
-			Parent: "invalid resource name",
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-	// Method should fail with InvalidArgument is provided page token is not valid.
-	t.Run("invalid page token", func(t *testing.T) {
-		fx.maybeSkip(t)
-		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListEntityTypes(fx.ctx, &ListEntityTypesRequest{
-			Parent:    parent,
-			PageToken: "invalid page token",
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-	// Method should fail with InvalidArgument is provided page size is negative.
-	t.Run("negative page size", func(t *testing.T) {
-		fx.maybeSkip(t)
-		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListEntityTypes(fx.ctx, &ListEntityTypesRequest{
-			Parent:   parent,
-			PageSize: -10,
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-	const resourcesCount = 15
-	parent := fx.nextParent(t, true)
-	parentMsgs := make([]*EntityType, resourcesCount)
-	for i := 0; i < resourcesCount; i++ {
-		parentMsgs[i] = fx.create(t, parent)
-	}
-
-	// If parent is provided the method must only return resources
-	// under that parent.
-	t.Run("isolation", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.service.ListEntityTypes(fx.ctx, &ListEntityTypesRequest{
-			Parent:   parent,
-			PageSize: 999,
-		})
-		assert.NilError(t, err)
-		assert.DeepEqual(
-			t,
-			parentMsgs,
-			response.EntityTypes,
-			cmpopts.SortSlices(func(a, b *EntityType) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
-
-	// If there are no more resources, next_page_token should not be set.
-	t.Run("last page", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.service.ListEntityTypes(fx.ctx, &ListEntityTypesRequest{
-			Parent:   parent,
-			PageSize: resourcesCount,
-		})
-		assert.NilError(t, err)
-		assert.Equal(t, "", response.NextPageToken)
-	})
-
-	// If there are more resources, next_page_token should be set.
-	t.Run("more pages", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.service.ListEntityTypes(fx.ctx, &ListEntityTypesRequest{
-			Parent:   parent,
-			PageSize: resourcesCount - 1,
-		})
-		assert.NilError(t, err)
-		assert.Check(t, response.NextPageToken != "")
-	})
-
-	// Listing resource one by one should eventually return all resources.
-	t.Run("one by one", func(t *testing.T) {
-		fx.maybeSkip(t)
-		msgs := make([]*EntityType, 0, resourcesCount)
-		var nextPageToken string
-		for {
-			response, err := fx.service.ListEntityTypes(fx.ctx, &ListEntityTypesRequest{
-				Parent:    parent,
-				PageSize:  1,
-				PageToken: nextPageToken,
-			})
-			assert.NilError(t, err)
-			assert.Equal(t, 1, len(response.EntityTypes))
-			msgs = append(msgs, response.EntityTypes...)
-			nextPageToken = response.NextPageToken
-			if nextPageToken == "" {
-				break
-			}
-		}
-		assert.DeepEqual(
-			t,
-			parentMsgs,
-			msgs,
-			cmpopts.SortSlices(func(a, b *EntityType) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
-
-	// Method should not return deleted resources.
-	t.Run("deleted", func(t *testing.T) {
-		fx.maybeSkip(t)
-		const deleteCount = 5
-		for i := 0; i < deleteCount; i++ {
-			_, err := fx.service.DeleteEntityType(fx.ctx, &DeleteEntityTypeRequest{
-				Name: parentMsgs[i].Name,
-			})
-			assert.NilError(t, err)
-		}
-		response, err := fx.service.ListEntityTypes(fx.ctx, &ListEntityTypesRequest{
-			Parent:   parent,
-			PageSize: 9999,
-		})
-		assert.NilError(t, err)
-		assert.DeepEqual(
-			t,
-			parentMsgs[deleteCount:],
-			response.EntityTypes,
-			cmpopts.SortSlices(func(a, b *EntityType) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
-
-}
-
-func (fx *FeaturestoreServiceEntityTypeTestSuiteConfig) testDelete(t *testing.T) {
-	fx.maybeSkip(t)
-	// Method should fail with InvalidArgument if no name is provided.
-	t.Run("missing name", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.service.DeleteEntityType(fx.ctx, &DeleteEntityTypeRequest{
-			Name: "",
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-	// Method should fail with InvalidArgument if the provided name is not valid.
-	t.Run("invalid name", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.service.DeleteEntityType(fx.ctx, &DeleteEntityTypeRequest{
-			Name: "invalid resource name",
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-	// Resource should be deleted without errors if it exists.
-	t.Run("exists", func(t *testing.T) {
-		fx.maybeSkip(t)
-		parent := fx.nextParent(t, false)
-		created := fx.create(t, parent)
-		_, err := fx.service.DeleteEntityType(fx.ctx, &DeleteEntityTypeRequest{
-			Name: created.Name,
-		})
-		assert.NilError(t, err)
-	})
-
-	// Method should fail with NotFound if the resource does not exist.
-	t.Run("not found", func(t *testing.T) {
-		fx.maybeSkip(t)
-		parent := fx.nextParent(t, false)
-		created := fx.create(t, parent)
-		_, err := fx.service.DeleteEntityType(fx.ctx, &DeleteEntityTypeRequest{
-			Name: created.Name + "notfound",
-		})
-		assert.Equal(t, codes.NotFound, status.Code(err), err)
-	})
-
-	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
-	t.Run("only wildcards", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.service.DeleteEntityType(fx.ctx, &DeleteEntityTypeRequest{
-			Name: "projects/-/locations/-/featurestores/-/entityTypes/-",
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-}
-
-func (fx *FeaturestoreServiceEntityTypeTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
-	if pristine {
-		fx.currParent++
-	}
-	if fx.currParent >= len(fx.Parents) {
-		t.Fatal("need at least", fx.currParent+1, "parents")
-	}
-	return fx.Parents[fx.currParent]
-}
-
-func (fx *FeaturestoreServiceEntityTypeTestSuiteConfig) peekNextParent(t *testing.T) string {
-	next := fx.currParent + 1
-	if next >= len(fx.Parents) {
-		t.Fatal("need at least", next+1, "parents")
-	}
-	return fx.Parents[next]
-}
-
-func (fx *FeaturestoreServiceEntityTypeTestSuiteConfig) maybeSkip(t *testing.T) {
-	for _, skip := range fx.Skip {
-		if strings.Contains(t.Name(), skip) {
-			t.Skip("skipped because of .Skip")
-		}
-	}
-}
-
-func (fx *FeaturestoreServiceEntityTypeTestSuiteConfig) create(t *testing.T, parent string) *EntityType {
-	t.Helper()
-	t.Skip("Long running create method not supported")
-	return nil
-}
-
-type FeaturestoreServiceFeatureTestSuiteConfig struct {
-	ctx        context.Context
-	service    FeaturestoreServiceServer
-	currParent int
-
-	// The parents to use when creating resources.
-	// At least one parent needs to be set. Depending on methods available on the resource,
-	// more may be required. If insufficient number of parents are
-	// provided the test will fail.
-	Parents []string
-	// Create should return a resource which is valid to create, i.e.
-	// all required fields set.
-	Create func(parent string) *Feature
-	// IDGenerator should return a valid and unique ID to use in the Create call.
-	// If non-nil, this function will be called to set the ID on all Create calls.
-	// If the ID field is required, tests will fail if this is nil.
-	IDGenerator func() string
-	// Update should return a resource which is valid to update, i.e.
-	// all required fields set.
-	Update func(parent string) *Feature
-	// Patterns of tests to skip.
-	// For example if a service has a Get method:
-	// Skip: ["Get"] will skip all tests for Get.
-	// Skip: ["Get/persisted"] will only skip the subtest called "persisted" of Get.
-	Skip []string
-}
-
-func (fx *FeaturestoreServiceFeatureTestSuiteConfig) test(t *testing.T) {
-	t.Run("Create", fx.testCreate)
-	t.Run("Get", fx.testGet)
-	t.Run("Update", fx.testUpdate)
-	t.Run("List", fx.testList)
-	t.Run("Delete", fx.testDelete)
-}
-
-func (fx *FeaturestoreServiceFeatureTestSuiteConfig) testCreate(t *testing.T) {
-	fx.maybeSkip(t)
-	// Method should fail with InvalidArgument if no parent is provided.
-	t.Run("missing parent", func(t *testing.T) {
-		fx.maybeSkip(t)
-		userSetID := ""
-		if fx.IDGenerator != nil {
-			userSetID = fx.IDGenerator()
-		}
-		_, err := fx.service.CreateFeature(fx.ctx, &CreateFeatureRequest{
-			Parent:    "",
-			Feature:   fx.Create(fx.nextParent(t, false)),
-			FeatureId: userSetID,
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-	// Method should fail with InvalidArgument if provided parent is invalid.
-	t.Run("invalid parent", func(t *testing.T) {
-		fx.maybeSkip(t)
-		userSetID := ""
-		if fx.IDGenerator != nil {
-			userSetID = fx.IDGenerator()
-		}
-		_, err := fx.service.CreateFeature(fx.ctx, &CreateFeatureRequest{
-			Parent:    "invalid resource name",
-			Feature:   fx.Create(fx.nextParent(t, false)),
-			FeatureId: userSetID,
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-}
-
-func (fx *FeaturestoreServiceFeatureTestSuiteConfig) testGet(t *testing.T) {
-	fx.maybeSkip(t)
-	// Method should fail with InvalidArgument if no name is provided.
-	t.Run("missing name", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.service.GetFeature(fx.ctx, &GetFeatureRequest{
-			Name: "",
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-	// Method should fail with InvalidArgument if the provided name is not valid.
-	t.Run("invalid name", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.service.GetFeature(fx.ctx, &GetFeatureRequest{
-			Name: "invalid resource name",
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-	// Resource should be returned without errors if it exists.
-	t.Run("exists", func(t *testing.T) {
-		fx.maybeSkip(t)
-		parent := fx.nextParent(t, false)
-		created := fx.create(t, parent)
-		msg, err := fx.service.GetFeature(fx.ctx, &GetFeatureRequest{
-			Name: created.Name,
-		})
-		assert.NilError(t, err)
-		assert.DeepEqual(t, msg, created, protocmp.Transform())
-	})
-
-	// Method should fail with NotFound if the resource does not exist.
-	t.Run("not found", func(t *testing.T) {
-		fx.maybeSkip(t)
-		parent := fx.nextParent(t, false)
-		created := fx.create(t, parent)
-		_, err := fx.service.GetFeature(fx.ctx, &GetFeatureRequest{
-			Name: created.Name + "notfound",
-		})
-		assert.Equal(t, codes.NotFound, status.Code(err), err)
-	})
-
-	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
-	t.Run("only wildcards", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.service.GetFeature(fx.ctx, &GetFeatureRequest{
-			Name: "projects/-/locations/-/featurestores/-/entityTypes/-/features/-",
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-}
-
-func (fx *FeaturestoreServiceFeatureTestSuiteConfig) testUpdate(t *testing.T) {
-	fx.maybeSkip(t)
-	// Method should fail with InvalidArgument if no name is provided.
-	t.Run("missing name", func(t *testing.T) {
-		fx.maybeSkip(t)
-		parent := fx.nextParent(t, false)
-		msg := fx.Update(parent)
-		msg.Name = ""
-		_, err := fx.service.UpdateFeature(fx.ctx, &UpdateFeatureRequest{
-			Feature: msg,
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-	// Method should fail with InvalidArgument if provided name is not valid.
-	t.Run("invalid name", func(t *testing.T) {
-		fx.maybeSkip(t)
-		parent := fx.nextParent(t, false)
-		msg := fx.Update(parent)
-		msg.Name = "invalid resource name"
-		_, err := fx.service.UpdateFeature(fx.ctx, &UpdateFeatureRequest{
-			Feature: msg,
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-	// The updated resource should be persisted and reachable with Get.
-	t.Run("persisted", func(t *testing.T) {
-		fx.maybeSkip(t)
-		parent := fx.nextParent(t, false)
-		created := fx.create(t, parent)
-		updated, err := fx.service.UpdateFeature(fx.ctx, &UpdateFeatureRequest{
-			Feature: created,
-		})
-		assert.NilError(t, err)
-		persisted, err := fx.service.GetFeature(fx.ctx, &GetFeatureRequest{
-			Name: updated.Name,
-		})
-		assert.NilError(t, err)
-		assert.DeepEqual(t, updated, persisted, protocmp.Transform())
-	})
-
-	parent := fx.nextParent(t, false)
-	created := fx.create(t, parent)
-	// Method should fail with NotFound if the resource does not exist.
-	t.Run("not found", func(t *testing.T) {
-		fx.maybeSkip(t)
-		msg := fx.Update(parent)
-		msg.Name = created.Name + "notfound"
-		_, err := fx.service.UpdateFeature(fx.ctx, &UpdateFeatureRequest{
-			Feature: msg,
-		})
-		assert.Equal(t, codes.NotFound, status.Code(err), err)
-	})
-
-	// The method should fail with InvalidArgument if the update_mask is invalid.
-	t.Run("invalid update mask", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.service.UpdateFeature(fx.ctx, &UpdateFeatureRequest{
-			Feature: created,
-			UpdateMask: &fieldmaskpb.FieldMask{
-				Paths: []string{
-					"invalid_field_xyz",
-				},
-			},
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-}
-
-func (fx *FeaturestoreServiceFeatureTestSuiteConfig) testList(t *testing.T) {
-	fx.maybeSkip(t)
-	// Method should fail with InvalidArgument if provided parent is invalid.
-	t.Run("invalid parent", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.service.ListFeatures(fx.ctx, &ListFeaturesRequest{
-			Parent: "invalid resource name",
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-	// Method should fail with InvalidArgument is provided page token is not valid.
-	t.Run("invalid page token", func(t *testing.T) {
-		fx.maybeSkip(t)
-		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListFeatures(fx.ctx, &ListFeaturesRequest{
-			Parent:    parent,
-			PageToken: "invalid page token",
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-	// Method should fail with InvalidArgument is provided page size is negative.
-	t.Run("negative page size", func(t *testing.T) {
-		fx.maybeSkip(t)
-		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListFeatures(fx.ctx, &ListFeaturesRequest{
-			Parent:   parent,
-			PageSize: -10,
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-	const resourcesCount = 15
-	parent := fx.nextParent(t, true)
-	parentMsgs := make([]*Feature, resourcesCount)
-	for i := 0; i < resourcesCount; i++ {
-		parentMsgs[i] = fx.create(t, parent)
-	}
-
-	// If parent is provided the method must only return resources
-	// under that parent.
-	t.Run("isolation", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.service.ListFeatures(fx.ctx, &ListFeaturesRequest{
-			Parent:   parent,
-			PageSize: 999,
-		})
-		assert.NilError(t, err)
-		assert.DeepEqual(
-			t,
-			parentMsgs,
-			response.Features,
-			cmpopts.SortSlices(func(a, b *Feature) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
-
-	// If there are no more resources, next_page_token should not be set.
-	t.Run("last page", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.service.ListFeatures(fx.ctx, &ListFeaturesRequest{
-			Parent:   parent,
-			PageSize: resourcesCount,
-		})
-		assert.NilError(t, err)
-		assert.Equal(t, "", response.NextPageToken)
-	})
-
-	// If there are more resources, next_page_token should be set.
-	t.Run("more pages", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.service.ListFeatures(fx.ctx, &ListFeaturesRequest{
-			Parent:   parent,
-			PageSize: resourcesCount - 1,
-		})
-		assert.NilError(t, err)
-		assert.Check(t, response.NextPageToken != "")
-	})
-
-	// Listing resource one by one should eventually return all resources.
-	t.Run("one by one", func(t *testing.T) {
-		fx.maybeSkip(t)
-		msgs := make([]*Feature, 0, resourcesCount)
-		var nextPageToken string
-		for {
-			response, err := fx.service.ListFeatures(fx.ctx, &ListFeaturesRequest{
-				Parent:    parent,
-				PageSize:  1,
-				PageToken: nextPageToken,
-			})
-			assert.NilError(t, err)
-			assert.Equal(t, 1, len(response.Features))
-			msgs = append(msgs, response.Features...)
-			nextPageToken = response.NextPageToken
-			if nextPageToken == "" {
-				break
-			}
-		}
-		assert.DeepEqual(
-			t,
-			parentMsgs,
-			msgs,
-			cmpopts.SortSlices(func(a, b *Feature) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
-
-	// Method should not return deleted resources.
-	t.Run("deleted", func(t *testing.T) {
-		fx.maybeSkip(t)
-		const deleteCount = 5
-		for i := 0; i < deleteCount; i++ {
-			_, err := fx.service.DeleteFeature(fx.ctx, &DeleteFeatureRequest{
-				Name: parentMsgs[i].Name,
-			})
-			assert.NilError(t, err)
-		}
-		response, err := fx.service.ListFeatures(fx.ctx, &ListFeaturesRequest{
-			Parent:   parent,
-			PageSize: 9999,
-		})
-		assert.NilError(t, err)
-		assert.DeepEqual(
-			t,
-			parentMsgs[deleteCount:],
-			response.Features,
-			cmpopts.SortSlices(func(a, b *Feature) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
-
-}
-
-func (fx *FeaturestoreServiceFeatureTestSuiteConfig) testDelete(t *testing.T) {
-	fx.maybeSkip(t)
-	// Method should fail with InvalidArgument if no name is provided.
-	t.Run("missing name", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.service.DeleteFeature(fx.ctx, &DeleteFeatureRequest{
-			Name: "",
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-	// Method should fail with InvalidArgument if the provided name is not valid.
-	t.Run("invalid name", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.service.DeleteFeature(fx.ctx, &DeleteFeatureRequest{
-			Name: "invalid resource name",
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-	// Resource should be deleted without errors if it exists.
-	t.Run("exists", func(t *testing.T) {
-		fx.maybeSkip(t)
-		parent := fx.nextParent(t, false)
-		created := fx.create(t, parent)
-		_, err := fx.service.DeleteFeature(fx.ctx, &DeleteFeatureRequest{
-			Name: created.Name,
-		})
-		assert.NilError(t, err)
-	})
-
-	// Method should fail with NotFound if the resource does not exist.
-	t.Run("not found", func(t *testing.T) {
-		fx.maybeSkip(t)
-		parent := fx.nextParent(t, false)
-		created := fx.create(t, parent)
-		_, err := fx.service.DeleteFeature(fx.ctx, &DeleteFeatureRequest{
-			Name: created.Name + "notfound",
-		})
-		assert.Equal(t, codes.NotFound, status.Code(err), err)
-	})
-
-	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
-	t.Run("only wildcards", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.service.DeleteFeature(fx.ctx, &DeleteFeatureRequest{
-			Name: "projects/-/locations/-/featurestores/-/entityTypes/-/features/-",
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-}
-
-func (fx *FeaturestoreServiceFeatureTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
-	if pristine {
-		fx.currParent++
-	}
-	if fx.currParent >= len(fx.Parents) {
-		t.Fatal("need at least", fx.currParent+1, "parents")
-	}
-	return fx.Parents[fx.currParent]
-}
-
-func (fx *FeaturestoreServiceFeatureTestSuiteConfig) peekNextParent(t *testing.T) string {
-	next := fx.currParent + 1
-	if next >= len(fx.Parents) {
-		t.Fatal("need at least", next+1, "parents")
-	}
-	return fx.Parents[next]
-}
-
-func (fx *FeaturestoreServiceFeatureTestSuiteConfig) maybeSkip(t *testing.T) {
-	for _, skip := range fx.Skip {
-		if strings.Contains(t.Name(), skip) {
-			t.Skip("skipped because of .Skip")
-		}
-	}
-}
-
-func (fx *FeaturestoreServiceFeatureTestSuiteConfig) create(t *testing.T, parent string) *Feature {
-	t.Helper()
-	t.Skip("Long running create method not supported")
-	return nil
-}
-
-type FeaturestoreServiceFeaturestoreTestSuiteConfig struct {
-	ctx        context.Context
-	service    FeaturestoreServiceServer
-	currParent int
-
-	// The parents to use when creating resources.
-	// At least one parent needs to be set. Depending on methods available on the resource,
-	// more may be required. If insufficient number of parents are
-	// provided the test will fail.
-	Parents []string
-	// Create should return a resource which is valid to create, i.e.
-	// all required fields set.
-	Create func(parent string) *Featurestore
-	// Update should return a resource which is valid to update, i.e.
-	// all required fields set.
-	Update func(parent string) *Featurestore
-	// Patterns of tests to skip.
-	// For example if a service has a Get method:
-	// Skip: ["Get"] will skip all tests for Get.
-	// Skip: ["Get/persisted"] will only skip the subtest called "persisted" of Get.
-	Skip []string
-}
-
-func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) test(t *testing.T) {
-	t.Run("Create", fx.testCreate)
-	t.Run("Get", fx.testGet)
-	t.Run("Update", fx.testUpdate)
-	t.Run("List", fx.testList)
-	t.Run("Delete", fx.testDelete)
-}
-
-func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) testCreate(t *testing.T) {
-	fx.maybeSkip(t)
-	// Method should fail with InvalidArgument if no parent is provided.
-	t.Run("missing parent", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.service.CreateFeaturestore(fx.ctx, &CreateFeaturestoreRequest{
-			Parent:       "",
-			Featurestore: fx.Create(fx.nextParent(t, false)),
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-	// Method should fail with InvalidArgument if provided parent is invalid.
-	t.Run("invalid parent", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.service.CreateFeaturestore(fx.ctx, &CreateFeaturestoreRequest{
-			Parent:       "invalid resource name",
-			Featurestore: fx.Create(fx.nextParent(t, false)),
+		_, err := fx.service.CreateFeatureOnlineStore(fx.ctx, &CreateFeatureOnlineStoreRequest{
+			Parent:             "invalid resource name",
+			FeatureOnlineStore: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -926,35 +102,51 @@ func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) testCreate(t *testing.
 	// required fields and they are not provided.
 	t.Run("required fields", func(t *testing.T) {
 		fx.maybeSkip(t)
-		t.Run(".online_serving_config.scaling.min_node_count", func(t *testing.T) {
+		t.Run(".bigtable.auto_scaling", func(t *testing.T) {
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
-			container := msg.GetOnlineServingConfig().GetScaling()
+			container := msg.GetBigtable()
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("auto_scaling")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.CreateFeatureOnlineStore(fx.ctx, &CreateFeatureOnlineStoreRequest{
+				Parent:             parent,
+				FeatureOnlineStore: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+		t.Run(".bigtable.auto_scaling.min_node_count", func(t *testing.T) {
+			fx.maybeSkip(t)
+			parent := fx.nextParent(t, false)
+			msg := fx.Create(parent)
+			container := msg.GetBigtable().GetAutoScaling()
 			if container == nil {
 				t.Skip("not reachable")
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("min_node_count")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateFeaturestore(fx.ctx, &CreateFeaturestoreRequest{
-				Parent:       parent,
-				Featurestore: msg,
+			_, err := fx.service.CreateFeatureOnlineStore(fx.ctx, &CreateFeatureOnlineStoreRequest{
+				Parent:             parent,
+				FeatureOnlineStore: msg,
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
-		t.Run(".encryption_spec.kms_key_name", func(t *testing.T) {
+		t.Run(".bigtable.auto_scaling.max_node_count", func(t *testing.T) {
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
-			container := msg.GetEncryptionSpec()
+			container := msg.GetBigtable().GetAutoScaling()
 			if container == nil {
 				t.Skip("not reachable")
 			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("kms_key_name")
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("max_node_count")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateFeaturestore(fx.ctx, &CreateFeaturestoreRequest{
-				Parent:       parent,
-				Featurestore: msg,
+			_, err := fx.service.CreateFeatureOnlineStore(fx.ctx, &CreateFeatureOnlineStoreRequest{
+				Parent:             parent,
+				FeatureOnlineStore: msg,
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
@@ -962,12 +154,12 @@ func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) testCreate(t *testing.
 
 }
 
-func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) testGet(t *testing.T) {
+func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testGet(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetFeaturestore(fx.ctx, &GetFeaturestoreRequest{
+		_, err := fx.service.GetFeatureOnlineStore(fx.ctx, &GetFeatureOnlineStoreRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -976,7 +168,7 @@ func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) testGet(t *testing.T) 
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetFeaturestore(fx.ctx, &GetFeaturestoreRequest{
+		_, err := fx.service.GetFeatureOnlineStore(fx.ctx, &GetFeatureOnlineStoreRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -987,7 +179,7 @@ func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) testGet(t *testing.T) 
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		msg, err := fx.service.GetFeaturestore(fx.ctx, &GetFeaturestoreRequest{
+		msg, err := fx.service.GetFeatureOnlineStore(fx.ctx, &GetFeatureOnlineStoreRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -999,7 +191,7 @@ func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) testGet(t *testing.T) 
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.GetFeaturestore(fx.ctx, &GetFeaturestoreRequest{
+		_, err := fx.service.GetFeatureOnlineStore(fx.ctx, &GetFeatureOnlineStoreRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -1008,15 +200,15 @@ func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) testGet(t *testing.T) 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetFeaturestore(fx.ctx, &GetFeaturestoreRequest{
-			Name: "projects/-/locations/-/featurestores/-",
+		_, err := fx.service.GetFeatureOnlineStore(fx.ctx, &GetFeatureOnlineStoreRequest{
+			Name: "projects/-/locations/-/featureOnlineStores/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
 }
 
-func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) testUpdate(t *testing.T) {
+func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testUpdate(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -1024,8 +216,8 @@ func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) testUpdate(t *testing.
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
 		msg.Name = ""
-		_, err := fx.service.UpdateFeaturestore(fx.ctx, &UpdateFeaturestoreRequest{
-			Featurestore: msg,
+		_, err := fx.service.UpdateFeatureOnlineStore(fx.ctx, &UpdateFeatureOnlineStoreRequest{
+			FeatureOnlineStore: msg,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -1036,8 +228,8 @@ func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) testUpdate(t *testing.
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
 		msg.Name = "invalid resource name"
-		_, err := fx.service.UpdateFeaturestore(fx.ctx, &UpdateFeaturestoreRequest{
-			Featurestore: msg,
+		_, err := fx.service.UpdateFeatureOnlineStore(fx.ctx, &UpdateFeatureOnlineStoreRequest{
+			FeatureOnlineStore: msg,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -1049,8 +241,8 @@ func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) testUpdate(t *testing.
 		fx.maybeSkip(t)
 		msg := fx.Update(parent)
 		msg.Name = created.Name + "notfound"
-		_, err := fx.service.UpdateFeaturestore(fx.ctx, &UpdateFeaturestoreRequest{
-			Featurestore: msg,
+		_, err := fx.service.UpdateFeatureOnlineStore(fx.ctx, &UpdateFeatureOnlineStoreRequest{
+			FeatureOnlineStore: msg,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
 	})
@@ -1058,8 +250,8 @@ func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) testUpdate(t *testing.
 	// The method should fail with InvalidArgument if the update_mask is invalid.
 	t.Run("invalid update mask", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.UpdateFeaturestore(fx.ctx, &UpdateFeaturestoreRequest{
-			Featurestore: created,
+		_, err := fx.service.UpdateFeatureOnlineStore(fx.ctx, &UpdateFeatureOnlineStoreRequest{
+			FeatureOnlineStore: created,
 			UpdateMask: &fieldmaskpb.FieldMask{
 				Paths: []string{
 					"invalid_field_xyz",
@@ -1073,17 +265,17 @@ func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) testUpdate(t *testing.
 	// when called with '*' update_mask.
 	t.Run("required fields", func(t *testing.T) {
 		fx.maybeSkip(t)
-		t.Run(".online_serving_config.scaling.min_node_count", func(t *testing.T) {
+		t.Run(".bigtable.auto_scaling", func(t *testing.T) {
 			fx.maybeSkip(t)
-			msg := proto.Clone(created).(*Featurestore)
-			container := msg.GetOnlineServingConfig().GetScaling()
+			msg := proto.Clone(created).(*FeatureOnlineStore)
+			container := msg.GetBigtable()
 			if container == nil {
 				t.Skip("not reachable")
 			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("min_node_count")
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("auto_scaling")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateFeaturestore(fx.ctx, &UpdateFeaturestoreRequest{
-				Featurestore: msg,
+			_, err := fx.service.UpdateFeatureOnlineStore(fx.ctx, &UpdateFeatureOnlineStoreRequest{
+				FeatureOnlineStore: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
 						"*",
@@ -1092,17 +284,36 @@ func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) testUpdate(t *testing.
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
-		t.Run(".encryption_spec.kms_key_name", func(t *testing.T) {
+		t.Run(".bigtable.auto_scaling.min_node_count", func(t *testing.T) {
 			fx.maybeSkip(t)
-			msg := proto.Clone(created).(*Featurestore)
-			container := msg.GetEncryptionSpec()
+			msg := proto.Clone(created).(*FeatureOnlineStore)
+			container := msg.GetBigtable().GetAutoScaling()
 			if container == nil {
 				t.Skip("not reachable")
 			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("kms_key_name")
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("min_node_count")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateFeaturestore(fx.ctx, &UpdateFeaturestoreRequest{
-				Featurestore: msg,
+			_, err := fx.service.UpdateFeatureOnlineStore(fx.ctx, &UpdateFeatureOnlineStoreRequest{
+				FeatureOnlineStore: msg,
+				UpdateMask: &fieldmaskpb.FieldMask{
+					Paths: []string{
+						"*",
+					},
+				},
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+		t.Run(".bigtable.auto_scaling.max_node_count", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msg := proto.Clone(created).(*FeatureOnlineStore)
+			container := msg.GetBigtable().GetAutoScaling()
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("max_node_count")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.UpdateFeatureOnlineStore(fx.ctx, &UpdateFeatureOnlineStoreRequest{
+				FeatureOnlineStore: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
 						"*",
@@ -1115,12 +326,12 @@ func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) testUpdate(t *testing.
 
 }
 
-func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) testList(t *testing.T) {
+func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testList(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.ListFeaturestores(fx.ctx, &ListFeaturestoresRequest{
+		_, err := fx.service.ListFeatureOnlineStores(fx.ctx, &ListFeatureOnlineStoresRequest{
 			Parent: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1130,7 +341,7 @@ func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) testList(t *testing.T)
 	t.Run("invalid page token", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListFeaturestores(fx.ctx, &ListFeaturestoresRequest{
+		_, err := fx.service.ListFeatureOnlineStores(fx.ctx, &ListFeatureOnlineStoresRequest{
 			Parent:    parent,
 			PageToken: "invalid page token",
 		})
@@ -1141,7 +352,7 @@ func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) testList(t *testing.T)
 	t.Run("negative page size", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListFeaturestores(fx.ctx, &ListFeaturestoresRequest{
+		_, err := fx.service.ListFeatureOnlineStores(fx.ctx, &ListFeatureOnlineStoresRequest{
 			Parent:   parent,
 			PageSize: -10,
 		})
@@ -1150,7 +361,7 @@ func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) testList(t *testing.T)
 
 	const resourcesCount = 15
 	parent := fx.nextParent(t, true)
-	parentMsgs := make([]*Featurestore, resourcesCount)
+	parentMsgs := make([]*FeatureOnlineStore, resourcesCount)
 	for i := 0; i < resourcesCount; i++ {
 		parentMsgs[i] = fx.create(t, parent)
 	}
@@ -1159,7 +370,7 @@ func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) testList(t *testing.T)
 	// under that parent.
 	t.Run("isolation", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListFeaturestores(fx.ctx, &ListFeaturestoresRequest{
+		response, err := fx.service.ListFeatureOnlineStores(fx.ctx, &ListFeatureOnlineStoresRequest{
 			Parent:   parent,
 			PageSize: 999,
 		})
@@ -1167,8 +378,8 @@ func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) testList(t *testing.T)
 		assert.DeepEqual(
 			t,
 			parentMsgs,
-			response.Featurestores,
-			cmpopts.SortSlices(func(a, b *Featurestore) bool {
+			response.FeatureOnlineStores,
+			cmpopts.SortSlices(func(a, b *FeatureOnlineStore) bool {
 				return a.Name < b.Name
 			}),
 			protocmp.Transform(),
@@ -1178,7 +389,7 @@ func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) testList(t *testing.T)
 	// If there are no more resources, next_page_token should not be set.
 	t.Run("last page", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListFeaturestores(fx.ctx, &ListFeaturestoresRequest{
+		response, err := fx.service.ListFeatureOnlineStores(fx.ctx, &ListFeatureOnlineStoresRequest{
 			Parent:   parent,
 			PageSize: resourcesCount,
 		})
@@ -1189,7 +400,7 @@ func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) testList(t *testing.T)
 	// If there are more resources, next_page_token should be set.
 	t.Run("more pages", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListFeaturestores(fx.ctx, &ListFeaturestoresRequest{
+		response, err := fx.service.ListFeatureOnlineStores(fx.ctx, &ListFeatureOnlineStoresRequest{
 			Parent:   parent,
 			PageSize: resourcesCount - 1,
 		})
@@ -1200,17 +411,17 @@ func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) testList(t *testing.T)
 	// Listing resource one by one should eventually return all resources.
 	t.Run("one by one", func(t *testing.T) {
 		fx.maybeSkip(t)
-		msgs := make([]*Featurestore, 0, resourcesCount)
+		msgs := make([]*FeatureOnlineStore, 0, resourcesCount)
 		var nextPageToken string
 		for {
-			response, err := fx.service.ListFeaturestores(fx.ctx, &ListFeaturestoresRequest{
+			response, err := fx.service.ListFeatureOnlineStores(fx.ctx, &ListFeatureOnlineStoresRequest{
 				Parent:    parent,
 				PageSize:  1,
 				PageToken: nextPageToken,
 			})
 			assert.NilError(t, err)
-			assert.Equal(t, 1, len(response.Featurestores))
-			msgs = append(msgs, response.Featurestores...)
+			assert.Equal(t, 1, len(response.FeatureOnlineStores))
+			msgs = append(msgs, response.FeatureOnlineStores...)
 			nextPageToken = response.NextPageToken
 			if nextPageToken == "" {
 				break
@@ -1220,7 +431,7 @@ func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) testList(t *testing.T)
 			t,
 			parentMsgs,
 			msgs,
-			cmpopts.SortSlices(func(a, b *Featurestore) bool {
+			cmpopts.SortSlices(func(a, b *FeatureOnlineStore) bool {
 				return a.Name < b.Name
 			}),
 			protocmp.Transform(),
@@ -1232,12 +443,12 @@ func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) testList(t *testing.T)
 		fx.maybeSkip(t)
 		const deleteCount = 5
 		for i := 0; i < deleteCount; i++ {
-			_, err := fx.service.DeleteFeaturestore(fx.ctx, &DeleteFeaturestoreRequest{
+			_, err := fx.service.DeleteFeatureOnlineStore(fx.ctx, &DeleteFeatureOnlineStoreRequest{
 				Name: parentMsgs[i].Name,
 			})
 			assert.NilError(t, err)
 		}
-		response, err := fx.service.ListFeaturestores(fx.ctx, &ListFeaturestoresRequest{
+		response, err := fx.service.ListFeatureOnlineStores(fx.ctx, &ListFeatureOnlineStoresRequest{
 			Parent:   parent,
 			PageSize: 9999,
 		})
@@ -1245,8 +456,8 @@ func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) testList(t *testing.T)
 		assert.DeepEqual(
 			t,
 			parentMsgs[deleteCount:],
-			response.Featurestores,
-			cmpopts.SortSlices(func(a, b *Featurestore) bool {
+			response.FeatureOnlineStores,
+			cmpopts.SortSlices(func(a, b *FeatureOnlineStore) bool {
 				return a.Name < b.Name
 			}),
 			protocmp.Transform(),
@@ -1255,12 +466,12 @@ func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) testList(t *testing.T)
 
 }
 
-func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) testDelete(t *testing.T) {
+func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testDelete(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteFeaturestore(fx.ctx, &DeleteFeaturestoreRequest{
+		_, err := fx.service.DeleteFeatureOnlineStore(fx.ctx, &DeleteFeatureOnlineStoreRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1269,7 +480,7 @@ func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) testDelete(t *testing.
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteFeaturestore(fx.ctx, &DeleteFeaturestoreRequest{
+		_, err := fx.service.DeleteFeatureOnlineStore(fx.ctx, &DeleteFeatureOnlineStoreRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1280,7 +491,7 @@ func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) testDelete(t *testing.
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteFeaturestore(fx.ctx, &DeleteFeaturestoreRequest{
+		_, err := fx.service.DeleteFeatureOnlineStore(fx.ctx, &DeleteFeatureOnlineStoreRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -1291,7 +502,7 @@ func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) testDelete(t *testing.
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteFeaturestore(fx.ctx, &DeleteFeaturestoreRequest{
+		_, err := fx.service.DeleteFeatureOnlineStore(fx.ctx, &DeleteFeatureOnlineStoreRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -1300,15 +511,15 @@ func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) testDelete(t *testing.
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteFeaturestore(fx.ctx, &DeleteFeaturestoreRequest{
-			Name: "projects/-/locations/-/featurestores/-",
+		_, err := fx.service.DeleteFeatureOnlineStore(fx.ctx, &DeleteFeatureOnlineStoreRequest{
+			Name: "projects/-/locations/-/featureOnlineStores/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
 }
 
-func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
+func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	if pristine {
 		fx.currParent++
 	}
@@ -1318,7 +529,7 @@ func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) nextParent(t *testing.
 	return fx.Parents[fx.currParent]
 }
 
-func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) peekNextParent(t *testing.T) string {
+func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) peekNextParent(t *testing.T) string {
 	next := fx.currParent + 1
 	if next >= len(fx.Parents) {
 		t.Fatal("need at least", next+1, "parents")
@@ -1326,7 +537,7 @@ func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) peekNextParent(t *test
 	return fx.Parents[next]
 }
 
-func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) maybeSkip(t *testing.T) {
+func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
 			t.Skip("skipped because of .Skip")
@@ -1334,8 +545,746 @@ func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) maybeSkip(t *testing.T
 	}
 }
 
-func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) create(t *testing.T, parent string) *Featurestore {
+func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) create(t *testing.T, parent string) *FeatureOnlineStore {
 	t.Helper()
 	t.Skip("Long running create method not supported")
 	return nil
+}
+
+type FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig struct {
+	ctx        context.Context
+	service    FeatureOnlineStoreAdminServiceServer
+	currParent int
+
+	// The parents to use when creating resources.
+	// At least one parent needs to be set. Depending on methods available on the resource,
+	// more may be required. If insufficient number of parents are
+	// provided the test will fail.
+	Parents []string
+	// Create should return a resource which is valid to create, i.e.
+	// all required fields set.
+	Create func(parent string) *FeatureView
+	// Update should return a resource which is valid to update, i.e.
+	// all required fields set.
+	Update func(parent string) *FeatureView
+	// Patterns of tests to skip.
+	// For example if a service has a Get method:
+	// Skip: ["Get"] will skip all tests for Get.
+	// Skip: ["Get/persisted"] will only skip the subtest called "persisted" of Get.
+	Skip []string
+}
+
+func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) test(t *testing.T) {
+	t.Run("Create", fx.testCreate)
+	t.Run("Get", fx.testGet)
+	t.Run("Update", fx.testUpdate)
+	t.Run("List", fx.testList)
+	t.Run("Delete", fx.testDelete)
+}
+
+func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testCreate(t *testing.T) {
+	fx.maybeSkip(t)
+	// Method should fail with InvalidArgument if no parent is provided.
+	t.Run("missing parent", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.CreateFeatureView(fx.ctx, &CreateFeatureViewRequest{
+			Parent:      "",
+			FeatureView: fx.Create(fx.nextParent(t, false)),
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if provided parent is invalid.
+	t.Run("invalid parent", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.CreateFeatureView(fx.ctx, &CreateFeatureViewRequest{
+			Parent:      "invalid resource name",
+			FeatureView: fx.Create(fx.nextParent(t, false)),
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// The method should fail with InvalidArgument if the resource has any
+	// required fields and they are not provided.
+	t.Run("required fields", func(t *testing.T) {
+		fx.maybeSkip(t)
+		t.Run(".big_query_source.uri", func(t *testing.T) {
+			fx.maybeSkip(t)
+			parent := fx.nextParent(t, false)
+			msg := fx.Create(parent)
+			container := msg.GetBigQuerySource()
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("uri")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.CreateFeatureView(fx.ctx, &CreateFeatureViewRequest{
+				Parent:      parent,
+				FeatureView: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+		t.Run(".big_query_source.entity_id_columns", func(t *testing.T) {
+			fx.maybeSkip(t)
+			parent := fx.nextParent(t, false)
+			msg := fx.Create(parent)
+			container := msg.GetBigQuerySource()
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("entity_id_columns")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.CreateFeatureView(fx.ctx, &CreateFeatureViewRequest{
+				Parent:      parent,
+				FeatureView: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+		t.Run(".feature_registry_source.feature_groups", func(t *testing.T) {
+			fx.maybeSkip(t)
+			parent := fx.nextParent(t, false)
+			msg := fx.Create(parent)
+			container := msg.GetFeatureRegistrySource()
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("feature_groups")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.CreateFeatureView(fx.ctx, &CreateFeatureViewRequest{
+				Parent:      parent,
+				FeatureView: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+	})
+
+}
+
+func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testGet(t *testing.T) {
+	fx.maybeSkip(t)
+	// Method should fail with InvalidArgument if no name is provided.
+	t.Run("missing name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.GetFeatureView(fx.ctx, &GetFeatureViewRequest{
+			Name: "",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name is not valid.
+	t.Run("invalid name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.GetFeatureView(fx.ctx, &GetFeatureViewRequest{
+			Name: "invalid resource name",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Resource should be returned without errors if it exists.
+	t.Run("exists", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		msg, err := fx.service.GetFeatureView(fx.ctx, &GetFeatureViewRequest{
+			Name: created.Name,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(t, msg, created, protocmp.Transform())
+	})
+
+	// Method should fail with NotFound if the resource does not exist.
+	t.Run("not found", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.GetFeatureView(fx.ctx, &GetFeatureViewRequest{
+			Name: created.Name + "notfound",
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
+	t.Run("only wildcards", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.GetFeatureView(fx.ctx, &GetFeatureViewRequest{
+			Name: "projects/-/locations/-/featureOnlineStores/-/featureViews/-",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+}
+
+func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testUpdate(t *testing.T) {
+	fx.maybeSkip(t)
+	// Method should fail with InvalidArgument if no name is provided.
+	t.Run("missing name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		msg := fx.Update(parent)
+		msg.Name = ""
+		_, err := fx.service.UpdateFeatureView(fx.ctx, &UpdateFeatureViewRequest{
+			FeatureView: msg,
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if provided name is not valid.
+	t.Run("invalid name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		msg := fx.Update(parent)
+		msg.Name = "invalid resource name"
+		_, err := fx.service.UpdateFeatureView(fx.ctx, &UpdateFeatureViewRequest{
+			FeatureView: msg,
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	parent := fx.nextParent(t, false)
+	created := fx.create(t, parent)
+	// Method should fail with NotFound if the resource does not exist.
+	t.Run("not found", func(t *testing.T) {
+		fx.maybeSkip(t)
+		msg := fx.Update(parent)
+		msg.Name = created.Name + "notfound"
+		_, err := fx.service.UpdateFeatureView(fx.ctx, &UpdateFeatureViewRequest{
+			FeatureView: msg,
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
+	// The method should fail with InvalidArgument if the update_mask is invalid.
+	t.Run("invalid update mask", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.UpdateFeatureView(fx.ctx, &UpdateFeatureViewRequest{
+			FeatureView: created,
+			UpdateMask: &fieldmaskpb.FieldMask{
+				Paths: []string{
+					"invalid_field_xyz",
+				},
+			},
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if any required field is missing
+	// when called with '*' update_mask.
+	t.Run("required fields", func(t *testing.T) {
+		fx.maybeSkip(t)
+		t.Run(".big_query_source.uri", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msg := proto.Clone(created).(*FeatureView)
+			container := msg.GetBigQuerySource()
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("uri")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.UpdateFeatureView(fx.ctx, &UpdateFeatureViewRequest{
+				FeatureView: msg,
+				UpdateMask: &fieldmaskpb.FieldMask{
+					Paths: []string{
+						"*",
+					},
+				},
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+		t.Run(".big_query_source.entity_id_columns", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msg := proto.Clone(created).(*FeatureView)
+			container := msg.GetBigQuerySource()
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("entity_id_columns")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.UpdateFeatureView(fx.ctx, &UpdateFeatureViewRequest{
+				FeatureView: msg,
+				UpdateMask: &fieldmaskpb.FieldMask{
+					Paths: []string{
+						"*",
+					},
+				},
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+		t.Run(".feature_registry_source.feature_groups", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msg := proto.Clone(created).(*FeatureView)
+			container := msg.GetFeatureRegistrySource()
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("feature_groups")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.UpdateFeatureView(fx.ctx, &UpdateFeatureViewRequest{
+				FeatureView: msg,
+				UpdateMask: &fieldmaskpb.FieldMask{
+					Paths: []string{
+						"*",
+					},
+				},
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+	})
+
+}
+
+func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testList(t *testing.T) {
+	fx.maybeSkip(t)
+	// Method should fail with InvalidArgument if provided parent is invalid.
+	t.Run("invalid parent", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.ListFeatureViews(fx.ctx, &ListFeatureViewsRequest{
+			Parent: "invalid resource name",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument is provided page token is not valid.
+	t.Run("invalid page token", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		_, err := fx.service.ListFeatureViews(fx.ctx, &ListFeatureViewsRequest{
+			Parent:    parent,
+			PageToken: "invalid page token",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument is provided page size is negative.
+	t.Run("negative page size", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		_, err := fx.service.ListFeatureViews(fx.ctx, &ListFeatureViewsRequest{
+			Parent:   parent,
+			PageSize: -10,
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	const resourcesCount = 15
+	parent := fx.nextParent(t, true)
+	parentMsgs := make([]*FeatureView, resourcesCount)
+	for i := 0; i < resourcesCount; i++ {
+		parentMsgs[i] = fx.create(t, parent)
+	}
+
+	// If parent is provided the method must only return resources
+	// under that parent.
+	t.Run("isolation", func(t *testing.T) {
+		fx.maybeSkip(t)
+		response, err := fx.service.ListFeatureViews(fx.ctx, &ListFeatureViewsRequest{
+			Parent:   parent,
+			PageSize: 999,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(
+			t,
+			parentMsgs,
+			response.FeatureViews,
+			cmpopts.SortSlices(func(a, b *FeatureView) bool {
+				return a.Name < b.Name
+			}),
+			protocmp.Transform(),
+		)
+	})
+
+	// If there are no more resources, next_page_token should not be set.
+	t.Run("last page", func(t *testing.T) {
+		fx.maybeSkip(t)
+		response, err := fx.service.ListFeatureViews(fx.ctx, &ListFeatureViewsRequest{
+			Parent:   parent,
+			PageSize: resourcesCount,
+		})
+		assert.NilError(t, err)
+		assert.Equal(t, "", response.NextPageToken)
+	})
+
+	// If there are more resources, next_page_token should be set.
+	t.Run("more pages", func(t *testing.T) {
+		fx.maybeSkip(t)
+		response, err := fx.service.ListFeatureViews(fx.ctx, &ListFeatureViewsRequest{
+			Parent:   parent,
+			PageSize: resourcesCount - 1,
+		})
+		assert.NilError(t, err)
+		assert.Check(t, response.NextPageToken != "")
+	})
+
+	// Listing resource one by one should eventually return all resources.
+	t.Run("one by one", func(t *testing.T) {
+		fx.maybeSkip(t)
+		msgs := make([]*FeatureView, 0, resourcesCount)
+		var nextPageToken string
+		for {
+			response, err := fx.service.ListFeatureViews(fx.ctx, &ListFeatureViewsRequest{
+				Parent:    parent,
+				PageSize:  1,
+				PageToken: nextPageToken,
+			})
+			assert.NilError(t, err)
+			assert.Equal(t, 1, len(response.FeatureViews))
+			msgs = append(msgs, response.FeatureViews...)
+			nextPageToken = response.NextPageToken
+			if nextPageToken == "" {
+				break
+			}
+		}
+		assert.DeepEqual(
+			t,
+			parentMsgs,
+			msgs,
+			cmpopts.SortSlices(func(a, b *FeatureView) bool {
+				return a.Name < b.Name
+			}),
+			protocmp.Transform(),
+		)
+	})
+
+	// Method should not return deleted resources.
+	t.Run("deleted", func(t *testing.T) {
+		fx.maybeSkip(t)
+		const deleteCount = 5
+		for i := 0; i < deleteCount; i++ {
+			_, err := fx.service.DeleteFeatureView(fx.ctx, &DeleteFeatureViewRequest{
+				Name: parentMsgs[i].Name,
+			})
+			assert.NilError(t, err)
+		}
+		response, err := fx.service.ListFeatureViews(fx.ctx, &ListFeatureViewsRequest{
+			Parent:   parent,
+			PageSize: 9999,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(
+			t,
+			parentMsgs[deleteCount:],
+			response.FeatureViews,
+			cmpopts.SortSlices(func(a, b *FeatureView) bool {
+				return a.Name < b.Name
+			}),
+			protocmp.Transform(),
+		)
+	})
+
+}
+
+func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testDelete(t *testing.T) {
+	fx.maybeSkip(t)
+	// Method should fail with InvalidArgument if no name is provided.
+	t.Run("missing name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteFeatureView(fx.ctx, &DeleteFeatureViewRequest{
+			Name: "",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name is not valid.
+	t.Run("invalid name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteFeatureView(fx.ctx, &DeleteFeatureViewRequest{
+			Name: "invalid resource name",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Resource should be deleted without errors if it exists.
+	t.Run("exists", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteFeatureView(fx.ctx, &DeleteFeatureViewRequest{
+			Name: created.Name,
+		})
+		assert.NilError(t, err)
+	})
+
+	// Method should fail with NotFound if the resource does not exist.
+	t.Run("not found", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteFeatureView(fx.ctx, &DeleteFeatureViewRequest{
+			Name: created.Name + "notfound",
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
+	t.Run("only wildcards", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteFeatureView(fx.ctx, &DeleteFeatureViewRequest{
+			Name: "projects/-/locations/-/featureOnlineStores/-/featureViews/-",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+}
+
+func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
+	if pristine {
+		fx.currParent++
+	}
+	if fx.currParent >= len(fx.Parents) {
+		t.Fatal("need at least", fx.currParent+1, "parents")
+	}
+	return fx.Parents[fx.currParent]
+}
+
+func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) peekNextParent(t *testing.T) string {
+	next := fx.currParent + 1
+	if next >= len(fx.Parents) {
+		t.Fatal("need at least", next+1, "parents")
+	}
+	return fx.Parents[next]
+}
+
+func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) maybeSkip(t *testing.T) {
+	for _, skip := range fx.Skip {
+		if strings.Contains(t.Name(), skip) {
+			t.Skip("skipped because of .Skip")
+		}
+	}
+}
+
+func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) create(t *testing.T, parent string) *FeatureView {
+	t.Helper()
+	t.Skip("Long running create method not supported")
+	return nil
+}
+
+type FeatureOnlineStoreAdminServiceFeatureViewSyncTestSuiteConfig struct {
+	ctx        context.Context
+	service    FeatureOnlineStoreAdminServiceServer
+	currParent int
+
+	// The parents to use when creating resources.
+	// At least one parent needs to be set. Depending on methods available on the resource,
+	// more may be required. If insufficient number of parents are
+	// provided the test will fail.
+	Parents []string
+	// CreateResource should create a FeatureViewSync and return it.
+	// If the field is not set, some tests will be skipped.
+	//
+	// This method is generated because service does not expose a Create
+	// method (or it does not comply with AIP).
+	CreateResource func(ctx context.Context, parent string) (*FeatureViewSync, error)
+	// Patterns of tests to skip.
+	// For example if a service has a Get method:
+	// Skip: ["Get"] will skip all tests for Get.
+	// Skip: ["Get/persisted"] will only skip the subtest called "persisted" of Get.
+	Skip []string
+}
+
+func (fx *FeatureOnlineStoreAdminServiceFeatureViewSyncTestSuiteConfig) test(t *testing.T) {
+	t.Run("Get", fx.testGet)
+	t.Run("List", fx.testList)
+}
+
+func (fx *FeatureOnlineStoreAdminServiceFeatureViewSyncTestSuiteConfig) testGet(t *testing.T) {
+	fx.maybeSkip(t)
+	// Method should fail with InvalidArgument if no name is provided.
+	t.Run("missing name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.GetFeatureViewSync(fx.ctx, &GetFeatureViewSyncRequest{
+			Name: "",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name is not valid.
+	t.Run("invalid name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.GetFeatureViewSync(fx.ctx, &GetFeatureViewSyncRequest{
+			Name: "invalid resource name",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Resource should be returned without errors if it exists.
+	t.Run("exists", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		msg, err := fx.service.GetFeatureViewSync(fx.ctx, &GetFeatureViewSyncRequest{
+			Name: created.Name,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(t, msg, created, protocmp.Transform())
+	})
+
+	// Method should fail with NotFound if the resource does not exist.
+	t.Run("not found", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.GetFeatureViewSync(fx.ctx, &GetFeatureViewSyncRequest{
+			Name: created.Name + "notfound",
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
+	t.Run("only wildcards", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.GetFeatureViewSync(fx.ctx, &GetFeatureViewSyncRequest{
+			Name: "projects/-/locations/-/featureOnlineStores/-/featureViews/-/featureViewSyncs/feature_view_sync",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+}
+
+func (fx *FeatureOnlineStoreAdminServiceFeatureViewSyncTestSuiteConfig) testList(t *testing.T) {
+	fx.maybeSkip(t)
+	// Method should fail with InvalidArgument if provided parent is invalid.
+	t.Run("invalid parent", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.ListFeatureViewSyncs(fx.ctx, &ListFeatureViewSyncsRequest{
+			Parent: "invalid resource name",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument is provided page token is not valid.
+	t.Run("invalid page token", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		_, err := fx.service.ListFeatureViewSyncs(fx.ctx, &ListFeatureViewSyncsRequest{
+			Parent:    parent,
+			PageToken: "invalid page token",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument is provided page size is negative.
+	t.Run("negative page size", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		_, err := fx.service.ListFeatureViewSyncs(fx.ctx, &ListFeatureViewSyncsRequest{
+			Parent:   parent,
+			PageSize: -10,
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	const resourcesCount = 15
+	parent := fx.nextParent(t, true)
+	parentMsgs := make([]*FeatureViewSync, resourcesCount)
+	for i := 0; i < resourcesCount; i++ {
+		parentMsgs[i] = fx.create(t, parent)
+	}
+
+	// If parent is provided the method must only return resources
+	// under that parent.
+	t.Run("isolation", func(t *testing.T) {
+		fx.maybeSkip(t)
+		response, err := fx.service.ListFeatureViewSyncs(fx.ctx, &ListFeatureViewSyncsRequest{
+			Parent:   parent,
+			PageSize: 999,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(
+			t,
+			parentMsgs,
+			response.FeatureViewSyncs,
+			cmpopts.SortSlices(func(a, b *FeatureViewSync) bool {
+				return a.Name < b.Name
+			}),
+			protocmp.Transform(),
+		)
+	})
+
+	// If there are no more resources, next_page_token should not be set.
+	t.Run("last page", func(t *testing.T) {
+		fx.maybeSkip(t)
+		response, err := fx.service.ListFeatureViewSyncs(fx.ctx, &ListFeatureViewSyncsRequest{
+			Parent:   parent,
+			PageSize: resourcesCount,
+		})
+		assert.NilError(t, err)
+		assert.Equal(t, "", response.NextPageToken)
+	})
+
+	// If there are more resources, next_page_token should be set.
+	t.Run("more pages", func(t *testing.T) {
+		fx.maybeSkip(t)
+		response, err := fx.service.ListFeatureViewSyncs(fx.ctx, &ListFeatureViewSyncsRequest{
+			Parent:   parent,
+			PageSize: resourcesCount - 1,
+		})
+		assert.NilError(t, err)
+		assert.Check(t, response.NextPageToken != "")
+	})
+
+	// Listing resource one by one should eventually return all resources.
+	t.Run("one by one", func(t *testing.T) {
+		fx.maybeSkip(t)
+		msgs := make([]*FeatureViewSync, 0, resourcesCount)
+		var nextPageToken string
+		for {
+			response, err := fx.service.ListFeatureViewSyncs(fx.ctx, &ListFeatureViewSyncsRequest{
+				Parent:    parent,
+				PageSize:  1,
+				PageToken: nextPageToken,
+			})
+			assert.NilError(t, err)
+			assert.Equal(t, 1, len(response.FeatureViewSyncs))
+			msgs = append(msgs, response.FeatureViewSyncs...)
+			nextPageToken = response.NextPageToken
+			if nextPageToken == "" {
+				break
+			}
+		}
+		assert.DeepEqual(
+			t,
+			parentMsgs,
+			msgs,
+			cmpopts.SortSlices(func(a, b *FeatureViewSync) bool {
+				return a.Name < b.Name
+			}),
+			protocmp.Transform(),
+		)
+	})
+
+}
+
+func (fx *FeatureOnlineStoreAdminServiceFeatureViewSyncTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
+	if pristine {
+		fx.currParent++
+	}
+	if fx.currParent >= len(fx.Parents) {
+		t.Fatal("need at least", fx.currParent+1, "parents")
+	}
+	return fx.Parents[fx.currParent]
+}
+
+func (fx *FeatureOnlineStoreAdminServiceFeatureViewSyncTestSuiteConfig) peekNextParent(t *testing.T) string {
+	next := fx.currParent + 1
+	if next >= len(fx.Parents) {
+		t.Fatal("need at least", next+1, "parents")
+	}
+	return fx.Parents[next]
+}
+
+func (fx *FeatureOnlineStoreAdminServiceFeatureViewSyncTestSuiteConfig) maybeSkip(t *testing.T) {
+	for _, skip := range fx.Skip {
+		if strings.Contains(t.Name(), skip) {
+			t.Skip("skipped because of .Skip")
+		}
+	}
+}
+
+func (fx *FeatureOnlineStoreAdminServiceFeatureViewSyncTestSuiteConfig) create(t *testing.T, parent string) *FeatureViewSync {
+	t.Helper()
+	if fx.CreateResource == nil {
+		t.Skip("Test skipped because CreateResource not specified on FeatureOnlineStoreAdminServiceFeatureViewSyncTestSuiteConfig")
+	}
+	created, err := fx.CreateResource(fx.ctx, parent)
+	assert.NilError(t, err)
+	return created
 }

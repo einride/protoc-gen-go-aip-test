@@ -20,7 +20,7 @@ type CloudSchedulerTestSuite struct {
 	Server CloudSchedulerServer
 }
 
-func (fx CloudSchedulerTestSuite) TestJob(ctx context.Context, options JobTestSuiteConfig) {
+func (fx CloudSchedulerTestSuite) TestJob(ctx context.Context, options CloudSchedulerJobTestSuiteConfig) {
 	fx.T.Run("Job", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
@@ -28,7 +28,7 @@ func (fx CloudSchedulerTestSuite) TestJob(ctx context.Context, options JobTestSu
 	})
 }
 
-type JobTestSuiteConfig struct {
+type CloudSchedulerJobTestSuiteConfig struct {
 	ctx        context.Context
 	service    CloudSchedulerServer
 	currParent int
@@ -51,7 +51,7 @@ type JobTestSuiteConfig struct {
 	Skip []string
 }
 
-func (fx *JobTestSuiteConfig) test(t *testing.T) {
+func (fx *CloudSchedulerJobTestSuiteConfig) test(t *testing.T) {
 	t.Run("Create", fx.testCreate)
 	t.Run("Get", fx.testGet)
 	t.Run("Update", fx.testUpdate)
@@ -59,7 +59,7 @@ func (fx *JobTestSuiteConfig) test(t *testing.T) {
 	t.Run("Delete", fx.testDelete)
 }
 
-func (fx *JobTestSuiteConfig) testCreate(t *testing.T) {
+func (fx *CloudSchedulerJobTestSuiteConfig) testCreate(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
@@ -120,7 +120,7 @@ func (fx *JobTestSuiteConfig) testCreate(t *testing.T) {
 
 }
 
-func (fx *JobTestSuiteConfig) testGet(t *testing.T) {
+func (fx *CloudSchedulerJobTestSuiteConfig) testGet(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -174,7 +174,7 @@ func (fx *JobTestSuiteConfig) testGet(t *testing.T) {
 
 }
 
-func (fx *JobTestSuiteConfig) testUpdate(t *testing.T) {
+func (fx *CloudSchedulerJobTestSuiteConfig) testUpdate(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -245,7 +245,7 @@ func (fx *JobTestSuiteConfig) testUpdate(t *testing.T) {
 
 }
 
-func (fx *JobTestSuiteConfig) testList(t *testing.T) {
+func (fx *CloudSchedulerJobTestSuiteConfig) testList(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
@@ -385,7 +385,7 @@ func (fx *JobTestSuiteConfig) testList(t *testing.T) {
 
 }
 
-func (fx *JobTestSuiteConfig) testDelete(t *testing.T) {
+func (fx *CloudSchedulerJobTestSuiteConfig) testDelete(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -438,7 +438,7 @@ func (fx *JobTestSuiteConfig) testDelete(t *testing.T) {
 
 }
 
-func (fx *JobTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
+func (fx *CloudSchedulerJobTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	if pristine {
 		fx.currParent++
 	}
@@ -448,7 +448,7 @@ func (fx *JobTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	return fx.Parents[fx.currParent]
 }
 
-func (fx *JobTestSuiteConfig) peekNextParent(t *testing.T) string {
+func (fx *CloudSchedulerJobTestSuiteConfig) peekNextParent(t *testing.T) string {
 	next := fx.currParent + 1
 	if next >= len(fx.Parents) {
 		t.Fatal("need at least", next+1, "parents")
@@ -456,7 +456,7 @@ func (fx *JobTestSuiteConfig) peekNextParent(t *testing.T) string {
 	return fx.Parents[next]
 }
 
-func (fx *JobTestSuiteConfig) maybeSkip(t *testing.T) {
+func (fx *CloudSchedulerJobTestSuiteConfig) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
 			t.Skip("skipped because of .Skip")
@@ -464,7 +464,7 @@ func (fx *JobTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
-func (fx *JobTestSuiteConfig) create(t *testing.T, parent string) *Job {
+func (fx *CloudSchedulerJobTestSuiteConfig) create(t *testing.T, parent string) *Job {
 	t.Helper()
 	created, err := fx.service.CreateJob(fx.ctx, &CreateJobRequest{
 		Parent: parent,

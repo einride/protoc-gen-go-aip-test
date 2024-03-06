@@ -21,7 +21,7 @@ type ModelServiceTestSuite struct {
 	Server ModelServiceServer
 }
 
-func (fx ModelServiceTestSuite) TestModel(ctx context.Context, options ModelTestSuiteConfig) {
+func (fx ModelServiceTestSuite) TestModel(ctx context.Context, options ModelServiceModelTestSuiteConfig) {
 	fx.T.Run("Model", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
@@ -29,7 +29,7 @@ func (fx ModelServiceTestSuite) TestModel(ctx context.Context, options ModelTest
 	})
 }
 
-func (fx ModelServiceTestSuite) TestModelEvaluation(ctx context.Context, options ModelEvaluationTestSuiteConfig) {
+func (fx ModelServiceTestSuite) TestModelEvaluation(ctx context.Context, options ModelServiceModelEvaluationTestSuiteConfig) {
 	fx.T.Run("ModelEvaluation", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
@@ -37,7 +37,7 @@ func (fx ModelServiceTestSuite) TestModelEvaluation(ctx context.Context, options
 	})
 }
 
-func (fx ModelServiceTestSuite) TestModelEvaluationSlice(ctx context.Context, options ModelEvaluationSliceTestSuiteConfig) {
+func (fx ModelServiceTestSuite) TestModelEvaluationSlice(ctx context.Context, options ModelServiceModelEvaluationSliceTestSuiteConfig) {
 	fx.T.Run("ModelEvaluationSlice", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
@@ -45,7 +45,7 @@ func (fx ModelServiceTestSuite) TestModelEvaluationSlice(ctx context.Context, op
 	})
 }
 
-type ModelTestSuiteConfig struct {
+type ModelServiceModelTestSuiteConfig struct {
 	ctx        context.Context
 	service    ModelServiceServer
 	currParent int
@@ -71,14 +71,14 @@ type ModelTestSuiteConfig struct {
 	Skip []string
 }
 
-func (fx *ModelTestSuiteConfig) test(t *testing.T) {
+func (fx *ModelServiceModelTestSuiteConfig) test(t *testing.T) {
 	t.Run("Get", fx.testGet)
 	t.Run("Update", fx.testUpdate)
 	t.Run("List", fx.testList)
 	t.Run("Delete", fx.testDelete)
 }
 
-func (fx *ModelTestSuiteConfig) testGet(t *testing.T) {
+func (fx *ModelServiceModelTestSuiteConfig) testGet(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -132,7 +132,7 @@ func (fx *ModelTestSuiteConfig) testGet(t *testing.T) {
 
 }
 
-func (fx *ModelTestSuiteConfig) testUpdate(t *testing.T) {
+func (fx *ModelServiceModelTestSuiteConfig) testUpdate(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -398,7 +398,7 @@ func (fx *ModelTestSuiteConfig) testUpdate(t *testing.T) {
 
 }
 
-func (fx *ModelTestSuiteConfig) testList(t *testing.T) {
+func (fx *ModelServiceModelTestSuiteConfig) testList(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
@@ -538,7 +538,7 @@ func (fx *ModelTestSuiteConfig) testList(t *testing.T) {
 
 }
 
-func (fx *ModelTestSuiteConfig) testDelete(t *testing.T) {
+func (fx *ModelServiceModelTestSuiteConfig) testDelete(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -591,7 +591,7 @@ func (fx *ModelTestSuiteConfig) testDelete(t *testing.T) {
 
 }
 
-func (fx *ModelTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
+func (fx *ModelServiceModelTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	if pristine {
 		fx.currParent++
 	}
@@ -601,7 +601,7 @@ func (fx *ModelTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	return fx.Parents[fx.currParent]
 }
 
-func (fx *ModelTestSuiteConfig) peekNextParent(t *testing.T) string {
+func (fx *ModelServiceModelTestSuiteConfig) peekNextParent(t *testing.T) string {
 	next := fx.currParent + 1
 	if next >= len(fx.Parents) {
 		t.Fatal("need at least", next+1, "parents")
@@ -609,7 +609,7 @@ func (fx *ModelTestSuiteConfig) peekNextParent(t *testing.T) string {
 	return fx.Parents[next]
 }
 
-func (fx *ModelTestSuiteConfig) maybeSkip(t *testing.T) {
+func (fx *ModelServiceModelTestSuiteConfig) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
 			t.Skip("skipped because of .Skip")
@@ -617,17 +617,17 @@ func (fx *ModelTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
-func (fx *ModelTestSuiteConfig) create(t *testing.T, parent string) *Model {
+func (fx *ModelServiceModelTestSuiteConfig) create(t *testing.T, parent string) *Model {
 	t.Helper()
 	if fx.CreateResource == nil {
-		t.Skip("Test skipped because CreateResource not specified on ModelTestSuiteConfig")
+		t.Skip("Test skipped because CreateResource not specified on ModelServiceModelTestSuiteConfig")
 	}
 	created, err := fx.CreateResource(fx.ctx, parent)
 	assert.NilError(t, err)
 	return created
 }
 
-type ModelEvaluationTestSuiteConfig struct {
+type ModelServiceModelEvaluationTestSuiteConfig struct {
 	ctx        context.Context
 	service    ModelServiceServer
 	currParent int
@@ -650,12 +650,12 @@ type ModelEvaluationTestSuiteConfig struct {
 	Skip []string
 }
 
-func (fx *ModelEvaluationTestSuiteConfig) test(t *testing.T) {
+func (fx *ModelServiceModelEvaluationTestSuiteConfig) test(t *testing.T) {
 	t.Run("Get", fx.testGet)
 	t.Run("List", fx.testList)
 }
 
-func (fx *ModelEvaluationTestSuiteConfig) testGet(t *testing.T) {
+func (fx *ModelServiceModelEvaluationTestSuiteConfig) testGet(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -709,7 +709,7 @@ func (fx *ModelEvaluationTestSuiteConfig) testGet(t *testing.T) {
 
 }
 
-func (fx *ModelEvaluationTestSuiteConfig) testList(t *testing.T) {
+func (fx *ModelServiceModelEvaluationTestSuiteConfig) testList(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
@@ -823,7 +823,7 @@ func (fx *ModelEvaluationTestSuiteConfig) testList(t *testing.T) {
 
 }
 
-func (fx *ModelEvaluationTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
+func (fx *ModelServiceModelEvaluationTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	if pristine {
 		fx.currParent++
 	}
@@ -833,7 +833,7 @@ func (fx *ModelEvaluationTestSuiteConfig) nextParent(t *testing.T, pristine bool
 	return fx.Parents[fx.currParent]
 }
 
-func (fx *ModelEvaluationTestSuiteConfig) peekNextParent(t *testing.T) string {
+func (fx *ModelServiceModelEvaluationTestSuiteConfig) peekNextParent(t *testing.T) string {
 	next := fx.currParent + 1
 	if next >= len(fx.Parents) {
 		t.Fatal("need at least", next+1, "parents")
@@ -841,7 +841,7 @@ func (fx *ModelEvaluationTestSuiteConfig) peekNextParent(t *testing.T) string {
 	return fx.Parents[next]
 }
 
-func (fx *ModelEvaluationTestSuiteConfig) maybeSkip(t *testing.T) {
+func (fx *ModelServiceModelEvaluationTestSuiteConfig) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
 			t.Skip("skipped because of .Skip")
@@ -849,17 +849,17 @@ func (fx *ModelEvaluationTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
-func (fx *ModelEvaluationTestSuiteConfig) create(t *testing.T, parent string) *ModelEvaluation {
+func (fx *ModelServiceModelEvaluationTestSuiteConfig) create(t *testing.T, parent string) *ModelEvaluation {
 	t.Helper()
 	if fx.CreateResource == nil {
-		t.Skip("Test skipped because CreateResource not specified on ModelEvaluationTestSuiteConfig")
+		t.Skip("Test skipped because CreateResource not specified on ModelServiceModelEvaluationTestSuiteConfig")
 	}
 	created, err := fx.CreateResource(fx.ctx, parent)
 	assert.NilError(t, err)
 	return created
 }
 
-type ModelEvaluationSliceTestSuiteConfig struct {
+type ModelServiceModelEvaluationSliceTestSuiteConfig struct {
 	ctx        context.Context
 	service    ModelServiceServer
 	currParent int
@@ -882,12 +882,12 @@ type ModelEvaluationSliceTestSuiteConfig struct {
 	Skip []string
 }
 
-func (fx *ModelEvaluationSliceTestSuiteConfig) test(t *testing.T) {
+func (fx *ModelServiceModelEvaluationSliceTestSuiteConfig) test(t *testing.T) {
 	t.Run("Get", fx.testGet)
 	t.Run("List", fx.testList)
 }
 
-func (fx *ModelEvaluationSliceTestSuiteConfig) testGet(t *testing.T) {
+func (fx *ModelServiceModelEvaluationSliceTestSuiteConfig) testGet(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -941,7 +941,7 @@ func (fx *ModelEvaluationSliceTestSuiteConfig) testGet(t *testing.T) {
 
 }
 
-func (fx *ModelEvaluationSliceTestSuiteConfig) testList(t *testing.T) {
+func (fx *ModelServiceModelEvaluationSliceTestSuiteConfig) testList(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
@@ -1055,7 +1055,7 @@ func (fx *ModelEvaluationSliceTestSuiteConfig) testList(t *testing.T) {
 
 }
 
-func (fx *ModelEvaluationSliceTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
+func (fx *ModelServiceModelEvaluationSliceTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	if pristine {
 		fx.currParent++
 	}
@@ -1065,7 +1065,7 @@ func (fx *ModelEvaluationSliceTestSuiteConfig) nextParent(t *testing.T, pristine
 	return fx.Parents[fx.currParent]
 }
 
-func (fx *ModelEvaluationSliceTestSuiteConfig) peekNextParent(t *testing.T) string {
+func (fx *ModelServiceModelEvaluationSliceTestSuiteConfig) peekNextParent(t *testing.T) string {
 	next := fx.currParent + 1
 	if next >= len(fx.Parents) {
 		t.Fatal("need at least", next+1, "parents")
@@ -1073,7 +1073,7 @@ func (fx *ModelEvaluationSliceTestSuiteConfig) peekNextParent(t *testing.T) stri
 	return fx.Parents[next]
 }
 
-func (fx *ModelEvaluationSliceTestSuiteConfig) maybeSkip(t *testing.T) {
+func (fx *ModelServiceModelEvaluationSliceTestSuiteConfig) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
 			t.Skip("skipped because of .Skip")
@@ -1081,10 +1081,10 @@ func (fx *ModelEvaluationSliceTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
-func (fx *ModelEvaluationSliceTestSuiteConfig) create(t *testing.T, parent string) *ModelEvaluationSlice {
+func (fx *ModelServiceModelEvaluationSliceTestSuiteConfig) create(t *testing.T, parent string) *ModelEvaluationSlice {
 	t.Helper()
 	if fx.CreateResource == nil {
-		t.Skip("Test skipped because CreateResource not specified on ModelEvaluationSliceTestSuiteConfig")
+		t.Skip("Test skipped because CreateResource not specified on ModelServiceModelEvaluationSliceTestSuiteConfig")
 	}
 	created, err := fx.CreateResource(fx.ctx, parent)
 	assert.NilError(t, err)

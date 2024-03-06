@@ -5,6 +5,7 @@ go 1.21
 require (
 	cloud.google.com/go/iam v1.1.6
 	cloud.google.com/go/longrunning v0.5.5
+	cloud.google.com/go/spanner v1.56.0
 	github.com/google/go-cmp v0.6.0
 	github.com/stoewer/go-strcase v1.3.0
 	go.einride.tech/aip v0.66.0
@@ -18,7 +19,6 @@ require (
 
 require (
 	github.com/golang/protobuf v1.5.3 // indirect
-	github.com/stretchr/testify v1.8.4 // indirect
 	golang.org/x/net v0.20.0 // indirect
 	golang.org/x/sys v0.16.0 // indirect
 	golang.org/x/text v0.14.0 // indirect

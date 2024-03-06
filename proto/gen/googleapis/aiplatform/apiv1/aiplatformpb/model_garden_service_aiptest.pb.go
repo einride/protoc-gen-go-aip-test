@@ -18,7 +18,7 @@ type ModelGardenServiceTestSuite struct {
 	Server ModelGardenServiceServer
 }
 
-func (fx ModelGardenServiceTestSuite) TestPublisherModel(ctx context.Context, options PublisherModelTestSuiteConfig) {
+func (fx ModelGardenServiceTestSuite) TestPublisherModel(ctx context.Context, options ModelGardenServicePublisherModelTestSuiteConfig) {
 	fx.T.Run("PublisherModel", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
@@ -26,7 +26,7 @@ func (fx ModelGardenServiceTestSuite) TestPublisherModel(ctx context.Context, op
 	})
 }
 
-type PublisherModelTestSuiteConfig struct {
+type ModelGardenServicePublisherModelTestSuiteConfig struct {
 	ctx        context.Context
 	service    ModelGardenServiceServer
 	currParent int
@@ -49,11 +49,11 @@ type PublisherModelTestSuiteConfig struct {
 	Skip []string
 }
 
-func (fx *PublisherModelTestSuiteConfig) test(t *testing.T) {
+func (fx *ModelGardenServicePublisherModelTestSuiteConfig) test(t *testing.T) {
 	t.Run("Get", fx.testGet)
 }
 
-func (fx *PublisherModelTestSuiteConfig) testGet(t *testing.T) {
+func (fx *ModelGardenServicePublisherModelTestSuiteConfig) testGet(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -107,7 +107,7 @@ func (fx *PublisherModelTestSuiteConfig) testGet(t *testing.T) {
 
 }
 
-func (fx *PublisherModelTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
+func (fx *ModelGardenServicePublisherModelTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	if pristine {
 		fx.currParent++
 	}
@@ -117,7 +117,7 @@ func (fx *PublisherModelTestSuiteConfig) nextParent(t *testing.T, pristine bool)
 	return fx.Parents[fx.currParent]
 }
 
-func (fx *PublisherModelTestSuiteConfig) peekNextParent(t *testing.T) string {
+func (fx *ModelGardenServicePublisherModelTestSuiteConfig) peekNextParent(t *testing.T) string {
 	next := fx.currParent + 1
 	if next >= len(fx.Parents) {
 		t.Fatal("need at least", next+1, "parents")
@@ -125,7 +125,7 @@ func (fx *PublisherModelTestSuiteConfig) peekNextParent(t *testing.T) string {
 	return fx.Parents[next]
 }
 
-func (fx *PublisherModelTestSuiteConfig) maybeSkip(t *testing.T) {
+func (fx *ModelGardenServicePublisherModelTestSuiteConfig) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
 			t.Skip("skipped because of .Skip")
@@ -133,10 +133,10 @@ func (fx *PublisherModelTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
-func (fx *PublisherModelTestSuiteConfig) create(t *testing.T, parent string) *PublisherModel {
+func (fx *ModelGardenServicePublisherModelTestSuiteConfig) create(t *testing.T, parent string) *PublisherModel {
 	t.Helper()
 	if fx.CreateResource == nil {
-		t.Skip("Test skipped because CreateResource not specified on PublisherModelTestSuiteConfig")
+		t.Skip("Test skipped because CreateResource not specified on ModelGardenServicePublisherModelTestSuiteConfig")
 	}
 	created, err := fx.CreateResource(fx.ctx, parent)
 	assert.NilError(t, err)

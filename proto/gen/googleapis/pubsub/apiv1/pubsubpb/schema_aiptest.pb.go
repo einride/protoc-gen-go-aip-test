@@ -19,7 +19,7 @@ type SchemaServiceTestSuite struct {
 	Server SchemaServiceServer
 }
 
-func (fx SchemaServiceTestSuite) TestSchema(ctx context.Context, options SchemaTestSuiteConfig) {
+func (fx SchemaServiceTestSuite) TestSchema(ctx context.Context, options SchemaServiceSchemaTestSuiteConfig) {
 	fx.T.Run("Schema", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
@@ -27,7 +27,7 @@ func (fx SchemaServiceTestSuite) TestSchema(ctx context.Context, options SchemaT
 	})
 }
 
-type SchemaTestSuiteConfig struct {
+type SchemaServiceSchemaTestSuiteConfig struct {
 	ctx        context.Context
 	service    SchemaServiceServer
 	currParent int
@@ -47,14 +47,14 @@ type SchemaTestSuiteConfig struct {
 	Skip []string
 }
 
-func (fx *SchemaTestSuiteConfig) test(t *testing.T) {
+func (fx *SchemaServiceSchemaTestSuiteConfig) test(t *testing.T) {
 	t.Run("Create", fx.testCreate)
 	t.Run("Get", fx.testGet)
 	t.Run("List", fx.testList)
 	t.Run("Delete", fx.testDelete)
 }
 
-func (fx *SchemaTestSuiteConfig) testCreate(t *testing.T) {
+func (fx *SchemaServiceSchemaTestSuiteConfig) testCreate(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
@@ -116,7 +116,7 @@ func (fx *SchemaTestSuiteConfig) testCreate(t *testing.T) {
 
 }
 
-func (fx *SchemaTestSuiteConfig) testGet(t *testing.T) {
+func (fx *SchemaServiceSchemaTestSuiteConfig) testGet(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -170,7 +170,7 @@ func (fx *SchemaTestSuiteConfig) testGet(t *testing.T) {
 
 }
 
-func (fx *SchemaTestSuiteConfig) testList(t *testing.T) {
+func (fx *SchemaServiceSchemaTestSuiteConfig) testList(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
@@ -310,7 +310,7 @@ func (fx *SchemaTestSuiteConfig) testList(t *testing.T) {
 
 }
 
-func (fx *SchemaTestSuiteConfig) testDelete(t *testing.T) {
+func (fx *SchemaServiceSchemaTestSuiteConfig) testDelete(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -363,7 +363,7 @@ func (fx *SchemaTestSuiteConfig) testDelete(t *testing.T) {
 
 }
 
-func (fx *SchemaTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
+func (fx *SchemaServiceSchemaTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	if pristine {
 		fx.currParent++
 	}
@@ -373,7 +373,7 @@ func (fx *SchemaTestSuiteConfig) nextParent(t *testing.T, pristine bool) string 
 	return fx.Parents[fx.currParent]
 }
 
-func (fx *SchemaTestSuiteConfig) peekNextParent(t *testing.T) string {
+func (fx *SchemaServiceSchemaTestSuiteConfig) peekNextParent(t *testing.T) string {
 	next := fx.currParent + 1
 	if next >= len(fx.Parents) {
 		t.Fatal("need at least", next+1, "parents")
@@ -381,7 +381,7 @@ func (fx *SchemaTestSuiteConfig) peekNextParent(t *testing.T) string {
 	return fx.Parents[next]
 }
 
-func (fx *SchemaTestSuiteConfig) maybeSkip(t *testing.T) {
+func (fx *SchemaServiceSchemaTestSuiteConfig) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
 			t.Skip("skipped because of .Skip")
@@ -389,7 +389,7 @@ func (fx *SchemaTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
-func (fx *SchemaTestSuiteConfig) create(t *testing.T, parent string) *Schema {
+func (fx *SchemaServiceSchemaTestSuiteConfig) create(t *testing.T, parent string) *Schema {
 	t.Helper()
 	created, err := fx.service.CreateSchema(fx.ctx, &CreateSchemaRequest{
 		Parent: parent,

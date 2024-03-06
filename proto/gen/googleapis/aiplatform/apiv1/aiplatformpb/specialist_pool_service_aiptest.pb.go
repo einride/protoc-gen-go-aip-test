@@ -21,7 +21,7 @@ type SpecialistPoolServiceTestSuite struct {
 	Server SpecialistPoolServiceServer
 }
 
-func (fx SpecialistPoolServiceTestSuite) TestSpecialistPool(ctx context.Context, options SpecialistPoolTestSuiteConfig) {
+func (fx SpecialistPoolServiceTestSuite) TestSpecialistPool(ctx context.Context, options SpecialistPoolServiceSpecialistPoolTestSuiteConfig) {
 	fx.T.Run("SpecialistPool", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
@@ -29,7 +29,7 @@ func (fx SpecialistPoolServiceTestSuite) TestSpecialistPool(ctx context.Context,
 	})
 }
 
-type SpecialistPoolTestSuiteConfig struct {
+type SpecialistPoolServiceSpecialistPoolTestSuiteConfig struct {
 	ctx        context.Context
 	service    SpecialistPoolServiceServer
 	currParent int
@@ -52,7 +52,7 @@ type SpecialistPoolTestSuiteConfig struct {
 	Skip []string
 }
 
-func (fx *SpecialistPoolTestSuiteConfig) test(t *testing.T) {
+func (fx *SpecialistPoolServiceSpecialistPoolTestSuiteConfig) test(t *testing.T) {
 	t.Run("Create", fx.testCreate)
 	t.Run("Get", fx.testGet)
 	t.Run("Update", fx.testUpdate)
@@ -60,7 +60,7 @@ func (fx *SpecialistPoolTestSuiteConfig) test(t *testing.T) {
 	t.Run("Delete", fx.testDelete)
 }
 
-func (fx *SpecialistPoolTestSuiteConfig) testCreate(t *testing.T) {
+func (fx *SpecialistPoolServiceSpecialistPoolTestSuiteConfig) testCreate(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
@@ -122,7 +122,7 @@ func (fx *SpecialistPoolTestSuiteConfig) testCreate(t *testing.T) {
 
 }
 
-func (fx *SpecialistPoolTestSuiteConfig) testGet(t *testing.T) {
+func (fx *SpecialistPoolServiceSpecialistPoolTestSuiteConfig) testGet(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -176,7 +176,7 @@ func (fx *SpecialistPoolTestSuiteConfig) testGet(t *testing.T) {
 
 }
 
-func (fx *SpecialistPoolTestSuiteConfig) testUpdate(t *testing.T) {
+func (fx *SpecialistPoolServiceSpecialistPoolTestSuiteConfig) testUpdate(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -275,7 +275,7 @@ func (fx *SpecialistPoolTestSuiteConfig) testUpdate(t *testing.T) {
 
 }
 
-func (fx *SpecialistPoolTestSuiteConfig) testList(t *testing.T) {
+func (fx *SpecialistPoolServiceSpecialistPoolTestSuiteConfig) testList(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
@@ -415,7 +415,7 @@ func (fx *SpecialistPoolTestSuiteConfig) testList(t *testing.T) {
 
 }
 
-func (fx *SpecialistPoolTestSuiteConfig) testDelete(t *testing.T) {
+func (fx *SpecialistPoolServiceSpecialistPoolTestSuiteConfig) testDelete(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -468,7 +468,7 @@ func (fx *SpecialistPoolTestSuiteConfig) testDelete(t *testing.T) {
 
 }
 
-func (fx *SpecialistPoolTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
+func (fx *SpecialistPoolServiceSpecialistPoolTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	if pristine {
 		fx.currParent++
 	}
@@ -478,7 +478,7 @@ func (fx *SpecialistPoolTestSuiteConfig) nextParent(t *testing.T, pristine bool)
 	return fx.Parents[fx.currParent]
 }
 
-func (fx *SpecialistPoolTestSuiteConfig) peekNextParent(t *testing.T) string {
+func (fx *SpecialistPoolServiceSpecialistPoolTestSuiteConfig) peekNextParent(t *testing.T) string {
 	next := fx.currParent + 1
 	if next >= len(fx.Parents) {
 		t.Fatal("need at least", next+1, "parents")
@@ -486,7 +486,7 @@ func (fx *SpecialistPoolTestSuiteConfig) peekNextParent(t *testing.T) string {
 	return fx.Parents[next]
 }
 
-func (fx *SpecialistPoolTestSuiteConfig) maybeSkip(t *testing.T) {
+func (fx *SpecialistPoolServiceSpecialistPoolTestSuiteConfig) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
 			t.Skip("skipped because of .Skip")
@@ -494,7 +494,7 @@ func (fx *SpecialistPoolTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
-func (fx *SpecialistPoolTestSuiteConfig) create(t *testing.T, parent string) *SpecialistPool {
+func (fx *SpecialistPoolServiceSpecialistPoolTestSuiteConfig) create(t *testing.T, parent string) *SpecialistPool {
 	t.Helper()
 	t.Skip("Long running create method not supported")
 	return nil

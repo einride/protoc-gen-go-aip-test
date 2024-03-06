@@ -19,7 +19,7 @@ type GSuiteAddOnsTestSuite struct {
 	Server GSuiteAddOnsServer
 }
 
-func (fx GSuiteAddOnsTestSuite) TestAuthorization(ctx context.Context, options AuthorizationTestSuiteConfig) {
+func (fx GSuiteAddOnsTestSuite) TestAuthorization(ctx context.Context, options GSuiteAddOnsAuthorizationTestSuiteConfig) {
 	fx.T.Run("Authorization", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
@@ -27,7 +27,7 @@ func (fx GSuiteAddOnsTestSuite) TestAuthorization(ctx context.Context, options A
 	})
 }
 
-func (fx GSuiteAddOnsTestSuite) TestDeployment(ctx context.Context, options DeploymentTestSuiteConfig) {
+func (fx GSuiteAddOnsTestSuite) TestDeployment(ctx context.Context, options GSuiteAddOnsDeploymentTestSuiteConfig) {
 	fx.T.Run("Deployment", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
@@ -35,7 +35,7 @@ func (fx GSuiteAddOnsTestSuite) TestDeployment(ctx context.Context, options Depl
 	})
 }
 
-func (fx GSuiteAddOnsTestSuite) TestInstallStatus(ctx context.Context, options InstallStatusTestSuiteConfig) {
+func (fx GSuiteAddOnsTestSuite) TestInstallStatus(ctx context.Context, options GSuiteAddOnsInstallStatusTestSuiteConfig) {
 	fx.T.Run("InstallStatus", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
@@ -43,7 +43,7 @@ func (fx GSuiteAddOnsTestSuite) TestInstallStatus(ctx context.Context, options I
 	})
 }
 
-type AuthorizationTestSuiteConfig struct {
+type GSuiteAddOnsAuthorizationTestSuiteConfig struct {
 	ctx        context.Context
 	service    GSuiteAddOnsServer
 	currParent int
@@ -61,11 +61,11 @@ type AuthorizationTestSuiteConfig struct {
 	Skip []string
 }
 
-func (fx *AuthorizationTestSuiteConfig) test(t *testing.T) {
+func (fx *GSuiteAddOnsAuthorizationTestSuiteConfig) test(t *testing.T) {
 	t.Run("Get", fx.testGet)
 }
 
-func (fx *AuthorizationTestSuiteConfig) testGet(t *testing.T) {
+func (fx *GSuiteAddOnsAuthorizationTestSuiteConfig) testGet(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -117,7 +117,7 @@ func (fx *AuthorizationTestSuiteConfig) testGet(t *testing.T) {
 
 }
 
-func (fx *AuthorizationTestSuiteConfig) maybeSkip(t *testing.T) {
+func (fx *GSuiteAddOnsAuthorizationTestSuiteConfig) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
 			t.Skip("skipped because of .Skip")
@@ -125,17 +125,17 @@ func (fx *AuthorizationTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
-func (fx *AuthorizationTestSuiteConfig) create(t *testing.T) *Authorization {
+func (fx *GSuiteAddOnsAuthorizationTestSuiteConfig) create(t *testing.T) *Authorization {
 	t.Helper()
 	if fx.CreateResource == nil {
-		t.Skip("Test skipped because CreateResource not specified on AuthorizationTestSuiteConfig")
+		t.Skip("Test skipped because CreateResource not specified on GSuiteAddOnsAuthorizationTestSuiteConfig")
 	}
 	created, err := fx.CreateResource(fx.ctx)
 	assert.NilError(t, err)
 	return created
 }
 
-type DeploymentTestSuiteConfig struct {
+type GSuiteAddOnsDeploymentTestSuiteConfig struct {
 	ctx        context.Context
 	service    GSuiteAddOnsServer
 	currParent int
@@ -155,14 +155,14 @@ type DeploymentTestSuiteConfig struct {
 	Skip []string
 }
 
-func (fx *DeploymentTestSuiteConfig) test(t *testing.T) {
+func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) test(t *testing.T) {
 	t.Run("Create", fx.testCreate)
 	t.Run("Get", fx.testGet)
 	t.Run("List", fx.testList)
 	t.Run("Delete", fx.testDelete)
 }
 
-func (fx *DeploymentTestSuiteConfig) testCreate(t *testing.T) {
+func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) testCreate(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
@@ -272,7 +272,7 @@ func (fx *DeploymentTestSuiteConfig) testCreate(t *testing.T) {
 
 }
 
-func (fx *DeploymentTestSuiteConfig) testGet(t *testing.T) {
+func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) testGet(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -326,7 +326,7 @@ func (fx *DeploymentTestSuiteConfig) testGet(t *testing.T) {
 
 }
 
-func (fx *DeploymentTestSuiteConfig) testList(t *testing.T) {
+func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) testList(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
@@ -466,7 +466,7 @@ func (fx *DeploymentTestSuiteConfig) testList(t *testing.T) {
 
 }
 
-func (fx *DeploymentTestSuiteConfig) testDelete(t *testing.T) {
+func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) testDelete(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -519,7 +519,7 @@ func (fx *DeploymentTestSuiteConfig) testDelete(t *testing.T) {
 
 }
 
-func (fx *DeploymentTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
+func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	if pristine {
 		fx.currParent++
 	}
@@ -529,7 +529,7 @@ func (fx *DeploymentTestSuiteConfig) nextParent(t *testing.T, pristine bool) str
 	return fx.Parents[fx.currParent]
 }
 
-func (fx *DeploymentTestSuiteConfig) peekNextParent(t *testing.T) string {
+func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) peekNextParent(t *testing.T) string {
 	next := fx.currParent + 1
 	if next >= len(fx.Parents) {
 		t.Fatal("need at least", next+1, "parents")
@@ -537,7 +537,7 @@ func (fx *DeploymentTestSuiteConfig) peekNextParent(t *testing.T) string {
 	return fx.Parents[next]
 }
 
-func (fx *DeploymentTestSuiteConfig) maybeSkip(t *testing.T) {
+func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
 			t.Skip("skipped because of .Skip")
@@ -545,7 +545,7 @@ func (fx *DeploymentTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
-func (fx *DeploymentTestSuiteConfig) create(t *testing.T, parent string) *Deployment {
+func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) create(t *testing.T, parent string) *Deployment {
 	t.Helper()
 	created, err := fx.service.CreateDeployment(fx.ctx, &CreateDeploymentRequest{
 		Parent:     parent,
@@ -555,7 +555,7 @@ func (fx *DeploymentTestSuiteConfig) create(t *testing.T, parent string) *Deploy
 	return created
 }
 
-type InstallStatusTestSuiteConfig struct {
+type GSuiteAddOnsInstallStatusTestSuiteConfig struct {
 	ctx        context.Context
 	service    GSuiteAddOnsServer
 	currParent int
@@ -578,11 +578,11 @@ type InstallStatusTestSuiteConfig struct {
 	Skip []string
 }
 
-func (fx *InstallStatusTestSuiteConfig) test(t *testing.T) {
+func (fx *GSuiteAddOnsInstallStatusTestSuiteConfig) test(t *testing.T) {
 	t.Run("Get", fx.testGet)
 }
 
-func (fx *InstallStatusTestSuiteConfig) testGet(t *testing.T) {
+func (fx *GSuiteAddOnsInstallStatusTestSuiteConfig) testGet(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -636,7 +636,7 @@ func (fx *InstallStatusTestSuiteConfig) testGet(t *testing.T) {
 
 }
 
-func (fx *InstallStatusTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
+func (fx *GSuiteAddOnsInstallStatusTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	if pristine {
 		fx.currParent++
 	}
@@ -646,7 +646,7 @@ func (fx *InstallStatusTestSuiteConfig) nextParent(t *testing.T, pristine bool) 
 	return fx.Parents[fx.currParent]
 }
 
-func (fx *InstallStatusTestSuiteConfig) peekNextParent(t *testing.T) string {
+func (fx *GSuiteAddOnsInstallStatusTestSuiteConfig) peekNextParent(t *testing.T) string {
 	next := fx.currParent + 1
 	if next >= len(fx.Parents) {
 		t.Fatal("need at least", next+1, "parents")
@@ -654,7 +654,7 @@ func (fx *InstallStatusTestSuiteConfig) peekNextParent(t *testing.T) string {
 	return fx.Parents[next]
 }
 
-func (fx *InstallStatusTestSuiteConfig) maybeSkip(t *testing.T) {
+func (fx *GSuiteAddOnsInstallStatusTestSuiteConfig) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
 			t.Skip("skipped because of .Skip")
@@ -662,10 +662,10 @@ func (fx *InstallStatusTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
-func (fx *InstallStatusTestSuiteConfig) create(t *testing.T, parent string) *InstallStatus {
+func (fx *GSuiteAddOnsInstallStatusTestSuiteConfig) create(t *testing.T, parent string) *InstallStatus {
 	t.Helper()
 	if fx.CreateResource == nil {
-		t.Skip("Test skipped because CreateResource not specified on InstallStatusTestSuiteConfig")
+		t.Skip("Test skipped because CreateResource not specified on GSuiteAddOnsInstallStatusTestSuiteConfig")
 	}
 	created, err := fx.CreateResource(fx.ctx, parent)
 	assert.NilError(t, err)
