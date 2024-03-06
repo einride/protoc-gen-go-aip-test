@@ -21,7 +21,7 @@ type IndexEndpointServiceTestSuite struct {
 	Server IndexEndpointServiceServer
 }
 
-func (fx IndexEndpointServiceTestSuite) TestIndexEndpoint(ctx context.Context, options IndexEndpointTestSuiteConfig) {
+func (fx IndexEndpointServiceTestSuite) TestIndexEndpoint(ctx context.Context, options IndexEndpointServiceIndexEndpointTestSuiteConfig) {
 	fx.T.Run("IndexEndpoint", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
@@ -29,7 +29,7 @@ func (fx IndexEndpointServiceTestSuite) TestIndexEndpoint(ctx context.Context, o
 	})
 }
 
-type IndexEndpointTestSuiteConfig struct {
+type IndexEndpointServiceIndexEndpointTestSuiteConfig struct {
 	ctx        context.Context
 	service    IndexEndpointServiceServer
 	currParent int
@@ -52,7 +52,7 @@ type IndexEndpointTestSuiteConfig struct {
 	Skip []string
 }
 
-func (fx *IndexEndpointTestSuiteConfig) test(t *testing.T) {
+func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) test(t *testing.T) {
 	t.Run("Create", fx.testCreate)
 	t.Run("Get", fx.testGet)
 	t.Run("Update", fx.testUpdate)
@@ -60,7 +60,7 @@ func (fx *IndexEndpointTestSuiteConfig) test(t *testing.T) {
 	t.Run("Delete", fx.testDelete)
 }
 
-func (fx *IndexEndpointTestSuiteConfig) testCreate(t *testing.T) {
+func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) testCreate(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
@@ -118,11 +118,27 @@ func (fx *IndexEndpointTestSuiteConfig) testCreate(t *testing.T) {
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
+		t.Run(".encryption_spec.kms_key_name", func(t *testing.T) {
+			fx.maybeSkip(t)
+			parent := fx.nextParent(t, false)
+			msg := fx.Create(parent)
+			container := msg.GetEncryptionSpec()
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("kms_key_name")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.CreateIndexEndpoint(fx.ctx, &CreateIndexEndpointRequest{
+				Parent:        parent,
+				IndexEndpoint: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
 	})
 
 }
 
-func (fx *IndexEndpointTestSuiteConfig) testGet(t *testing.T) {
+func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) testGet(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -176,7 +192,7 @@ func (fx *IndexEndpointTestSuiteConfig) testGet(t *testing.T) {
 
 }
 
-func (fx *IndexEndpointTestSuiteConfig) testUpdate(t *testing.T) {
+func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) testUpdate(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -305,11 +321,30 @@ func (fx *IndexEndpointTestSuiteConfig) testUpdate(t *testing.T) {
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
+		t.Run(".encryption_spec.kms_key_name", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msg := proto.Clone(created).(*IndexEndpoint)
+			container := msg.GetEncryptionSpec()
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("kms_key_name")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.UpdateIndexEndpoint(fx.ctx, &UpdateIndexEndpointRequest{
+				IndexEndpoint: msg,
+				UpdateMask: &fieldmaskpb.FieldMask{
+					Paths: []string{
+						"*",
+					},
+				},
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
 	})
 
 }
 
-func (fx *IndexEndpointTestSuiteConfig) testList(t *testing.T) {
+func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) testList(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
@@ -449,7 +484,7 @@ func (fx *IndexEndpointTestSuiteConfig) testList(t *testing.T) {
 
 }
 
-func (fx *IndexEndpointTestSuiteConfig) testDelete(t *testing.T) {
+func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) testDelete(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -502,7 +537,7 @@ func (fx *IndexEndpointTestSuiteConfig) testDelete(t *testing.T) {
 
 }
 
-func (fx *IndexEndpointTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
+func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	if pristine {
 		fx.currParent++
 	}
@@ -512,7 +547,7 @@ func (fx *IndexEndpointTestSuiteConfig) nextParent(t *testing.T, pristine bool) 
 	return fx.Parents[fx.currParent]
 }
 
-func (fx *IndexEndpointTestSuiteConfig) peekNextParent(t *testing.T) string {
+func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) peekNextParent(t *testing.T) string {
 	next := fx.currParent + 1
 	if next >= len(fx.Parents) {
 		t.Fatal("need at least", next+1, "parents")
@@ -520,7 +555,7 @@ func (fx *IndexEndpointTestSuiteConfig) peekNextParent(t *testing.T) string {
 	return fx.Parents[next]
 }
 
-func (fx *IndexEndpointTestSuiteConfig) maybeSkip(t *testing.T) {
+func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
 			t.Skip("skipped because of .Skip")
@@ -528,7 +563,7 @@ func (fx *IndexEndpointTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
-func (fx *IndexEndpointTestSuiteConfig) create(t *testing.T, parent string) *IndexEndpoint {
+func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) create(t *testing.T, parent string) *IndexEndpoint {
 	t.Helper()
 	t.Skip("Long running create method not supported")
 	return nil

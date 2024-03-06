@@ -22,7 +22,7 @@ type ScheduleServiceTestSuite struct {
 	Server ScheduleServiceServer
 }
 
-func (fx ScheduleServiceTestSuite) TestSchedule(ctx context.Context, options ScheduleTestSuiteConfig) {
+func (fx ScheduleServiceTestSuite) TestSchedule(ctx context.Context, options ScheduleServiceScheduleTestSuiteConfig) {
 	fx.T.Run("Schedule", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
@@ -30,7 +30,7 @@ func (fx ScheduleServiceTestSuite) TestSchedule(ctx context.Context, options Sch
 	})
 }
 
-type ScheduleTestSuiteConfig struct {
+type ScheduleServiceScheduleTestSuiteConfig struct {
 	ctx        context.Context
 	service    ScheduleServiceServer
 	currParent int
@@ -53,7 +53,7 @@ type ScheduleTestSuiteConfig struct {
 	Skip []string
 }
 
-func (fx *ScheduleTestSuiteConfig) test(t *testing.T) {
+func (fx *ScheduleServiceScheduleTestSuiteConfig) test(t *testing.T) {
 	t.Run("Create", fx.testCreate)
 	t.Run("Get", fx.testGet)
 	t.Run("Update", fx.testUpdate)
@@ -61,7 +61,7 @@ func (fx *ScheduleTestSuiteConfig) test(t *testing.T) {
 	t.Run("Delete", fx.testDelete)
 }
 
-func (fx *ScheduleTestSuiteConfig) testCreate(t *testing.T) {
+func (fx *ScheduleServiceScheduleTestSuiteConfig) testCreate(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
@@ -254,7 +254,7 @@ func (fx *ScheduleTestSuiteConfig) testCreate(t *testing.T) {
 
 }
 
-func (fx *ScheduleTestSuiteConfig) testGet(t *testing.T) {
+func (fx *ScheduleServiceScheduleTestSuiteConfig) testGet(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -308,7 +308,7 @@ func (fx *ScheduleTestSuiteConfig) testGet(t *testing.T) {
 
 }
 
-func (fx *ScheduleTestSuiteConfig) testUpdate(t *testing.T) {
+func (fx *ScheduleServiceScheduleTestSuiteConfig) testUpdate(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -529,7 +529,7 @@ func (fx *ScheduleTestSuiteConfig) testUpdate(t *testing.T) {
 
 }
 
-func (fx *ScheduleTestSuiteConfig) testList(t *testing.T) {
+func (fx *ScheduleServiceScheduleTestSuiteConfig) testList(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
@@ -669,7 +669,7 @@ func (fx *ScheduleTestSuiteConfig) testList(t *testing.T) {
 
 }
 
-func (fx *ScheduleTestSuiteConfig) testDelete(t *testing.T) {
+func (fx *ScheduleServiceScheduleTestSuiteConfig) testDelete(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -722,7 +722,7 @@ func (fx *ScheduleTestSuiteConfig) testDelete(t *testing.T) {
 
 }
 
-func (fx *ScheduleTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
+func (fx *ScheduleServiceScheduleTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	if pristine {
 		fx.currParent++
 	}
@@ -732,7 +732,7 @@ func (fx *ScheduleTestSuiteConfig) nextParent(t *testing.T, pristine bool) strin
 	return fx.Parents[fx.currParent]
 }
 
-func (fx *ScheduleTestSuiteConfig) peekNextParent(t *testing.T) string {
+func (fx *ScheduleServiceScheduleTestSuiteConfig) peekNextParent(t *testing.T) string {
 	next := fx.currParent + 1
 	if next >= len(fx.Parents) {
 		t.Fatal("need at least", next+1, "parents")
@@ -740,7 +740,7 @@ func (fx *ScheduleTestSuiteConfig) peekNextParent(t *testing.T) string {
 	return fx.Parents[next]
 }
 
-func (fx *ScheduleTestSuiteConfig) maybeSkip(t *testing.T) {
+func (fx *ScheduleServiceScheduleTestSuiteConfig) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
 			t.Skip("skipped because of .Skip")
@@ -748,7 +748,7 @@ func (fx *ScheduleTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
-func (fx *ScheduleTestSuiteConfig) create(t *testing.T, parent string) *Schedule {
+func (fx *ScheduleServiceScheduleTestSuiteConfig) create(t *testing.T, parent string) *Schedule {
 	t.Helper()
 	created, err := fx.service.CreateSchedule(fx.ctx, &CreateScheduleRequest{
 		Parent:   parent,

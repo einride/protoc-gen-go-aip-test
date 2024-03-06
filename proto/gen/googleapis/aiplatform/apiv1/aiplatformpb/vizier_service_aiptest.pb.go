@@ -20,7 +20,7 @@ type VizierServiceTestSuite struct {
 	Server VizierServiceServer
 }
 
-func (fx VizierServiceTestSuite) TestStudy(ctx context.Context, options StudyTestSuiteConfig) {
+func (fx VizierServiceTestSuite) TestStudy(ctx context.Context, options VizierServiceStudyTestSuiteConfig) {
 	fx.T.Run("Study", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
@@ -28,7 +28,7 @@ func (fx VizierServiceTestSuite) TestStudy(ctx context.Context, options StudyTes
 	})
 }
 
-func (fx VizierServiceTestSuite) TestTrial(ctx context.Context, options TrialTestSuiteConfig) {
+func (fx VizierServiceTestSuite) TestTrial(ctx context.Context, options VizierServiceTrialTestSuiteConfig) {
 	fx.T.Run("Trial", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
@@ -36,7 +36,7 @@ func (fx VizierServiceTestSuite) TestTrial(ctx context.Context, options TrialTes
 	})
 }
 
-type StudyTestSuiteConfig struct {
+type VizierServiceStudyTestSuiteConfig struct {
 	ctx        context.Context
 	service    VizierServiceServer
 	currParent int
@@ -56,14 +56,14 @@ type StudyTestSuiteConfig struct {
 	Skip []string
 }
 
-func (fx *StudyTestSuiteConfig) test(t *testing.T) {
+func (fx *VizierServiceStudyTestSuiteConfig) test(t *testing.T) {
 	t.Run("Create", fx.testCreate)
 	t.Run("Get", fx.testGet)
 	t.Run("List", fx.testList)
 	t.Run("Delete", fx.testDelete)
 }
 
-func (fx *StudyTestSuiteConfig) testCreate(t *testing.T) {
+func (fx *VizierServiceStudyTestSuiteConfig) testCreate(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
@@ -188,7 +188,7 @@ func (fx *StudyTestSuiteConfig) testCreate(t *testing.T) {
 
 }
 
-func (fx *StudyTestSuiteConfig) testGet(t *testing.T) {
+func (fx *VizierServiceStudyTestSuiteConfig) testGet(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -242,7 +242,7 @@ func (fx *StudyTestSuiteConfig) testGet(t *testing.T) {
 
 }
 
-func (fx *StudyTestSuiteConfig) testList(t *testing.T) {
+func (fx *VizierServiceStudyTestSuiteConfig) testList(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
@@ -382,7 +382,7 @@ func (fx *StudyTestSuiteConfig) testList(t *testing.T) {
 
 }
 
-func (fx *StudyTestSuiteConfig) testDelete(t *testing.T) {
+func (fx *VizierServiceStudyTestSuiteConfig) testDelete(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -435,7 +435,7 @@ func (fx *StudyTestSuiteConfig) testDelete(t *testing.T) {
 
 }
 
-func (fx *StudyTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
+func (fx *VizierServiceStudyTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	if pristine {
 		fx.currParent++
 	}
@@ -445,7 +445,7 @@ func (fx *StudyTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	return fx.Parents[fx.currParent]
 }
 
-func (fx *StudyTestSuiteConfig) peekNextParent(t *testing.T) string {
+func (fx *VizierServiceStudyTestSuiteConfig) peekNextParent(t *testing.T) string {
 	next := fx.currParent + 1
 	if next >= len(fx.Parents) {
 		t.Fatal("need at least", next+1, "parents")
@@ -453,7 +453,7 @@ func (fx *StudyTestSuiteConfig) peekNextParent(t *testing.T) string {
 	return fx.Parents[next]
 }
 
-func (fx *StudyTestSuiteConfig) maybeSkip(t *testing.T) {
+func (fx *VizierServiceStudyTestSuiteConfig) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
 			t.Skip("skipped because of .Skip")
@@ -461,7 +461,7 @@ func (fx *StudyTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
-func (fx *StudyTestSuiteConfig) create(t *testing.T, parent string) *Study {
+func (fx *VizierServiceStudyTestSuiteConfig) create(t *testing.T, parent string) *Study {
 	t.Helper()
 	created, err := fx.service.CreateStudy(fx.ctx, &CreateStudyRequest{
 		Parent: parent,
@@ -471,7 +471,7 @@ func (fx *StudyTestSuiteConfig) create(t *testing.T, parent string) *Study {
 	return created
 }
 
-type TrialTestSuiteConfig struct {
+type VizierServiceTrialTestSuiteConfig struct {
 	ctx        context.Context
 	service    VizierServiceServer
 	currParent int
@@ -491,14 +491,14 @@ type TrialTestSuiteConfig struct {
 	Skip []string
 }
 
-func (fx *TrialTestSuiteConfig) test(t *testing.T) {
+func (fx *VizierServiceTrialTestSuiteConfig) test(t *testing.T) {
 	t.Run("Create", fx.testCreate)
 	t.Run("Get", fx.testGet)
 	t.Run("List", fx.testList)
 	t.Run("Delete", fx.testDelete)
 }
 
-func (fx *TrialTestSuiteConfig) testCreate(t *testing.T) {
+func (fx *VizierServiceTrialTestSuiteConfig) testCreate(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
@@ -538,7 +538,7 @@ func (fx *TrialTestSuiteConfig) testCreate(t *testing.T) {
 
 }
 
-func (fx *TrialTestSuiteConfig) testGet(t *testing.T) {
+func (fx *VizierServiceTrialTestSuiteConfig) testGet(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -592,7 +592,7 @@ func (fx *TrialTestSuiteConfig) testGet(t *testing.T) {
 
 }
 
-func (fx *TrialTestSuiteConfig) testList(t *testing.T) {
+func (fx *VizierServiceTrialTestSuiteConfig) testList(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
@@ -732,7 +732,7 @@ func (fx *TrialTestSuiteConfig) testList(t *testing.T) {
 
 }
 
-func (fx *TrialTestSuiteConfig) testDelete(t *testing.T) {
+func (fx *VizierServiceTrialTestSuiteConfig) testDelete(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -785,7 +785,7 @@ func (fx *TrialTestSuiteConfig) testDelete(t *testing.T) {
 
 }
 
-func (fx *TrialTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
+func (fx *VizierServiceTrialTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	if pristine {
 		fx.currParent++
 	}
@@ -795,7 +795,7 @@ func (fx *TrialTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	return fx.Parents[fx.currParent]
 }
 
-func (fx *TrialTestSuiteConfig) peekNextParent(t *testing.T) string {
+func (fx *VizierServiceTrialTestSuiteConfig) peekNextParent(t *testing.T) string {
 	next := fx.currParent + 1
 	if next >= len(fx.Parents) {
 		t.Fatal("need at least", next+1, "parents")
@@ -803,7 +803,7 @@ func (fx *TrialTestSuiteConfig) peekNextParent(t *testing.T) string {
 	return fx.Parents[next]
 }
 
-func (fx *TrialTestSuiteConfig) maybeSkip(t *testing.T) {
+func (fx *VizierServiceTrialTestSuiteConfig) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
 			t.Skip("skipped because of .Skip")
@@ -811,7 +811,7 @@ func (fx *TrialTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
-func (fx *TrialTestSuiteConfig) create(t *testing.T, parent string) *Trial {
+func (fx *VizierServiceTrialTestSuiteConfig) create(t *testing.T, parent string) *Trial {
 	t.Helper()
 	created, err := fx.service.CreateTrial(fx.ctx, &CreateTrialRequest{
 		Parent: parent,

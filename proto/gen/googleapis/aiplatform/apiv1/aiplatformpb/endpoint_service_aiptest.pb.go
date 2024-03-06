@@ -21,7 +21,7 @@ type EndpointServiceTestSuite struct {
 	Server EndpointServiceServer
 }
 
-func (fx EndpointServiceTestSuite) TestEndpoint(ctx context.Context, options EndpointTestSuiteConfig) {
+func (fx EndpointServiceTestSuite) TestEndpoint(ctx context.Context, options EndpointServiceEndpointTestSuiteConfig) {
 	fx.T.Run("Endpoint", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
@@ -29,7 +29,7 @@ func (fx EndpointServiceTestSuite) TestEndpoint(ctx context.Context, options End
 	})
 }
 
-type EndpointTestSuiteConfig struct {
+type EndpointServiceEndpointTestSuiteConfig struct {
 	ctx        context.Context
 	service    EndpointServiceServer
 	currParent int
@@ -52,7 +52,7 @@ type EndpointTestSuiteConfig struct {
 	Skip []string
 }
 
-func (fx *EndpointTestSuiteConfig) test(t *testing.T) {
+func (fx *EndpointServiceEndpointTestSuiteConfig) test(t *testing.T) {
 	t.Run("Create", fx.testCreate)
 	t.Run("Get", fx.testGet)
 	t.Run("Update", fx.testUpdate)
@@ -60,7 +60,7 @@ func (fx *EndpointTestSuiteConfig) test(t *testing.T) {
 	t.Run("Delete", fx.testDelete)
 }
 
-func (fx *EndpointTestSuiteConfig) testCreate(t *testing.T) {
+func (fx *EndpointServiceEndpointTestSuiteConfig) testCreate(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
@@ -159,7 +159,7 @@ func (fx *EndpointTestSuiteConfig) testCreate(t *testing.T) {
 
 }
 
-func (fx *EndpointTestSuiteConfig) testGet(t *testing.T) {
+func (fx *EndpointServiceEndpointTestSuiteConfig) testGet(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -213,7 +213,7 @@ func (fx *EndpointTestSuiteConfig) testGet(t *testing.T) {
 
 }
 
-func (fx *EndpointTestSuiteConfig) testUpdate(t *testing.T) {
+func (fx *EndpointServiceEndpointTestSuiteConfig) testUpdate(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -365,7 +365,7 @@ func (fx *EndpointTestSuiteConfig) testUpdate(t *testing.T) {
 
 }
 
-func (fx *EndpointTestSuiteConfig) testList(t *testing.T) {
+func (fx *EndpointServiceEndpointTestSuiteConfig) testList(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
@@ -505,7 +505,7 @@ func (fx *EndpointTestSuiteConfig) testList(t *testing.T) {
 
 }
 
-func (fx *EndpointTestSuiteConfig) testDelete(t *testing.T) {
+func (fx *EndpointServiceEndpointTestSuiteConfig) testDelete(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -558,7 +558,7 @@ func (fx *EndpointTestSuiteConfig) testDelete(t *testing.T) {
 
 }
 
-func (fx *EndpointTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
+func (fx *EndpointServiceEndpointTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	if pristine {
 		fx.currParent++
 	}
@@ -568,7 +568,7 @@ func (fx *EndpointTestSuiteConfig) nextParent(t *testing.T, pristine bool) strin
 	return fx.Parents[fx.currParent]
 }
 
-func (fx *EndpointTestSuiteConfig) peekNextParent(t *testing.T) string {
+func (fx *EndpointServiceEndpointTestSuiteConfig) peekNextParent(t *testing.T) string {
 	next := fx.currParent + 1
 	if next >= len(fx.Parents) {
 		t.Fatal("need at least", next+1, "parents")
@@ -576,7 +576,7 @@ func (fx *EndpointTestSuiteConfig) peekNextParent(t *testing.T) string {
 	return fx.Parents[next]
 }
 
-func (fx *EndpointTestSuiteConfig) maybeSkip(t *testing.T) {
+func (fx *EndpointServiceEndpointTestSuiteConfig) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
 			t.Skip("skipped because of .Skip")
@@ -584,7 +584,7 @@ func (fx *EndpointTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
-func (fx *EndpointTestSuiteConfig) create(t *testing.T, parent string) *Endpoint {
+func (fx *EndpointServiceEndpointTestSuiteConfig) create(t *testing.T, parent string) *Endpoint {
 	t.Helper()
 	t.Skip("Long running create method not supported")
 	return nil

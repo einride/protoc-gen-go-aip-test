@@ -21,7 +21,7 @@ type MetadataServiceTestSuite struct {
 	Server MetadataServiceServer
 }
 
-func (fx MetadataServiceTestSuite) TestArtifact(ctx context.Context, options ArtifactTestSuiteConfig) {
+func (fx MetadataServiceTestSuite) TestArtifact(ctx context.Context, options MetadataServiceArtifactTestSuiteConfig) {
 	fx.T.Run("Artifact", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
@@ -29,7 +29,7 @@ func (fx MetadataServiceTestSuite) TestArtifact(ctx context.Context, options Art
 	})
 }
 
-func (fx MetadataServiceTestSuite) TestContext(ctx context.Context, options ContextTestSuiteConfig) {
+func (fx MetadataServiceTestSuite) TestContext(ctx context.Context, options MetadataServiceContextTestSuiteConfig) {
 	fx.T.Run("Context", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
@@ -37,7 +37,7 @@ func (fx MetadataServiceTestSuite) TestContext(ctx context.Context, options Cont
 	})
 }
 
-func (fx MetadataServiceTestSuite) TestExecution(ctx context.Context, options ExecutionTestSuiteConfig) {
+func (fx MetadataServiceTestSuite) TestExecution(ctx context.Context, options MetadataServiceExecutionTestSuiteConfig) {
 	fx.T.Run("Execution", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
@@ -45,7 +45,7 @@ func (fx MetadataServiceTestSuite) TestExecution(ctx context.Context, options Ex
 	})
 }
 
-func (fx MetadataServiceTestSuite) TestMetadataSchema(ctx context.Context, options MetadataSchemaTestSuiteConfig) {
+func (fx MetadataServiceTestSuite) TestMetadataSchema(ctx context.Context, options MetadataServiceMetadataSchemaTestSuiteConfig) {
 	fx.T.Run("MetadataSchema", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
@@ -53,7 +53,7 @@ func (fx MetadataServiceTestSuite) TestMetadataSchema(ctx context.Context, optio
 	})
 }
 
-func (fx MetadataServiceTestSuite) TestMetadataStore(ctx context.Context, options MetadataStoreTestSuiteConfig) {
+func (fx MetadataServiceTestSuite) TestMetadataStore(ctx context.Context, options MetadataServiceMetadataStoreTestSuiteConfig) {
 	fx.T.Run("MetadataStore", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
@@ -61,7 +61,7 @@ func (fx MetadataServiceTestSuite) TestMetadataStore(ctx context.Context, option
 	})
 }
 
-type ArtifactTestSuiteConfig struct {
+type MetadataServiceArtifactTestSuiteConfig struct {
 	ctx        context.Context
 	service    MetadataServiceServer
 	currParent int
@@ -84,7 +84,7 @@ type ArtifactTestSuiteConfig struct {
 	Skip []string
 }
 
-func (fx *ArtifactTestSuiteConfig) test(t *testing.T) {
+func (fx *MetadataServiceArtifactTestSuiteConfig) test(t *testing.T) {
 	t.Run("Create", fx.testCreate)
 	t.Run("Get", fx.testGet)
 	t.Run("Update", fx.testUpdate)
@@ -92,7 +92,7 @@ func (fx *ArtifactTestSuiteConfig) test(t *testing.T) {
 	t.Run("Delete", fx.testDelete)
 }
 
-func (fx *ArtifactTestSuiteConfig) testCreate(t *testing.T) {
+func (fx *MetadataServiceArtifactTestSuiteConfig) testCreate(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
@@ -147,7 +147,7 @@ func (fx *ArtifactTestSuiteConfig) testCreate(t *testing.T) {
 
 }
 
-func (fx *ArtifactTestSuiteConfig) testGet(t *testing.T) {
+func (fx *MetadataServiceArtifactTestSuiteConfig) testGet(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -201,7 +201,7 @@ func (fx *ArtifactTestSuiteConfig) testGet(t *testing.T) {
 
 }
 
-func (fx *ArtifactTestSuiteConfig) testUpdate(t *testing.T) {
+func (fx *MetadataServiceArtifactTestSuiteConfig) testUpdate(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -284,7 +284,7 @@ func (fx *ArtifactTestSuiteConfig) testUpdate(t *testing.T) {
 
 }
 
-func (fx *ArtifactTestSuiteConfig) testList(t *testing.T) {
+func (fx *MetadataServiceArtifactTestSuiteConfig) testList(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
@@ -424,7 +424,7 @@ func (fx *ArtifactTestSuiteConfig) testList(t *testing.T) {
 
 }
 
-func (fx *ArtifactTestSuiteConfig) testDelete(t *testing.T) {
+func (fx *MetadataServiceArtifactTestSuiteConfig) testDelete(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -477,7 +477,7 @@ func (fx *ArtifactTestSuiteConfig) testDelete(t *testing.T) {
 
 }
 
-func (fx *ArtifactTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
+func (fx *MetadataServiceArtifactTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	if pristine {
 		fx.currParent++
 	}
@@ -487,7 +487,7 @@ func (fx *ArtifactTestSuiteConfig) nextParent(t *testing.T, pristine bool) strin
 	return fx.Parents[fx.currParent]
 }
 
-func (fx *ArtifactTestSuiteConfig) peekNextParent(t *testing.T) string {
+func (fx *MetadataServiceArtifactTestSuiteConfig) peekNextParent(t *testing.T) string {
 	next := fx.currParent + 1
 	if next >= len(fx.Parents) {
 		t.Fatal("need at least", next+1, "parents")
@@ -495,7 +495,7 @@ func (fx *ArtifactTestSuiteConfig) peekNextParent(t *testing.T) string {
 	return fx.Parents[next]
 }
 
-func (fx *ArtifactTestSuiteConfig) maybeSkip(t *testing.T) {
+func (fx *MetadataServiceArtifactTestSuiteConfig) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
 			t.Skip("skipped because of .Skip")
@@ -503,7 +503,7 @@ func (fx *ArtifactTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
-func (fx *ArtifactTestSuiteConfig) create(t *testing.T, parent string) *Artifact {
+func (fx *MetadataServiceArtifactTestSuiteConfig) create(t *testing.T, parent string) *Artifact {
 	t.Helper()
 	created, err := fx.service.CreateArtifact(fx.ctx, &CreateArtifactRequest{
 		Parent:   parent,
@@ -513,7 +513,7 @@ func (fx *ArtifactTestSuiteConfig) create(t *testing.T, parent string) *Artifact
 	return created
 }
 
-type ContextTestSuiteConfig struct {
+type MetadataServiceContextTestSuiteConfig struct {
 	ctx        context.Context
 	service    MetadataServiceServer
 	currParent int
@@ -536,7 +536,7 @@ type ContextTestSuiteConfig struct {
 	Skip []string
 }
 
-func (fx *ContextTestSuiteConfig) test(t *testing.T) {
+func (fx *MetadataServiceContextTestSuiteConfig) test(t *testing.T) {
 	t.Run("Create", fx.testCreate)
 	t.Run("Get", fx.testGet)
 	t.Run("Update", fx.testUpdate)
@@ -544,7 +544,7 @@ func (fx *ContextTestSuiteConfig) test(t *testing.T) {
 	t.Run("Delete", fx.testDelete)
 }
 
-func (fx *ContextTestSuiteConfig) testCreate(t *testing.T) {
+func (fx *MetadataServiceContextTestSuiteConfig) testCreate(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
@@ -599,7 +599,7 @@ func (fx *ContextTestSuiteConfig) testCreate(t *testing.T) {
 
 }
 
-func (fx *ContextTestSuiteConfig) testGet(t *testing.T) {
+func (fx *MetadataServiceContextTestSuiteConfig) testGet(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -653,7 +653,7 @@ func (fx *ContextTestSuiteConfig) testGet(t *testing.T) {
 
 }
 
-func (fx *ContextTestSuiteConfig) testUpdate(t *testing.T) {
+func (fx *MetadataServiceContextTestSuiteConfig) testUpdate(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -736,7 +736,7 @@ func (fx *ContextTestSuiteConfig) testUpdate(t *testing.T) {
 
 }
 
-func (fx *ContextTestSuiteConfig) testList(t *testing.T) {
+func (fx *MetadataServiceContextTestSuiteConfig) testList(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
@@ -876,7 +876,7 @@ func (fx *ContextTestSuiteConfig) testList(t *testing.T) {
 
 }
 
-func (fx *ContextTestSuiteConfig) testDelete(t *testing.T) {
+func (fx *MetadataServiceContextTestSuiteConfig) testDelete(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -929,7 +929,7 @@ func (fx *ContextTestSuiteConfig) testDelete(t *testing.T) {
 
 }
 
-func (fx *ContextTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
+func (fx *MetadataServiceContextTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	if pristine {
 		fx.currParent++
 	}
@@ -939,7 +939,7 @@ func (fx *ContextTestSuiteConfig) nextParent(t *testing.T, pristine bool) string
 	return fx.Parents[fx.currParent]
 }
 
-func (fx *ContextTestSuiteConfig) peekNextParent(t *testing.T) string {
+func (fx *MetadataServiceContextTestSuiteConfig) peekNextParent(t *testing.T) string {
 	next := fx.currParent + 1
 	if next >= len(fx.Parents) {
 		t.Fatal("need at least", next+1, "parents")
@@ -947,7 +947,7 @@ func (fx *ContextTestSuiteConfig) peekNextParent(t *testing.T) string {
 	return fx.Parents[next]
 }
 
-func (fx *ContextTestSuiteConfig) maybeSkip(t *testing.T) {
+func (fx *MetadataServiceContextTestSuiteConfig) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
 			t.Skip("skipped because of .Skip")
@@ -955,7 +955,7 @@ func (fx *ContextTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
-func (fx *ContextTestSuiteConfig) create(t *testing.T, parent string) *Context {
+func (fx *MetadataServiceContextTestSuiteConfig) create(t *testing.T, parent string) *Context {
 	t.Helper()
 	created, err := fx.service.CreateContext(fx.ctx, &CreateContextRequest{
 		Parent:  parent,
@@ -965,7 +965,7 @@ func (fx *ContextTestSuiteConfig) create(t *testing.T, parent string) *Context {
 	return created
 }
 
-type ExecutionTestSuiteConfig struct {
+type MetadataServiceExecutionTestSuiteConfig struct {
 	ctx        context.Context
 	service    MetadataServiceServer
 	currParent int
@@ -988,7 +988,7 @@ type ExecutionTestSuiteConfig struct {
 	Skip []string
 }
 
-func (fx *ExecutionTestSuiteConfig) test(t *testing.T) {
+func (fx *MetadataServiceExecutionTestSuiteConfig) test(t *testing.T) {
 	t.Run("Create", fx.testCreate)
 	t.Run("Get", fx.testGet)
 	t.Run("Update", fx.testUpdate)
@@ -996,7 +996,7 @@ func (fx *ExecutionTestSuiteConfig) test(t *testing.T) {
 	t.Run("Delete", fx.testDelete)
 }
 
-func (fx *ExecutionTestSuiteConfig) testCreate(t *testing.T) {
+func (fx *MetadataServiceExecutionTestSuiteConfig) testCreate(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
@@ -1051,7 +1051,7 @@ func (fx *ExecutionTestSuiteConfig) testCreate(t *testing.T) {
 
 }
 
-func (fx *ExecutionTestSuiteConfig) testGet(t *testing.T) {
+func (fx *MetadataServiceExecutionTestSuiteConfig) testGet(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -1105,7 +1105,7 @@ func (fx *ExecutionTestSuiteConfig) testGet(t *testing.T) {
 
 }
 
-func (fx *ExecutionTestSuiteConfig) testUpdate(t *testing.T) {
+func (fx *MetadataServiceExecutionTestSuiteConfig) testUpdate(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -1188,7 +1188,7 @@ func (fx *ExecutionTestSuiteConfig) testUpdate(t *testing.T) {
 
 }
 
-func (fx *ExecutionTestSuiteConfig) testList(t *testing.T) {
+func (fx *MetadataServiceExecutionTestSuiteConfig) testList(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
@@ -1328,7 +1328,7 @@ func (fx *ExecutionTestSuiteConfig) testList(t *testing.T) {
 
 }
 
-func (fx *ExecutionTestSuiteConfig) testDelete(t *testing.T) {
+func (fx *MetadataServiceExecutionTestSuiteConfig) testDelete(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -1381,7 +1381,7 @@ func (fx *ExecutionTestSuiteConfig) testDelete(t *testing.T) {
 
 }
 
-func (fx *ExecutionTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
+func (fx *MetadataServiceExecutionTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	if pristine {
 		fx.currParent++
 	}
@@ -1391,7 +1391,7 @@ func (fx *ExecutionTestSuiteConfig) nextParent(t *testing.T, pristine bool) stri
 	return fx.Parents[fx.currParent]
 }
 
-func (fx *ExecutionTestSuiteConfig) peekNextParent(t *testing.T) string {
+func (fx *MetadataServiceExecutionTestSuiteConfig) peekNextParent(t *testing.T) string {
 	next := fx.currParent + 1
 	if next >= len(fx.Parents) {
 		t.Fatal("need at least", next+1, "parents")
@@ -1399,7 +1399,7 @@ func (fx *ExecutionTestSuiteConfig) peekNextParent(t *testing.T) string {
 	return fx.Parents[next]
 }
 
-func (fx *ExecutionTestSuiteConfig) maybeSkip(t *testing.T) {
+func (fx *MetadataServiceExecutionTestSuiteConfig) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
 			t.Skip("skipped because of .Skip")
@@ -1407,7 +1407,7 @@ func (fx *ExecutionTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
-func (fx *ExecutionTestSuiteConfig) create(t *testing.T, parent string) *Execution {
+func (fx *MetadataServiceExecutionTestSuiteConfig) create(t *testing.T, parent string) *Execution {
 	t.Helper()
 	created, err := fx.service.CreateExecution(fx.ctx, &CreateExecutionRequest{
 		Parent:    parent,
@@ -1417,7 +1417,7 @@ func (fx *ExecutionTestSuiteConfig) create(t *testing.T, parent string) *Executi
 	return created
 }
 
-type MetadataSchemaTestSuiteConfig struct {
+type MetadataServiceMetadataSchemaTestSuiteConfig struct {
 	ctx        context.Context
 	service    MetadataServiceServer
 	currParent int
@@ -1437,13 +1437,13 @@ type MetadataSchemaTestSuiteConfig struct {
 	Skip []string
 }
 
-func (fx *MetadataSchemaTestSuiteConfig) test(t *testing.T) {
+func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) test(t *testing.T) {
 	t.Run("Create", fx.testCreate)
 	t.Run("Get", fx.testGet)
 	t.Run("List", fx.testList)
 }
 
-func (fx *MetadataSchemaTestSuiteConfig) testCreate(t *testing.T) {
+func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) testCreate(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
@@ -1520,7 +1520,7 @@ func (fx *MetadataSchemaTestSuiteConfig) testCreate(t *testing.T) {
 
 }
 
-func (fx *MetadataSchemaTestSuiteConfig) testGet(t *testing.T) {
+func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) testGet(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -1574,7 +1574,7 @@ func (fx *MetadataSchemaTestSuiteConfig) testGet(t *testing.T) {
 
 }
 
-func (fx *MetadataSchemaTestSuiteConfig) testList(t *testing.T) {
+func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) testList(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
@@ -1688,7 +1688,7 @@ func (fx *MetadataSchemaTestSuiteConfig) testList(t *testing.T) {
 
 }
 
-func (fx *MetadataSchemaTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
+func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	if pristine {
 		fx.currParent++
 	}
@@ -1698,7 +1698,7 @@ func (fx *MetadataSchemaTestSuiteConfig) nextParent(t *testing.T, pristine bool)
 	return fx.Parents[fx.currParent]
 }
 
-func (fx *MetadataSchemaTestSuiteConfig) peekNextParent(t *testing.T) string {
+func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) peekNextParent(t *testing.T) string {
 	next := fx.currParent + 1
 	if next >= len(fx.Parents) {
 		t.Fatal("need at least", next+1, "parents")
@@ -1706,7 +1706,7 @@ func (fx *MetadataSchemaTestSuiteConfig) peekNextParent(t *testing.T) string {
 	return fx.Parents[next]
 }
 
-func (fx *MetadataSchemaTestSuiteConfig) maybeSkip(t *testing.T) {
+func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
 			t.Skip("skipped because of .Skip")
@@ -1714,7 +1714,7 @@ func (fx *MetadataSchemaTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
-func (fx *MetadataSchemaTestSuiteConfig) create(t *testing.T, parent string) *MetadataSchema {
+func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) create(t *testing.T, parent string) *MetadataSchema {
 	t.Helper()
 	created, err := fx.service.CreateMetadataSchema(fx.ctx, &CreateMetadataSchemaRequest{
 		Parent:         parent,
@@ -1724,7 +1724,7 @@ func (fx *MetadataSchemaTestSuiteConfig) create(t *testing.T, parent string) *Me
 	return created
 }
 
-type MetadataStoreTestSuiteConfig struct {
+type MetadataServiceMetadataStoreTestSuiteConfig struct {
 	ctx        context.Context
 	service    MetadataServiceServer
 	currParent int
@@ -1744,14 +1744,14 @@ type MetadataStoreTestSuiteConfig struct {
 	Skip []string
 }
 
-func (fx *MetadataStoreTestSuiteConfig) test(t *testing.T) {
+func (fx *MetadataServiceMetadataStoreTestSuiteConfig) test(t *testing.T) {
 	t.Run("Create", fx.testCreate)
 	t.Run("Get", fx.testGet)
 	t.Run("List", fx.testList)
 	t.Run("Delete", fx.testDelete)
 }
 
-func (fx *MetadataStoreTestSuiteConfig) testCreate(t *testing.T) {
+func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testCreate(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
@@ -1797,7 +1797,7 @@ func (fx *MetadataStoreTestSuiteConfig) testCreate(t *testing.T) {
 
 }
 
-func (fx *MetadataStoreTestSuiteConfig) testGet(t *testing.T) {
+func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testGet(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -1851,7 +1851,7 @@ func (fx *MetadataStoreTestSuiteConfig) testGet(t *testing.T) {
 
 }
 
-func (fx *MetadataStoreTestSuiteConfig) testList(t *testing.T) {
+func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testList(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
@@ -1991,7 +1991,7 @@ func (fx *MetadataStoreTestSuiteConfig) testList(t *testing.T) {
 
 }
 
-func (fx *MetadataStoreTestSuiteConfig) testDelete(t *testing.T) {
+func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testDelete(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -2044,7 +2044,7 @@ func (fx *MetadataStoreTestSuiteConfig) testDelete(t *testing.T) {
 
 }
 
-func (fx *MetadataStoreTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
+func (fx *MetadataServiceMetadataStoreTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	if pristine {
 		fx.currParent++
 	}
@@ -2054,7 +2054,7 @@ func (fx *MetadataStoreTestSuiteConfig) nextParent(t *testing.T, pristine bool) 
 	return fx.Parents[fx.currParent]
 }
 
-func (fx *MetadataStoreTestSuiteConfig) peekNextParent(t *testing.T) string {
+func (fx *MetadataServiceMetadataStoreTestSuiteConfig) peekNextParent(t *testing.T) string {
 	next := fx.currParent + 1
 	if next >= len(fx.Parents) {
 		t.Fatal("need at least", next+1, "parents")
@@ -2062,7 +2062,7 @@ func (fx *MetadataStoreTestSuiteConfig) peekNextParent(t *testing.T) string {
 	return fx.Parents[next]
 }
 
-func (fx *MetadataStoreTestSuiteConfig) maybeSkip(t *testing.T) {
+func (fx *MetadataServiceMetadataStoreTestSuiteConfig) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
 			t.Skip("skipped because of .Skip")
@@ -2070,7 +2070,7 @@ func (fx *MetadataStoreTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
-func (fx *MetadataStoreTestSuiteConfig) create(t *testing.T, parent string) *MetadataStore {
+func (fx *MetadataServiceMetadataStoreTestSuiteConfig) create(t *testing.T, parent string) *MetadataStore {
 	t.Helper()
 	t.Skip("Long running create method not supported")
 	return nil

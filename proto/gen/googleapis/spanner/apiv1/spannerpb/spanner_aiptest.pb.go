@@ -18,7 +18,7 @@ type SpannerTestSuite struct {
 	Server SpannerServer
 }
 
-func (fx SpannerTestSuite) TestSession(ctx context.Context, options SessionTestSuiteConfig) {
+func (fx SpannerTestSuite) TestSession(ctx context.Context, options SpannerSessionTestSuiteConfig) {
 	fx.T.Run("Session", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
@@ -26,7 +26,7 @@ func (fx SpannerTestSuite) TestSession(ctx context.Context, options SessionTestS
 	})
 }
 
-type SessionTestSuiteConfig struct {
+type SpannerSessionTestSuiteConfig struct {
 	ctx        context.Context
 	service    SpannerServer
 	currParent int
@@ -49,12 +49,12 @@ type SessionTestSuiteConfig struct {
 	Skip []string
 }
 
-func (fx *SessionTestSuiteConfig) test(t *testing.T) {
+func (fx *SpannerSessionTestSuiteConfig) test(t *testing.T) {
 	t.Run("Get", fx.testGet)
 	t.Run("Delete", fx.testDelete)
 }
 
-func (fx *SessionTestSuiteConfig) testGet(t *testing.T) {
+func (fx *SpannerSessionTestSuiteConfig) testGet(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -108,7 +108,7 @@ func (fx *SessionTestSuiteConfig) testGet(t *testing.T) {
 
 }
 
-func (fx *SessionTestSuiteConfig) testDelete(t *testing.T) {
+func (fx *SpannerSessionTestSuiteConfig) testDelete(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -161,7 +161,7 @@ func (fx *SessionTestSuiteConfig) testDelete(t *testing.T) {
 
 }
 
-func (fx *SessionTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
+func (fx *SpannerSessionTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	if pristine {
 		fx.currParent++
 	}
@@ -171,7 +171,7 @@ func (fx *SessionTestSuiteConfig) nextParent(t *testing.T, pristine bool) string
 	return fx.Parents[fx.currParent]
 }
 
-func (fx *SessionTestSuiteConfig) peekNextParent(t *testing.T) string {
+func (fx *SpannerSessionTestSuiteConfig) peekNextParent(t *testing.T) string {
 	next := fx.currParent + 1
 	if next >= len(fx.Parents) {
 		t.Fatal("need at least", next+1, "parents")
@@ -179,7 +179,7 @@ func (fx *SessionTestSuiteConfig) peekNextParent(t *testing.T) string {
 	return fx.Parents[next]
 }
 
-func (fx *SessionTestSuiteConfig) maybeSkip(t *testing.T) {
+func (fx *SpannerSessionTestSuiteConfig) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
 			t.Skip("skipped because of .Skip")
@@ -187,10 +187,10 @@ func (fx *SessionTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
-func (fx *SessionTestSuiteConfig) create(t *testing.T, parent string) *Session {
+func (fx *SpannerSessionTestSuiteConfig) create(t *testing.T, parent string) *Session {
 	t.Helper()
 	if fx.CreateResource == nil {
-		t.Skip("Test skipped because CreateResource not specified on SessionTestSuiteConfig")
+		t.Skip("Test skipped because CreateResource not specified on SpannerSessionTestSuiteConfig")
 	}
 	created, err := fx.CreateResource(fx.ctx, parent)
 	assert.NilError(t, err)

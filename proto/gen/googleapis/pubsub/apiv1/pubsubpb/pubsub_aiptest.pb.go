@@ -19,7 +19,7 @@ type PublisherTestSuite struct {
 	Server PublisherServer
 }
 
-func (fx PublisherTestSuite) TestTopic(ctx context.Context, options TopicTestSuiteConfig) {
+func (fx PublisherTestSuite) TestTopic(ctx context.Context, options PublisherTopicTestSuiteConfig) {
 	fx.T.Run("Topic", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
@@ -27,7 +27,7 @@ func (fx PublisherTestSuite) TestTopic(ctx context.Context, options TopicTestSui
 	})
 }
 
-type TopicTestSuiteConfig struct {
+type PublisherTopicTestSuiteConfig struct {
 	ctx        context.Context
 	service    PublisherServer
 	currParent int
@@ -53,11 +53,11 @@ type TopicTestSuiteConfig struct {
 	Skip []string
 }
 
-func (fx *TopicTestSuiteConfig) test(t *testing.T) {
+func (fx *PublisherTopicTestSuiteConfig) test(t *testing.T) {
 	t.Run("Update", fx.testUpdate)
 }
 
-func (fx *TopicTestSuiteConfig) testUpdate(t *testing.T) {
+func (fx *PublisherTopicTestSuiteConfig) testUpdate(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -152,11 +152,87 @@ func (fx *TopicTestSuiteConfig) testUpdate(t *testing.T) {
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
+		t.Run(".ingestion_data_source_settings.aws_kinesis.stream_arn", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msg := proto.Clone(created).(*Topic)
+			container := msg.GetIngestionDataSourceSettings().GetAwsKinesis()
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("stream_arn")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.UpdateTopic(fx.ctx, &UpdateTopicRequest{
+				Topic: msg,
+				UpdateMask: &fieldmaskpb.FieldMask{
+					Paths: []string{
+						"*",
+					},
+				},
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+		t.Run(".ingestion_data_source_settings.aws_kinesis.consumer_arn", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msg := proto.Clone(created).(*Topic)
+			container := msg.GetIngestionDataSourceSettings().GetAwsKinesis()
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("consumer_arn")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.UpdateTopic(fx.ctx, &UpdateTopicRequest{
+				Topic: msg,
+				UpdateMask: &fieldmaskpb.FieldMask{
+					Paths: []string{
+						"*",
+					},
+				},
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+		t.Run(".ingestion_data_source_settings.aws_kinesis.aws_role_arn", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msg := proto.Clone(created).(*Topic)
+			container := msg.GetIngestionDataSourceSettings().GetAwsKinesis()
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("aws_role_arn")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.UpdateTopic(fx.ctx, &UpdateTopicRequest{
+				Topic: msg,
+				UpdateMask: &fieldmaskpb.FieldMask{
+					Paths: []string{
+						"*",
+					},
+				},
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+		t.Run(".ingestion_data_source_settings.aws_kinesis.gcp_service_account", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msg := proto.Clone(created).(*Topic)
+			container := msg.GetIngestionDataSourceSettings().GetAwsKinesis()
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("gcp_service_account")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.UpdateTopic(fx.ctx, &UpdateTopicRequest{
+				Topic: msg,
+				UpdateMask: &fieldmaskpb.FieldMask{
+					Paths: []string{
+						"*",
+					},
+				},
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
 	})
 
 }
 
-func (fx *TopicTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
+func (fx *PublisherTopicTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	if pristine {
 		fx.currParent++
 	}
@@ -166,7 +242,7 @@ func (fx *TopicTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	return fx.Parents[fx.currParent]
 }
 
-func (fx *TopicTestSuiteConfig) peekNextParent(t *testing.T) string {
+func (fx *PublisherTopicTestSuiteConfig) peekNextParent(t *testing.T) string {
 	next := fx.currParent + 1
 	if next >= len(fx.Parents) {
 		t.Fatal("need at least", next+1, "parents")
@@ -174,7 +250,7 @@ func (fx *TopicTestSuiteConfig) peekNextParent(t *testing.T) string {
 	return fx.Parents[next]
 }
 
-func (fx *TopicTestSuiteConfig) maybeSkip(t *testing.T) {
+func (fx *PublisherTopicTestSuiteConfig) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
 			t.Skip("skipped because of .Skip")
@@ -182,10 +258,10 @@ func (fx *TopicTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
-func (fx *TopicTestSuiteConfig) create(t *testing.T, parent string) *Topic {
+func (fx *PublisherTopicTestSuiteConfig) create(t *testing.T, parent string) *Topic {
 	t.Helper()
 	if fx.CreateResource == nil {
-		t.Skip("Test skipped because CreateResource not specified on TopicTestSuiteConfig")
+		t.Skip("Test skipped because CreateResource not specified on PublisherTopicTestSuiteConfig")
 	}
 	created, err := fx.CreateResource(fx.ctx, parent)
 	assert.NilError(t, err)
@@ -198,7 +274,7 @@ type SubscriberTestSuite struct {
 	Server SubscriberServer
 }
 
-func (fx SubscriberTestSuite) TestSnapshot(ctx context.Context, options SnapshotTestSuiteConfig) {
+func (fx SubscriberTestSuite) TestSnapshot(ctx context.Context, options SubscriberSnapshotTestSuiteConfig) {
 	fx.T.Run("Snapshot", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
@@ -206,7 +282,7 @@ func (fx SubscriberTestSuite) TestSnapshot(ctx context.Context, options Snapshot
 	})
 }
 
-func (fx SubscriberTestSuite) TestSubscription(ctx context.Context, options SubscriptionTestSuiteConfig) {
+func (fx SubscriberTestSuite) TestSubscription(ctx context.Context, options SubscriberSubscriptionTestSuiteConfig) {
 	fx.T.Run("Subscription", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
@@ -214,7 +290,7 @@ func (fx SubscriberTestSuite) TestSubscription(ctx context.Context, options Subs
 	})
 }
 
-type SnapshotTestSuiteConfig struct {
+type SubscriberSnapshotTestSuiteConfig struct {
 	ctx        context.Context
 	service    SubscriberServer
 	currParent int
@@ -240,11 +316,11 @@ type SnapshotTestSuiteConfig struct {
 	Skip []string
 }
 
-func (fx *SnapshotTestSuiteConfig) test(t *testing.T) {
+func (fx *SubscriberSnapshotTestSuiteConfig) test(t *testing.T) {
 	t.Run("Update", fx.testUpdate)
 }
 
-func (fx *SnapshotTestSuiteConfig) testUpdate(t *testing.T) {
+func (fx *SubscriberSnapshotTestSuiteConfig) testUpdate(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -299,7 +375,7 @@ func (fx *SnapshotTestSuiteConfig) testUpdate(t *testing.T) {
 
 }
 
-func (fx *SnapshotTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
+func (fx *SubscriberSnapshotTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	if pristine {
 		fx.currParent++
 	}
@@ -309,7 +385,7 @@ func (fx *SnapshotTestSuiteConfig) nextParent(t *testing.T, pristine bool) strin
 	return fx.Parents[fx.currParent]
 }
 
-func (fx *SnapshotTestSuiteConfig) peekNextParent(t *testing.T) string {
+func (fx *SubscriberSnapshotTestSuiteConfig) peekNextParent(t *testing.T) string {
 	next := fx.currParent + 1
 	if next >= len(fx.Parents) {
 		t.Fatal("need at least", next+1, "parents")
@@ -317,7 +393,7 @@ func (fx *SnapshotTestSuiteConfig) peekNextParent(t *testing.T) string {
 	return fx.Parents[next]
 }
 
-func (fx *SnapshotTestSuiteConfig) maybeSkip(t *testing.T) {
+func (fx *SubscriberSnapshotTestSuiteConfig) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
 			t.Skip("skipped because of .Skip")
@@ -325,17 +401,17 @@ func (fx *SnapshotTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
-func (fx *SnapshotTestSuiteConfig) create(t *testing.T, parent string) *Snapshot {
+func (fx *SubscriberSnapshotTestSuiteConfig) create(t *testing.T, parent string) *Snapshot {
 	t.Helper()
 	if fx.CreateResource == nil {
-		t.Skip("Test skipped because CreateResource not specified on SnapshotTestSuiteConfig")
+		t.Skip("Test skipped because CreateResource not specified on SubscriberSnapshotTestSuiteConfig")
 	}
 	created, err := fx.CreateResource(fx.ctx, parent)
 	assert.NilError(t, err)
 	return created
 }
 
-type SubscriptionTestSuiteConfig struct {
+type SubscriberSubscriptionTestSuiteConfig struct {
 	ctx        context.Context
 	service    SubscriberServer
 	currParent int
@@ -361,11 +437,11 @@ type SubscriptionTestSuiteConfig struct {
 	Skip []string
 }
 
-func (fx *SubscriptionTestSuiteConfig) test(t *testing.T) {
+func (fx *SubscriberSubscriptionTestSuiteConfig) test(t *testing.T) {
 	t.Run("Update", fx.testUpdate)
 }
 
-func (fx *SubscriptionTestSuiteConfig) testUpdate(t *testing.T) {
+func (fx *SubscriberSubscriptionTestSuiteConfig) testUpdate(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -483,7 +559,7 @@ func (fx *SubscriptionTestSuiteConfig) testUpdate(t *testing.T) {
 
 }
 
-func (fx *SubscriptionTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
+func (fx *SubscriberSubscriptionTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	if pristine {
 		fx.currParent++
 	}
@@ -493,7 +569,7 @@ func (fx *SubscriptionTestSuiteConfig) nextParent(t *testing.T, pristine bool) s
 	return fx.Parents[fx.currParent]
 }
 
-func (fx *SubscriptionTestSuiteConfig) peekNextParent(t *testing.T) string {
+func (fx *SubscriberSubscriptionTestSuiteConfig) peekNextParent(t *testing.T) string {
 	next := fx.currParent + 1
 	if next >= len(fx.Parents) {
 		t.Fatal("need at least", next+1, "parents")
@@ -501,7 +577,7 @@ func (fx *SubscriptionTestSuiteConfig) peekNextParent(t *testing.T) string {
 	return fx.Parents[next]
 }
 
-func (fx *SubscriptionTestSuiteConfig) maybeSkip(t *testing.T) {
+func (fx *SubscriberSubscriptionTestSuiteConfig) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
 			t.Skip("skipped because of .Skip")
@@ -509,10 +585,10 @@ func (fx *SubscriptionTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
-func (fx *SubscriptionTestSuiteConfig) create(t *testing.T, parent string) *Subscription {
+func (fx *SubscriberSubscriptionTestSuiteConfig) create(t *testing.T, parent string) *Subscription {
 	t.Helper()
 	if fx.CreateResource == nil {
-		t.Skip("Test skipped because CreateResource not specified on SubscriptionTestSuiteConfig")
+		t.Skip("Test skipped because CreateResource not specified on SubscriberSubscriptionTestSuiteConfig")
 	}
 	created, err := fx.CreateResource(fx.ctx, parent)
 	assert.NilError(t, err)

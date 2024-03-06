@@ -21,7 +21,7 @@ type DatasetServiceTestSuite struct {
 	Server DatasetServiceServer
 }
 
-func (fx DatasetServiceTestSuite) TestAnnotation(ctx context.Context, options AnnotationTestSuiteConfig) {
+func (fx DatasetServiceTestSuite) TestAnnotation(ctx context.Context, options DatasetServiceAnnotationTestSuiteConfig) {
 	fx.T.Run("Annotation", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
@@ -29,7 +29,7 @@ func (fx DatasetServiceTestSuite) TestAnnotation(ctx context.Context, options An
 	})
 }
 
-func (fx DatasetServiceTestSuite) TestAnnotationSpec(ctx context.Context, options AnnotationSpecTestSuiteConfig) {
+func (fx DatasetServiceTestSuite) TestAnnotationSpec(ctx context.Context, options DatasetServiceAnnotationSpecTestSuiteConfig) {
 	fx.T.Run("AnnotationSpec", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
@@ -37,7 +37,7 @@ func (fx DatasetServiceTestSuite) TestAnnotationSpec(ctx context.Context, option
 	})
 }
 
-func (fx DatasetServiceTestSuite) TestDataItem(ctx context.Context, options DataItemTestSuiteConfig) {
+func (fx DatasetServiceTestSuite) TestDataItem(ctx context.Context, options DatasetServiceDataItemTestSuiteConfig) {
 	fx.T.Run("DataItem", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
@@ -45,7 +45,7 @@ func (fx DatasetServiceTestSuite) TestDataItem(ctx context.Context, options Data
 	})
 }
 
-func (fx DatasetServiceTestSuite) TestDataset(ctx context.Context, options DatasetTestSuiteConfig) {
+func (fx DatasetServiceTestSuite) TestDataset(ctx context.Context, options DatasetServiceDatasetTestSuiteConfig) {
 	fx.T.Run("Dataset", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
@@ -53,7 +53,15 @@ func (fx DatasetServiceTestSuite) TestDataset(ctx context.Context, options Datas
 	})
 }
 
-func (fx DatasetServiceTestSuite) TestSavedQuery(ctx context.Context, options SavedQueryTestSuiteConfig) {
+func (fx DatasetServiceTestSuite) TestDatasetVersion(ctx context.Context, options DatasetServiceDatasetVersionTestSuiteConfig) {
+	fx.T.Run("DatasetVersion", func(t *testing.T) {
+		options.ctx = ctx
+		options.service = fx.Server
+		options.test(t)
+	})
+}
+
+func (fx DatasetServiceTestSuite) TestSavedQuery(ctx context.Context, options DatasetServiceSavedQueryTestSuiteConfig) {
 	fx.T.Run("SavedQuery", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
@@ -61,7 +69,7 @@ func (fx DatasetServiceTestSuite) TestSavedQuery(ctx context.Context, options Sa
 	})
 }
 
-type AnnotationTestSuiteConfig struct {
+type DatasetServiceAnnotationTestSuiteConfig struct {
 	ctx        context.Context
 	service    DatasetServiceServer
 	currParent int
@@ -84,11 +92,11 @@ type AnnotationTestSuiteConfig struct {
 	Skip []string
 }
 
-func (fx *AnnotationTestSuiteConfig) test(t *testing.T) {
+func (fx *DatasetServiceAnnotationTestSuiteConfig) test(t *testing.T) {
 	t.Run("List", fx.testList)
 }
 
-func (fx *AnnotationTestSuiteConfig) testList(t *testing.T) {
+func (fx *DatasetServiceAnnotationTestSuiteConfig) testList(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
@@ -202,7 +210,7 @@ func (fx *AnnotationTestSuiteConfig) testList(t *testing.T) {
 
 }
 
-func (fx *AnnotationTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
+func (fx *DatasetServiceAnnotationTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	if pristine {
 		fx.currParent++
 	}
@@ -212,7 +220,7 @@ func (fx *AnnotationTestSuiteConfig) nextParent(t *testing.T, pristine bool) str
 	return fx.Parents[fx.currParent]
 }
 
-func (fx *AnnotationTestSuiteConfig) peekNextParent(t *testing.T) string {
+func (fx *DatasetServiceAnnotationTestSuiteConfig) peekNextParent(t *testing.T) string {
 	next := fx.currParent + 1
 	if next >= len(fx.Parents) {
 		t.Fatal("need at least", next+1, "parents")
@@ -220,7 +228,7 @@ func (fx *AnnotationTestSuiteConfig) peekNextParent(t *testing.T) string {
 	return fx.Parents[next]
 }
 
-func (fx *AnnotationTestSuiteConfig) maybeSkip(t *testing.T) {
+func (fx *DatasetServiceAnnotationTestSuiteConfig) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
 			t.Skip("skipped because of .Skip")
@@ -228,17 +236,17 @@ func (fx *AnnotationTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
-func (fx *AnnotationTestSuiteConfig) create(t *testing.T, parent string) *Annotation {
+func (fx *DatasetServiceAnnotationTestSuiteConfig) create(t *testing.T, parent string) *Annotation {
 	t.Helper()
 	if fx.CreateResource == nil {
-		t.Skip("Test skipped because CreateResource not specified on AnnotationTestSuiteConfig")
+		t.Skip("Test skipped because CreateResource not specified on DatasetServiceAnnotationTestSuiteConfig")
 	}
 	created, err := fx.CreateResource(fx.ctx, parent)
 	assert.NilError(t, err)
 	return created
 }
 
-type AnnotationSpecTestSuiteConfig struct {
+type DatasetServiceAnnotationSpecTestSuiteConfig struct {
 	ctx        context.Context
 	service    DatasetServiceServer
 	currParent int
@@ -261,11 +269,11 @@ type AnnotationSpecTestSuiteConfig struct {
 	Skip []string
 }
 
-func (fx *AnnotationSpecTestSuiteConfig) test(t *testing.T) {
+func (fx *DatasetServiceAnnotationSpecTestSuiteConfig) test(t *testing.T) {
 	t.Run("Get", fx.testGet)
 }
 
-func (fx *AnnotationSpecTestSuiteConfig) testGet(t *testing.T) {
+func (fx *DatasetServiceAnnotationSpecTestSuiteConfig) testGet(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -319,7 +327,7 @@ func (fx *AnnotationSpecTestSuiteConfig) testGet(t *testing.T) {
 
 }
 
-func (fx *AnnotationSpecTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
+func (fx *DatasetServiceAnnotationSpecTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	if pristine {
 		fx.currParent++
 	}
@@ -329,7 +337,7 @@ func (fx *AnnotationSpecTestSuiteConfig) nextParent(t *testing.T, pristine bool)
 	return fx.Parents[fx.currParent]
 }
 
-func (fx *AnnotationSpecTestSuiteConfig) peekNextParent(t *testing.T) string {
+func (fx *DatasetServiceAnnotationSpecTestSuiteConfig) peekNextParent(t *testing.T) string {
 	next := fx.currParent + 1
 	if next >= len(fx.Parents) {
 		t.Fatal("need at least", next+1, "parents")
@@ -337,7 +345,7 @@ func (fx *AnnotationSpecTestSuiteConfig) peekNextParent(t *testing.T) string {
 	return fx.Parents[next]
 }
 
-func (fx *AnnotationSpecTestSuiteConfig) maybeSkip(t *testing.T) {
+func (fx *DatasetServiceAnnotationSpecTestSuiteConfig) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
 			t.Skip("skipped because of .Skip")
@@ -345,17 +353,17 @@ func (fx *AnnotationSpecTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
-func (fx *AnnotationSpecTestSuiteConfig) create(t *testing.T, parent string) *AnnotationSpec {
+func (fx *DatasetServiceAnnotationSpecTestSuiteConfig) create(t *testing.T, parent string) *AnnotationSpec {
 	t.Helper()
 	if fx.CreateResource == nil {
-		t.Skip("Test skipped because CreateResource not specified on AnnotationSpecTestSuiteConfig")
+		t.Skip("Test skipped because CreateResource not specified on DatasetServiceAnnotationSpecTestSuiteConfig")
 	}
 	created, err := fx.CreateResource(fx.ctx, parent)
 	assert.NilError(t, err)
 	return created
 }
 
-type DataItemTestSuiteConfig struct {
+type DatasetServiceDataItemTestSuiteConfig struct {
 	ctx        context.Context
 	service    DatasetServiceServer
 	currParent int
@@ -378,11 +386,11 @@ type DataItemTestSuiteConfig struct {
 	Skip []string
 }
 
-func (fx *DataItemTestSuiteConfig) test(t *testing.T) {
+func (fx *DatasetServiceDataItemTestSuiteConfig) test(t *testing.T) {
 	t.Run("List", fx.testList)
 }
 
-func (fx *DataItemTestSuiteConfig) testList(t *testing.T) {
+func (fx *DatasetServiceDataItemTestSuiteConfig) testList(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
@@ -496,7 +504,7 @@ func (fx *DataItemTestSuiteConfig) testList(t *testing.T) {
 
 }
 
-func (fx *DataItemTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
+func (fx *DatasetServiceDataItemTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	if pristine {
 		fx.currParent++
 	}
@@ -506,7 +514,7 @@ func (fx *DataItemTestSuiteConfig) nextParent(t *testing.T, pristine bool) strin
 	return fx.Parents[fx.currParent]
 }
 
-func (fx *DataItemTestSuiteConfig) peekNextParent(t *testing.T) string {
+func (fx *DatasetServiceDataItemTestSuiteConfig) peekNextParent(t *testing.T) string {
 	next := fx.currParent + 1
 	if next >= len(fx.Parents) {
 		t.Fatal("need at least", next+1, "parents")
@@ -514,7 +522,7 @@ func (fx *DataItemTestSuiteConfig) peekNextParent(t *testing.T) string {
 	return fx.Parents[next]
 }
 
-func (fx *DataItemTestSuiteConfig) maybeSkip(t *testing.T) {
+func (fx *DatasetServiceDataItemTestSuiteConfig) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
 			t.Skip("skipped because of .Skip")
@@ -522,17 +530,17 @@ func (fx *DataItemTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
-func (fx *DataItemTestSuiteConfig) create(t *testing.T, parent string) *DataItem {
+func (fx *DatasetServiceDataItemTestSuiteConfig) create(t *testing.T, parent string) *DataItem {
 	t.Helper()
 	if fx.CreateResource == nil {
-		t.Skip("Test skipped because CreateResource not specified on DataItemTestSuiteConfig")
+		t.Skip("Test skipped because CreateResource not specified on DatasetServiceDataItemTestSuiteConfig")
 	}
 	created, err := fx.CreateResource(fx.ctx, parent)
 	assert.NilError(t, err)
 	return created
 }
 
-type DatasetTestSuiteConfig struct {
+type DatasetServiceDatasetTestSuiteConfig struct {
 	ctx        context.Context
 	service    DatasetServiceServer
 	currParent int
@@ -555,7 +563,7 @@ type DatasetTestSuiteConfig struct {
 	Skip []string
 }
 
-func (fx *DatasetTestSuiteConfig) test(t *testing.T) {
+func (fx *DatasetServiceDatasetTestSuiteConfig) test(t *testing.T) {
 	t.Run("Create", fx.testCreate)
 	t.Run("Get", fx.testGet)
 	t.Run("Update", fx.testUpdate)
@@ -563,7 +571,7 @@ func (fx *DatasetTestSuiteConfig) test(t *testing.T) {
 	t.Run("Delete", fx.testDelete)
 }
 
-func (fx *DatasetTestSuiteConfig) testCreate(t *testing.T) {
+func (fx *DatasetServiceDatasetTestSuiteConfig) testCreate(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
@@ -657,7 +665,7 @@ func (fx *DatasetTestSuiteConfig) testCreate(t *testing.T) {
 
 }
 
-func (fx *DatasetTestSuiteConfig) testGet(t *testing.T) {
+func (fx *DatasetServiceDatasetTestSuiteConfig) testGet(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -711,7 +719,7 @@ func (fx *DatasetTestSuiteConfig) testGet(t *testing.T) {
 
 }
 
-func (fx *DatasetTestSuiteConfig) testUpdate(t *testing.T) {
+func (fx *DatasetServiceDatasetTestSuiteConfig) testUpdate(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -882,7 +890,7 @@ func (fx *DatasetTestSuiteConfig) testUpdate(t *testing.T) {
 
 }
 
-func (fx *DatasetTestSuiteConfig) testList(t *testing.T) {
+func (fx *DatasetServiceDatasetTestSuiteConfig) testList(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
@@ -1022,7 +1030,7 @@ func (fx *DatasetTestSuiteConfig) testList(t *testing.T) {
 
 }
 
-func (fx *DatasetTestSuiteConfig) testDelete(t *testing.T) {
+func (fx *DatasetServiceDatasetTestSuiteConfig) testDelete(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -1075,7 +1083,7 @@ func (fx *DatasetTestSuiteConfig) testDelete(t *testing.T) {
 
 }
 
-func (fx *DatasetTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
+func (fx *DatasetServiceDatasetTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	if pristine {
 		fx.currParent++
 	}
@@ -1085,7 +1093,7 @@ func (fx *DatasetTestSuiteConfig) nextParent(t *testing.T, pristine bool) string
 	return fx.Parents[fx.currParent]
 }
 
-func (fx *DatasetTestSuiteConfig) peekNextParent(t *testing.T) string {
+func (fx *DatasetServiceDatasetTestSuiteConfig) peekNextParent(t *testing.T) string {
 	next := fx.currParent + 1
 	if next >= len(fx.Parents) {
 		t.Fatal("need at least", next+1, "parents")
@@ -1093,7 +1101,7 @@ func (fx *DatasetTestSuiteConfig) peekNextParent(t *testing.T) string {
 	return fx.Parents[next]
 }
 
-func (fx *DatasetTestSuiteConfig) maybeSkip(t *testing.T) {
+func (fx *DatasetServiceDatasetTestSuiteConfig) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
 			t.Skip("skipped because of .Skip")
@@ -1101,13 +1109,343 @@ func (fx *DatasetTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
-func (fx *DatasetTestSuiteConfig) create(t *testing.T, parent string) *Dataset {
+func (fx *DatasetServiceDatasetTestSuiteConfig) create(t *testing.T, parent string) *Dataset {
 	t.Helper()
 	t.Skip("Long running create method not supported")
 	return nil
 }
 
-type SavedQueryTestSuiteConfig struct {
+type DatasetServiceDatasetVersionTestSuiteConfig struct {
+	ctx        context.Context
+	service    DatasetServiceServer
+	currParent int
+
+	// The parents to use when creating resources.
+	// At least one parent needs to be set. Depending on methods available on the resource,
+	// more may be required. If insufficient number of parents are
+	// provided the test will fail.
+	Parents []string
+	// Create should return a resource which is valid to create, i.e.
+	// all required fields set.
+	Create func(parent string) *DatasetVersion
+	// Patterns of tests to skip.
+	// For example if a service has a Get method:
+	// Skip: ["Get"] will skip all tests for Get.
+	// Skip: ["Get/persisted"] will only skip the subtest called "persisted" of Get.
+	Skip []string
+}
+
+func (fx *DatasetServiceDatasetVersionTestSuiteConfig) test(t *testing.T) {
+	t.Run("Create", fx.testCreate)
+	t.Run("Get", fx.testGet)
+	t.Run("List", fx.testList)
+	t.Run("Delete", fx.testDelete)
+}
+
+func (fx *DatasetServiceDatasetVersionTestSuiteConfig) testCreate(t *testing.T) {
+	fx.maybeSkip(t)
+	// Method should fail with InvalidArgument if no parent is provided.
+	t.Run("missing parent", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.CreateDatasetVersion(fx.ctx, &CreateDatasetVersionRequest{
+			Parent:         "",
+			DatasetVersion: fx.Create(fx.nextParent(t, false)),
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if provided parent is invalid.
+	t.Run("invalid parent", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.CreateDatasetVersion(fx.ctx, &CreateDatasetVersionRequest{
+			Parent:         "invalid resource name",
+			DatasetVersion: fx.Create(fx.nextParent(t, false)),
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+}
+
+func (fx *DatasetServiceDatasetVersionTestSuiteConfig) testGet(t *testing.T) {
+	fx.maybeSkip(t)
+	// Method should fail with InvalidArgument if no name is provided.
+	t.Run("missing name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.GetDatasetVersion(fx.ctx, &GetDatasetVersionRequest{
+			Name: "",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name is not valid.
+	t.Run("invalid name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.GetDatasetVersion(fx.ctx, &GetDatasetVersionRequest{
+			Name: "invalid resource name",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Resource should be returned without errors if it exists.
+	t.Run("exists", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		msg, err := fx.service.GetDatasetVersion(fx.ctx, &GetDatasetVersionRequest{
+			Name: created.Name,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(t, msg, created, protocmp.Transform())
+	})
+
+	// Method should fail with NotFound if the resource does not exist.
+	t.Run("not found", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.GetDatasetVersion(fx.ctx, &GetDatasetVersionRequest{
+			Name: created.Name + "notfound",
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
+	t.Run("only wildcards", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.GetDatasetVersion(fx.ctx, &GetDatasetVersionRequest{
+			Name: "projects/-/locations/-/datasets/-/datasetVersions/-",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+}
+
+func (fx *DatasetServiceDatasetVersionTestSuiteConfig) testList(t *testing.T) {
+	fx.maybeSkip(t)
+	// Method should fail with InvalidArgument if provided parent is invalid.
+	t.Run("invalid parent", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.ListDatasetVersions(fx.ctx, &ListDatasetVersionsRequest{
+			Parent: "invalid resource name",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument is provided page token is not valid.
+	t.Run("invalid page token", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		_, err := fx.service.ListDatasetVersions(fx.ctx, &ListDatasetVersionsRequest{
+			Parent:    parent,
+			PageToken: "invalid page token",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument is provided page size is negative.
+	t.Run("negative page size", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		_, err := fx.service.ListDatasetVersions(fx.ctx, &ListDatasetVersionsRequest{
+			Parent:   parent,
+			PageSize: -10,
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	const resourcesCount = 15
+	parent := fx.nextParent(t, true)
+	parentMsgs := make([]*DatasetVersion, resourcesCount)
+	for i := 0; i < resourcesCount; i++ {
+		parentMsgs[i] = fx.create(t, parent)
+	}
+
+	// If parent is provided the method must only return resources
+	// under that parent.
+	t.Run("isolation", func(t *testing.T) {
+		fx.maybeSkip(t)
+		response, err := fx.service.ListDatasetVersions(fx.ctx, &ListDatasetVersionsRequest{
+			Parent:   parent,
+			PageSize: 999,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(
+			t,
+			parentMsgs,
+			response.DatasetVersions,
+			cmpopts.SortSlices(func(a, b *DatasetVersion) bool {
+				return a.Name < b.Name
+			}),
+			protocmp.Transform(),
+		)
+	})
+
+	// If there are no more resources, next_page_token should not be set.
+	t.Run("last page", func(t *testing.T) {
+		fx.maybeSkip(t)
+		response, err := fx.service.ListDatasetVersions(fx.ctx, &ListDatasetVersionsRequest{
+			Parent:   parent,
+			PageSize: resourcesCount,
+		})
+		assert.NilError(t, err)
+		assert.Equal(t, "", response.NextPageToken)
+	})
+
+	// If there are more resources, next_page_token should be set.
+	t.Run("more pages", func(t *testing.T) {
+		fx.maybeSkip(t)
+		response, err := fx.service.ListDatasetVersions(fx.ctx, &ListDatasetVersionsRequest{
+			Parent:   parent,
+			PageSize: resourcesCount - 1,
+		})
+		assert.NilError(t, err)
+		assert.Check(t, response.NextPageToken != "")
+	})
+
+	// Listing resource one by one should eventually return all resources.
+	t.Run("one by one", func(t *testing.T) {
+		fx.maybeSkip(t)
+		msgs := make([]*DatasetVersion, 0, resourcesCount)
+		var nextPageToken string
+		for {
+			response, err := fx.service.ListDatasetVersions(fx.ctx, &ListDatasetVersionsRequest{
+				Parent:    parent,
+				PageSize:  1,
+				PageToken: nextPageToken,
+			})
+			assert.NilError(t, err)
+			assert.Equal(t, 1, len(response.DatasetVersions))
+			msgs = append(msgs, response.DatasetVersions...)
+			nextPageToken = response.NextPageToken
+			if nextPageToken == "" {
+				break
+			}
+		}
+		assert.DeepEqual(
+			t,
+			parentMsgs,
+			msgs,
+			cmpopts.SortSlices(func(a, b *DatasetVersion) bool {
+				return a.Name < b.Name
+			}),
+			protocmp.Transform(),
+		)
+	})
+
+	// Method should not return deleted resources.
+	t.Run("deleted", func(t *testing.T) {
+		fx.maybeSkip(t)
+		const deleteCount = 5
+		for i := 0; i < deleteCount; i++ {
+			_, err := fx.service.DeleteDatasetVersion(fx.ctx, &DeleteDatasetVersionRequest{
+				Name: parentMsgs[i].Name,
+			})
+			assert.NilError(t, err)
+		}
+		response, err := fx.service.ListDatasetVersions(fx.ctx, &ListDatasetVersionsRequest{
+			Parent:   parent,
+			PageSize: 9999,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(
+			t,
+			parentMsgs[deleteCount:],
+			response.DatasetVersions,
+			cmpopts.SortSlices(func(a, b *DatasetVersion) bool {
+				return a.Name < b.Name
+			}),
+			protocmp.Transform(),
+		)
+	})
+
+}
+
+func (fx *DatasetServiceDatasetVersionTestSuiteConfig) testDelete(t *testing.T) {
+	fx.maybeSkip(t)
+	// Method should fail with InvalidArgument if no name is provided.
+	t.Run("missing name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteDatasetVersion(fx.ctx, &DeleteDatasetVersionRequest{
+			Name: "",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name is not valid.
+	t.Run("invalid name", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteDatasetVersion(fx.ctx, &DeleteDatasetVersionRequest{
+			Name: "invalid resource name",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Resource should be deleted without errors if it exists.
+	t.Run("exists", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteDatasetVersion(fx.ctx, &DeleteDatasetVersionRequest{
+			Name: created.Name,
+		})
+		assert.NilError(t, err)
+	})
+
+	// Method should fail with NotFound if the resource does not exist.
+	t.Run("not found", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteDatasetVersion(fx.ctx, &DeleteDatasetVersionRequest{
+			Name: created.Name + "notfound",
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
+	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
+	t.Run("only wildcards", func(t *testing.T) {
+		fx.maybeSkip(t)
+		_, err := fx.service.DeleteDatasetVersion(fx.ctx, &DeleteDatasetVersionRequest{
+			Name: "projects/-/locations/-/datasets/-/datasetVersions/-",
+		})
+		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+}
+
+func (fx *DatasetServiceDatasetVersionTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
+	if pristine {
+		fx.currParent++
+	}
+	if fx.currParent >= len(fx.Parents) {
+		t.Fatal("need at least", fx.currParent+1, "parents")
+	}
+	return fx.Parents[fx.currParent]
+}
+
+func (fx *DatasetServiceDatasetVersionTestSuiteConfig) peekNextParent(t *testing.T) string {
+	next := fx.currParent + 1
+	if next >= len(fx.Parents) {
+		t.Fatal("need at least", next+1, "parents")
+	}
+	return fx.Parents[next]
+}
+
+func (fx *DatasetServiceDatasetVersionTestSuiteConfig) maybeSkip(t *testing.T) {
+	for _, skip := range fx.Skip {
+		if strings.Contains(t.Name(), skip) {
+			t.Skip("skipped because of .Skip")
+		}
+	}
+}
+
+func (fx *DatasetServiceDatasetVersionTestSuiteConfig) create(t *testing.T, parent string) *DatasetVersion {
+	t.Helper()
+	t.Skip("Long running create method not supported")
+	return nil
+}
+
+type DatasetServiceSavedQueryTestSuiteConfig struct {
 	ctx        context.Context
 	service    DatasetServiceServer
 	currParent int
@@ -1130,12 +1468,12 @@ type SavedQueryTestSuiteConfig struct {
 	Skip []string
 }
 
-func (fx *SavedQueryTestSuiteConfig) test(t *testing.T) {
+func (fx *DatasetServiceSavedQueryTestSuiteConfig) test(t *testing.T) {
 	t.Run("List", fx.testList)
 	t.Run("Delete", fx.testDelete)
 }
 
-func (fx *SavedQueryTestSuiteConfig) testList(t *testing.T) {
+func (fx *DatasetServiceSavedQueryTestSuiteConfig) testList(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
@@ -1275,7 +1613,7 @@ func (fx *SavedQueryTestSuiteConfig) testList(t *testing.T) {
 
 }
 
-func (fx *SavedQueryTestSuiteConfig) testDelete(t *testing.T) {
+func (fx *DatasetServiceSavedQueryTestSuiteConfig) testDelete(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -1328,7 +1666,7 @@ func (fx *SavedQueryTestSuiteConfig) testDelete(t *testing.T) {
 
 }
 
-func (fx *SavedQueryTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
+func (fx *DatasetServiceSavedQueryTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	if pristine {
 		fx.currParent++
 	}
@@ -1338,7 +1676,7 @@ func (fx *SavedQueryTestSuiteConfig) nextParent(t *testing.T, pristine bool) str
 	return fx.Parents[fx.currParent]
 }
 
-func (fx *SavedQueryTestSuiteConfig) peekNextParent(t *testing.T) string {
+func (fx *DatasetServiceSavedQueryTestSuiteConfig) peekNextParent(t *testing.T) string {
 	next := fx.currParent + 1
 	if next >= len(fx.Parents) {
 		t.Fatal("need at least", next+1, "parents")
@@ -1346,7 +1684,7 @@ func (fx *SavedQueryTestSuiteConfig) peekNextParent(t *testing.T) string {
 	return fx.Parents[next]
 }
 
-func (fx *SavedQueryTestSuiteConfig) maybeSkip(t *testing.T) {
+func (fx *DatasetServiceSavedQueryTestSuiteConfig) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
 			t.Skip("skipped because of .Skip")
@@ -1354,10 +1692,10 @@ func (fx *SavedQueryTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
-func (fx *SavedQueryTestSuiteConfig) create(t *testing.T, parent string) *SavedQuery {
+func (fx *DatasetServiceSavedQueryTestSuiteConfig) create(t *testing.T, parent string) *SavedQuery {
 	t.Helper()
 	if fx.CreateResource == nil {
-		t.Skip("Test skipped because CreateResource not specified on SavedQueryTestSuiteConfig")
+		t.Skip("Test skipped because CreateResource not specified on DatasetServiceSavedQueryTestSuiteConfig")
 	}
 	created, err := fx.CreateResource(fx.ctx, parent)
 	assert.NilError(t, err)

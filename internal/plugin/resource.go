@@ -40,7 +40,7 @@ func (r *resourceGenerator) generateFixture(f *protogen.GeneratedFile) {
 		GoImportPath: r.service.Methods[0].Input.GoIdent.GoImportPath,
 	})
 
-	f.P("type ", resourceTestSuiteConfigName(r.resource), " struct {")
+	f.P("type ", resourceTestSuiteConfigName(r.service.Desc, r.resource), " struct {")
 	f.P("ctx ", context)
 	f.P("service ", service)
 	f.P("currParent int")
@@ -107,7 +107,7 @@ func (r *resourceGenerator) generateTestMethod(f *protogen.GeneratedFile) {
 		GoImportPath: "testing",
 	})
 
-	f.P("func (fx *", resourceTestSuiteConfigName(r.resource), ") test(t *", testingT, ") {")
+	f.P("func (fx *", resourceTestSuiteConfigName(r.service.Desc, r.resource), ") test(t *", testingT, ") {")
 	scope := suite.Scope{
 		Service:  r.service,
 		Resource: r.resource,
@@ -136,7 +136,7 @@ func (r *resourceGenerator) generateTestCases(f *protogen.GeneratedFile) error {
 		if !s.Enabled(scope) {
 			continue
 		}
-		f.P("func (fx *", resourceTestSuiteConfigName(r.resource), ") test", s.Name, "(t *", testingT, ") {")
+		f.P("func (fx *", resourceTestSuiteConfigName(r.service.Desc, r.resource), ") test", s.Name, "(t *", testingT, ") {")
 		f.P(ident.FixtureMaybeSkip, "(t)")
 		for _, t := range s.Tests {
 			if !t.Enabled(scope) {
@@ -196,7 +196,7 @@ func (r *resourceGenerator) generateSkip(f *protogen.GeneratedFile) {
 		GoName:       "Contains",
 		GoImportPath: "strings",
 	})
-	f.P("func (fx *", resourceTestSuiteConfigName(r.resource), ") maybeSkip(t *", testingT, ") {")
+	f.P("func (fx *", resourceTestSuiteConfigName(r.service.Desc, r.resource), ") maybeSkip(t *", testingT, ") {")
 	f.P("for _, skip := range fx.Skip {")
 	f.P("if ", stringsContains, "(t.Name(), skip) {")
 	f.P("t.Skip(\"skipped because of .Skip\")")
@@ -211,7 +211,7 @@ func (r *resourceGenerator) generateCreate(f *protogen.GeneratedFile) {
 		GoName:       "T",
 		GoImportPath: "testing",
 	})
-	fixtureName := resourceTestSuiteConfigName(r.resource)
+	fixtureName := resourceTestSuiteConfigName(r.service.Desc, r.resource)
 	var parentFuncArg string
 	var parentCallArg string
 	if util.HasParent(r.resource) {
@@ -254,7 +254,10 @@ func (r *resourceGenerator) generateParentMethods(f *protogen.GeneratedFile) {
 		GoName:       "T",
 		GoImportPath: "testing",
 	})
-	f.P("func (fx *", resourceTestSuiteConfigName(r.resource), ") nextParent(t *", testingT, ", pristine bool) string {")
+	f.P("func (fx *", resourceTestSuiteConfigName(
+		r.service.Desc,
+		r.resource,
+	), ") nextParent(t *", testingT, ", pristine bool) string {")
 	f.P("if pristine {")
 	f.P("fx.currParent++")
 	f.P("}")
@@ -264,7 +267,10 @@ func (r *resourceGenerator) generateParentMethods(f *protogen.GeneratedFile) {
 	f.P("return fx.Parents[fx.currParent]")
 	f.P("}")
 	f.P()
-	f.P("func (fx *", resourceTestSuiteConfigName(r.resource), ") peekNextParent(t *", testingT, ") string {")
+	f.P("func (fx *", resourceTestSuiteConfigName(
+		r.service.Desc,
+		r.resource,
+	), ") peekNextParent(t *", testingT, ") string {")
 	f.P("next := fx.currParent + 1")
 	f.P("if next >= len(fx.Parents) {")
 	f.P("t.Fatal(\"need at least\", next +1,  \"parents\")")

@@ -62,7 +62,7 @@ func (s *serviceGenerator) generateTestMethods(f *protogen.GeneratedFile) {
 	})
 	serviceFx := serviceTestSuiteName(s.service.Desc)
 	for _, resource := range s.resources {
-		resourceFx := resourceTestSuiteConfigName(resource)
+		resourceFx := resourceTestSuiteConfigName(s.service.Desc, resource)
 		f.P("func (fx ", serviceFx, ") Test", resourceType(resource), "(ctx ", context, ", options ", resourceFx, ") {")
 		f.P("fx.T.Run(", strconv.Quote(resourceType(resource)), ", func(t *", testingT, ") {")
 		f.P("options.ctx = ctx")

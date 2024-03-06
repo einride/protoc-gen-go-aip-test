@@ -20,7 +20,7 @@ type TablesServiceTestSuite struct {
 	Server TablesServiceServer
 }
 
-func (fx TablesServiceTestSuite) TestRow(ctx context.Context, options RowTestSuiteConfig) {
+func (fx TablesServiceTestSuite) TestRow(ctx context.Context, options TablesServiceRowTestSuiteConfig) {
 	fx.T.Run("Row", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
@@ -28,7 +28,7 @@ func (fx TablesServiceTestSuite) TestRow(ctx context.Context, options RowTestSui
 	})
 }
 
-func (fx TablesServiceTestSuite) TestTable(ctx context.Context, options TableTestSuiteConfig) {
+func (fx TablesServiceTestSuite) TestTable(ctx context.Context, options TablesServiceTableTestSuiteConfig) {
 	fx.T.Run("Table", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
@@ -36,7 +36,7 @@ func (fx TablesServiceTestSuite) TestTable(ctx context.Context, options TableTes
 	})
 }
 
-func (fx TablesServiceTestSuite) TestWorkspace(ctx context.Context, options WorkspaceTestSuiteConfig) {
+func (fx TablesServiceTestSuite) TestWorkspace(ctx context.Context, options TablesServiceWorkspaceTestSuiteConfig) {
 	fx.T.Run("Workspace", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
@@ -44,7 +44,7 @@ func (fx TablesServiceTestSuite) TestWorkspace(ctx context.Context, options Work
 	})
 }
 
-type RowTestSuiteConfig struct {
+type TablesServiceRowTestSuiteConfig struct {
 	ctx        context.Context
 	service    TablesServiceServer
 	currParent int
@@ -67,7 +67,7 @@ type RowTestSuiteConfig struct {
 	Skip []string
 }
 
-func (fx *RowTestSuiteConfig) test(t *testing.T) {
+func (fx *TablesServiceRowTestSuiteConfig) test(t *testing.T) {
 	t.Run("Create", fx.testCreate)
 	t.Run("Get", fx.testGet)
 	t.Run("Update", fx.testUpdate)
@@ -75,7 +75,7 @@ func (fx *RowTestSuiteConfig) test(t *testing.T) {
 	t.Run("Delete", fx.testDelete)
 }
 
-func (fx *RowTestSuiteConfig) testCreate(t *testing.T) {
+func (fx *TablesServiceRowTestSuiteConfig) testCreate(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
@@ -115,7 +115,7 @@ func (fx *RowTestSuiteConfig) testCreate(t *testing.T) {
 
 }
 
-func (fx *RowTestSuiteConfig) testGet(t *testing.T) {
+func (fx *TablesServiceRowTestSuiteConfig) testGet(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -169,7 +169,7 @@ func (fx *RowTestSuiteConfig) testGet(t *testing.T) {
 
 }
 
-func (fx *RowTestSuiteConfig) testUpdate(t *testing.T) {
+func (fx *TablesServiceRowTestSuiteConfig) testUpdate(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -240,7 +240,7 @@ func (fx *RowTestSuiteConfig) testUpdate(t *testing.T) {
 
 }
 
-func (fx *RowTestSuiteConfig) testList(t *testing.T) {
+func (fx *TablesServiceRowTestSuiteConfig) testList(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
@@ -380,7 +380,7 @@ func (fx *RowTestSuiteConfig) testList(t *testing.T) {
 
 }
 
-func (fx *RowTestSuiteConfig) testDelete(t *testing.T) {
+func (fx *TablesServiceRowTestSuiteConfig) testDelete(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -433,7 +433,7 @@ func (fx *RowTestSuiteConfig) testDelete(t *testing.T) {
 
 }
 
-func (fx *RowTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
+func (fx *TablesServiceRowTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	if pristine {
 		fx.currParent++
 	}
@@ -443,7 +443,7 @@ func (fx *RowTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	return fx.Parents[fx.currParent]
 }
 
-func (fx *RowTestSuiteConfig) peekNextParent(t *testing.T) string {
+func (fx *TablesServiceRowTestSuiteConfig) peekNextParent(t *testing.T) string {
 	next := fx.currParent + 1
 	if next >= len(fx.Parents) {
 		t.Fatal("need at least", next+1, "parents")
@@ -451,7 +451,7 @@ func (fx *RowTestSuiteConfig) peekNextParent(t *testing.T) string {
 	return fx.Parents[next]
 }
 
-func (fx *RowTestSuiteConfig) maybeSkip(t *testing.T) {
+func (fx *TablesServiceRowTestSuiteConfig) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
 			t.Skip("skipped because of .Skip")
@@ -459,7 +459,7 @@ func (fx *RowTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
-func (fx *RowTestSuiteConfig) create(t *testing.T, parent string) *Row {
+func (fx *TablesServiceRowTestSuiteConfig) create(t *testing.T, parent string) *Row {
 	t.Helper()
 	created, err := fx.service.CreateRow(fx.ctx, &CreateRowRequest{
 		Parent: parent,
@@ -469,7 +469,7 @@ func (fx *RowTestSuiteConfig) create(t *testing.T, parent string) *Row {
 	return created
 }
 
-type TableTestSuiteConfig struct {
+type TablesServiceTableTestSuiteConfig struct {
 	ctx        context.Context
 	service    TablesServiceServer
 	currParent int
@@ -487,12 +487,12 @@ type TableTestSuiteConfig struct {
 	Skip []string
 }
 
-func (fx *TableTestSuiteConfig) test(t *testing.T) {
+func (fx *TablesServiceTableTestSuiteConfig) test(t *testing.T) {
 	t.Run("Get", fx.testGet)
 	t.Run("List", fx.testList)
 }
 
-func (fx *TableTestSuiteConfig) testGet(t *testing.T) {
+func (fx *TablesServiceTableTestSuiteConfig) testGet(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -544,7 +544,7 @@ func (fx *TableTestSuiteConfig) testGet(t *testing.T) {
 
 }
 
-func (fx *TableTestSuiteConfig) testList(t *testing.T) {
+func (fx *TablesServiceTableTestSuiteConfig) testList(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument is provided page token is not valid.
 	t.Run("invalid page token", func(t *testing.T) {
@@ -566,7 +566,7 @@ func (fx *TableTestSuiteConfig) testList(t *testing.T) {
 
 }
 
-func (fx *TableTestSuiteConfig) maybeSkip(t *testing.T) {
+func (fx *TablesServiceTableTestSuiteConfig) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
 			t.Skip("skipped because of .Skip")
@@ -574,17 +574,17 @@ func (fx *TableTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
-func (fx *TableTestSuiteConfig) create(t *testing.T) *Table {
+func (fx *TablesServiceTableTestSuiteConfig) create(t *testing.T) *Table {
 	t.Helper()
 	if fx.CreateResource == nil {
-		t.Skip("Test skipped because CreateResource not specified on TableTestSuiteConfig")
+		t.Skip("Test skipped because CreateResource not specified on TablesServiceTableTestSuiteConfig")
 	}
 	created, err := fx.CreateResource(fx.ctx)
 	assert.NilError(t, err)
 	return created
 }
 
-type WorkspaceTestSuiteConfig struct {
+type TablesServiceWorkspaceTestSuiteConfig struct {
 	ctx        context.Context
 	service    TablesServiceServer
 	currParent int
@@ -602,12 +602,12 @@ type WorkspaceTestSuiteConfig struct {
 	Skip []string
 }
 
-func (fx *WorkspaceTestSuiteConfig) test(t *testing.T) {
+func (fx *TablesServiceWorkspaceTestSuiteConfig) test(t *testing.T) {
 	t.Run("Get", fx.testGet)
 	t.Run("List", fx.testList)
 }
 
-func (fx *WorkspaceTestSuiteConfig) testGet(t *testing.T) {
+func (fx *TablesServiceWorkspaceTestSuiteConfig) testGet(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
@@ -659,7 +659,7 @@ func (fx *WorkspaceTestSuiteConfig) testGet(t *testing.T) {
 
 }
 
-func (fx *WorkspaceTestSuiteConfig) testList(t *testing.T) {
+func (fx *TablesServiceWorkspaceTestSuiteConfig) testList(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument is provided page token is not valid.
 	t.Run("invalid page token", func(t *testing.T) {
@@ -681,7 +681,7 @@ func (fx *WorkspaceTestSuiteConfig) testList(t *testing.T) {
 
 }
 
-func (fx *WorkspaceTestSuiteConfig) maybeSkip(t *testing.T) {
+func (fx *TablesServiceWorkspaceTestSuiteConfig) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
 			t.Skip("skipped because of .Skip")
@@ -689,10 +689,10 @@ func (fx *WorkspaceTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
-func (fx *WorkspaceTestSuiteConfig) create(t *testing.T) *Workspace {
+func (fx *TablesServiceWorkspaceTestSuiteConfig) create(t *testing.T) *Workspace {
 	t.Helper()
 	if fx.CreateResource == nil {
-		t.Skip("Test skipped because CreateResource not specified on WorkspaceTestSuiteConfig")
+		t.Skip("Test skipped because CreateResource not specified on TablesServiceWorkspaceTestSuiteConfig")
 	}
 	created, err := fx.CreateResource(fx.ctx)
 	assert.NilError(t, err)

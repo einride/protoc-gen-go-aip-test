@@ -7,31 +7,29 @@ import (
 	cmpopts "github.com/google/go-cmp/cmp/cmpopts"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
-	proto "google.golang.org/protobuf/proto"
 	protocmp "google.golang.org/protobuf/testing/protocmp"
-	fieldmaskpb "google.golang.org/protobuf/types/known/fieldmaskpb"
 	assert "gotest.tools/v3/assert"
 	strings "strings"
 	testing "testing"
 )
 
-type IndexServiceTestSuite struct {
+type DeploymentResourcePoolServiceTestSuite struct {
 	T *testing.T
 	// Server to test.
-	Server IndexServiceServer
+	Server DeploymentResourcePoolServiceServer
 }
 
-func (fx IndexServiceTestSuite) TestIndex(ctx context.Context, options IndexServiceIndexTestSuiteConfig) {
-	fx.T.Run("Index", func(t *testing.T) {
+func (fx DeploymentResourcePoolServiceTestSuite) TestDeploymentResourcePool(ctx context.Context, options DeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig) {
+	fx.T.Run("DeploymentResourcePool", func(t *testing.T) {
 		options.ctx = ctx
 		options.service = fx.Server
 		options.test(t)
 	})
 }
 
-type IndexServiceIndexTestSuiteConfig struct {
+type DeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig struct {
 	ctx        context.Context
-	service    IndexServiceServer
+	service    DeploymentResourcePoolServiceServer
 	currParent int
 
 	// The parents to use when creating resources.
@@ -41,10 +39,7 @@ type IndexServiceIndexTestSuiteConfig struct {
 	Parents []string
 	// Create should return a resource which is valid to create, i.e.
 	// all required fields set.
-	Create func(parent string) *Index
-	// Update should return a resource which is valid to update, i.e.
-	// all required fields set.
-	Update func(parent string) *Index
+	Create func(parent string) *DeploymentResourcePool
 	// Patterns of tests to skip.
 	// For example if a service has a Get method:
 	// Skip: ["Get"] will skip all tests for Get.
@@ -52,22 +47,21 @@ type IndexServiceIndexTestSuiteConfig struct {
 	Skip []string
 }
 
-func (fx *IndexServiceIndexTestSuiteConfig) test(t *testing.T) {
+func (fx *DeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig) test(t *testing.T) {
 	t.Run("Create", fx.testCreate)
 	t.Run("Get", fx.testGet)
-	t.Run("Update", fx.testUpdate)
 	t.Run("List", fx.testList)
 	t.Run("Delete", fx.testDelete)
 }
 
-func (fx *IndexServiceIndexTestSuiteConfig) testCreate(t *testing.T) {
+func (fx *DeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig) testCreate(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateIndex(fx.ctx, &CreateIndexRequest{
-			Parent: "",
-			Index:  fx.Create(fx.nextParent(t, false)),
+		_, err := fx.service.CreateDeploymentResourcePool(fx.ctx, &CreateDeploymentResourcePoolRequest{
+			Parent:                 "",
+			DeploymentResourcePool: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -75,9 +69,9 @@ func (fx *IndexServiceIndexTestSuiteConfig) testCreate(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateIndex(fx.ctx, &CreateIndexRequest{
-			Parent: "invalid resource name",
-			Index:  fx.Create(fx.nextParent(t, false)),
+		_, err := fx.service.CreateDeploymentResourcePool(fx.ctx, &CreateDeploymentResourcePoolRequest{
+			Parent:                 "invalid resource name",
+			DeploymentResourcePool: fx.Create(fx.nextParent(t, false)),
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -86,7 +80,7 @@ func (fx *IndexServiceIndexTestSuiteConfig) testCreate(t *testing.T) {
 	// required fields and they are not provided.
 	t.Run("required fields", func(t *testing.T) {
 		fx.maybeSkip(t)
-		t.Run(".display_name", func(t *testing.T) {
+		t.Run(".dedicated_resources", func(t *testing.T) {
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -94,27 +88,43 @@ func (fx *IndexServiceIndexTestSuiteConfig) testCreate(t *testing.T) {
 			if container == nil {
 				t.Skip("not reachable")
 			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("dedicated_resources")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateIndex(fx.ctx, &CreateIndexRequest{
-				Parent: parent,
-				Index:  msg,
+			_, err := fx.service.CreateDeploymentResourcePool(fx.ctx, &CreateDeploymentResourcePoolRequest{
+				Parent:                 parent,
+				DeploymentResourcePool: msg,
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
-		t.Run(".encryption_spec.kms_key_name", func(t *testing.T) {
+		t.Run(".dedicated_resources.machine_spec", func(t *testing.T) {
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
-			container := msg.GetEncryptionSpec()
+			container := msg.GetDedicatedResources()
 			if container == nil {
 				t.Skip("not reachable")
 			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("kms_key_name")
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("machine_spec")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateIndex(fx.ctx, &CreateIndexRequest{
-				Parent: parent,
-				Index:  msg,
+			_, err := fx.service.CreateDeploymentResourcePool(fx.ctx, &CreateDeploymentResourcePoolRequest{
+				Parent:                 parent,
+				DeploymentResourcePool: msg,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+		t.Run(".dedicated_resources.min_replica_count", func(t *testing.T) {
+			fx.maybeSkip(t)
+			parent := fx.nextParent(t, false)
+			msg := fx.Create(parent)
+			container := msg.GetDedicatedResources()
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("min_replica_count")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.service.CreateDeploymentResourcePool(fx.ctx, &CreateDeploymentResourcePoolRequest{
+				Parent:                 parent,
+				DeploymentResourcePool: msg,
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
@@ -122,12 +132,12 @@ func (fx *IndexServiceIndexTestSuiteConfig) testCreate(t *testing.T) {
 
 }
 
-func (fx *IndexServiceIndexTestSuiteConfig) testGet(t *testing.T) {
+func (fx *DeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig) testGet(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetIndex(fx.ctx, &GetIndexRequest{
+		_, err := fx.service.GetDeploymentResourcePool(fx.ctx, &GetDeploymentResourcePoolRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -136,7 +146,7 @@ func (fx *IndexServiceIndexTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetIndex(fx.ctx, &GetIndexRequest{
+		_, err := fx.service.GetDeploymentResourcePool(fx.ctx, &GetDeploymentResourcePoolRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -147,7 +157,7 @@ func (fx *IndexServiceIndexTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		msg, err := fx.service.GetIndex(fx.ctx, &GetIndexRequest{
+		msg, err := fx.service.GetDeploymentResourcePool(fx.ctx, &GetDeploymentResourcePoolRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -159,7 +169,7 @@ func (fx *IndexServiceIndexTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.GetIndex(fx.ctx, &GetIndexRequest{
+		_, err := fx.service.GetDeploymentResourcePool(fx.ctx, &GetDeploymentResourcePoolRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -168,119 +178,20 @@ func (fx *IndexServiceIndexTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetIndex(fx.ctx, &GetIndexRequest{
-			Name: "projects/-/locations/-/indexes/-",
+		_, err := fx.service.GetDeploymentResourcePool(fx.ctx, &GetDeploymentResourcePoolRequest{
+			Name: "projects/-/locations/-/deploymentResourcePools/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
 }
 
-func (fx *IndexServiceIndexTestSuiteConfig) testUpdate(t *testing.T) {
-	fx.maybeSkip(t)
-	// Method should fail with InvalidArgument if no name is provided.
-	t.Run("missing name", func(t *testing.T) {
-		fx.maybeSkip(t)
-		parent := fx.nextParent(t, false)
-		msg := fx.Update(parent)
-		msg.Name = ""
-		_, err := fx.service.UpdateIndex(fx.ctx, &UpdateIndexRequest{
-			Index: msg,
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-	// Method should fail with InvalidArgument if provided name is not valid.
-	t.Run("invalid name", func(t *testing.T) {
-		fx.maybeSkip(t)
-		parent := fx.nextParent(t, false)
-		msg := fx.Update(parent)
-		msg.Name = "invalid resource name"
-		_, err := fx.service.UpdateIndex(fx.ctx, &UpdateIndexRequest{
-			Index: msg,
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-	parent := fx.nextParent(t, false)
-	created := fx.create(t, parent)
-	// Method should fail with NotFound if the resource does not exist.
-	t.Run("not found", func(t *testing.T) {
-		fx.maybeSkip(t)
-		msg := fx.Update(parent)
-		msg.Name = created.Name + "notfound"
-		_, err := fx.service.UpdateIndex(fx.ctx, &UpdateIndexRequest{
-			Index: msg,
-		})
-		assert.Equal(t, codes.NotFound, status.Code(err), err)
-	})
-
-	// The method should fail with InvalidArgument if the update_mask is invalid.
-	t.Run("invalid update mask", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.service.UpdateIndex(fx.ctx, &UpdateIndexRequest{
-			Index: created,
-			UpdateMask: &fieldmaskpb.FieldMask{
-				Paths: []string{
-					"invalid_field_xyz",
-				},
-			},
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-	// Method should fail with InvalidArgument if any required field is missing
-	// when called with '*' update_mask.
-	t.Run("required fields", func(t *testing.T) {
-		fx.maybeSkip(t)
-		t.Run(".display_name", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msg := proto.Clone(created).(*Index)
-			container := msg
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateIndex(fx.ctx, &UpdateIndexRequest{
-				Index: msg,
-				UpdateMask: &fieldmaskpb.FieldMask{
-					Paths: []string{
-						"*",
-					},
-				},
-			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
-		t.Run(".encryption_spec.kms_key_name", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msg := proto.Clone(created).(*Index)
-			container := msg.GetEncryptionSpec()
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("kms_key_name")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateIndex(fx.ctx, &UpdateIndexRequest{
-				Index: msg,
-				UpdateMask: &fieldmaskpb.FieldMask{
-					Paths: []string{
-						"*",
-					},
-				},
-			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
-	})
-
-}
-
-func (fx *IndexServiceIndexTestSuiteConfig) testList(t *testing.T) {
+func (fx *DeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig) testList(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.ListIndexes(fx.ctx, &ListIndexesRequest{
+		_, err := fx.service.ListDeploymentResourcePools(fx.ctx, &ListDeploymentResourcePoolsRequest{
 			Parent: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -290,7 +201,7 @@ func (fx *IndexServiceIndexTestSuiteConfig) testList(t *testing.T) {
 	t.Run("invalid page token", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListIndexes(fx.ctx, &ListIndexesRequest{
+		_, err := fx.service.ListDeploymentResourcePools(fx.ctx, &ListDeploymentResourcePoolsRequest{
 			Parent:    parent,
 			PageToken: "invalid page token",
 		})
@@ -301,7 +212,7 @@ func (fx *IndexServiceIndexTestSuiteConfig) testList(t *testing.T) {
 	t.Run("negative page size", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListIndexes(fx.ctx, &ListIndexesRequest{
+		_, err := fx.service.ListDeploymentResourcePools(fx.ctx, &ListDeploymentResourcePoolsRequest{
 			Parent:   parent,
 			PageSize: -10,
 		})
@@ -310,7 +221,7 @@ func (fx *IndexServiceIndexTestSuiteConfig) testList(t *testing.T) {
 
 	const resourcesCount = 15
 	parent := fx.nextParent(t, true)
-	parentMsgs := make([]*Index, resourcesCount)
+	parentMsgs := make([]*DeploymentResourcePool, resourcesCount)
 	for i := 0; i < resourcesCount; i++ {
 		parentMsgs[i] = fx.create(t, parent)
 	}
@@ -319,7 +230,7 @@ func (fx *IndexServiceIndexTestSuiteConfig) testList(t *testing.T) {
 	// under that parent.
 	t.Run("isolation", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListIndexes(fx.ctx, &ListIndexesRequest{
+		response, err := fx.service.ListDeploymentResourcePools(fx.ctx, &ListDeploymentResourcePoolsRequest{
 			Parent:   parent,
 			PageSize: 999,
 		})
@@ -327,8 +238,8 @@ func (fx *IndexServiceIndexTestSuiteConfig) testList(t *testing.T) {
 		assert.DeepEqual(
 			t,
 			parentMsgs,
-			response.Indexes,
-			cmpopts.SortSlices(func(a, b *Index) bool {
+			response.DeploymentResourcePools,
+			cmpopts.SortSlices(func(a, b *DeploymentResourcePool) bool {
 				return a.Name < b.Name
 			}),
 			protocmp.Transform(),
@@ -338,7 +249,7 @@ func (fx *IndexServiceIndexTestSuiteConfig) testList(t *testing.T) {
 	// If there are no more resources, next_page_token should not be set.
 	t.Run("last page", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListIndexes(fx.ctx, &ListIndexesRequest{
+		response, err := fx.service.ListDeploymentResourcePools(fx.ctx, &ListDeploymentResourcePoolsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount,
 		})
@@ -349,7 +260,7 @@ func (fx *IndexServiceIndexTestSuiteConfig) testList(t *testing.T) {
 	// If there are more resources, next_page_token should be set.
 	t.Run("more pages", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListIndexes(fx.ctx, &ListIndexesRequest{
+		response, err := fx.service.ListDeploymentResourcePools(fx.ctx, &ListDeploymentResourcePoolsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount - 1,
 		})
@@ -360,17 +271,17 @@ func (fx *IndexServiceIndexTestSuiteConfig) testList(t *testing.T) {
 	// Listing resource one by one should eventually return all resources.
 	t.Run("one by one", func(t *testing.T) {
 		fx.maybeSkip(t)
-		msgs := make([]*Index, 0, resourcesCount)
+		msgs := make([]*DeploymentResourcePool, 0, resourcesCount)
 		var nextPageToken string
 		for {
-			response, err := fx.service.ListIndexes(fx.ctx, &ListIndexesRequest{
+			response, err := fx.service.ListDeploymentResourcePools(fx.ctx, &ListDeploymentResourcePoolsRequest{
 				Parent:    parent,
 				PageSize:  1,
 				PageToken: nextPageToken,
 			})
 			assert.NilError(t, err)
-			assert.Equal(t, 1, len(response.Indexes))
-			msgs = append(msgs, response.Indexes...)
+			assert.Equal(t, 1, len(response.DeploymentResourcePools))
+			msgs = append(msgs, response.DeploymentResourcePools...)
 			nextPageToken = response.NextPageToken
 			if nextPageToken == "" {
 				break
@@ -380,7 +291,7 @@ func (fx *IndexServiceIndexTestSuiteConfig) testList(t *testing.T) {
 			t,
 			parentMsgs,
 			msgs,
-			cmpopts.SortSlices(func(a, b *Index) bool {
+			cmpopts.SortSlices(func(a, b *DeploymentResourcePool) bool {
 				return a.Name < b.Name
 			}),
 			protocmp.Transform(),
@@ -392,12 +303,12 @@ func (fx *IndexServiceIndexTestSuiteConfig) testList(t *testing.T) {
 		fx.maybeSkip(t)
 		const deleteCount = 5
 		for i := 0; i < deleteCount; i++ {
-			_, err := fx.service.DeleteIndex(fx.ctx, &DeleteIndexRequest{
+			_, err := fx.service.DeleteDeploymentResourcePool(fx.ctx, &DeleteDeploymentResourcePoolRequest{
 				Name: parentMsgs[i].Name,
 			})
 			assert.NilError(t, err)
 		}
-		response, err := fx.service.ListIndexes(fx.ctx, &ListIndexesRequest{
+		response, err := fx.service.ListDeploymentResourcePools(fx.ctx, &ListDeploymentResourcePoolsRequest{
 			Parent:   parent,
 			PageSize: 9999,
 		})
@@ -405,8 +316,8 @@ func (fx *IndexServiceIndexTestSuiteConfig) testList(t *testing.T) {
 		assert.DeepEqual(
 			t,
 			parentMsgs[deleteCount:],
-			response.Indexes,
-			cmpopts.SortSlices(func(a, b *Index) bool {
+			response.DeploymentResourcePools,
+			cmpopts.SortSlices(func(a, b *DeploymentResourcePool) bool {
 				return a.Name < b.Name
 			}),
 			protocmp.Transform(),
@@ -415,12 +326,12 @@ func (fx *IndexServiceIndexTestSuiteConfig) testList(t *testing.T) {
 
 }
 
-func (fx *IndexServiceIndexTestSuiteConfig) testDelete(t *testing.T) {
+func (fx *DeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig) testDelete(t *testing.T) {
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteIndex(fx.ctx, &DeleteIndexRequest{
+		_, err := fx.service.DeleteDeploymentResourcePool(fx.ctx, &DeleteDeploymentResourcePoolRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -429,7 +340,7 @@ func (fx *IndexServiceIndexTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteIndex(fx.ctx, &DeleteIndexRequest{
+		_, err := fx.service.DeleteDeploymentResourcePool(fx.ctx, &DeleteDeploymentResourcePoolRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -440,7 +351,7 @@ func (fx *IndexServiceIndexTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteIndex(fx.ctx, &DeleteIndexRequest{
+		_, err := fx.service.DeleteDeploymentResourcePool(fx.ctx, &DeleteDeploymentResourcePoolRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -451,7 +362,7 @@ func (fx *IndexServiceIndexTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteIndex(fx.ctx, &DeleteIndexRequest{
+		_, err := fx.service.DeleteDeploymentResourcePool(fx.ctx, &DeleteDeploymentResourcePoolRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -460,15 +371,15 @@ func (fx *IndexServiceIndexTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteIndex(fx.ctx, &DeleteIndexRequest{
-			Name: "projects/-/locations/-/indexes/-",
+		_, err := fx.service.DeleteDeploymentResourcePool(fx.ctx, &DeleteDeploymentResourcePoolRequest{
+			Name: "projects/-/locations/-/deploymentResourcePools/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
 }
 
-func (fx *IndexServiceIndexTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
+func (fx *DeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
 	if pristine {
 		fx.currParent++
 	}
@@ -478,7 +389,7 @@ func (fx *IndexServiceIndexTestSuiteConfig) nextParent(t *testing.T, pristine bo
 	return fx.Parents[fx.currParent]
 }
 
-func (fx *IndexServiceIndexTestSuiteConfig) peekNextParent(t *testing.T) string {
+func (fx *DeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig) peekNextParent(t *testing.T) string {
 	next := fx.currParent + 1
 	if next >= len(fx.Parents) {
 		t.Fatal("need at least", next+1, "parents")
@@ -486,7 +397,7 @@ func (fx *IndexServiceIndexTestSuiteConfig) peekNextParent(t *testing.T) string 
 	return fx.Parents[next]
 }
 
-func (fx *IndexServiceIndexTestSuiteConfig) maybeSkip(t *testing.T) {
+func (fx *DeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig) maybeSkip(t *testing.T) {
 	for _, skip := range fx.Skip {
 		if strings.Contains(t.Name(), skip) {
 			t.Skip("skipped because of .Skip")
@@ -494,7 +405,7 @@ func (fx *IndexServiceIndexTestSuiteConfig) maybeSkip(t *testing.T) {
 	}
 }
 
-func (fx *IndexServiceIndexTestSuiteConfig) create(t *testing.T, parent string) *Index {
+func (fx *DeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig) create(t *testing.T, parent string) *DeploymentResourcePool {
 	t.Helper()
 	t.Skip("Long running create method not supported")
 	return nil
