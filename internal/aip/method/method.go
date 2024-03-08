@@ -33,10 +33,10 @@ func (m Methods) Resources() []*annotations.ResourceDescriptor {
 	seen := make(map[string]struct{})
 	resources := make([]*annotations.ResourceDescriptor, 0, len(m))
 	for _, method := range m {
-		if _, ok := seen[method.Resource.Type]; ok {
+		if _, ok := seen[method.Resource.GetType()]; ok {
 			continue
 		}
-		seen[method.Resource.Type] = struct{}{}
+		seen[method.Resource.GetType()] = struct{}{}
 		resources = append(resources, method.Resource)
 	}
 	return resources
@@ -49,7 +49,7 @@ func (m Methods) Get(
 	methodType aipreflect.MethodType,
 ) *Method {
 	for _, method := range m {
-		if method.Type == methodType && method.Resource.Type == resource.Type {
+		if method.Type == methodType && method.Resource.GetType() == resource.GetType() {
 			return method
 		}
 	}

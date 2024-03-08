@@ -96,7 +96,7 @@ func findResourceField(
 		field := message.Fields().Get(i)
 		if field.Kind() == protoreflect.MessageKind {
 			r := getResourceDescriptor(field.Message())
-			if r != nil && r.Type == resource.Type {
+			if r != nil && r.GetType() == resource.GetType() {
 				return field
 			}
 		}
@@ -130,7 +130,7 @@ func findResourceDescriptor(typ string, scope protoreflect.Descriptor) *annotati
 			return false
 		}
 		aipreflect.RangeResourceDescriptorsInFile(file, func(resource *annotations.ResourceDescriptor) bool {
-			if resource.Type == typ {
+			if resource.GetType() == typ {
 				resourceDescriptor = resource
 				return false
 			}
