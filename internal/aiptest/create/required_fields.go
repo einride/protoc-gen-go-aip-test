@@ -28,7 +28,7 @@ var requiredFields = suite.Test{
 	),
 	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
 		createMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeCreate)
-		util.RangeRequiredFields(scope.Message.Desc, func(p protopath.Path, field protoreflect.FieldDescriptor) {
+		util.RangeRequiredFields(scope.Message.Desc, func(p protopath.Path, _ protoreflect.FieldDescriptor) {
 			// strip root step
 			p = p[1:]
 			containerPath := p[:len(p)-1]

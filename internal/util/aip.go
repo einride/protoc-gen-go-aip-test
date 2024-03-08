@@ -48,7 +48,7 @@ func resourceNameSegments(pattern string) []resourcename.Segment {
 
 func HasAnyStandardMethodFor(s protoreflect.ServiceDescriptor, r *annotations.ResourceDescriptor) bool {
 	for _, resource := range method.NewMethods(s).Resources() {
-		if resource.Type == r.Type {
+		if resource.GetType() == r.GetType() {
 			return true
 		}
 	}
@@ -95,7 +95,7 @@ func HasUpdateMask(method protoreflect.MethodDescriptor) bool {
 
 func HasRequiredFields(message protoreflect.MessageDescriptor) bool {
 	var found bool
-	RangeRequiredFields(message, func(p protopath.Path, field protoreflect.FieldDescriptor) {
+	RangeRequiredFields(message, func(_ protopath.Path, _ protoreflect.FieldDescriptor) {
 		found = true
 	})
 	return found
@@ -119,7 +119,7 @@ func HasMutableResourceReferences(message protoreflect.MessageDescriptor) bool {
 	var found bool
 	RangeMutableResourceReferences(
 		message,
-		func(p protopath.Path, field protoreflect.FieldDescriptor, r *annotations.ResourceReference) {
+		func(_ protopath.Path, _ protoreflect.FieldDescriptor, _ *annotations.ResourceReference) {
 			found = true
 		},
 	)
@@ -158,7 +158,7 @@ func FindResourceField(
 		field := message.Fields().Get(i)
 		if field.Kind() == protoreflect.MessageKind {
 			r := getResourceDescriptor(field.Message())
-			if r != nil && r.Type == resource.Type {
+			if r != nil && r.GetType() == resource.GetType() {
 				return field
 			}
 		}

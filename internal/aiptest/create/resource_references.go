@@ -32,7 +32,7 @@ var resourceReferences = suite.Test{
 		createMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeCreate)
 		util.RangeMutableResourceReferences(
 			scope.Message.Desc,
-			func(p protopath.Path, field protoreflect.FieldDescriptor, desc *annotations.ResourceReference) {
+			func(p protopath.Path, field protoreflect.FieldDescriptor, _ *annotations.ResourceReference) {
 				if field.ContainingOneof() != nil {
 					// resource references that are also one-ofs are
 					// tricky to test this way
