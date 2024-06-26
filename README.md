@@ -188,12 +188,13 @@ Sample skips:
 
 ### Delete
 
-| Name           | Description                                                                                | Only if                                                             |
-| -------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------- |
-| missing name   | Method should fail with InvalidArgument if no name is provided.                            | Generated only if all are true: <ul><li>has Delete method</li></ul> |
-| invalid name   | Method should fail with InvalidArgument if the provided name is not valid.                 | Generated only if all are true: <ul><li>has Delete method</li></ul> |
-| exists         | Resource should be deleted without errors if it exists.                                    | Generated only if all are true: <ul><li>has Delete method</li></ul> |
-| not found      | Method should fail with NotFound if the resource does not exist.                           | Generated only if all are true: <ul><li>has Delete method</li></ul> |
-| only wildcards | Method should fail with InvalidArgument if the provided name only contains wildcards ('-') | Generated only if all are true: <ul><li>has Delete method</li></ul> |
+| Name            | Description                                                                                               | Only if                                                             |
+| --------------- | --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| missing name    | Method should fail with InvalidArgument if no name is provided.                                           | Generated only if all are true: <ul><li>has Delete method</li></ul> |
+| invalid name    | Method should fail with InvalidArgument if the provided name is not valid.                                | Generated only if all are true: <ul><li>has Delete method</li></ul> |
+| exists          | Resource should be deleted without errors if it exists.                                                   | Generated only if all are true: <ul><li>has Delete method</li></ul> |
+| not found       | Method should fail with NotFound if the resource does not exist.                                          | Generated only if all are true: <ul><li>has Delete method</li></ul> |
+| already deleted | Method should fail with NotFound if the resource was already deleted. This also applies to soft-deletion. | Generated only if all are true: <ul><li>has Delete method</li></ul> |
+| only wildcards  | Method should fail with InvalidArgument if the provided name only contains wildcards ('-')                | Generated only if all are true: <ul><li>has Delete method</li></ul> |
 
 <!-- END suites -->

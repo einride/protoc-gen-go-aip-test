@@ -1072,6 +1072,21 @@ func (fx *DatasetServiceDatasetTestSuiteConfig) testDelete(t *testing.T) {
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
 	})
 
+	// Method should fail with NotFound if the resource was already deleted. This also applies to soft-deletion.
+	t.Run("already deleted", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteDataset(fx.ctx, &DeleteDatasetRequest{
+			Name: created.Name,
+		})
+		assert.NilError(t, err)
+		_, err = fx.service.DeleteDataset(fx.ctx, &DeleteDatasetRequest{
+			Name: created.Name,
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -1402,6 +1417,21 @@ func (fx *DatasetServiceDatasetVersionTestSuiteConfig) testDelete(t *testing.T) 
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
 	})
 
+	// Method should fail with NotFound if the resource was already deleted. This also applies to soft-deletion.
+	t.Run("already deleted", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteDatasetVersion(fx.ctx, &DeleteDatasetVersionRequest{
+			Name: created.Name,
+		})
+		assert.NilError(t, err)
+		_, err = fx.service.DeleteDatasetVersion(fx.ctx, &DeleteDatasetVersionRequest{
+			Name: created.Name,
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -1651,6 +1681,21 @@ func (fx *DatasetServiceSavedQueryTestSuiteConfig) testDelete(t *testing.T) {
 		created := fx.create(t, parent)
 		_, err := fx.service.DeleteSavedQuery(fx.ctx, &DeleteSavedQueryRequest{
 			Name: created.Name + "notfound",
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
+	// Method should fail with NotFound if the resource was already deleted. This also applies to soft-deletion.
+	t.Run("already deleted", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteSavedQuery(fx.ctx, &DeleteSavedQueryRequest{
+			Name: created.Name,
+		})
+		assert.NilError(t, err)
+		_, err = fx.service.DeleteSavedQuery(fx.ctx, &DeleteSavedQueryRequest{
+			Name: created.Name,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
 	})
