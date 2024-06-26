@@ -508,6 +508,21 @@ func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) testDelete(t *testing.T) {
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
 	})
 
+	// Method should fail with NotFound if the resource was already deleted. This also applies to soft-deletion.
+	t.Run("already deleted", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteDeployment(fx.ctx, &DeleteDeploymentRequest{
+			Name: created.Name,
+		})
+		assert.NilError(t, err)
+		_, err = fx.service.DeleteDeployment(fx.ctx, &DeleteDeploymentRequest{
+			Name: created.Name,
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)

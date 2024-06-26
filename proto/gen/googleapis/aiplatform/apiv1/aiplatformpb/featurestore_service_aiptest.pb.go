@@ -407,6 +407,21 @@ func (fx *FeaturestoreServiceEntityTypeTestSuiteConfig) testDelete(t *testing.T)
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
 	})
 
+	// Method should fail with NotFound if the resource was already deleted. This also applies to soft-deletion.
+	t.Run("already deleted", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteEntityType(fx.ctx, &DeleteEntityTypeRequest{
+			Name: created.Name,
+		})
+		assert.NilError(t, err)
+		_, err = fx.service.DeleteEntityType(fx.ctx, &DeleteEntityTypeRequest{
+			Name: created.Name,
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -822,6 +837,21 @@ func (fx *FeaturestoreServiceFeatureTestSuiteConfig) testDelete(t *testing.T) {
 		created := fx.create(t, parent)
 		_, err := fx.service.DeleteFeature(fx.ctx, &DeleteFeatureRequest{
 			Name: created.Name + "notfound",
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
+	// Method should fail with NotFound if the resource was already deleted. This also applies to soft-deletion.
+	t.Run("already deleted", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteFeature(fx.ctx, &DeleteFeatureRequest{
+			Name: created.Name,
+		})
+		assert.NilError(t, err)
+		_, err = fx.service.DeleteFeature(fx.ctx, &DeleteFeatureRequest{
+			Name: created.Name,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
 	})
@@ -1293,6 +1323,21 @@ func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) testDelete(t *testing.
 		created := fx.create(t, parent)
 		_, err := fx.service.DeleteFeaturestore(fx.ctx, &DeleteFeaturestoreRequest{
 			Name: created.Name + "notfound",
+		})
+		assert.Equal(t, codes.NotFound, status.Code(err), err)
+	})
+
+	// Method should fail with NotFound if the resource was already deleted. This also applies to soft-deletion.
+	t.Run("already deleted", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteFeaturestore(fx.ctx, &DeleteFeaturestoreRequest{
+			Name: created.Name,
+		})
+		assert.NilError(t, err)
+		_, err = fx.service.DeleteFeaturestore(fx.ctx, &DeleteFeaturestoreRequest{
+			Name: created.Name,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
 	})
