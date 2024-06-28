@@ -39,3 +39,33 @@ var etagMismatch = suite.Test{
 		return nil
 	},
 }
+
+//nolint:gochecknoglobals
+var etagCurrent = suite.Test{
+	Name: "current etag",
+	Doc: []string{
+		"Deletion with the current etag supplied should succeed.",
+	},
+	OnlyIf: suite.OnlyIfs(
+		onlyif.HasMethod(aipreflect.MethodTypeDelete),
+		onlyif.HasRequestEtag(aipreflect.MethodTypeDelete),
+		onlyif.HasField("etag"),
+	),
+	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
+		if util.HasParent(scope.Resource) {
+			f.P("parent := ", ident.FixtureNextParent, "(t, false)")
+			f.P("created := fx.create(t, parent)")
+		} else {
+			f.P("created := fx.create(t)")
+		}
+		deleteMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeDelete)
+		util.MethodDelete{
+			Resource:         scope.Resource,
+			Method:           deleteMethod,
+			UserProvidedName: "created.Name",
+			UserProvidedEtag: "created.Etag",
+		}.Generate(f, "_", "err", ":=")
+		f.P(ident.AssertNilError, "(t, err)")
+		return nil
+	},
+}

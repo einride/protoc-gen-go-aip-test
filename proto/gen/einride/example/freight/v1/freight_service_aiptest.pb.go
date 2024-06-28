@@ -503,6 +503,17 @@ func (fx *FreightServiceShipperTestSuiteConfig) testDelete(t *testing.T) {
 		assert.Equal(t, codes.Aborted, status.Code(err), err)
 	})
 
+	// Deletion with the current etag supplied should succeed.
+	t.Run("current etag", func(t *testing.T) {
+		fx.maybeSkip(t)
+		created := fx.create(t)
+		_, err := fx.service.DeleteShipper(fx.ctx, &DeleteShipperRequest{
+			Name: created.Name,
+			Etag: created.Etag,
+		})
+		assert.NilError(t, err)
+	})
+
 }
 
 func (fx *FreightServiceShipperTestSuiteConfig) maybeSkip(t *testing.T) {

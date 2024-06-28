@@ -544,6 +544,18 @@ func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) testDelete(t *testing.T) {
 		assert.Equal(t, codes.Aborted, status.Code(err), err)
 	})
 
+	// Deletion with the current etag supplied should succeed.
+	t.Run("current etag", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteDeployment(fx.ctx, &DeleteDeploymentRequest{
+			Name: created.Name,
+			Etag: created.Etag,
+		})
+		assert.NilError(t, err)
+	})
+
 }
 
 func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {

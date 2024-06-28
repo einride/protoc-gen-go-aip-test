@@ -17,5 +17,6 @@ var Suite = suite.Suite{
 		alreadyDeleted,
 		wildcardName,
 		etagMismatch,
+		etagCurrent,
 	},
 }

@@ -198,5 +198,6 @@ Sample skips:
 | already deleted | Method should fail with NotFound if the resource was already deleted. This also applies to soft-deletion. | Generated only if all are true: <ul><li>has Delete method</li></ul>                                                         |
 | only wildcards  | Method should fail with InvalidArgument if the provided name only contains wildcards ('-')                | Generated only if all are true: <ul><li>has Delete method</li></ul>                                                         |
 | etag mismatch   | Method should fail with Aborted if the supplied etag doesnt match the current etag value.                 | Generated only if all are true: <ul><li>has Delete method</li><li>request has etag field</li><li>has field 'etag'</li></ul> |
+| current etag    | Deletion with the current etag supplied should succeed.                                                   | Generated only if all are true: <ul><li>has Delete method</li><li>request has etag field</li><li>has field 'etag'</li></ul> |
 
 <!-- END suites -->
