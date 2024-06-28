@@ -90,10 +90,11 @@ type MethodUpdate struct {
 	Method   *protogen.Method
 
 	// set either Parent + Name, or Msg
-	Name       string
-	Parent     string
-	Msg        string
-	UpdateMask []string
+	Name             string
+	Parent           string
+	Msg              string
+	UpdateMask       []string
+	UserProvidedEtag string
 }
 
 func (m MethodUpdate) Generate(f *protogen.GeneratedFile, response, err, assign string) {
@@ -128,6 +129,9 @@ func (m MethodUpdate) Generate(f *protogen.GeneratedFile, response, err, assign 
 		}
 		f.P("},")
 		f.P("},")
+	}
+	if m.UserProvidedEtag != "" {
+		f.P("Etag: ", m.UserProvidedEtag, ",")
 	}
 	f.P("})")
 }
@@ -183,10 +187,14 @@ type MethodDelete struct {
 	Method   *protogen.Method
 
 	UserProvidedName string
+	UserProvidedEtag string
 }
 
 func (m MethodDelete) Generate(f *protogen.GeneratedFile, response, err, assign string) {
 	f.P(response, ", ", err, " ", assign, " fx.service.", m.Method.GoName, "(fx.ctx, &", m.Method.Input.GoIdent, "{")
 	f.P("Name: ", m.UserProvidedName, ",")
+	if m.UserProvidedEtag != "" {
+		f.P("Etag: ", m.UserProvidedEtag, ",")
+	}
 	f.P("})")
 }

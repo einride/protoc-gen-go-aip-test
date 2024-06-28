@@ -1069,6 +1069,18 @@ func (fx *InstanceAdminInstanceConfigTestSuiteConfig) testDelete(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
+	// Method should fail with Aborted if the supplied etag doesnt match the current etag value.
+	t.Run("etag mismatch", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteInstanceConfig(fx.ctx, &DeleteInstanceConfigRequest{
+			Name: created.Name,
+			Etag: `"99999"`,
+		})
+		assert.Equal(t, codes.Aborted, status.Code(err), err)
+	})
+
 }
 
 func (fx *InstanceAdminInstanceConfigTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
@@ -1580,6 +1592,18 @@ func (fx *InstanceAdminInstancePartitionTestSuiteConfig) testDelete(t *testing.T
 			Name: "projects/-/instances/-/instancePartitions/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with Aborted if the supplied etag doesnt match the current etag value.
+	t.Run("etag mismatch", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteInstancePartition(fx.ctx, &DeleteInstancePartitionRequest{
+			Name: created.Name,
+			Etag: `"99999"`,
+		})
+		assert.Equal(t, codes.Aborted, status.Code(err), err)
 	})
 
 }

@@ -490,6 +490,18 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testDelete(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
+	// Method should fail with Aborted if the supplied etag doesnt match the current etag value.
+	t.Run("etag mismatch", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteArtifact(fx.ctx, &DeleteArtifactRequest{
+			Name: created.Name,
+			Etag: `"99999"`,
+		})
+		assert.Equal(t, codes.Aborted, status.Code(err), err)
+	})
+
 }
 
 func (fx *MetadataServiceArtifactTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
@@ -957,6 +969,18 @@ func (fx *MetadataServiceContextTestSuiteConfig) testDelete(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
+	// Method should fail with Aborted if the supplied etag doesnt match the current etag value.
+	t.Run("etag mismatch", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteContext(fx.ctx, &DeleteContextRequest{
+			Name: created.Name,
+			Etag: `"99999"`,
+		})
+		assert.Equal(t, codes.Aborted, status.Code(err), err)
+	})
+
 }
 
 func (fx *MetadataServiceContextTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
@@ -1422,6 +1446,18 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testDelete(t *testing.T) {
 			Name: "projects/-/locations/-/metadataStores/-/executions/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with Aborted if the supplied etag doesnt match the current etag value.
+	t.Run("etag mismatch", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteExecution(fx.ctx, &DeleteExecutionRequest{
+			Name: created.Name,
+			Etag: `"99999"`,
+		})
+		assert.Equal(t, codes.Aborted, status.Code(err), err)
 	})
 
 }

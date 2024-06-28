@@ -79,6 +79,16 @@ var HasRequiredFields = onlyIf{
 	doc: "resource has any required fields",
 }
 
+func HasRequestEtag(method aipreflect.MethodType) suite.OnlyIf {
+	return onlyIf{
+		f: func(scope suite.Scope) bool {
+			m, ok := util.StandardMethod(scope.Service, scope.Resource, method)
+			return ok && util.HasEtagField(m.Input.Desc)
+		},
+		doc: "request has etag field",
+	}
+}
+
 func HasField(name string) suite.OnlyIf {
 	return onlyIf{
 		f: func(scope suite.Scope) bool {

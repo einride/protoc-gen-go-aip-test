@@ -324,6 +324,17 @@ func (fx *FreightServiceShipperTestSuiteConfig) testUpdate(t *testing.T) {
 		assert.DeepEqual(t, originalCreateTime, updated.CreateTime, protocmp.Transform())
 	})
 
+	// Method should fail with Aborted if the supplied etag doesnt match the current etag value.
+	t.Run("etag mismatch", func(t *testing.T) {
+		fx.maybeSkip(t)
+		created := fx.create(t)
+		_, err := fx.service.UpdateShipper(fx.ctx, &UpdateShipperRequest{
+			Shipper: created,
+			Etag:    `"99999"`,
+		})
+		assert.Equal(t, codes.Aborted, status.Code(err), err)
+	})
+
 	created := fx.create(t)
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
@@ -479,6 +490,17 @@ func (fx *FreightServiceShipperTestSuiteConfig) testDelete(t *testing.T) {
 			Name: "shippers/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with Aborted if the supplied etag doesnt match the current etag value.
+	t.Run("etag mismatch", func(t *testing.T) {
+		fx.maybeSkip(t)
+		created := fx.create(t)
+		_, err := fx.service.DeleteShipper(fx.ctx, &DeleteShipperRequest{
+			Name: created.Name,
+			Etag: `"99999"`,
+		})
+		assert.Equal(t, codes.Aborted, status.Code(err), err)
 	})
 
 }
