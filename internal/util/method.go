@@ -182,11 +182,11 @@ type MethodDelete struct {
 	Resource *annotations.ResourceDescriptor
 	Method   *protogen.Method
 
-	Name string
+	UserProvidedName string
 }
 
 func (m MethodDelete) Generate(f *protogen.GeneratedFile, response, err, assign string) {
 	f.P(response, ", ", err, " ", assign, " fx.service.", m.Method.GoName, "(fx.ctx, &", m.Method.Input.GoIdent, "{")
-	f.P("Name: ", m.Name, ",")
+	f.P("Name: ", m.UserProvidedName, ",")
 	f.P("})")
 }

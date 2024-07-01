@@ -33,7 +33,7 @@ var notFound = suite.Test{
 			Resource: scope.Resource,
 			Method:   deleteMethod,
 			// appending to the resource name ensures it is valid
-			Name: "created.Name + \"notfound\"",
+			UserProvidedName: "created.Name + \"notfound\"",
 		}.Generate(f, "_", "err", ":=")
 		f.P(ident.AssertEqual, "(t, ", ident.Codes(codes.NotFound), ",", ident.StatusCode, "(err), err)")
 		return nil

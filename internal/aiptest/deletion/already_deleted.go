@@ -29,15 +29,15 @@ var alreadyDeleted = suite.Test{
 			f.P("created := fx.create(t)")
 		}
 		util.MethodDelete{
-			Resource: scope.Resource,
-			Method:   deleteMethod,
-			Name:     "created.Name",
+			Resource:         scope.Resource,
+			Method:           deleteMethod,
+			UserProvidedName: "created.Name",
 		}.Generate(f, "_", "err", ":=")
 		f.P(ident.AssertNilError, "(t, err)")
 		util.MethodDelete{
-			Resource: scope.Resource,
-			Method:   deleteMethod,
-			Name:     "created.Name",
+			Resource:         scope.Resource,
+			Method:           deleteMethod,
+			UserProvidedName: "created.Name",
 		}.Generate(f, "_", "err", "=")
 		f.P(ident.AssertEqual, "(t, ", ident.Codes(codes.NotFound), ",", ident.StatusCode, "(err), err)")
 		return nil
