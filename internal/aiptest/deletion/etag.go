@@ -32,7 +32,7 @@ var etagMismatch = suite.Test{
 		util.MethodDelete{
 			Resource:         scope.Resource,
 			Method:           deleteMethod,
-			UserProvidedName: "created.Name",
+			ResourceVar:      "created",
 			UserProvidedEtag: util.EtagLiteral("99999"),
 		}.Generate(f, "_", "err", ":=")
 		f.P(ident.AssertEqual, "(t, ", ident.Codes(codes.Aborted), ",", ident.StatusCode, "(err), err)")
@@ -62,7 +62,7 @@ var etagCurrent = suite.Test{
 		util.MethodDelete{
 			Resource:         scope.Resource,
 			Method:           deleteMethod,
-			UserProvidedName: "created.Name",
+			ResourceVar:      "created",
 			UserProvidedEtag: "created.Etag",
 		}.Generate(f, "_", "err", ":=")
 		f.P(ident.AssertNilError, "(t, err)")

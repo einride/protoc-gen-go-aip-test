@@ -281,6 +281,9 @@ message UpdateSiteRequest {
 
   // The list of fields to be updated.
   google.protobuf.FieldMask update_mask = 2;
+
+  // The current etag of the shipper.
+  string etag = 3 [(google.api.field_behavior) = REQUIRED];
 }
 
 // Request message for FreightService.DeleteSite.
@@ -291,4 +294,7 @@ message DeleteSiteRequest {
     (google.api.field_behavior) = REQUIRED,
     (google.api.resource_reference).type = "freight-example.einride.tech/Site"
   ];
+
+  // The current etag of the shipper.
+  string etag = 2 [(google.api.field_behavior) = REQUIRED];
 }

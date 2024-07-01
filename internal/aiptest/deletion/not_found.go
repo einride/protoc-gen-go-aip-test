@@ -30,8 +30,9 @@ var notFound = suite.Test{
 			f.P("created := fx.create(t)")
 		}
 		util.MethodDelete{
-			Resource: scope.Resource,
-			Method:   deleteMethod,
+			Resource:    scope.Resource,
+			Method:      deleteMethod,
+			ResourceVar: "created",
 			// appending to the resource name ensures it is valid
 			UserProvidedName: "created.Name + \"notfound\"",
 		}.Generate(f, "_", "err", ":=")

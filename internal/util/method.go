@@ -130,8 +130,14 @@ func (m MethodUpdate) Generate(f *protogen.GeneratedFile, response, err, assign 
 		f.P("},")
 		f.P("},")
 	}
-	if m.UserProvidedEtag != "" {
+	if HasEtagField(m.Method.Input.Desc) && m.UserProvidedEtag != "" {
 		f.P("Etag: ", m.UserProvidedEtag, ",")
+	} else if HasRequiredEtagField(m.Method.Input.Desc) && m.UserProvidedEtag == "" {
+		if m.Msg != "" {
+			f.P("Etag:", m.Msg, ".Etag,")
+		} else {
+			f.P("Etag: msg.Etag,")
+		}
 	}
 	f.P("})")
 }
@@ -186,14 +192,36 @@ type MethodDelete struct {
 	Resource *annotations.ResourceDescriptor
 	Method   *protogen.Method
 
+	ResourceVar      string // resource identifier of the created resource.
 	UserProvidedName string
 	UserProvidedEtag string
 }
 
 func (m MethodDelete) Generate(f *protogen.GeneratedFile, response, err, assign string) {
 	f.P(response, ", ", err, " ", assign, " fx.service.", m.Method.GoName, "(fx.ctx, &", m.Method.Input.GoIdent, "{")
-	f.P("Name: ", m.UserProvidedName, ",")
-	if m.UserProvidedEtag != "" {
+	switch {
+	case m.UserProvidedName != "":
+		f.P("Name:", m.UserProvidedName, ",")
+	default:
+		f.P("Name: ", m.ResourceVar, ".Name,")
+	}
+	switch {
+	case HasRequiredEtagField(m.Method.Input.Desc):
+		switch {
+		case m.UserProvidedEtag != "":
+			f.P("Etag: ", m.UserProvidedEtag, ",")
+		case m.ResourceVar == "":
+			// Special case:
+			// if etag is required but the resource is not created,
+			// for example, when name is missing (see test `deletion.missing name`)
+			// we need to assign an empty value.
+			f.P("Etag: \"\",")
+		default:
+			// Etag is required in the request, and no user provided etag is given,
+			// take it from the created resource.
+			f.P("Etag: ", m.ResourceVar, ".Etag,")
+		}
+	case HasEtagField(m.Method.Input.Desc) && m.UserProvidedEtag != "":
 		f.P("Etag: ", m.UserProvidedEtag, ",")
 	}
 	f.P("})")

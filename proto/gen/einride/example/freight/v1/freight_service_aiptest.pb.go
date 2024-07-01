@@ -473,12 +473,13 @@ func (fx *FreightServiceShipperTestSuiteConfig) testDelete(t *testing.T) {
 	t.Run("already deleted", func(t *testing.T) {
 		fx.maybeSkip(t)
 		created := fx.create(t)
-		_, err := fx.service.DeleteShipper(fx.ctx, &DeleteShipperRequest{
+		deleted, err := fx.service.DeleteShipper(fx.ctx, &DeleteShipperRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
 		_, err = fx.service.DeleteShipper(fx.ctx, &DeleteShipperRequest{
 			Name: created.Name,
+			Etag: deleted.Etag,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
 	})
@@ -899,6 +900,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
 		msg.Name = ""
 		_, err := fx.service.UpdateSite(fx.ctx, &UpdateSiteRequest{
 			Site: msg,
+			Etag: msg.Etag,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -911,6 +913,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
 		msg.Name = "invalid resource name"
 		_, err := fx.service.UpdateSite(fx.ctx, &UpdateSiteRequest{
 			Site: msg,
+			Etag: msg.Etag,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -922,6 +925,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
 		created := fx.create(t, parent)
 		updated, err := fx.service.UpdateSite(fx.ctx, &UpdateSiteRequest{
 			Site: created,
+			Etag: created.Etag,
 		})
 		assert.NilError(t, err)
 		assert.Check(t, updated.UpdateTime.AsTime().After(created.UpdateTime.AsTime()))
@@ -934,6 +938,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
 		created := fx.create(t, parent)
 		updated, err := fx.service.UpdateSite(fx.ctx, &UpdateSiteRequest{
 			Site: created,
+			Etag: created.Etag,
 		})
 		assert.NilError(t, err)
 		persisted, err := fx.service.GetSite(fx.ctx, &GetSiteRequest{
@@ -956,9 +961,22 @@ func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
 					"*",
 				},
 			},
+			Etag: created.Etag,
 		})
 		assert.NilError(t, err)
 		assert.DeepEqual(t, originalCreateTime, updated.CreateTime, protocmp.Transform())
+	})
+
+	// Method should fail with Aborted if the supplied etag doesnt match the current etag value.
+	t.Run("etag mismatch", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.UpdateSite(fx.ctx, &UpdateSiteRequest{
+			Site: created,
+			Etag: `"99999"`,
+		})
+		assert.Equal(t, codes.Aborted, status.Code(err), err)
 	})
 
 	parent := fx.nextParent(t, false)
@@ -970,6 +988,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
 		msg.Name = created.Name + "notfound"
 		_, err := fx.service.UpdateSite(fx.ctx, &UpdateSiteRequest{
 			Site: msg,
+			Etag: msg.Etag,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
 	})
@@ -984,6 +1003,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
 					"invalid_field_xyz",
 				},
 			},
+			Etag: created.Etag,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -1008,6 +1028,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
 						"*",
 					},
 				},
+				Etag: msg.Etag,
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
@@ -1134,6 +1155,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testList(t *testing.T) {
 		for i := 0; i < deleteCount; i++ {
 			_, err := fx.service.DeleteSite(fx.ctx, &DeleteSiteRequest{
 				Name: parentMsgs[i].Name,
+				Etag: parentMsgs[i].Etag,
 			})
 			assert.NilError(t, err)
 		}
@@ -1162,6 +1184,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.DeleteSite(fx.ctx, &DeleteSiteRequest{
 			Name: "",
+			Etag: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -1171,6 +1194,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.DeleteSite(fx.ctx, &DeleteSiteRequest{
 			Name: "invalid resource name",
+			Etag: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -1182,6 +1206,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testDelete(t *testing.T) {
 		created := fx.create(t, parent)
 		_, err := fx.service.DeleteSite(fx.ctx, &DeleteSiteRequest{
 			Name: created.Name,
+			Etag: created.Etag,
 		})
 		assert.NilError(t, err)
 	})
@@ -1193,6 +1218,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testDelete(t *testing.T) {
 		created := fx.create(t, parent)
 		_, err := fx.service.DeleteSite(fx.ctx, &DeleteSiteRequest{
 			Name: created.Name + "notfound",
+			Etag: created.Etag,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
 	})
@@ -1202,12 +1228,14 @@ func (fx *FreightServiceSiteTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteSite(fx.ctx, &DeleteSiteRequest{
+		deleted, err := fx.service.DeleteSite(fx.ctx, &DeleteSiteRequest{
 			Name: created.Name,
+			Etag: created.Etag,
 		})
 		assert.NilError(t, err)
 		_, err = fx.service.DeleteSite(fx.ctx, &DeleteSiteRequest{
 			Name: created.Name,
+			Etag: deleted.Etag,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
 	})
@@ -1217,8 +1245,33 @@ func (fx *FreightServiceSiteTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.DeleteSite(fx.ctx, &DeleteSiteRequest{
 			Name: "shippers/-/sites/-",
+			Etag: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with Aborted if the supplied etag doesnt match the current etag value.
+	t.Run("etag mismatch", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteSite(fx.ctx, &DeleteSiteRequest{
+			Name: created.Name,
+			Etag: `"99999"`,
+		})
+		assert.Equal(t, codes.Aborted, status.Code(err), err)
+	})
+
+	// Deletion with the current etag supplied should succeed.
+	t.Run("current etag", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteSite(fx.ctx, &DeleteSiteRequest{
+			Name: created.Name,
+			Etag: created.Etag,
+		})
+		assert.NilError(t, err)
 	})
 
 }
