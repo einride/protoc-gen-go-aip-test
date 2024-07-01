@@ -28,16 +28,26 @@ var alreadyDeleted = suite.Test{
 		} else {
 			f.P("created := fx.create(t)")
 		}
+		responseVariable := "_"
+		deletedEtag := ""
+		if util.HasEtagField(deleteMethod.Input.Desc) && util.HasEtagField(deleteMethod.Output.Desc) {
+			// Second call to delete we need to define response variable which can be used to extract the etag for
+			// the next request.
+			// Only create variable if both request and response contain an etag field.
+			responseVariable = "deleted"
+			deletedEtag = "deleted.Etag"
+		}
 		util.MethodDelete{
-			Resource:         scope.Resource,
-			Method:           deleteMethod,
-			UserProvidedName: "created.Name",
-		}.Generate(f, "_", "err", ":=")
+			Resource:    scope.Resource,
+			Method:      deleteMethod,
+			ResourceVar: "created",
+		}.Generate(f, responseVariable, "err", ":=")
 		f.P(ident.AssertNilError, "(t, err)")
 		util.MethodDelete{
 			Resource:         scope.Resource,
 			Method:           deleteMethod,
-			UserProvidedName: "created.Name",
+			ResourceVar:      "created",
+			UserProvidedEtag: deletedEtag,
 		}.Generate(f, "_", "err", "=")
 		f.P(ident.AssertEqual, "(t, ", ident.Codes(codes.NotFound), ",", ident.StatusCode, "(err), err)")
 		return nil
