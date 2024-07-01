@@ -270,6 +270,17 @@ func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) testCreate(t *testing.T) {
 		})
 	})
 
+	// Field etag should be populated when the resource is created.
+	t.Run("etag populated", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created, _ := fx.service.CreateDeployment(fx.ctx, &CreateDeploymentRequest{
+			Parent:     parent,
+			Deployment: fx.Create(parent),
+		})
+		assert.Check(t, created.Etag != "")
+	})
+
 }
 
 func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) testGet(t *testing.T) {

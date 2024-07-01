@@ -39,3 +39,34 @@ var etagMismatch = suite.Test{
 		return nil
 	},
 }
+
+//nolint:gochecknoglobals
+var etagUpdated = suite.Test{
+	Name: "etag is updated",
+	Doc: []string{
+		"Field etag should have a new value when the resource is successfully updated.",
+	},
+	OnlyIf: suite.OnlyIfs(
+		onlyif.HasMethod(aipreflect.MethodTypeUpdate),
+		onlyif.HasRequestEtag(aipreflect.MethodTypeUpdate),
+		onlyif.HasField("etag"),
+	),
+	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
+		if util.HasParent(scope.Resource) {
+			f.P("parent := ", ident.FixtureNextParent, "(t, false)")
+			f.P("created := fx.create(t, parent)")
+		} else {
+			f.P("created := fx.create(t)")
+		}
+		updateMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeUpdate)
+		util.MethodUpdate{
+			Resource:         scope.Resource,
+			Method:           updateMethod,
+			Msg:              "created",
+			UserProvidedEtag: "created.Etag",
+		}.Generate(f, "updated", "err", ":=")
+		f.P(ident.AssertNilError, "(t, err)")
+		f.P(ident.AssertCheck, "(t, updated.Etag != created.Etag)")
+		return nil
+	},
+}

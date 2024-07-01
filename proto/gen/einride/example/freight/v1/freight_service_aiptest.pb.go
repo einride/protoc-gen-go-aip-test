@@ -203,6 +203,20 @@ func (fx *FreightServiceShipperTestSuiteConfig) testCreate(t *testing.T) {
 		})
 	})
 
+	// Field etag should be populated when the resource is created.
+	t.Run("etag populated", func(t *testing.T) {
+		fx.maybeSkip(t)
+		userSetID := ""
+		if fx.IDGenerator != nil {
+			userSetID = fx.IDGenerator()
+		}
+		created, _ := fx.service.CreateShipper(fx.ctx, &CreateShipperRequest{
+			Shipper:   fx.Create(),
+			ShipperId: userSetID,
+		})
+		assert.Check(t, created.Etag != "")
+	})
+
 }
 
 func (fx *FreightServiceShipperTestSuiteConfig) testGet(t *testing.T) {
@@ -333,6 +347,18 @@ func (fx *FreightServiceShipperTestSuiteConfig) testUpdate(t *testing.T) {
 			Etag:    `"99999"`,
 		})
 		assert.Equal(t, codes.Aborted, status.Code(err), err)
+	})
+
+	// Field etag should have a new value when the resource is successfully updated.
+	t.Run("etag is updated", func(t *testing.T) {
+		fx.maybeSkip(t)
+		created := fx.create(t)
+		updated, err := fx.service.UpdateShipper(fx.ctx, &UpdateShipperRequest{
+			Shipper: created,
+			Etag:    created.Etag,
+		})
+		assert.NilError(t, err)
+		assert.Check(t, updated.Etag != created.Etag)
 	})
 
 	created := fx.create(t)
@@ -683,6 +709,17 @@ func (fx *FreightServiceSiteTestSuiteConfig) testCreate(t *testing.T) {
 		})
 	})
 
+	// Field etag should be populated when the resource is created.
+	t.Run("etag populated", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created, _ := fx.service.CreateSite(fx.ctx, &CreateSiteRequest{
+			Parent: parent,
+			Site:   fx.Create(parent),
+		})
+		assert.Check(t, created.Etag != "")
+	})
+
 }
 
 func (fx *FreightServiceSiteTestSuiteConfig) testGet(t *testing.T) {
@@ -977,6 +1014,19 @@ func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
 			Etag: `"99999"`,
 		})
 		assert.Equal(t, codes.Aborted, status.Code(err), err)
+	})
+
+	// Field etag should have a new value when the resource is successfully updated.
+	t.Run("etag is updated", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		updated, err := fx.service.UpdateSite(fx.ctx, &UpdateSiteRequest{
+			Site: created,
+			Etag: created.Etag,
+		})
+		assert.NilError(t, err)
+		assert.Check(t, updated.Etag != created.Etag)
 	})
 
 	parent := fx.nextParent(t, false)
