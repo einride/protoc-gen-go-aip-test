@@ -18,6 +18,8 @@ var Suite = suite.Suite{
 		updateTime,
 		persisted,
 		preserveCreateTime,
+		etagMismatch,
+		etagUpdated,
 	},
 	TestGroups: []suite.TestGroup{
 		withResourceGroup,
@@ -40,6 +42,5 @@ var withResourceGroup = suite.TestGroup{
 		invalidUpdateMask,
 		requiredFields,
 		// TODO: add test for supplying wildcard as name
-		// TODO: add test for etags
 	},
 }

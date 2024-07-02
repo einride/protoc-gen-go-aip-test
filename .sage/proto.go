@@ -19,7 +19,7 @@ const (
 )
 
 func (Proto) All(ctx context.Context) error {
-	sg.Deps(ctx, Proto.BufFormat, Proto.BufLint)
+	sg.SerialDeps(ctx, Proto.BufFormat, Proto.BufLint)
 	sg.SerialDeps(ctx, Proto.BufGenerate, Proto.BufGenerateGoogleapis)
 	return nil
 }

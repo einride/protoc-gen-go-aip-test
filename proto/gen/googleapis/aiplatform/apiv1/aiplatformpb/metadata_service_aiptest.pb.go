@@ -145,6 +145,17 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testCreate(t *testing.T) {
 		assert.DeepEqual(t, msg, persisted, protocmp.Transform())
 	})
 
+	// Field etag should be populated when the resource is created.
+	t.Run("etag populated", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created, _ := fx.service.CreateArtifact(fx.ctx, &CreateArtifactRequest{
+			Parent:   parent,
+			Artifact: fx.Create(parent),
+		})
+		assert.Check(t, created.Etag != "")
+	})
+
 }
 
 func (fx *MetadataServiceArtifactTestSuiteConfig) testGet(t *testing.T) {
@@ -490,6 +501,30 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testDelete(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
+	// Method should fail with Aborted if the supplied etag doesnt match the current etag value.
+	t.Run("etag mismatch", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteArtifact(fx.ctx, &DeleteArtifactRequest{
+			Name: created.Name,
+			Etag: `"99999"`,
+		})
+		assert.Equal(t, codes.Aborted, status.Code(err), err)
+	})
+
+	// Deletion with the current etag supplied should succeed.
+	t.Run("current etag supplied", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteArtifact(fx.ctx, &DeleteArtifactRequest{
+			Name: created.Name,
+			Etag: created.Etag,
+		})
+		assert.NilError(t, err)
+	})
+
 }
 
 func (fx *MetadataServiceArtifactTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
@@ -610,6 +645,17 @@ func (fx *MetadataServiceContextTestSuiteConfig) testCreate(t *testing.T) {
 		})
 		assert.NilError(t, err)
 		assert.DeepEqual(t, msg, persisted, protocmp.Transform())
+	})
+
+	// Field etag should be populated when the resource is created.
+	t.Run("etag populated", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created, _ := fx.service.CreateContext(fx.ctx, &CreateContextRequest{
+			Parent:  parent,
+			Context: fx.Create(parent),
+		})
+		assert.Check(t, created.Etag != "")
 	})
 
 }
@@ -957,6 +1003,30 @@ func (fx *MetadataServiceContextTestSuiteConfig) testDelete(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
+	// Method should fail with Aborted if the supplied etag doesnt match the current etag value.
+	t.Run("etag mismatch", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteContext(fx.ctx, &DeleteContextRequest{
+			Name: created.Name,
+			Etag: `"99999"`,
+		})
+		assert.Equal(t, codes.Aborted, status.Code(err), err)
+	})
+
+	// Deletion with the current etag supplied should succeed.
+	t.Run("current etag supplied", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteContext(fx.ctx, &DeleteContextRequest{
+			Name: created.Name,
+			Etag: created.Etag,
+		})
+		assert.NilError(t, err)
+	})
+
 }
 
 func (fx *MetadataServiceContextTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
@@ -1077,6 +1147,17 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testCreate(t *testing.T) {
 		})
 		assert.NilError(t, err)
 		assert.DeepEqual(t, msg, persisted, protocmp.Transform())
+	})
+
+	// Field etag should be populated when the resource is created.
+	t.Run("etag populated", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created, _ := fx.service.CreateExecution(fx.ctx, &CreateExecutionRequest{
+			Parent:    parent,
+			Execution: fx.Create(parent),
+		})
+		assert.Check(t, created.Etag != "")
 	})
 
 }
@@ -1422,6 +1503,30 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testDelete(t *testing.T) {
 			Name: "projects/-/locations/-/metadataStores/-/executions/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with Aborted if the supplied etag doesnt match the current etag value.
+	t.Run("etag mismatch", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteExecution(fx.ctx, &DeleteExecutionRequest{
+			Name: created.Name,
+			Etag: `"99999"`,
+		})
+		assert.Equal(t, codes.Aborted, status.Code(err), err)
+	})
+
+	// Deletion with the current etag supplied should succeed.
+	t.Run("current etag supplied", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteExecution(fx.ctx, &DeleteExecutionRequest{
+			Name: created.Name,
+			Etag: created.Etag,
+		})
+		assert.NilError(t, err)
 	})
 
 }

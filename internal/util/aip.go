@@ -23,6 +23,26 @@ func HasParent(r *annotations.ResourceDescriptor) bool {
 	return len(resourceNameSegments(r.GetPattern()[0])) > 3
 }
 
+func HasEtagField(m protoreflect.MessageDescriptor) bool {
+	return hasEtagField(m) != nil
+}
+
+func HasRequiredEtagField(m protoreflect.MessageDescriptor) bool {
+	field := hasEtagField(m)
+	if field == nil {
+		return false
+	}
+	return HasFieldAnnotation(field, annotations.FieldBehavior_REQUIRED)
+}
+
+func hasEtagField(m protoreflect.MessageDescriptor) protoreflect.FieldDescriptor {
+	return m.Fields().ByName("etag")
+}
+
+func HasFieldAnnotation(field protoreflect.FieldDescriptor, annotation annotations.FieldBehavior) bool {
+	return fieldbehavior.Has(field, annotation)
+}
+
 func WildcardResourceName(r *annotations.ResourceDescriptor) string {
 	patternSgments := resourceNameSegments(r.GetPattern()[0])
 	nameSegments := make([]string, 0, len(patternSgments))

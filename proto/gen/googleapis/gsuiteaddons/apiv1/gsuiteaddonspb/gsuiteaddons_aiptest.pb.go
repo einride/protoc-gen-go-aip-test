@@ -270,6 +270,17 @@ func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) testCreate(t *testing.T) {
 		})
 	})
 
+	// Field etag should be populated when the resource is created.
+	t.Run("etag populated", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created, _ := fx.service.CreateDeployment(fx.ctx, &CreateDeploymentRequest{
+			Parent:     parent,
+			Deployment: fx.Create(parent),
+		})
+		assert.Check(t, created.Etag != "")
+	})
+
 }
 
 func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) testGet(t *testing.T) {
@@ -530,6 +541,30 @@ func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) testDelete(t *testing.T) {
 			Name: "projects/-/deployments/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with Aborted if the supplied etag doesnt match the current etag value.
+	t.Run("etag mismatch", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteDeployment(fx.ctx, &DeleteDeploymentRequest{
+			Name: created.Name,
+			Etag: `"99999"`,
+		})
+		assert.Equal(t, codes.Aborted, status.Code(err), err)
+	})
+
+	// Deletion with the current etag supplied should succeed.
+	t.Run("current etag supplied", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		_, err := fx.service.DeleteDeployment(fx.ctx, &DeleteDeploymentRequest{
+			Name: created.Name,
+			Etag: created.Etag,
+		})
+		assert.NilError(t, err)
 	})
 
 }

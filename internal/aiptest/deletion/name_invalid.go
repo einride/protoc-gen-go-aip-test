@@ -25,9 +25,9 @@ var invalidName = suite.Test{
 	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
 		deleteMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeDelete)
 		util.MethodDelete{
-			Resource: scope.Resource,
-			Method:   deleteMethod,
-			Name:     strconv.Quote("invalid resource name"),
+			Resource:         scope.Resource,
+			Method:           deleteMethod,
+			UserProvidedName: strconv.Quote("invalid resource name"),
 		}.Generate(f, "_", "err", ":=")
 		f.P(ident.AssertEqual, "(t, ", ident.Codes(codes.InvalidArgument), ",", ident.StatusCode, "(err), err)")
 		return nil

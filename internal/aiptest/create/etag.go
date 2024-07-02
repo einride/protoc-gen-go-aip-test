@@ -1,4 +1,4 @@
-package deletion
+package create
 
 import (
 	"github.com/einride/protoc-gen-go-aip-test/internal/ident"
@@ -10,30 +10,27 @@ import (
 )
 
 //nolint:gochecknoglobals
-var exists = suite.Test{
-	Name: "exists",
+var etagPopulated = suite.Test{
+	Name: "etag populated",
 	Doc: []string{
-		"Resource should be deleted without errors if it exists.",
+		"Field etag should be populated when the resource is created.",
 	},
-
 	OnlyIf: suite.OnlyIfs(
-		onlyif.HasMethod(aipreflect.MethodTypeDelete),
+		onlyif.HasMethod(aipreflect.MethodTypeCreate),
+		onlyif.MethodNotLRO(aipreflect.MethodTypeCreate),
+		onlyif.HasField("etag"),
 	),
 	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
-		deleteMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeDelete)
-
+		createMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeCreate)
 		if util.HasParent(scope.Resource) {
 			f.P("parent := ", ident.FixtureNextParent, "(t, false)")
-			f.P("created := fx.create(t, parent)")
-		} else {
-			f.P("created := fx.create(t)")
 		}
-		util.MethodDelete{
-			Resource:    scope.Resource,
-			Method:      deleteMethod,
-			ResourceVar: "created",
-		}.Generate(f, "_", "err", ":=")
-		f.P(ident.AssertNilError, "(t, err)")
+		util.MethodCreate{
+			Resource: scope.Resource,
+			Method:   createMethod,
+			Parent:   "parent",
+		}.Generate(f, "created", "_", ":=")
+		f.P(ident.AssertCheck, "(t, created.Etag != \"\")")
 		return nil
 	},
 }
