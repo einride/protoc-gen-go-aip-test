@@ -182,11 +182,25 @@ type MethodDelete struct {
 	Resource *annotations.ResourceDescriptor
 	Method   *protogen.Method
 
-	Name string
+	ResourceVar string // variable name of the resource.
+	Name        string
 }
 
 func (m MethodDelete) Generate(f *protogen.GeneratedFile, response, err, assign string) {
 	f.P(response, ", ", err, " ", assign, " fx.service.", m.Method.GoName, "(fx.ctx, &", m.Method.Input.GoIdent, "{")
-	f.P("Name: ", m.Name, ",")
+	if m.Name != "" {
+		f.P("Name: ", m.Name, ",")
+	} else {
+		f.P("Name: ", m.ResourceVar, ".Name,")
+	}
+	switch { //nolint:gocritic
+	case HasRequiredEtagField(m.Method.Input.Desc):
+		if m.ResourceVar != "" {
+			// Delete request has an required etag field.
+			f.P("Etag: ", m.ResourceVar, ".Etag,")
+		} else {
+			f.P("Etag: \"\",")
+		}
+	}
 	f.P("})")
 }

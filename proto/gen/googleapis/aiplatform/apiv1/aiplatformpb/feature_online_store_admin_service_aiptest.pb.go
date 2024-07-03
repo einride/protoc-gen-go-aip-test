@@ -513,10 +513,11 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testD
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteFeatureOnlineStore(fx.ctx, &DeleteFeatureOnlineStoreRequest{
+		deleted, err := fx.service.DeleteFeatureOnlineStore(fx.ctx, &DeleteFeatureOnlineStoreRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
+		_ = deleted
 		_, err = fx.service.DeleteFeatureOnlineStore(fx.ctx, &DeleteFeatureOnlineStoreRequest{
 			Name: created.Name,
 		})
@@ -1034,10 +1035,11 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testDelete(t
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteFeatureView(fx.ctx, &DeleteFeatureViewRequest{
+		deleted, err := fx.service.DeleteFeatureView(fx.ctx, &DeleteFeatureViewRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
+		_ = deleted
 		_, err = fx.service.DeleteFeatureView(fx.ctx, &DeleteFeatureViewRequest{
 			Name: created.Name,
 		})

@@ -433,10 +433,11 @@ func (fx *DatabaseAdminBackupTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteBackup(fx.ctx, &DeleteBackupRequest{
+		deleted, err := fx.service.DeleteBackup(fx.ctx, &DeleteBackupRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
+		_ = deleted
 		_, err = fx.service.DeleteBackup(fx.ctx, &DeleteBackupRequest{
 			Name: created.Name,
 		})

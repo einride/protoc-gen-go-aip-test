@@ -513,10 +513,11 @@ func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteDeployment(fx.ctx, &DeleteDeploymentRequest{
+		deleted, err := fx.service.DeleteDeployment(fx.ctx, &DeleteDeploymentRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
+		_ = deleted
 		_, err = fx.service.DeleteDeployment(fx.ctx, &DeleteDeploymentRequest{
 			Name: created.Name,
 		})

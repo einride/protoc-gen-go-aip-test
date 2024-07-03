@@ -625,10 +625,11 @@ func (fx *InstanceAdminInstanceTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteInstance(fx.ctx, &DeleteInstanceRequest{
+		deleted, err := fx.service.DeleteInstance(fx.ctx, &DeleteInstanceRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
+		_ = deleted
 		_, err = fx.service.DeleteInstance(fx.ctx, &DeleteInstanceRequest{
 			Name: created.Name,
 		})
@@ -1050,10 +1051,11 @@ func (fx *InstanceAdminInstanceConfigTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteInstanceConfig(fx.ctx, &DeleteInstanceConfigRequest{
+		deleted, err := fx.service.DeleteInstanceConfig(fx.ctx, &DeleteInstanceConfigRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
+		_ = deleted
 		_, err = fx.service.DeleteInstanceConfig(fx.ctx, &DeleteInstanceConfigRequest{
 			Name: created.Name,
 		})
@@ -1563,10 +1565,11 @@ func (fx *InstanceAdminInstancePartitionTestSuiteConfig) testDelete(t *testing.T
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteInstancePartition(fx.ctx, &DeleteInstancePartitionRequest{
+		deleted, err := fx.service.DeleteInstancePartition(fx.ctx, &DeleteInstancePartitionRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
+		_ = deleted
 		_, err = fx.service.DeleteInstancePartition(fx.ctx, &DeleteInstancePartitionRequest{
 			Name: created.Name,
 		})

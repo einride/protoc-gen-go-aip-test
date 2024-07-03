@@ -1077,10 +1077,11 @@ func (fx *DatasetServiceDatasetTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteDataset(fx.ctx, &DeleteDatasetRequest{
+		deleted, err := fx.service.DeleteDataset(fx.ctx, &DeleteDatasetRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
+		_ = deleted
 		_, err = fx.service.DeleteDataset(fx.ctx, &DeleteDatasetRequest{
 			Name: created.Name,
 		})
@@ -1422,10 +1423,11 @@ func (fx *DatasetServiceDatasetVersionTestSuiteConfig) testDelete(t *testing.T) 
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteDatasetVersion(fx.ctx, &DeleteDatasetVersionRequest{
+		deleted, err := fx.service.DeleteDatasetVersion(fx.ctx, &DeleteDatasetVersionRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
+		_ = deleted
 		_, err = fx.service.DeleteDatasetVersion(fx.ctx, &DeleteDatasetVersionRequest{
 			Name: created.Name,
 		})
@@ -1690,10 +1692,11 @@ func (fx *DatasetServiceSavedQueryTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteSavedQuery(fx.ctx, &DeleteSavedQueryRequest{
+		deleted, err := fx.service.DeleteSavedQuery(fx.ctx, &DeleteSavedQueryRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
+		_ = deleted
 		_, err = fx.service.DeleteSavedQuery(fx.ctx, &DeleteSavedQueryRequest{
 			Name: created.Name,
 		})

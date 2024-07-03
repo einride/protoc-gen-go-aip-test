@@ -716,10 +716,11 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) testDelete(t *testing.T) 
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteBatchPredictionJob(fx.ctx, &DeleteBatchPredictionJobRequest{
+		deleted, err := fx.service.DeleteBatchPredictionJob(fx.ctx, &DeleteBatchPredictionJobRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
+		_ = deleted
 		_, err = fx.service.DeleteBatchPredictionJob(fx.ctx, &DeleteBatchPredictionJobRequest{
 			Name: created.Name,
 		})
@@ -1263,10 +1264,11 @@ func (fx *JobServiceCustomJobTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteCustomJob(fx.ctx, &DeleteCustomJobRequest{
+		deleted, err := fx.service.DeleteCustomJob(fx.ctx, &DeleteCustomJobRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
+		_ = deleted
 		_, err = fx.service.DeleteCustomJob(fx.ctx, &DeleteCustomJobRequest{
 			Name: created.Name,
 		})
@@ -1782,10 +1784,11 @@ func (fx *JobServiceDataLabelingJobTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteDataLabelingJob(fx.ctx, &DeleteDataLabelingJobRequest{
+		deleted, err := fx.service.DeleteDataLabelingJob(fx.ctx, &DeleteDataLabelingJobRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
+		_ = deleted
 		_, err = fx.service.DeleteDataLabelingJob(fx.ctx, &DeleteDataLabelingJobRequest{
 			Name: created.Name,
 		})
@@ -2409,10 +2412,11 @@ func (fx *JobServiceHyperparameterTuningJobTestSuiteConfig) testDelete(t *testin
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteHyperparameterTuningJob(fx.ctx, &DeleteHyperparameterTuningJobRequest{
+		deleted, err := fx.service.DeleteHyperparameterTuningJob(fx.ctx, &DeleteHyperparameterTuningJobRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
+		_ = deleted
 		_, err = fx.service.DeleteHyperparameterTuningJob(fx.ctx, &DeleteHyperparameterTuningJobRequest{
 			Name: created.Name,
 		})
@@ -3176,10 +3180,11 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testDelete(t *t
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteModelDeploymentMonitoringJob(fx.ctx, &DeleteModelDeploymentMonitoringJobRequest{
+		deleted, err := fx.service.DeleteModelDeploymentMonitoringJob(fx.ctx, &DeleteModelDeploymentMonitoringJobRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
+		_ = deleted
 		_, err = fx.service.DeleteModelDeploymentMonitoringJob(fx.ctx, &DeleteModelDeploymentMonitoringJobRequest{
 			Name: created.Name,
 		})
@@ -3867,10 +3872,11 @@ func (fx *JobServiceNasJobTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteNasJob(fx.ctx, &DeleteNasJobRequest{
+		deleted, err := fx.service.DeleteNasJob(fx.ctx, &DeleteNasJobRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
+		_ = deleted
 		_, err = fx.service.DeleteNasJob(fx.ctx, &DeleteNasJobRequest{
 			Name: created.Name,
 		})

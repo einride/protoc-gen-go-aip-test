@@ -487,10 +487,11 @@ func (fx *TensorboardServiceTensorboardTestSuiteConfig) testDelete(t *testing.T)
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteTensorboard(fx.ctx, &DeleteTensorboardRequest{
+		deleted, err := fx.service.DeleteTensorboard(fx.ctx, &DeleteTensorboardRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
+		_ = deleted
 		_, err = fx.service.DeleteTensorboard(fx.ctx, &DeleteTensorboardRequest{
 			Name: created.Name,
 		})
@@ -950,10 +951,11 @@ func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testDelete(t *
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteTensorboardExperiment(fx.ctx, &DeleteTensorboardExperimentRequest{
+		deleted, err := fx.service.DeleteTensorboardExperiment(fx.ctx, &DeleteTensorboardExperimentRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
+		_ = deleted
 		_, err = fx.service.DeleteTensorboardExperiment(fx.ctx, &DeleteTensorboardExperimentRequest{
 			Name: created.Name,
 		})
@@ -1482,10 +1484,11 @@ func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testDelete(t *testing
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteTensorboardRun(fx.ctx, &DeleteTensorboardRunRequest{
+		deleted, err := fx.service.DeleteTensorboardRun(fx.ctx, &DeleteTensorboardRunRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
+		_ = deleted
 		_, err = fx.service.DeleteTensorboardRun(fx.ctx, &DeleteTensorboardRunRequest{
 			Name: created.Name,
 		})
@@ -2030,10 +2033,11 @@ func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testDelete(t *
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteTensorboardTimeSeries(fx.ctx, &DeleteTensorboardTimeSeriesRequest{
+		deleted, err := fx.service.DeleteTensorboardTimeSeries(fx.ctx, &DeleteTensorboardTimeSeriesRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
+		_ = deleted
 		_, err = fx.service.DeleteTensorboardTimeSeries(fx.ctx, &DeleteTensorboardTimeSeriesRequest{
 			Name: created.Name,
 		})

@@ -285,4 +285,6 @@ message DeleteSiteRequest {
     (google.api.field_behavior) = REQUIRED,
     (google.api.resource_reference).type = "freight-example.einride.tech/Site"
   ];
+  // The current etag of the shipper.
+  string etag = 2 [(google.api.field_behavior) = REQUIRED];
 }

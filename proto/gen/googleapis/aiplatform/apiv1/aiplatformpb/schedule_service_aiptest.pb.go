@@ -716,10 +716,11 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteSchedule(fx.ctx, &DeleteScheduleRequest{
+		deleted, err := fx.service.DeleteSchedule(fx.ctx, &DeleteScheduleRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
+		_ = deleted
 		_, err = fx.service.DeleteSchedule(fx.ctx, &DeleteScheduleRequest{
 			Name: created.Name,
 		})

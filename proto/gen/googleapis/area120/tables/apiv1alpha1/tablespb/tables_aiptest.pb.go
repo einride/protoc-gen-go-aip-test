@@ -427,10 +427,11 @@ func (fx *TablesServiceRowTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteRow(fx.ctx, &DeleteRowRequest{
+		deleted, err := fx.service.DeleteRow(fx.ctx, &DeleteRowRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
+		_ = deleted
 		_, err = fx.service.DeleteRow(fx.ctx, &DeleteRowRequest{
 			Name: created.Name,
 		})

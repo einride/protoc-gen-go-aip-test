@@ -462,10 +462,11 @@ func (fx *FreightServiceShipperTestSuiteConfig) testDelete(t *testing.T) {
 	t.Run("already deleted", func(t *testing.T) {
 		fx.maybeSkip(t)
 		created := fx.create(t)
-		_, err := fx.service.DeleteShipper(fx.ctx, &DeleteShipperRequest{
+		deleted, err := fx.service.DeleteShipper(fx.ctx, &DeleteShipperRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
+		_ = deleted
 		_, err = fx.service.DeleteShipper(fx.ctx, &DeleteShipperRequest{
 			Name: created.Name,
 		})
@@ -1101,6 +1102,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testList(t *testing.T) {
 		for i := 0; i < deleteCount; i++ {
 			_, err := fx.service.DeleteSite(fx.ctx, &DeleteSiteRequest{
 				Name: parentMsgs[i].Name,
+				Etag: parentMsgs[i].Etag,
 			})
 			assert.NilError(t, err)
 		}
@@ -1129,6 +1131,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.DeleteSite(fx.ctx, &DeleteSiteRequest{
 			Name: "",
+			Etag: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -1138,6 +1141,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.DeleteSite(fx.ctx, &DeleteSiteRequest{
 			Name: "invalid resource name",
+			Etag: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -1149,6 +1153,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testDelete(t *testing.T) {
 		created := fx.create(t, parent)
 		_, err := fx.service.DeleteSite(fx.ctx, &DeleteSiteRequest{
 			Name: created.Name,
+			Etag: created.Etag,
 		})
 		assert.NilError(t, err)
 	})
@@ -1160,6 +1165,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testDelete(t *testing.T) {
 		created := fx.create(t, parent)
 		_, err := fx.service.DeleteSite(fx.ctx, &DeleteSiteRequest{
 			Name: created.Name + "notfound",
+			Etag: created.Etag,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
 	})
@@ -1169,12 +1175,15 @@ func (fx *FreightServiceSiteTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteSite(fx.ctx, &DeleteSiteRequest{
+		deleted, err := fx.service.DeleteSite(fx.ctx, &DeleteSiteRequest{
 			Name: created.Name,
+			Etag: created.Etag,
 		})
 		assert.NilError(t, err)
+		_ = deleted
 		_, err = fx.service.DeleteSite(fx.ctx, &DeleteSiteRequest{
 			Name: created.Name,
+			Etag: deleted.Etag,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
 	})
@@ -1184,6 +1193,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		_, err := fx.service.DeleteSite(fx.ctx, &DeleteSiteRequest{
 			Name: "shippers/-/sites/-",
+			Etag: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})

@@ -552,10 +552,11 @@ func (fx *EndpointServiceEndpointTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteEndpoint(fx.ctx, &DeleteEndpointRequest{
+		deleted, err := fx.service.DeleteEndpoint(fx.ctx, &DeleteEndpointRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
+		_ = deleted
 		_, err = fx.service.DeleteEndpoint(fx.ctx, &DeleteEndpointRequest{
 			Name: created.Name,
 		})

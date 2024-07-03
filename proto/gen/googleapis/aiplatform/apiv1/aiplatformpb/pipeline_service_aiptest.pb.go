@@ -418,10 +418,11 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeletePipelineJob(fx.ctx, &DeletePipelineJobRequest{
+		deleted, err := fx.service.DeletePipelineJob(fx.ctx, &DeletePipelineJobRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
+		_ = deleted
 		_, err = fx.service.DeletePipelineJob(fx.ctx, &DeletePipelineJobRequest{
 			Name: created.Name,
 		})
@@ -1177,10 +1178,11 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testDelete(t *testing.
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteTrainingPipeline(fx.ctx, &DeleteTrainingPipelineRequest{
+		deleted, err := fx.service.DeleteTrainingPipeline(fx.ctx, &DeleteTrainingPipelineRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
+		_ = deleted
 		_, err = fx.service.DeleteTrainingPipeline(fx.ctx, &DeleteTrainingPipelineRequest{
 			Name: created.Name,
 		})

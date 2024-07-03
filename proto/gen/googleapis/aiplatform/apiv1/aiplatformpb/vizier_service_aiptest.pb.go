@@ -429,10 +429,11 @@ func (fx *VizierServiceStudyTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteStudy(fx.ctx, &DeleteStudyRequest{
+		deleted, err := fx.service.DeleteStudy(fx.ctx, &DeleteStudyRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
+		_ = deleted
 		_, err = fx.service.DeleteStudy(fx.ctx, &DeleteStudyRequest{
 			Name: created.Name,
 		})
@@ -794,10 +795,11 @@ func (fx *VizierServiceTrialTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteTrial(fx.ctx, &DeleteTrialRequest{
+		deleted, err := fx.service.DeleteTrial(fx.ctx, &DeleteTrialRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
+		_ = deleted
 		_, err = fx.service.DeleteTrial(fx.ctx, &DeleteTrialRequest{
 			Name: created.Name,
 		})

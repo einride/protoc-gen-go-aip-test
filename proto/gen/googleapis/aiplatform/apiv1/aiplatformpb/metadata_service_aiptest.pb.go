@@ -471,10 +471,11 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteArtifact(fx.ctx, &DeleteArtifactRequest{
+		deleted, err := fx.service.DeleteArtifact(fx.ctx, &DeleteArtifactRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
+		_ = deleted
 		_, err = fx.service.DeleteArtifact(fx.ctx, &DeleteArtifactRequest{
 			Name: created.Name,
 		})
@@ -938,10 +939,11 @@ func (fx *MetadataServiceContextTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteContext(fx.ctx, &DeleteContextRequest{
+		deleted, err := fx.service.DeleteContext(fx.ctx, &DeleteContextRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
+		_ = deleted
 		_, err = fx.service.DeleteContext(fx.ctx, &DeleteContextRequest{
 			Name: created.Name,
 		})
@@ -1405,10 +1407,11 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteExecution(fx.ctx, &DeleteExecutionRequest{
+		deleted, err := fx.service.DeleteExecution(fx.ctx, &DeleteExecutionRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
+		_ = deleted
 		_, err = fx.service.DeleteExecution(fx.ctx, &DeleteExecutionRequest{
 			Name: created.Name,
 		})
@@ -2083,10 +2086,11 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testDelete(t *testing.T) 
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteMetadataStore(fx.ctx, &DeleteMetadataStoreRequest{
+		deleted, err := fx.service.DeleteMetadataStore(fx.ctx, &DeleteMetadataStoreRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
+		_ = deleted
 		_, err = fx.service.DeleteMetadataStore(fx.ctx, &DeleteMetadataStoreRequest{
 			Name: created.Name,
 		})

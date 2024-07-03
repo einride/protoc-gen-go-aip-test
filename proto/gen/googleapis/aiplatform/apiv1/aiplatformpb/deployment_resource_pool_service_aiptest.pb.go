@@ -373,10 +373,11 @@ func (fx *DeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig) te
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteDeploymentResourcePool(fx.ctx, &DeleteDeploymentResourcePoolRequest{
+		deleted, err := fx.service.DeleteDeploymentResourcePool(fx.ctx, &DeleteDeploymentResourcePoolRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
+		_ = deleted
 		_, err = fx.service.DeleteDeploymentResourcePool(fx.ctx, &DeleteDeploymentResourcePoolRequest{
 			Name: created.Name,
 		})

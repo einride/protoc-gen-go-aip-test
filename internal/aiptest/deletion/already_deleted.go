@@ -29,15 +29,18 @@ var alreadyDeleted = suite.Test{
 			f.P("created := fx.create(t)")
 		}
 		util.MethodDelete{
-			Resource: scope.Resource,
-			Method:   deleteMethod,
-			Name:     "created.Name",
-		}.Generate(f, "_", "err", ":=")
+			Resource:    scope.Resource,
+			Method:      deleteMethod,
+			ResourceVar: "created",
+		}.Generate(f, "deleted", "err", ":=")
 		f.P(ident.AssertNilError, "(t, err)")
+		// prevent no usage error
+		f.P("_ = deleted")
 		util.MethodDelete{
-			Resource: scope.Resource,
-			Method:   deleteMethod,
-			Name:     "created.Name",
+			Resource:    scope.Resource,
+			Method:      deleteMethod,
+			ResourceVar: "deleted",
+			Name:        "created.Name",
 		}.Generate(f, "_", "err", "=")
 		f.P(ident.AssertEqual, "(t, ", ident.Codes(codes.NotFound), ",", ident.StatusCode, "(err), err)")
 		return nil
