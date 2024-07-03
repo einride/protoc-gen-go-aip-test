@@ -867,6 +867,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
 		msg.Name = ""
 		_, err := fx.service.UpdateSite(fx.ctx, &UpdateSiteRequest{
 			Site: msg,
+			Etag: msg.Etag,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -879,6 +880,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
 		msg.Name = "invalid resource name"
 		_, err := fx.service.UpdateSite(fx.ctx, &UpdateSiteRequest{
 			Site: msg,
+			Etag: msg.Etag,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -890,6 +892,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
 		created := fx.create(t, parent)
 		updated, err := fx.service.UpdateSite(fx.ctx, &UpdateSiteRequest{
 			Site: created,
+			Etag: created.Etag,
 		})
 		assert.NilError(t, err)
 		assert.Check(t, updated.UpdateTime.AsTime().After(created.UpdateTime.AsTime()))
@@ -902,6 +905,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
 		created := fx.create(t, parent)
 		updated, err := fx.service.UpdateSite(fx.ctx, &UpdateSiteRequest{
 			Site: created,
+			Etag: created.Etag,
 		})
 		assert.NilError(t, err)
 		persisted, err := fx.service.GetSite(fx.ctx, &GetSiteRequest{
@@ -924,6 +928,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
 					"*",
 				},
 			},
+			Etag: created.Etag,
 		})
 		assert.NilError(t, err)
 		assert.DeepEqual(t, originalCreateTime, updated.CreateTime, protocmp.Transform())
@@ -938,6 +943,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
 		msg.Name = created.Name + "notfound"
 		_, err := fx.service.UpdateSite(fx.ctx, &UpdateSiteRequest{
 			Site: msg,
+			Etag: msg.Etag,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
 	})
@@ -952,6 +958,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
 					"invalid_field_xyz",
 				},
 			},
+			Etag: created.Etag,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -976,6 +983,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
 						"*",
 					},
 				},
+				Etag: msg.Etag,
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
