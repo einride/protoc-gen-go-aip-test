@@ -122,6 +122,7 @@ Sample skips:
 | already exists      | If method support user settable IDs and the same ID is reused the method should return AlreadyExists.          | Generated only if all are true: <ul><li>has Create method</li><li>Create method does not return long-running operation</li><li>has user settable ID</li></ul>    |
 | required fields     | The method should fail with InvalidArgument if the resource has any required fields and they are not provided. | Generated only if all are true: <ul><li>has Create method</li><li>resource has any required fields</li></ul>                                                     |
 | resource references | The method should fail with InvalidArgument if the resource has any resource references and they are invalid.  | Generated only if all are true: <ul><li>has Create method</li><li>resource has any mutable resource references</li></ul>                                         |
+| etag populated      | Field etag should be populated when the resource is created.                                                   | Generated only if all are true: <ul><li>has Create method</li><li>Create method does not return long-running operation</li><li>has field 'etag'</li></ul>        |
 
 ### Get
 

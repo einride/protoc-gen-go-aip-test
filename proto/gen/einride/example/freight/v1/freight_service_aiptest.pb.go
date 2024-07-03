@@ -203,6 +203,20 @@ func (fx *FreightServiceShipperTestSuiteConfig) testCreate(t *testing.T) {
 		})
 	})
 
+	// Field etag should be populated when the resource is created.
+	t.Run("etag populated", func(t *testing.T) {
+		fx.maybeSkip(t)
+		userSetID := ""
+		if fx.IDGenerator != nil {
+			userSetID = fx.IDGenerator()
+		}
+		created, _ := fx.service.CreateShipper(fx.ctx, &CreateShipperRequest{
+			Shipper:   fx.Create(),
+			ShipperId: userSetID,
+		})
+		assert.Check(t, created.Etag != "")
+	})
+
 }
 
 func (fx *FreightServiceShipperTestSuiteConfig) testGet(t *testing.T) {
@@ -670,6 +684,17 @@ func (fx *FreightServiceSiteTestSuiteConfig) testCreate(t *testing.T) {
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
+	})
+
+	// Field etag should be populated when the resource is created.
+	t.Run("etag populated", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created, _ := fx.service.CreateSite(fx.ctx, &CreateSiteRequest{
+			Parent: parent,
+			Site:   fx.Create(parent),
+		})
+		assert.Check(t, created.Etag != "")
 	})
 
 }

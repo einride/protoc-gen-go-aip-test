@@ -625,6 +625,17 @@ func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testCreate(t *
 		assert.DeepEqual(t, msg, persisted, protocmp.Transform())
 	})
 
+	// Field etag should be populated when the resource is created.
+	t.Run("etag populated", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created, _ := fx.service.CreateTensorboardExperiment(fx.ctx, &CreateTensorboardExperimentRequest{
+			Parent:                parent,
+			TensorboardExperiment: fx.Create(parent),
+		})
+		assert.Check(t, created.Etag != "")
+	})
+
 }
 
 func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testGet(t *testing.T) {
@@ -1113,6 +1124,17 @@ func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testCreate(t *testing
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
+	})
+
+	// Field etag should be populated when the resource is created.
+	t.Run("etag populated", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created, _ := fx.service.CreateTensorboardRun(fx.ctx, &CreateTensorboardRunRequest{
+			Parent:         parent,
+			TensorboardRun: fx.Create(parent),
+		})
+		assert.Check(t, created.Etag != "")
 	})
 
 }
@@ -1662,6 +1684,17 @@ func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testCreate(t *
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
+	})
+
+	// Field etag should be populated when the resource is created.
+	t.Run("etag populated", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created, _ := fx.service.CreateTensorboardTimeSeries(fx.ctx, &CreateTensorboardTimeSeriesRequest{
+			Parent:                parent,
+			TensorboardTimeSeries: fx.Create(parent),
+		})
+		assert.Check(t, created.Etag != "")
 	})
 
 }
