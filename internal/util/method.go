@@ -129,6 +129,15 @@ func (m MethodUpdate) Generate(f *protogen.GeneratedFile, response, err, assign 
 		f.P("},")
 		f.P("},")
 	}
+	switch { //nolint:gocritic
+	case HasRequiredEtagField(m.Method.Input.Desc):
+		if m.Msg != "" {
+			// Delete request has an required etag field.
+			f.P("Etag: ", m.Msg, ".Etag,")
+		} else {
+			f.P("Etag: msg.Etag,")
+		}
+	}
 	f.P("})")
 }
 
