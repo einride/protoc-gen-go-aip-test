@@ -145,6 +145,17 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testCreate(t *testing.T) {
 		assert.DeepEqual(t, msg, persisted, protocmp.Transform())
 	})
 
+	// Field etag should be populated when the resource is created.
+	t.Run("etag populated", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created, _ := fx.service.CreateArtifact(fx.ctx, &CreateArtifactRequest{
+			Parent:   parent,
+			Artifact: fx.Create(parent),
+		})
+		assert.Check(t, created.Etag != "")
+	})
+
 }
 
 func (fx *MetadataServiceArtifactTestSuiteConfig) testGet(t *testing.T) {
@@ -625,6 +636,17 @@ func (fx *MetadataServiceContextTestSuiteConfig) testCreate(t *testing.T) {
 		assert.DeepEqual(t, msg, persisted, protocmp.Transform())
 	})
 
+	// Field etag should be populated when the resource is created.
+	t.Run("etag populated", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created, _ := fx.service.CreateContext(fx.ctx, &CreateContextRequest{
+			Parent:  parent,
+			Context: fx.Create(parent),
+		})
+		assert.Check(t, created.Etag != "")
+	})
+
 }
 
 func (fx *MetadataServiceContextTestSuiteConfig) testGet(t *testing.T) {
@@ -1103,6 +1125,17 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testCreate(t *testing.T) {
 		})
 		assert.NilError(t, err)
 		assert.DeepEqual(t, msg, persisted, protocmp.Transform())
+	})
+
+	// Field etag should be populated when the resource is created.
+	t.Run("etag populated", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created, _ := fx.service.CreateExecution(fx.ctx, &CreateExecutionRequest{
+			Parent:    parent,
+			Execution: fx.Create(parent),
+		})
+		assert.Check(t, created.Etag != "")
 	})
 
 }

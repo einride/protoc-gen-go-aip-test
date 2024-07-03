@@ -18,5 +18,6 @@ var Suite = suite.Suite{
 		alreadyExists,
 		requiredFields,
 		resourceReferences,
+		etagPopulated,
 	},
 }
