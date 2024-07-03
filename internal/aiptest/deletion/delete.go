@@ -16,5 +16,6 @@ var Suite = suite.Suite{
 		notFound,
 		alreadyDeleted,
 		wildcardName,
+		etagMismatch,
 	},
 }
