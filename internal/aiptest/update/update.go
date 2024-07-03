@@ -18,6 +18,7 @@ var Suite = suite.Suite{
 		updateTime,
 		persisted,
 		preserveCreateTime,
+		etagMismatch,
 	},
 	TestGroups: []suite.TestGroup{
 		withResourceGroup,

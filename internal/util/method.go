@@ -94,6 +94,7 @@ type MethodUpdate struct {
 	Parent     string
 	Msg        string
 	UpdateMask []string
+	Etag       string
 }
 
 func (m MethodUpdate) Generate(f *protogen.GeneratedFile, response, err, assign string) {
@@ -129,7 +130,9 @@ func (m MethodUpdate) Generate(f *protogen.GeneratedFile, response, err, assign 
 		f.P("},")
 		f.P("},")
 	}
-	switch { //nolint:gocritic
+	switch {
+	case HasEtagField(m.Method.Input.Desc) && m.Etag != "":
+		f.P("Etag: ", m.Etag, ",")
 	case HasRequiredEtagField(m.Method.Input.Desc):
 		if m.Msg != "" {
 			// Delete request has an required etag field.
