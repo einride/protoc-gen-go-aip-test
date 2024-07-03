@@ -32,9 +32,9 @@ var deleted = suite.Test{
 		f.P("const deleteCount = 5")
 		f.P("for i := 0; i < deleteCount; i++ {")
 		util.MethodDelete{
-			Method:   deleteMethod,
-			Resource: scope.Resource,
-			Name:     "parentMsgs[i].Name",
+			Method:      deleteMethod,
+			Resource:    scope.Resource,
+			ResourceVar: "parentMsgs[i]",
 		}.Generate(f, "_", "err", ":=")
 		f.P(ident.AssertNilError, "(t, err)")
 		f.P("}")

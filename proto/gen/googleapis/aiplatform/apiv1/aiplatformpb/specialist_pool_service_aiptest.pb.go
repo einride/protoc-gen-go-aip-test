@@ -462,10 +462,11 @@ func (fx *SpecialistPoolServiceSpecialistPoolTestSuiteConfig) testDelete(t *test
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteSpecialistPool(fx.ctx, &DeleteSpecialistPoolRequest{
+		deleted, err := fx.service.DeleteSpecialistPool(fx.ctx, &DeleteSpecialistPoolRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
+		_ = deleted
 		_, err = fx.service.DeleteSpecialistPool(fx.ctx, &DeleteSpecialistPoolRequest{
 			Name: created.Name,
 		})

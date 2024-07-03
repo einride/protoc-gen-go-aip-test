@@ -44,6 +44,8 @@ message Site {
     (google.api.field_behavior) = REQUIRED,
     (google.api.field_behavior) = IMMUTABLE
   ];
+  // The current etag value of the shipper.
+  string etag = 9;
 }
 
 message Billing {

@@ -412,10 +412,11 @@ func (fx *FeaturestoreServiceEntityTypeTestSuiteConfig) testDelete(t *testing.T)
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteEntityType(fx.ctx, &DeleteEntityTypeRequest{
+		deleted, err := fx.service.DeleteEntityType(fx.ctx, &DeleteEntityTypeRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
+		_ = deleted
 		_, err = fx.service.DeleteEntityType(fx.ctx, &DeleteEntityTypeRequest{
 			Name: created.Name,
 		})
@@ -846,10 +847,11 @@ func (fx *FeaturestoreServiceFeatureTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteFeature(fx.ctx, &DeleteFeatureRequest{
+		deleted, err := fx.service.DeleteFeature(fx.ctx, &DeleteFeatureRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
+		_ = deleted
 		_, err = fx.service.DeleteFeature(fx.ctx, &DeleteFeatureRequest{
 			Name: created.Name,
 		})
@@ -1332,10 +1334,11 @@ func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) testDelete(t *testing.
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteFeaturestore(fx.ctx, &DeleteFeaturestoreRequest{
+		deleted, err := fx.service.DeleteFeaturestore(fx.ctx, &DeleteFeaturestoreRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
+		_ = deleted
 		_, err = fx.service.DeleteFeaturestore(fx.ctx, &DeleteFeaturestoreRequest{
 			Name: created.Name,
 		})

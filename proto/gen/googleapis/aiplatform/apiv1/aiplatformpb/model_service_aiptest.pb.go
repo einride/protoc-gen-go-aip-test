@@ -585,10 +585,11 @@ func (fx *ModelServiceModelTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteModel(fx.ctx, &DeleteModelRequest{
+		deleted, err := fx.service.DeleteModel(fx.ctx, &DeleteModelRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
+		_ = deleted
 		_, err = fx.service.DeleteModel(fx.ctx, &DeleteModelRequest{
 			Name: created.Name,
 		})

@@ -531,10 +531,11 @@ func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) testDelete(t *testin
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteIndexEndpoint(fx.ctx, &DeleteIndexEndpointRequest{
+		deleted, err := fx.service.DeleteIndexEndpoint(fx.ctx, &DeleteIndexEndpointRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
+		_ = deleted
 		_, err = fx.service.DeleteIndexEndpoint(fx.ctx, &DeleteIndexEndpointRequest{
 			Name: created.Name,
 		})
