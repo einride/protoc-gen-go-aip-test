@@ -349,6 +349,20 @@ func (fx *FreightServiceShipperTestSuiteConfig) testUpdate(t *testing.T) {
 		assert.Equal(t, codes.Aborted, status.Code(err), err)
 	})
 
+	// Field etag should have a new value when the resource is successfully updated.
+	t.Run("etag updated", func(t *testing.T) {
+		fx.maybeSkip(t)
+		created := fx.create(t)
+		msg := fx.Update()
+		msg.Name = created.Name
+		updated, err := fx.service.UpdateShipper(fx.ctx, &UpdateShipperRequest{
+			Shipper: msg,
+			Etag:    created.Etag,
+		})
+		assert.NilError(t, err)
+		assert.Check(t, updated.Etag != created.Etag)
+	})
+
 	created := fx.create(t)
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
@@ -991,6 +1005,21 @@ func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
 			Etag: `"99999"`,
 		})
 		assert.Equal(t, codes.Aborted, status.Code(err), err)
+	})
+
+	// Field etag should have a new value when the resource is successfully updated.
+	t.Run("etag updated", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		msg := fx.Update(parent)
+		msg.Name = created.Name
+		updated, err := fx.service.UpdateSite(fx.ctx, &UpdateSiteRequest{
+			Site: msg,
+			Etag: created.Etag,
+		})
+		assert.NilError(t, err)
+		assert.Check(t, updated.Etag != created.Etag)
 	})
 
 	parent := fx.nextParent(t, false)
