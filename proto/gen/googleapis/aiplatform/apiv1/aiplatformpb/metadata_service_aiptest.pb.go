@@ -145,6 +145,18 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testCreate(t *testing.T) {
 		assert.DeepEqual(t, msg, persisted, protocmp.Transform())
 	})
 
+	// The created resource should be returned with the ID supplied by the user.
+	t.Run("user settable id", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		msg, err := fx.service.CreateArtifact(fx.ctx, &CreateArtifactRequest{
+			Parent:   parent,
+			Artifact: fx.Create(parent),
+		})
+		assert.NilError(t, err)
+		assert.Check(t, strings.HasSuffix(msg.GetName(), "usersetid"))
+	})
+
 	// Field etag should be populated when the resource is created.
 	t.Run("etag populated", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -634,6 +646,18 @@ func (fx *MetadataServiceContextTestSuiteConfig) testCreate(t *testing.T) {
 		})
 		assert.NilError(t, err)
 		assert.DeepEqual(t, msg, persisted, protocmp.Transform())
+	})
+
+	// The created resource should be returned with the ID supplied by the user.
+	t.Run("user settable id", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		msg, err := fx.service.CreateContext(fx.ctx, &CreateContextRequest{
+			Parent:  parent,
+			Context: fx.Create(parent),
+		})
+		assert.NilError(t, err)
+		assert.Check(t, strings.HasSuffix(msg.GetName(), "usersetid"))
 	})
 
 	// Field etag should be populated when the resource is created.
@@ -1127,6 +1151,18 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testCreate(t *testing.T) {
 		assert.DeepEqual(t, msg, persisted, protocmp.Transform())
 	})
 
+	// The created resource should be returned with the ID supplied by the user.
+	t.Run("user settable id", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		msg, err := fx.service.CreateExecution(fx.ctx, &CreateExecutionRequest{
+			Parent:    parent,
+			Execution: fx.Create(parent),
+		})
+		assert.NilError(t, err)
+		assert.Check(t, strings.HasSuffix(msg.GetName(), "usersetid"))
+	})
+
 	// Field etag should be populated when the resource is created.
 	t.Run("etag populated", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -1611,6 +1647,18 @@ func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) testCreate(t *testing.T)
 		})
 		assert.NilError(t, err)
 		assert.DeepEqual(t, msg, persisted, protocmp.Transform())
+	})
+
+	// The created resource should be returned with the ID supplied by the user.
+	t.Run("user settable id", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		msg, err := fx.service.CreateMetadataSchema(fx.ctx, &CreateMetadataSchemaRequest{
+			Parent:         parent,
+			MetadataSchema: fx.Create(parent),
+		})
+		assert.NilError(t, err)
+		assert.Check(t, strings.HasSuffix(msg.GetName(), "usersetid"))
 	})
 
 	// The method should fail with InvalidArgument if the resource has any

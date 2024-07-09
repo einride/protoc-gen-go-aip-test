@@ -113,6 +113,18 @@ func (fx *TablesServiceRowTestSuiteConfig) testCreate(t *testing.T) {
 		assert.DeepEqual(t, msg, persisted, protocmp.Transform())
 	})
 
+	// The created resource should be returned with the ID supplied by the user.
+	t.Run("user settable id", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		msg, err := fx.service.CreateRow(fx.ctx, &CreateRowRequest{
+			Parent: parent,
+			Row:    fx.Create(parent),
+		})
+		assert.NilError(t, err)
+		assert.Check(t, strings.HasSuffix(msg.GetName(), "usersetid"))
+	})
+
 }
 
 func (fx *TablesServiceRowTestSuiteConfig) testGet(t *testing.T) {

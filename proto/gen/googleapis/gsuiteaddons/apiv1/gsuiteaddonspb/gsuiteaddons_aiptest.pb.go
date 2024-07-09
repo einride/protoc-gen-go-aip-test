@@ -200,6 +200,18 @@ func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) testCreate(t *testing.T) {
 		assert.DeepEqual(t, msg, persisted, protocmp.Transform())
 	})
 
+	// The created resource should be returned with the ID supplied by the user.
+	t.Run("user settable id", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		msg, err := fx.service.CreateDeployment(fx.ctx, &CreateDeploymentRequest{
+			Parent:     parent,
+			Deployment: fx.Create(parent),
+		})
+		assert.NilError(t, err)
+		assert.Check(t, strings.HasSuffix(msg.GetName(), "usersetid"))
+	})
+
 	// The method should fail with InvalidArgument if the resource has any
 	// required fields and they are not provided.
 	t.Run("required fields", func(t *testing.T) {

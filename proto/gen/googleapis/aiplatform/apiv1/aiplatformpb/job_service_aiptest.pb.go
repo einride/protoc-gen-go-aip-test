@@ -158,6 +158,18 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) testCreate(t *testing.T) 
 		assert.DeepEqual(t, msg, persisted, protocmp.Transform())
 	})
 
+	// The created resource should be returned with the ID supplied by the user.
+	t.Run("user settable id", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		msg, err := fx.service.CreateBatchPredictionJob(fx.ctx, &CreateBatchPredictionJobRequest{
+			Parent:             parent,
+			BatchPredictionJob: fx.Create(parent),
+		})
+		assert.NilError(t, err)
+		assert.Check(t, strings.HasSuffix(msg.GetName(), "usersetid"))
+	})
+
 	// The method should fail with InvalidArgument if the resource has any
 	// required fields and they are not provided.
 	t.Run("required fields", func(t *testing.T) {
@@ -854,6 +866,18 @@ func (fx *JobServiceCustomJobTestSuiteConfig) testCreate(t *testing.T) {
 		assert.DeepEqual(t, msg, persisted, protocmp.Transform())
 	})
 
+	// The created resource should be returned with the ID supplied by the user.
+	t.Run("user settable id", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		msg, err := fx.service.CreateCustomJob(fx.ctx, &CreateCustomJobRequest{
+			Parent:    parent,
+			CustomJob: fx.Create(parent),
+		})
+		assert.NilError(t, err)
+		assert.Check(t, strings.HasSuffix(msg.GetName(), "usersetid"))
+	})
+
 	// The method should fail with InvalidArgument if the resource has any
 	// required fields and they are not provided.
 	t.Run("required fields", func(t *testing.T) {
@@ -1402,6 +1426,18 @@ func (fx *JobServiceDataLabelingJobTestSuiteConfig) testCreate(t *testing.T) {
 		assert.DeepEqual(t, msg, persisted, protocmp.Transform())
 	})
 
+	// The created resource should be returned with the ID supplied by the user.
+	t.Run("user settable id", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		msg, err := fx.service.CreateDataLabelingJob(fx.ctx, &CreateDataLabelingJobRequest{
+			Parent:          parent,
+			DataLabelingJob: fx.Create(parent),
+		})
+		assert.NilError(t, err)
+		assert.Check(t, strings.HasSuffix(msg.GetName(), "usersetid"))
+	})
+
 	// The method should fail with InvalidArgument if the resource has any
 	// required fields and they are not provided.
 	t.Run("required fields", func(t *testing.T) {
@@ -1920,6 +1956,18 @@ func (fx *JobServiceHyperparameterTuningJobTestSuiteConfig) testCreate(t *testin
 		})
 		assert.NilError(t, err)
 		assert.DeepEqual(t, msg, persisted, protocmp.Transform())
+	})
+
+	// The created resource should be returned with the ID supplied by the user.
+	t.Run("user settable id", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		msg, err := fx.service.CreateHyperparameterTuningJob(fx.ctx, &CreateHyperparameterTuningJobRequest{
+			Parent:                  parent,
+			HyperparameterTuningJob: fx.Create(parent),
+		})
+		assert.NilError(t, err)
+		assert.Check(t, strings.HasSuffix(msg.GetName(), "usersetid"))
 	})
 
 	// The method should fail with InvalidArgument if the resource has any
@@ -2552,6 +2600,18 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testCreate(t *t
 		})
 		assert.NilError(t, err)
 		assert.DeepEqual(t, msg, persisted, protocmp.Transform())
+	})
+
+	// The created resource should be returned with the ID supplied by the user.
+	t.Run("user settable id", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		msg, err := fx.service.CreateModelDeploymentMonitoringJob(fx.ctx, &CreateModelDeploymentMonitoringJobRequest{
+			Parent:                       parent,
+			ModelDeploymentMonitoringJob: fx.Create(parent),
+		})
+		assert.NilError(t, err)
+		assert.Check(t, strings.HasSuffix(msg.GetName(), "usersetid"))
 	})
 
 	// The method should fail with InvalidArgument if the resource has any
@@ -3316,6 +3376,18 @@ func (fx *JobServiceNasJobTestSuiteConfig) testCreate(t *testing.T) {
 		})
 		assert.NilError(t, err)
 		assert.DeepEqual(t, msg, persisted, protocmp.Transform())
+	})
+
+	// The created resource should be returned with the ID supplied by the user.
+	t.Run("user settable id", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		msg, err := fx.service.CreateNasJob(fx.ctx, &CreateNasJobRequest{
+			Parent: parent,
+			NasJob: fx.Create(parent),
+		})
+		assert.NilError(t, err)
+		assert.Check(t, strings.HasSuffix(msg.GetName(), "usersetid"))
 	})
 
 	// The method should fail with InvalidArgument if the resource has any

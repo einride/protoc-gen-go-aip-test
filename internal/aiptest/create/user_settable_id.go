@@ -15,14 +15,12 @@ import (
 var userSettableID = suite.Test{
 	Name: "user settable id",
 	Doc: []string{
-		"If method support user settable IDs, when set the resource should",
-		"be returned with the provided ID.",
+		"The created resource should be returned with the ID supplied by the user.",
 	},
 
 	OnlyIf: suite.OnlyIfs(
 		onlyif.HasMethod(aipreflect.MethodTypeCreate),
 		onlyif.MethodNotLRO(aipreflect.MethodTypeCreate),
-		onlyif.HasUserSettableID,
 	),
 	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
 		createMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeCreate)

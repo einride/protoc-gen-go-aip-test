@@ -625,6 +625,18 @@ func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testCreate(t *
 		assert.DeepEqual(t, msg, persisted, protocmp.Transform())
 	})
 
+	// The created resource should be returned with the ID supplied by the user.
+	t.Run("user settable id", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		msg, err := fx.service.CreateTensorboardExperiment(fx.ctx, &CreateTensorboardExperimentRequest{
+			Parent:                parent,
+			TensorboardExperiment: fx.Create(parent),
+		})
+		assert.NilError(t, err)
+		assert.Check(t, strings.HasSuffix(msg.GetName(), "usersetid"))
+	})
+
 	// Field etag should be populated when the resource is created.
 	t.Run("etag populated", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -1102,6 +1114,18 @@ func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testCreate(t *testing
 		})
 		assert.NilError(t, err)
 		assert.DeepEqual(t, msg, persisted, protocmp.Transform())
+	})
+
+	// The created resource should be returned with the ID supplied by the user.
+	t.Run("user settable id", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		msg, err := fx.service.CreateTensorboardRun(fx.ctx, &CreateTensorboardRunRequest{
+			Parent:         parent,
+			TensorboardRun: fx.Create(parent),
+		})
+		assert.NilError(t, err)
+		assert.Check(t, strings.HasSuffix(msg.GetName(), "usersetid"))
 	})
 
 	// The method should fail with InvalidArgument if the resource has any
@@ -1646,6 +1670,18 @@ func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testCreate(t *
 		})
 		assert.NilError(t, err)
 		assert.DeepEqual(t, msg, persisted, protocmp.Transform())
+	})
+
+	// The created resource should be returned with the ID supplied by the user.
+	t.Run("user settable id", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		msg, err := fx.service.CreateTensorboardTimeSeries(fx.ctx, &CreateTensorboardTimeSeriesRequest{
+			Parent:                parent,
+			TensorboardTimeSeries: fx.Create(parent),
+		})
+		assert.NilError(t, err)
+		assert.Check(t, strings.HasSuffix(msg.GetName(), "usersetid"))
 	})
 
 	// The method should fail with InvalidArgument if the resource has any

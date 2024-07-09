@@ -107,8 +107,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testCreate(t *testing.T) {
 		assert.DeepEqual(t, msg, persisted, protocmp.Transform())
 	})
 
-	// If method support user settable IDs, when set the resource should
-	// be returned with the provided ID.
+	// The created resource should be returned with the ID supplied by the user.
 	t.Run("user settable id", func(t *testing.T) {
 		fx.maybeSkip(t)
 		msg, err := fx.service.CreateShipper(fx.ctx, &CreateShipperRequest{
@@ -639,6 +638,18 @@ func (fx *FreightServiceSiteTestSuiteConfig) testCreate(t *testing.T) {
 		})
 		assert.NilError(t, err)
 		assert.DeepEqual(t, msg, persisted, protocmp.Transform())
+	})
+
+	// The created resource should be returned with the ID supplied by the user.
+	t.Run("user settable id", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		msg, err := fx.service.CreateSite(fx.ctx, &CreateSiteRequest{
+			Parent: parent,
+			Site:   fx.Create(parent),
+		})
+		assert.NilError(t, err)
+		assert.Check(t, strings.HasSuffix(msg.GetName(), "usersetid"))
 	})
 
 	// The method should fail with InvalidArgument if the resource has any
