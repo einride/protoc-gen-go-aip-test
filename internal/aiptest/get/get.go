@@ -15,5 +15,6 @@ var Suite = suite.Suite{
 		exists,
 		notFound,
 		wildcardName,
+		softDeleted,
 	},
 }
