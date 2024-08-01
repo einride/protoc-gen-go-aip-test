@@ -269,6 +269,21 @@ func (fx *FreightServiceShipperTestSuiteConfig) testGet(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
+	// A soft-deleted resource should be returned without errors.
+	t.Run("soft-deleted", func(t *testing.T) {
+		fx.maybeSkip(t)
+		created := fx.create(t)
+		deleted, err := fx.service.DeleteShipper(fx.ctx, &DeleteShipperRequest{
+			Name: created.Name,
+		})
+		assert.NilError(t, err)
+		msg, err := fx.service.GetShipper(fx.ctx, &GetShipperRequest{
+			Name: created.Name,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(t, msg, deleted, protocmp.Transform())
+	})
+
 }
 
 func (fx *FreightServiceShipperTestSuiteConfig) testUpdate(t *testing.T) {
@@ -763,6 +778,23 @@ func (fx *FreightServiceSiteTestSuiteConfig) testGet(t *testing.T) {
 			Name: "shippers/-/sites/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// A soft-deleted resource should be returned without errors.
+	t.Run("soft-deleted", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		deleted, err := fx.service.DeleteSite(fx.ctx, &DeleteSiteRequest{
+			Name: created.Name,
+			Etag: created.Etag,
+		})
+		assert.NilError(t, err)
+		msg, err := fx.service.GetSite(fx.ctx, &GetSiteRequest{
+			Name: created.Name,
+		})
+		assert.NilError(t, err)
+		assert.DeepEqual(t, msg, deleted, protocmp.Transform())
 	})
 
 }
