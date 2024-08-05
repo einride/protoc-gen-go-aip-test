@@ -42,7 +42,13 @@ var softDeleted = suite.Test{
 			Name:     "created.Name",
 		}.Generate(f, "msg", "err", ":=")
 		f.P(ident.AssertNilError, "(t, err)")
-		f.P(ident.AssertDeepEqual, "(t, msg, deleted, ", ident.ProtocmpTransform, "())")
+		if util.ReturnsEmpty(deleteMethod.Desc) {
+			// skip asserting if the deleted method returns an Empty response.
+			f.P("_ = deleted") // prevent unused variable error.
+			f.P("_ = msg")     // prevent unused variable error.
+		} else {
+			f.P(ident.AssertDeepEqual, "(t, msg, deleted, ", ident.ProtocmpTransform, "())")
+		}
 		return nil
 	},
 }
