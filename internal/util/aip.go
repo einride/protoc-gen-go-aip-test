@@ -59,6 +59,10 @@ func ReturnsLRO(method protoreflect.MethodDescriptor) bool {
 	return method.Output().FullName() == "google.longrunning.Operation"
 }
 
+func ReturnsEmpty(method protoreflect.MethodDescriptor) bool {
+	return method.Output().FullName() == "google.protobuf.Empty"
+}
+
 func IsAlternativeBatch(method protoreflect.MethodDescriptor) bool {
 	switch {
 	case strings.HasPrefix(string(method.Name()), "BatchGet"):
