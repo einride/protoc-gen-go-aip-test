@@ -12,6 +12,23 @@ import (
 	testing "testing"
 )
 
+func TestModelGardenService(
+	t *testing.T,
+	s ModelGardenServiceTestsConfigSupplier,
+) {
+	{
+		cfg := s.TestPublisherModel(t)
+		fx := ModelGardenServiceTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestPublisherModel(cfg.Context(), *cfg)
+	}
+}
+
+type ModelGardenServiceTestsConfigSupplier interface {
+	TestPublisherModel(t *testing.T) *ModelGardenServicePublisherModelTestSuiteConfig
+}
 type ModelGardenServiceTestSuite struct {
 	T *testing.T
 	// Server to test.
@@ -31,6 +48,9 @@ type ModelGardenServicePublisherModelTestSuiteConfig struct {
 	service    ModelGardenServiceServer
 	currParent int
 
+	Server func() ModelGardenServiceServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are

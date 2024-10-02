@@ -13,6 +13,23 @@ import (
 	testing "testing"
 )
 
+func TestSchemaService(
+	t *testing.T,
+	s SchemaServiceTestsConfigSupplier,
+) {
+	{
+		cfg := s.TestSchema(t)
+		fx := SchemaServiceTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestSchema(cfg.Context(), *cfg)
+	}
+}
+
+type SchemaServiceTestsConfigSupplier interface {
+	TestSchema(t *testing.T) *SchemaServiceSchemaTestSuiteConfig
+}
 type SchemaServiceTestSuite struct {
 	T *testing.T
 	// Server to test.
@@ -32,6 +49,9 @@ type SchemaServiceSchemaTestSuiteConfig struct {
 	service    SchemaServiceServer
 	currParent int
 
+	Server func() SchemaServiceServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are

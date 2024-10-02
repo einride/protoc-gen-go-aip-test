@@ -16,6 +16,77 @@ import (
 	time "time"
 )
 
+func TestJobService(
+	t *testing.T,
+	s JobServiceTestsConfigSupplier,
+) {
+	{
+		cfg := s.TestBatchPredictionJob(t)
+		fx := JobServiceTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestBatchPredictionJob(cfg.Context(), *cfg)
+	}
+	{
+		cfg := s.TestCustomJob(t)
+		fx := JobServiceTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestCustomJob(cfg.Context(), *cfg)
+	}
+	{
+		cfg := s.TestDataLabelingJob(t)
+		fx := JobServiceTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestDataLabelingJob(cfg.Context(), *cfg)
+	}
+	{
+		cfg := s.TestHyperparameterTuningJob(t)
+		fx := JobServiceTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestHyperparameterTuningJob(cfg.Context(), *cfg)
+	}
+	{
+		cfg := s.TestModelDeploymentMonitoringJob(t)
+		fx := JobServiceTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestModelDeploymentMonitoringJob(cfg.Context(), *cfg)
+	}
+	{
+		cfg := s.TestNasJob(t)
+		fx := JobServiceTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestNasJob(cfg.Context(), *cfg)
+	}
+	{
+		cfg := s.TestNasTrialDetail(t)
+		fx := JobServiceTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestNasTrialDetail(cfg.Context(), *cfg)
+	}
+}
+
+type JobServiceTestsConfigSupplier interface {
+	TestBatchPredictionJob(t *testing.T) *JobServiceBatchPredictionJobTestSuiteConfig
+	TestCustomJob(t *testing.T) *JobServiceCustomJobTestSuiteConfig
+	TestDataLabelingJob(t *testing.T) *JobServiceDataLabelingJobTestSuiteConfig
+	TestHyperparameterTuningJob(t *testing.T) *JobServiceHyperparameterTuningJobTestSuiteConfig
+	TestModelDeploymentMonitoringJob(t *testing.T) *JobServiceModelDeploymentMonitoringJobTestSuiteConfig
+	TestNasJob(t *testing.T) *JobServiceNasJobTestSuiteConfig
+	TestNasTrialDetail(t *testing.T) *JobServiceNasTrialDetailTestSuiteConfig
+}
 type JobServiceTestSuite struct {
 	T *testing.T
 	// Server to test.
@@ -83,6 +154,9 @@ type JobServiceBatchPredictionJobTestSuiteConfig struct {
 	service    JobServiceServer
 	currParent int
 
+	Server func() JobServiceServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -779,6 +853,9 @@ type JobServiceCustomJobTestSuiteConfig struct {
 	service    JobServiceServer
 	currParent int
 
+	Server func() JobServiceServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -1327,6 +1404,9 @@ type JobServiceDataLabelingJobTestSuiteConfig struct {
 	service    JobServiceServer
 	currParent int
 
+	Server func() JobServiceServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -1847,6 +1927,9 @@ type JobServiceHyperparameterTuningJobTestSuiteConfig struct {
 	service    JobServiceServer
 	currParent int
 
+	Server func() JobServiceServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -2475,6 +2558,9 @@ type JobServiceModelDeploymentMonitoringJobTestSuiteConfig struct {
 	service    JobServiceServer
 	currParent int
 
+	Server func() JobServiceServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -3243,6 +3329,9 @@ type JobServiceNasJobTestSuiteConfig struct {
 	service    JobServiceServer
 	currParent int
 
+	Server func() JobServiceServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -3935,6 +4024,9 @@ type JobServiceNasTrialDetailTestSuiteConfig struct {
 	service    JobServiceServer
 	currParent int
 
+	Server func() JobServiceServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are

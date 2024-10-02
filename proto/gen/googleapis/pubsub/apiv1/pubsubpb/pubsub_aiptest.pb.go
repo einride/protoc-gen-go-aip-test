@@ -13,6 +13,23 @@ import (
 	testing "testing"
 )
 
+func TestPublisher(
+	t *testing.T,
+	s PublisherTestsConfigSupplier,
+) {
+	{
+		cfg := s.TestTopic(t)
+		fx := PublisherTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestTopic(cfg.Context(), *cfg)
+	}
+}
+
+type PublisherTestsConfigSupplier interface {
+	TestTopic(t *testing.T) *PublisherTopicTestSuiteConfig
+}
 type PublisherTestSuite struct {
 	T *testing.T
 	// Server to test.
@@ -32,6 +49,9 @@ type PublisherTopicTestSuiteConfig struct {
 	service    PublisherServer
 	currParent int
 
+	Server func() PublisherServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -267,7 +287,32 @@ func (fx *PublisherTopicTestSuiteConfig) create(t *testing.T, parent string) *To
 	assert.NilError(t, err)
 	return created
 }
+func TestSubscriber(
+	t *testing.T,
+	s SubscriberTestsConfigSupplier,
+) {
+	{
+		cfg := s.TestSnapshot(t)
+		fx := SubscriberTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestSnapshot(cfg.Context(), *cfg)
+	}
+	{
+		cfg := s.TestSubscription(t)
+		fx := SubscriberTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestSubscription(cfg.Context(), *cfg)
+	}
+}
 
+type SubscriberTestsConfigSupplier interface {
+	TestSnapshot(t *testing.T) *SubscriberSnapshotTestSuiteConfig
+	TestSubscription(t *testing.T) *SubscriberSubscriptionTestSuiteConfig
+}
 type SubscriberTestSuite struct {
 	T *testing.T
 	// Server to test.
@@ -295,6 +340,9 @@ type SubscriberSnapshotTestSuiteConfig struct {
 	service    SubscriberServer
 	currParent int
 
+	Server func() SubscriberServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -416,6 +464,9 @@ type SubscriberSubscriptionTestSuiteConfig struct {
 	service    SubscriberServer
 	currParent int
 
+	Server func() SubscriberServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are

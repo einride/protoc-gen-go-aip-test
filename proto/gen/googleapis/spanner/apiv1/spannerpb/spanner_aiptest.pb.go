@@ -12,6 +12,23 @@ import (
 	testing "testing"
 )
 
+func TestSpanner(
+	t *testing.T,
+	s SpannerTestsConfigSupplier,
+) {
+	{
+		cfg := s.TestSession(t)
+		fx := SpannerTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestSession(cfg.Context(), *cfg)
+	}
+}
+
+type SpannerTestsConfigSupplier interface {
+	TestSession(t *testing.T) *SpannerSessionTestSuiteConfig
+}
 type SpannerTestSuite struct {
 	T *testing.T
 	// Server to test.
@@ -31,6 +48,9 @@ type SpannerSessionTestSuiteConfig struct {
 	service    SpannerServer
 	currParent int
 
+	Server func() SpannerServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are

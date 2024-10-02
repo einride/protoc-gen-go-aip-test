@@ -15,6 +15,23 @@ import (
 	testing "testing"
 )
 
+func TestSpecialistPoolService(
+	t *testing.T,
+	s SpecialistPoolServiceTestsConfigSupplier,
+) {
+	{
+		cfg := s.TestSpecialistPool(t)
+		fx := SpecialistPoolServiceTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestSpecialistPool(cfg.Context(), *cfg)
+	}
+}
+
+type SpecialistPoolServiceTestsConfigSupplier interface {
+	TestSpecialistPool(t *testing.T) *SpecialistPoolServiceSpecialistPoolTestSuiteConfig
+}
 type SpecialistPoolServiceTestSuite struct {
 	T *testing.T
 	// Server to test.
@@ -34,6 +51,9 @@ type SpecialistPoolServiceSpecialistPoolTestSuiteConfig struct {
 	service    SpecialistPoolServiceServer
 	currParent int
 
+	Server func() SpecialistPoolServiceServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are

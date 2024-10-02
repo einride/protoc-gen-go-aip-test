@@ -20,3 +20,7 @@ func resourceTestSuiteConfigName(
 ) string {
 	return string(service.Name()) + resourceType(resource) + "TestSuiteConfig"
 }
+
+func serviceTestConfigSupplierName(service protoreflect.ServiceDescriptor) string {
+	return string(service.Name()) + "TestsConfigSupplier"
+}

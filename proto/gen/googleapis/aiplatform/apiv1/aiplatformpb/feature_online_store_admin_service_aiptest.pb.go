@@ -15,6 +15,41 @@ import (
 	testing "testing"
 )
 
+func TestFeatureOnlineStoreAdminService(
+	t *testing.T,
+	s FeatureOnlineStoreAdminServiceTestsConfigSupplier,
+) {
+	{
+		cfg := s.TestFeatureOnlineStore(t)
+		fx := FeatureOnlineStoreAdminServiceTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestFeatureOnlineStore(cfg.Context(), *cfg)
+	}
+	{
+		cfg := s.TestFeatureView(t)
+		fx := FeatureOnlineStoreAdminServiceTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestFeatureView(cfg.Context(), *cfg)
+	}
+	{
+		cfg := s.TestFeatureViewSync(t)
+		fx := FeatureOnlineStoreAdminServiceTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestFeatureViewSync(cfg.Context(), *cfg)
+	}
+}
+
+type FeatureOnlineStoreAdminServiceTestsConfigSupplier interface {
+	TestFeatureOnlineStore(t *testing.T) *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig
+	TestFeatureView(t *testing.T) *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig
+	TestFeatureViewSync(t *testing.T) *FeatureOnlineStoreAdminServiceFeatureViewSyncTestSuiteConfig
+}
 type FeatureOnlineStoreAdminServiceTestSuite struct {
 	T *testing.T
 	// Server to test.
@@ -50,6 +85,9 @@ type FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig struct {
 	service    FeatureOnlineStoreAdminServiceServer
 	currParent int
 
+	Server func() FeatureOnlineStoreAdminServiceServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -572,6 +610,9 @@ type FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig struct {
 	service    FeatureOnlineStoreAdminServiceServer
 	currParent int
 
+	Server func() FeatureOnlineStoreAdminServiceServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -1094,6 +1135,9 @@ type FeatureOnlineStoreAdminServiceFeatureViewSyncTestSuiteConfig struct {
 	service    FeatureOnlineStoreAdminServiceServer
 	currParent int
 
+	Server func() FeatureOnlineStoreAdminServiceServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are

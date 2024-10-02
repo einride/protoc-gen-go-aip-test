@@ -14,6 +14,23 @@ import (
 	testing "testing"
 )
 
+func TestCloudScheduler(
+	t *testing.T,
+	s CloudSchedulerTestsConfigSupplier,
+) {
+	{
+		cfg := s.TestJob(t)
+		fx := CloudSchedulerTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestJob(cfg.Context(), *cfg)
+	}
+}
+
+type CloudSchedulerTestsConfigSupplier interface {
+	TestJob(t *testing.T) *CloudSchedulerJobTestSuiteConfig
+}
 type CloudSchedulerTestSuite struct {
 	T *testing.T
 	// Server to test.
@@ -33,6 +50,9 @@ type CloudSchedulerJobTestSuiteConfig struct {
 	service    CloudSchedulerServer
 	currParent int
 
+	Server func() CloudSchedulerServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are

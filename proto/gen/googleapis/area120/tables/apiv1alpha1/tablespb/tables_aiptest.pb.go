@@ -14,6 +14,41 @@ import (
 	testing "testing"
 )
 
+func TestTablesService(
+	t *testing.T,
+	s TablesServiceTestsConfigSupplier,
+) {
+	{
+		cfg := s.TestRow(t)
+		fx := TablesServiceTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestRow(cfg.Context(), *cfg)
+	}
+	{
+		cfg := s.TestTable(t)
+		fx := TablesServiceTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestTable(cfg.Context(), *cfg)
+	}
+	{
+		cfg := s.TestWorkspace(t)
+		fx := TablesServiceTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestWorkspace(cfg.Context(), *cfg)
+	}
+}
+
+type TablesServiceTestsConfigSupplier interface {
+	TestRow(t *testing.T) *TablesServiceRowTestSuiteConfig
+	TestTable(t *testing.T) *TablesServiceTableTestSuiteConfig
+	TestWorkspace(t *testing.T) *TablesServiceWorkspaceTestSuiteConfig
+}
 type TablesServiceTestSuite struct {
 	T *testing.T
 	// Server to test.
@@ -49,6 +84,9 @@ type TablesServiceRowTestSuiteConfig struct {
 	service    TablesServiceServer
 	currParent int
 
+	Server func() TablesServiceServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -490,6 +528,9 @@ type TablesServiceTableTestSuiteConfig struct {
 	service    TablesServiceServer
 	currParent int
 
+	Server func() TablesServiceServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// CreateResource should create a Table and return it.
 	// If the field is not set, some tests will be skipped.
 	//
@@ -605,6 +646,9 @@ type TablesServiceWorkspaceTestSuiteConfig struct {
 	service    TablesServiceServer
 	currParent int
 
+	Server func() TablesServiceServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// CreateResource should create a Workspace and return it.
 	// If the field is not set, some tests will be skipped.
 	//

@@ -15,6 +15,23 @@ import (
 	testing "testing"
 )
 
+func TestEndpointService(
+	t *testing.T,
+	s EndpointServiceTestsConfigSupplier,
+) {
+	{
+		cfg := s.TestEndpoint(t)
+		fx := EndpointServiceTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestEndpoint(cfg.Context(), *cfg)
+	}
+}
+
+type EndpointServiceTestsConfigSupplier interface {
+	TestEndpoint(t *testing.T) *EndpointServiceEndpointTestSuiteConfig
+}
 type EndpointServiceTestSuite struct {
 	T *testing.T
 	// Server to test.
@@ -34,6 +51,9 @@ type EndpointServiceEndpointTestSuiteConfig struct {
 	service    EndpointServiceServer
 	currParent int
 
+	Server func() EndpointServiceServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are

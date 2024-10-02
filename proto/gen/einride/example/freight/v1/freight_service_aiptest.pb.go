@@ -16,6 +16,45 @@ import (
 	time "time"
 )
 
+type FreightServiceTestsConfigSupplier interface {
+	GetShipperTestConfig(t *testing.T) *FreightServiceShipperTestSuiteConfig
+	GetSiteTestConfig(t *testing.T) *FreightServiceSiteTestSuiteConfig
+}
+
+func TestFreightService(
+	t *testing.T,
+	s FreightServiceTestsConfigSupplier,
+) {
+	testShipper(t, s)
+	testSite(t, s)
+}
+
+func testShipper(
+	t *testing.T,
+	s FreightServiceTestsConfigSupplier,
+) {
+	t.Run("Shipper", func(t *testing.T) {
+		config := s.GetShipperTestConfig(t)
+		if config == nil {
+			t.Skip("Method GetShipperTestConfig not implemented")
+		}
+		config.test(t)
+	})
+}
+
+func testSite(
+	t *testing.T,
+	s FreightServiceTestsConfigSupplier,
+) {
+	t.Run("Site", func(t *testing.T) {
+		config := s.GetSiteTestConfig(t)
+		if config == nil {
+			t.Skip("Method GetSiteTestConfig not implemented")
+		}
+		config.test(t)
+	})
+}
+
 type FreightServiceTestSuite struct {
 	T *testing.T
 	// Server to test.
@@ -25,6 +64,7 @@ type FreightServiceTestSuite struct {
 func (fx FreightServiceTestSuite) TestShipper(ctx context.Context, options FreightServiceShipperTestSuiteConfig) {
 	fx.T.Run("Shipper", func(t *testing.T) {
 		options.ctx = ctx
+		options.Context = func() context.Context { return ctx }
 		options.service = fx.Server
 		options.test(t)
 	})
@@ -33,6 +73,7 @@ func (fx FreightServiceTestSuite) TestShipper(ctx context.Context, options Freig
 func (fx FreightServiceTestSuite) TestSite(ctx context.Context, options FreightServiceSiteTestSuiteConfig) {
 	fx.T.Run("Site", func(t *testing.T) {
 		options.ctx = ctx
+		options.Context = func() context.Context { return ctx }
 		options.service = fx.Server
 		options.test(t)
 	})
@@ -43,6 +84,10 @@ type FreightServiceShipperTestSuiteConfig struct {
 	service    FreightServiceServer
 	currParent int
 
+	// Should return the server that should be tested.
+	Server func() FreightServiceServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// Create should return a resource which is valid to create, i.e.
 	// all required fields set.
 	Create func() *Shipper
@@ -576,6 +621,10 @@ type FreightServiceSiteTestSuiteConfig struct {
 	service    FreightServiceServer
 	currParent int
 
+	// Should return the server that should be tested.
+	Server func() FreightServiceServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are

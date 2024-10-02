@@ -15,6 +15,32 @@ import (
 	testing "testing"
 )
 
+func TestFeatureRegistryService(
+	t *testing.T,
+	s FeatureRegistryServiceTestsConfigSupplier,
+) {
+	{
+		cfg := s.TestFeature(t)
+		fx := FeatureRegistryServiceTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestFeature(cfg.Context(), *cfg)
+	}
+	{
+		cfg := s.TestFeatureGroup(t)
+		fx := FeatureRegistryServiceTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestFeatureGroup(cfg.Context(), *cfg)
+	}
+}
+
+type FeatureRegistryServiceTestsConfigSupplier interface {
+	TestFeature(t *testing.T) *FeatureRegistryServiceFeatureTestSuiteConfig
+	TestFeatureGroup(t *testing.T) *FeatureRegistryServiceFeatureGroupTestSuiteConfig
+}
 type FeatureRegistryServiceTestSuite struct {
 	T *testing.T
 	// Server to test.
@@ -42,6 +68,9 @@ type FeatureRegistryServiceFeatureTestSuiteConfig struct {
 	service    FeatureRegistryServiceServer
 	currParent int
 
+	Server func() FeatureRegistryServiceServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -461,6 +490,9 @@ type FeatureRegistryServiceFeatureGroupTestSuiteConfig struct {
 	service    FeatureRegistryServiceServer
 	currParent int
 
+	Server func() FeatureRegistryServiceServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are

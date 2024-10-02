@@ -15,6 +15,23 @@ import (
 	testing "testing"
 )
 
+func TestIndexService(
+	t *testing.T,
+	s IndexServiceTestsConfigSupplier,
+) {
+	{
+		cfg := s.TestIndex(t)
+		fx := IndexServiceTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestIndex(cfg.Context(), *cfg)
+	}
+}
+
+type IndexServiceTestsConfigSupplier interface {
+	TestIndex(t *testing.T) *IndexServiceIndexTestSuiteConfig
+}
 type IndexServiceTestSuite struct {
 	T *testing.T
 	// Server to test.
@@ -34,6 +51,9 @@ type IndexServiceIndexTestSuiteConfig struct {
 	service    IndexServiceServer
 	currParent int
 
+	Server func() IndexServiceServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are

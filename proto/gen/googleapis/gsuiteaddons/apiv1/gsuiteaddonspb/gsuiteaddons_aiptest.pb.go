@@ -13,6 +13,41 @@ import (
 	testing "testing"
 )
 
+func TestGSuiteAddOns(
+	t *testing.T,
+	s GSuiteAddOnsTestsConfigSupplier,
+) {
+	{
+		cfg := s.TestAuthorization(t)
+		fx := GSuiteAddOnsTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestAuthorization(cfg.Context(), *cfg)
+	}
+	{
+		cfg := s.TestDeployment(t)
+		fx := GSuiteAddOnsTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestDeployment(cfg.Context(), *cfg)
+	}
+	{
+		cfg := s.TestInstallStatus(t)
+		fx := GSuiteAddOnsTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestInstallStatus(cfg.Context(), *cfg)
+	}
+}
+
+type GSuiteAddOnsTestsConfigSupplier interface {
+	TestAuthorization(t *testing.T) *GSuiteAddOnsAuthorizationTestSuiteConfig
+	TestDeployment(t *testing.T) *GSuiteAddOnsDeploymentTestSuiteConfig
+	TestInstallStatus(t *testing.T) *GSuiteAddOnsInstallStatusTestSuiteConfig
+}
 type GSuiteAddOnsTestSuite struct {
 	T *testing.T
 	// Server to test.
@@ -48,6 +83,9 @@ type GSuiteAddOnsAuthorizationTestSuiteConfig struct {
 	service    GSuiteAddOnsServer
 	currParent int
 
+	Server func() GSuiteAddOnsServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// CreateResource should create a Authorization and return it.
 	// If the field is not set, some tests will be skipped.
 	//
@@ -140,6 +178,9 @@ type GSuiteAddOnsDeploymentTestSuiteConfig struct {
 	service    GSuiteAddOnsServer
 	currParent int
 
+	Server func() GSuiteAddOnsServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -599,6 +640,9 @@ type GSuiteAddOnsInstallStatusTestSuiteConfig struct {
 	service    GSuiteAddOnsServer
 	currParent int
 
+	Server func() GSuiteAddOnsServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are

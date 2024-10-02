@@ -16,6 +16,50 @@ import (
 	time "time"
 )
 
+func TestTensorboardService(
+	t *testing.T,
+	s TensorboardServiceTestsConfigSupplier,
+) {
+	{
+		cfg := s.TestTensorboard(t)
+		fx := TensorboardServiceTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestTensorboard(cfg.Context(), *cfg)
+	}
+	{
+		cfg := s.TestTensorboardExperiment(t)
+		fx := TensorboardServiceTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestTensorboardExperiment(cfg.Context(), *cfg)
+	}
+	{
+		cfg := s.TestTensorboardRun(t)
+		fx := TensorboardServiceTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestTensorboardRun(cfg.Context(), *cfg)
+	}
+	{
+		cfg := s.TestTensorboardTimeSeries(t)
+		fx := TensorboardServiceTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestTensorboardTimeSeries(cfg.Context(), *cfg)
+	}
+}
+
+type TensorboardServiceTestsConfigSupplier interface {
+	TestTensorboard(t *testing.T) *TensorboardServiceTensorboardTestSuiteConfig
+	TestTensorboardExperiment(t *testing.T) *TensorboardServiceTensorboardExperimentTestSuiteConfig
+	TestTensorboardRun(t *testing.T) *TensorboardServiceTensorboardRunTestSuiteConfig
+	TestTensorboardTimeSeries(t *testing.T) *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig
+}
 type TensorboardServiceTestSuite struct {
 	T *testing.T
 	// Server to test.
@@ -59,6 +103,9 @@ type TensorboardServiceTensorboardTestSuiteConfig struct {
 	service    TensorboardServiceServer
 	currParent int
 
+	Server func() TensorboardServiceServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -546,6 +593,9 @@ type TensorboardServiceTensorboardExperimentTestSuiteConfig struct {
 	service    TensorboardServiceServer
 	currParent int
 
+	Server func() TensorboardServiceServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -1025,6 +1075,9 @@ type TensorboardServiceTensorboardRunTestSuiteConfig struct {
 	service    TensorboardServiceServer
 	currParent int
 
+	Server func() TensorboardServiceServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -1569,6 +1622,9 @@ type TensorboardServiceTensorboardTimeSeriesTestSuiteConfig struct {
 	service    TensorboardServiceServer
 	currParent int
 
+	Server func() TensorboardServiceServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are

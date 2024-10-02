@@ -15,6 +15,41 @@ import (
 	testing "testing"
 )
 
+func TestFeaturestoreService(
+	t *testing.T,
+	s FeaturestoreServiceTestsConfigSupplier,
+) {
+	{
+		cfg := s.TestEntityType(t)
+		fx := FeaturestoreServiceTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestEntityType(cfg.Context(), *cfg)
+	}
+	{
+		cfg := s.TestFeature(t)
+		fx := FeaturestoreServiceTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestFeature(cfg.Context(), *cfg)
+	}
+	{
+		cfg := s.TestFeaturestore(t)
+		fx := FeaturestoreServiceTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestFeaturestore(cfg.Context(), *cfg)
+	}
+}
+
+type FeaturestoreServiceTestsConfigSupplier interface {
+	TestEntityType(t *testing.T) *FeaturestoreServiceEntityTypeTestSuiteConfig
+	TestFeature(t *testing.T) *FeaturestoreServiceFeatureTestSuiteConfig
+	TestFeaturestore(t *testing.T) *FeaturestoreServiceFeaturestoreTestSuiteConfig
+}
 type FeaturestoreServiceTestSuite struct {
 	T *testing.T
 	// Server to test.
@@ -50,6 +85,9 @@ type FeaturestoreServiceEntityTypeTestSuiteConfig struct {
 	service    FeaturestoreServiceServer
 	currParent int
 
+	Server func() FeaturestoreServiceServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -471,6 +509,9 @@ type FeaturestoreServiceFeatureTestSuiteConfig struct {
 	service    FeaturestoreServiceServer
 	currParent int
 
+	Server func() FeaturestoreServiceServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -906,6 +947,9 @@ type FeaturestoreServiceFeaturestoreTestSuiteConfig struct {
 	service    FeaturestoreServiceServer
 	currParent int
 
+	Server func() FeaturestoreServiceServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are

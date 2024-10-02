@@ -15,6 +15,59 @@ import (
 	time "time"
 )
 
+func TestMetadataService(
+	t *testing.T,
+	s MetadataServiceTestsConfigSupplier,
+) {
+	{
+		cfg := s.TestArtifact(t)
+		fx := MetadataServiceTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestArtifact(cfg.Context(), *cfg)
+	}
+	{
+		cfg := s.TestContext(t)
+		fx := MetadataServiceTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestContext(cfg.Context(), *cfg)
+	}
+	{
+		cfg := s.TestExecution(t)
+		fx := MetadataServiceTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestExecution(cfg.Context(), *cfg)
+	}
+	{
+		cfg := s.TestMetadataSchema(t)
+		fx := MetadataServiceTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestMetadataSchema(cfg.Context(), *cfg)
+	}
+	{
+		cfg := s.TestMetadataStore(t)
+		fx := MetadataServiceTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestMetadataStore(cfg.Context(), *cfg)
+	}
+}
+
+type MetadataServiceTestsConfigSupplier interface {
+	TestArtifact(t *testing.T) *MetadataServiceArtifactTestSuiteConfig
+	TestContext(t *testing.T) *MetadataServiceContextTestSuiteConfig
+	TestExecution(t *testing.T) *MetadataServiceExecutionTestSuiteConfig
+	TestMetadataSchema(t *testing.T) *MetadataServiceMetadataSchemaTestSuiteConfig
+	TestMetadataStore(t *testing.T) *MetadataServiceMetadataStoreTestSuiteConfig
+}
 type MetadataServiceTestSuite struct {
 	T *testing.T
 	// Server to test.
@@ -66,6 +119,9 @@ type MetadataServiceArtifactTestSuiteConfig struct {
 	service    MetadataServiceServer
 	currParent int
 
+	Server func() MetadataServiceServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -557,6 +613,9 @@ type MetadataServiceContextTestSuiteConfig struct {
 	service    MetadataServiceServer
 	currParent int
 
+	Server func() MetadataServiceServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -1048,6 +1107,9 @@ type MetadataServiceExecutionTestSuiteConfig struct {
 	service    MetadataServiceServer
 	currParent int
 
+	Server func() MetadataServiceServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -1539,6 +1601,9 @@ type MetadataServiceMetadataSchemaTestSuiteConfig struct {
 	service    MetadataServiceServer
 	currParent int
 
+	Server func() MetadataServiceServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -1846,6 +1911,9 @@ type MetadataServiceMetadataStoreTestSuiteConfig struct {
 	service    MetadataServiceServer
 	currParent int
 
+	Server func() MetadataServiceServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are

@@ -14,6 +14,32 @@ import (
 	time "time"
 )
 
+func TestVizierService(
+	t *testing.T,
+	s VizierServiceTestsConfigSupplier,
+) {
+	{
+		cfg := s.TestStudy(t)
+		fx := VizierServiceTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestStudy(cfg.Context(), *cfg)
+	}
+	{
+		cfg := s.TestTrial(t)
+		fx := VizierServiceTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestTrial(cfg.Context(), *cfg)
+	}
+}
+
+type VizierServiceTestsConfigSupplier interface {
+	TestStudy(t *testing.T) *VizierServiceStudyTestSuiteConfig
+	TestTrial(t *testing.T) *VizierServiceTrialTestSuiteConfig
+}
 type VizierServiceTestSuite struct {
 	T *testing.T
 	// Server to test.
@@ -41,6 +67,9 @@ type VizierServiceStudyTestSuiteConfig struct {
 	service    VizierServiceServer
 	currParent int
 
+	Server func() VizierServiceServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -492,6 +521,9 @@ type VizierServiceTrialTestSuiteConfig struct {
 	service    VizierServiceServer
 	currParent int
 
+	Server func() VizierServiceServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are

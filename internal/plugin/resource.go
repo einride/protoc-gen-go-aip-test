@@ -45,6 +45,10 @@ func (r *resourceGenerator) generateFixture(f *protogen.GeneratedFile) {
 	f.P("service ", service)
 	f.P("currParent int")
 	f.P()
+	f.P("// Should return the server that should be tested.")
+	f.P("Server func() ", service)
+	f.P("// Context should return a new context that can be used for each test.")
+	f.P("Context func() ", context)
 
 	if util.HasParent(r.resource) {
 		f.P("// The parents to use when creating resources.")

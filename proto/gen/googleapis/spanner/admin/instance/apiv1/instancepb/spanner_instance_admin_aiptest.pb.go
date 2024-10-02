@@ -15,6 +15,41 @@ import (
 	testing "testing"
 )
 
+func TestInstanceAdmin(
+	t *testing.T,
+	s InstanceAdminTestsConfigSupplier,
+) {
+	{
+		cfg := s.TestInstance(t)
+		fx := InstanceAdminTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestInstance(cfg.Context(), *cfg)
+	}
+	{
+		cfg := s.TestInstanceConfig(t)
+		fx := InstanceAdminTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestInstanceConfig(cfg.Context(), *cfg)
+	}
+	{
+		cfg := s.TestInstancePartition(t)
+		fx := InstanceAdminTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestInstancePartition(cfg.Context(), *cfg)
+	}
+}
+
+type InstanceAdminTestsConfigSupplier interface {
+	TestInstance(t *testing.T) *InstanceAdminInstanceTestSuiteConfig
+	TestInstanceConfig(t *testing.T) *InstanceAdminInstanceConfigTestSuiteConfig
+	TestInstancePartition(t *testing.T) *InstanceAdminInstancePartitionTestSuiteConfig
+}
 type InstanceAdminTestSuite struct {
 	T *testing.T
 	// Server to test.
@@ -50,6 +85,9 @@ type InstanceAdminInstanceTestSuiteConfig struct {
 	service    InstanceAdminServer
 	currParent int
 
+	Server func() InstanceAdminServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -684,6 +722,9 @@ type InstanceAdminInstanceConfigTestSuiteConfig struct {
 	service    InstanceAdminServer
 	currParent int
 
+	Server func() InstanceAdminServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -1122,6 +1163,9 @@ type InstanceAdminInstancePartitionTestSuiteConfig struct {
 	service    InstanceAdminServer
 	currParent int
 
+	Server func() InstanceAdminServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are

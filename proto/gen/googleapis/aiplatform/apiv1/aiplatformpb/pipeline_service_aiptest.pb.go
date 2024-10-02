@@ -14,6 +14,32 @@ import (
 	time "time"
 )
 
+func TestPipelineService(
+	t *testing.T,
+	s PipelineServiceTestsConfigSupplier,
+) {
+	{
+		cfg := s.TestPipelineJob(t)
+		fx := PipelineServiceTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestPipelineJob(cfg.Context(), *cfg)
+	}
+	{
+		cfg := s.TestTrainingPipeline(t)
+		fx := PipelineServiceTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestTrainingPipeline(cfg.Context(), *cfg)
+	}
+}
+
+type PipelineServiceTestsConfigSupplier interface {
+	TestPipelineJob(t *testing.T) *PipelineServicePipelineJobTestSuiteConfig
+	TestTrainingPipeline(t *testing.T) *PipelineServiceTrainingPipelineTestSuiteConfig
+}
 type PipelineServiceTestSuite struct {
 	T *testing.T
 	// Server to test.
@@ -41,6 +67,9 @@ type PipelineServicePipelineJobTestSuiteConfig struct {
 	service    PipelineServiceServer
 	currParent int
 
+	Server func() PipelineServiceServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -481,6 +510,9 @@ type PipelineServiceTrainingPipelineTestSuiteConfig struct {
 	service    PipelineServiceServer
 	currParent int
 
+	Server func() PipelineServiceServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are

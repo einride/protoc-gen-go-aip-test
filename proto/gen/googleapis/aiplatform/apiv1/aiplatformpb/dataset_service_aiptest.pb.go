@@ -15,6 +15,68 @@ import (
 	testing "testing"
 )
 
+func TestDatasetService(
+	t *testing.T,
+	s DatasetServiceTestsConfigSupplier,
+) {
+	{
+		cfg := s.TestAnnotation(t)
+		fx := DatasetServiceTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestAnnotation(cfg.Context(), *cfg)
+	}
+	{
+		cfg := s.TestAnnotationSpec(t)
+		fx := DatasetServiceTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestAnnotationSpec(cfg.Context(), *cfg)
+	}
+	{
+		cfg := s.TestDataItem(t)
+		fx := DatasetServiceTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestDataItem(cfg.Context(), *cfg)
+	}
+	{
+		cfg := s.TestDataset(t)
+		fx := DatasetServiceTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestDataset(cfg.Context(), *cfg)
+	}
+	{
+		cfg := s.TestDatasetVersion(t)
+		fx := DatasetServiceTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestDatasetVersion(cfg.Context(), *cfg)
+	}
+	{
+		cfg := s.TestSavedQuery(t)
+		fx := DatasetServiceTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestSavedQuery(cfg.Context(), *cfg)
+	}
+}
+
+type DatasetServiceTestsConfigSupplier interface {
+	TestAnnotation(t *testing.T) *DatasetServiceAnnotationTestSuiteConfig
+	TestAnnotationSpec(t *testing.T) *DatasetServiceAnnotationSpecTestSuiteConfig
+	TestDataItem(t *testing.T) *DatasetServiceDataItemTestSuiteConfig
+	TestDataset(t *testing.T) *DatasetServiceDatasetTestSuiteConfig
+	TestDatasetVersion(t *testing.T) *DatasetServiceDatasetVersionTestSuiteConfig
+	TestSavedQuery(t *testing.T) *DatasetServiceSavedQueryTestSuiteConfig
+}
 type DatasetServiceTestSuite struct {
 	T *testing.T
 	// Server to test.
@@ -74,6 +136,9 @@ type DatasetServiceAnnotationTestSuiteConfig struct {
 	service    DatasetServiceServer
 	currParent int
 
+	Server func() DatasetServiceServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -251,6 +316,9 @@ type DatasetServiceAnnotationSpecTestSuiteConfig struct {
 	service    DatasetServiceServer
 	currParent int
 
+	Server func() DatasetServiceServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -368,6 +436,9 @@ type DatasetServiceDataItemTestSuiteConfig struct {
 	service    DatasetServiceServer
 	currParent int
 
+	Server func() DatasetServiceServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -545,6 +616,9 @@ type DatasetServiceDatasetTestSuiteConfig struct {
 	service    DatasetServiceServer
 	currParent int
 
+	Server func() DatasetServiceServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -1136,6 +1210,9 @@ type DatasetServiceDatasetVersionTestSuiteConfig struct {
 	service    DatasetServiceServer
 	currParent int
 
+	Server func() DatasetServiceServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -1482,6 +1559,9 @@ type DatasetServiceSavedQueryTestSuiteConfig struct {
 	service    DatasetServiceServer
 	currParent int
 
+	Server func() DatasetServiceServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are

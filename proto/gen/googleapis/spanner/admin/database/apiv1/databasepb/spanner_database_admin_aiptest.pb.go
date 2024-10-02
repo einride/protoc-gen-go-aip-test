@@ -15,6 +15,41 @@ import (
 	testing "testing"
 )
 
+func TestDatabaseAdmin(
+	t *testing.T,
+	s DatabaseAdminTestsConfigSupplier,
+) {
+	{
+		cfg := s.TestBackup(t)
+		fx := DatabaseAdminTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestBackup(cfg.Context(), *cfg)
+	}
+	{
+		cfg := s.TestDatabase(t)
+		fx := DatabaseAdminTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestDatabase(cfg.Context(), *cfg)
+	}
+	{
+		cfg := s.TestDatabaseRole(t)
+		fx := DatabaseAdminTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestDatabaseRole(cfg.Context(), *cfg)
+	}
+}
+
+type DatabaseAdminTestsConfigSupplier interface {
+	TestBackup(t *testing.T) *DatabaseAdminBackupTestSuiteConfig
+	TestDatabase(t *testing.T) *DatabaseAdminDatabaseTestSuiteConfig
+	TestDatabaseRole(t *testing.T) *DatabaseAdminDatabaseRoleTestSuiteConfig
+}
 type DatabaseAdminTestSuite struct {
 	T *testing.T
 	// Server to test.
@@ -50,6 +85,9 @@ type DatabaseAdminBackupTestSuiteConfig struct {
 	service    DatabaseAdminServer
 	currParent int
 
+	Server func() DatabaseAdminServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -492,6 +530,9 @@ type DatabaseAdminDatabaseTestSuiteConfig struct {
 	service    DatabaseAdminServer
 	currParent int
 
+	Server func() DatabaseAdminServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -808,6 +849,9 @@ type DatabaseAdminDatabaseRoleTestSuiteConfig struct {
 	service    DatabaseAdminServer
 	currParent int
 
+	Server func() DatabaseAdminServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are

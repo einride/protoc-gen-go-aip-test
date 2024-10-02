@@ -13,6 +13,23 @@ import (
 	testing "testing"
 )
 
+func TestDeploymentResourcePoolService(
+	t *testing.T,
+	s DeploymentResourcePoolServiceTestsConfigSupplier,
+) {
+	{
+		cfg := s.TestDeploymentResourcePool(t)
+		fx := DeploymentResourcePoolServiceTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestDeploymentResourcePool(cfg.Context(), *cfg)
+	}
+}
+
+type DeploymentResourcePoolServiceTestsConfigSupplier interface {
+	TestDeploymentResourcePool(t *testing.T) *DeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig
+}
 type DeploymentResourcePoolServiceTestSuite struct {
 	T *testing.T
 	// Server to test.
@@ -32,6 +49,9 @@ type DeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig struct {
 	service    DeploymentResourcePoolServiceServer
 	currParent int
 
+	Server func() DeploymentResourcePoolServiceServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are

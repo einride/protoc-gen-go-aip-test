@@ -15,6 +15,41 @@ import (
 	testing "testing"
 )
 
+func TestModelService(
+	t *testing.T,
+	s ModelServiceTestsConfigSupplier,
+) {
+	{
+		cfg := s.TestModel(t)
+		fx := ModelServiceTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestModel(cfg.Context(), *cfg)
+	}
+	{
+		cfg := s.TestModelEvaluation(t)
+		fx := ModelServiceTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestModelEvaluation(cfg.Context(), *cfg)
+	}
+	{
+		cfg := s.TestModelEvaluationSlice(t)
+		fx := ModelServiceTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestModelEvaluationSlice(cfg.Context(), *cfg)
+	}
+}
+
+type ModelServiceTestsConfigSupplier interface {
+	TestModel(t *testing.T) *ModelServiceModelTestSuiteConfig
+	TestModelEvaluation(t *testing.T) *ModelServiceModelEvaluationTestSuiteConfig
+	TestModelEvaluationSlice(t *testing.T) *ModelServiceModelEvaluationSliceTestSuiteConfig
+}
 type ModelServiceTestSuite struct {
 	T *testing.T
 	// Server to test.
@@ -50,6 +85,9 @@ type ModelServiceModelTestSuiteConfig struct {
 	service    ModelServiceServer
 	currParent int
 
+	Server func() ModelServiceServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -648,6 +686,9 @@ type ModelServiceModelEvaluationTestSuiteConfig struct {
 	service    ModelServiceServer
 	currParent int
 
+	Server func() ModelServiceServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -880,6 +921,9 @@ type ModelServiceModelEvaluationSliceTestSuiteConfig struct {
 	service    ModelServiceServer
 	currParent int
 
+	Server func() ModelServiceServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are

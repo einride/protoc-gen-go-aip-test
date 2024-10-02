@@ -16,6 +16,23 @@ import (
 	time "time"
 )
 
+func TestScheduleService(
+	t *testing.T,
+	s ScheduleServiceTestsConfigSupplier,
+) {
+	{
+		cfg := s.TestSchedule(t)
+		fx := ScheduleServiceTestSuite{
+			T:      t,
+			Server: cfg.Server(),
+		}
+		fx.TestSchedule(cfg.Context(), *cfg)
+	}
+}
+
+type ScheduleServiceTestsConfigSupplier interface {
+	TestSchedule(t *testing.T) *ScheduleServiceScheduleTestSuiteConfig
+}
 type ScheduleServiceTestSuite struct {
 	T *testing.T
 	// Server to test.
@@ -35,6 +52,9 @@ type ScheduleServiceScheduleTestSuiteConfig struct {
 	service    ScheduleServiceServer
 	currParent int
 
+	Server func() ScheduleServiceServer
+	// Context should return a new context that can be used for each test.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
