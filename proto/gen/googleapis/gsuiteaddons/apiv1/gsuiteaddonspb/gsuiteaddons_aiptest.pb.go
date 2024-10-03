@@ -21,7 +21,7 @@ type GSuiteAddOnsTestSuite struct {
 
 func (fx GSuiteAddOnsTestSuite) TestAuthorization(ctx context.Context, options GSuiteAddOnsAuthorizationTestSuiteConfig) {
 	fx.T.Run("Authorization", func(t *testing.T) {
-		options.ctx = ctx
+		options.Context = func() context.Context { return ctx }
 		options.service = fx.Server
 		options.test(t)
 	})
@@ -29,7 +29,7 @@ func (fx GSuiteAddOnsTestSuite) TestAuthorization(ctx context.Context, options G
 
 func (fx GSuiteAddOnsTestSuite) TestDeployment(ctx context.Context, options GSuiteAddOnsDeploymentTestSuiteConfig) {
 	fx.T.Run("Deployment", func(t *testing.T) {
-		options.ctx = ctx
+		options.Context = func() context.Context { return ctx }
 		options.service = fx.Server
 		options.test(t)
 	})
@@ -37,17 +37,19 @@ func (fx GSuiteAddOnsTestSuite) TestDeployment(ctx context.Context, options GSui
 
 func (fx GSuiteAddOnsTestSuite) TestInstallStatus(ctx context.Context, options GSuiteAddOnsInstallStatusTestSuiteConfig) {
 	fx.T.Run("InstallStatus", func(t *testing.T) {
-		options.ctx = ctx
+		options.Context = func() context.Context { return ctx }
 		options.service = fx.Server
 		options.test(t)
 	})
 }
 
 type GSuiteAddOnsAuthorizationTestSuiteConfig struct {
-	ctx        context.Context
 	service    GSuiteAddOnsServer
 	currParent int
 
+	// Context should return a new context.
+	// The context will be used for several tests.
+	Context func() context.Context
 	// CreateResource should create a Authorization and return it.
 	// If the field is not set, some tests will be skipped.
 	//
@@ -70,7 +72,7 @@ func (fx *GSuiteAddOnsAuthorizationTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetAuthorization(fx.ctx, &GetAuthorizationRequest{
+		_, err := fx.service.GetAuthorization(fx.Context(), &GetAuthorizationRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -79,7 +81,7 @@ func (fx *GSuiteAddOnsAuthorizationTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetAuthorization(fx.ctx, &GetAuthorizationRequest{
+		_, err := fx.service.GetAuthorization(fx.Context(), &GetAuthorizationRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -89,7 +91,7 @@ func (fx *GSuiteAddOnsAuthorizationTestSuiteConfig) testGet(t *testing.T) {
 	t.Run("exists", func(t *testing.T) {
 		fx.maybeSkip(t)
 		created := fx.create(t)
-		msg, err := fx.service.GetAuthorization(fx.ctx, &GetAuthorizationRequest{
+		msg, err := fx.service.GetAuthorization(fx.Context(), &GetAuthorizationRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -100,7 +102,7 @@ func (fx *GSuiteAddOnsAuthorizationTestSuiteConfig) testGet(t *testing.T) {
 	t.Run("not found", func(t *testing.T) {
 		fx.maybeSkip(t)
 		created := fx.create(t)
-		_, err := fx.service.GetAuthorization(fx.ctx, &GetAuthorizationRequest{
+		_, err := fx.service.GetAuthorization(fx.Context(), &GetAuthorizationRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -109,7 +111,7 @@ func (fx *GSuiteAddOnsAuthorizationTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetAuthorization(fx.ctx, &GetAuthorizationRequest{
+		_, err := fx.service.GetAuthorization(fx.Context(), &GetAuthorizationRequest{
 			Name: "projects/-/authorization",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -130,16 +132,18 @@ func (fx *GSuiteAddOnsAuthorizationTestSuiteConfig) create(t *testing.T) *Author
 	if fx.CreateResource == nil {
 		t.Skip("Test skipped because CreateResource not specified on GSuiteAddOnsAuthorizationTestSuiteConfig")
 	}
-	created, err := fx.CreateResource(fx.ctx)
+	created, err := fx.CreateResource(fx.Context())
 	assert.NilError(t, err)
 	return created
 }
 
 type GSuiteAddOnsDeploymentTestSuiteConfig struct {
-	ctx        context.Context
 	service    GSuiteAddOnsServer
 	currParent int
 
+	// Context should return a new context.
+	// The context will be used for several tests.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -167,7 +171,7 @@ func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) testCreate(t *testing.T) {
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateDeployment(fx.ctx, &CreateDeploymentRequest{
+		_, err := fx.service.CreateDeployment(fx.Context(), &CreateDeploymentRequest{
 			Parent:     "",
 			Deployment: fx.Create(fx.nextParent(t, false)),
 		})
@@ -177,7 +181,7 @@ func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) testCreate(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateDeployment(fx.ctx, &CreateDeploymentRequest{
+		_, err := fx.service.CreateDeployment(fx.Context(), &CreateDeploymentRequest{
 			Parent:     "invalid resource name",
 			Deployment: fx.Create(fx.nextParent(t, false)),
 		})
@@ -188,12 +192,12 @@ func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) testCreate(t *testing.T) {
 	t.Run("persisted", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		msg, err := fx.service.CreateDeployment(fx.ctx, &CreateDeploymentRequest{
+		msg, err := fx.service.CreateDeployment(fx.Context(), &CreateDeploymentRequest{
 			Parent:     parent,
 			Deployment: fx.Create(parent),
 		})
 		assert.NilError(t, err)
-		persisted, err := fx.service.GetDeployment(fx.ctx, &GetDeploymentRequest{
+		persisted, err := fx.service.GetDeployment(fx.Context(), &GetDeploymentRequest{
 			Name: msg.Name,
 		})
 		assert.NilError(t, err)
@@ -214,7 +218,7 @@ func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("run_function")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateDeployment(fx.ctx, &CreateDeploymentRequest{
+			_, err := fx.service.CreateDeployment(fx.Context(), &CreateDeploymentRequest{
 				Parent:     parent,
 				Deployment: msg,
 			})
@@ -230,7 +234,7 @@ func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("run_function")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateDeployment(fx.ctx, &CreateDeploymentRequest{
+			_, err := fx.service.CreateDeployment(fx.Context(), &CreateDeploymentRequest{
 				Parent:     parent,
 				Deployment: msg,
 			})
@@ -246,7 +250,7 @@ func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("run_function")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateDeployment(fx.ctx, &CreateDeploymentRequest{
+			_, err := fx.service.CreateDeployment(fx.Context(), &CreateDeploymentRequest{
 				Parent:     parent,
 				Deployment: msg,
 			})
@@ -262,7 +266,7 @@ func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("run_function")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateDeployment(fx.ctx, &CreateDeploymentRequest{
+			_, err := fx.service.CreateDeployment(fx.Context(), &CreateDeploymentRequest{
 				Parent:     parent,
 				Deployment: msg,
 			})
@@ -274,7 +278,7 @@ func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) testCreate(t *testing.T) {
 	t.Run("etag populated", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		created, _ := fx.service.CreateDeployment(fx.ctx, &CreateDeploymentRequest{
+		created, _ := fx.service.CreateDeployment(fx.Context(), &CreateDeploymentRequest{
 			Parent:     parent,
 			Deployment: fx.Create(parent),
 		})
@@ -288,7 +292,7 @@ func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetDeployment(fx.ctx, &GetDeploymentRequest{
+		_, err := fx.service.GetDeployment(fx.Context(), &GetDeploymentRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -297,7 +301,7 @@ func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetDeployment(fx.ctx, &GetDeploymentRequest{
+		_, err := fx.service.GetDeployment(fx.Context(), &GetDeploymentRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -308,7 +312,7 @@ func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		msg, err := fx.service.GetDeployment(fx.ctx, &GetDeploymentRequest{
+		msg, err := fx.service.GetDeployment(fx.Context(), &GetDeploymentRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -320,7 +324,7 @@ func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.GetDeployment(fx.ctx, &GetDeploymentRequest{
+		_, err := fx.service.GetDeployment(fx.Context(), &GetDeploymentRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -329,7 +333,7 @@ func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetDeployment(fx.ctx, &GetDeploymentRequest{
+		_, err := fx.service.GetDeployment(fx.Context(), &GetDeploymentRequest{
 			Name: "projects/-/deployments/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -342,7 +346,7 @@ func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) testList(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.ListDeployments(fx.ctx, &ListDeploymentsRequest{
+		_, err := fx.service.ListDeployments(fx.Context(), &ListDeploymentsRequest{
 			Parent: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -352,7 +356,7 @@ func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) testList(t *testing.T) {
 	t.Run("invalid page token", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListDeployments(fx.ctx, &ListDeploymentsRequest{
+		_, err := fx.service.ListDeployments(fx.Context(), &ListDeploymentsRequest{
 			Parent:    parent,
 			PageToken: "invalid page token",
 		})
@@ -363,7 +367,7 @@ func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) testList(t *testing.T) {
 	t.Run("negative page size", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListDeployments(fx.ctx, &ListDeploymentsRequest{
+		_, err := fx.service.ListDeployments(fx.Context(), &ListDeploymentsRequest{
 			Parent:   parent,
 			PageSize: -10,
 		})
@@ -381,7 +385,7 @@ func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) testList(t *testing.T) {
 	// under that parent.
 	t.Run("isolation", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListDeployments(fx.ctx, &ListDeploymentsRequest{
+		response, err := fx.service.ListDeployments(fx.Context(), &ListDeploymentsRequest{
 			Parent:   parent,
 			PageSize: 999,
 		})
@@ -400,7 +404,7 @@ func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) testList(t *testing.T) {
 	// If there are no more resources, next_page_token should not be set.
 	t.Run("last page", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListDeployments(fx.ctx, &ListDeploymentsRequest{
+		response, err := fx.service.ListDeployments(fx.Context(), &ListDeploymentsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount,
 		})
@@ -411,7 +415,7 @@ func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) testList(t *testing.T) {
 	// If there are more resources, next_page_token should be set.
 	t.Run("more pages", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListDeployments(fx.ctx, &ListDeploymentsRequest{
+		response, err := fx.service.ListDeployments(fx.Context(), &ListDeploymentsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount - 1,
 		})
@@ -425,7 +429,7 @@ func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) testList(t *testing.T) {
 		msgs := make([]*Deployment, 0, resourcesCount)
 		var nextPageToken string
 		for {
-			response, err := fx.service.ListDeployments(fx.ctx, &ListDeploymentsRequest{
+			response, err := fx.service.ListDeployments(fx.Context(), &ListDeploymentsRequest{
 				Parent:    parent,
 				PageSize:  1,
 				PageToken: nextPageToken,
@@ -454,12 +458,12 @@ func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) testList(t *testing.T) {
 		fx.maybeSkip(t)
 		const deleteCount = 5
 		for i := 0; i < deleteCount; i++ {
-			_, err := fx.service.DeleteDeployment(fx.ctx, &DeleteDeploymentRequest{
+			_, err := fx.service.DeleteDeployment(fx.Context(), &DeleteDeploymentRequest{
 				Name: parentMsgs[i].Name,
 			})
 			assert.NilError(t, err)
 		}
-		response, err := fx.service.ListDeployments(fx.ctx, &ListDeploymentsRequest{
+		response, err := fx.service.ListDeployments(fx.Context(), &ListDeploymentsRequest{
 			Parent:   parent,
 			PageSize: 9999,
 		})
@@ -482,7 +486,7 @@ func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteDeployment(fx.ctx, &DeleteDeploymentRequest{
+		_, err := fx.service.DeleteDeployment(fx.Context(), &DeleteDeploymentRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -491,7 +495,7 @@ func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteDeployment(fx.ctx, &DeleteDeploymentRequest{
+		_, err := fx.service.DeleteDeployment(fx.Context(), &DeleteDeploymentRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -502,7 +506,7 @@ func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteDeployment(fx.ctx, &DeleteDeploymentRequest{
+		_, err := fx.service.DeleteDeployment(fx.Context(), &DeleteDeploymentRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -513,7 +517,7 @@ func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteDeployment(fx.ctx, &DeleteDeploymentRequest{
+		_, err := fx.service.DeleteDeployment(fx.Context(), &DeleteDeploymentRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -524,12 +528,12 @@ func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		deleted, err := fx.service.DeleteDeployment(fx.ctx, &DeleteDeploymentRequest{
+		deleted, err := fx.service.DeleteDeployment(fx.Context(), &DeleteDeploymentRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
 		_ = deleted
-		_, err = fx.service.DeleteDeployment(fx.ctx, &DeleteDeploymentRequest{
+		_, err = fx.service.DeleteDeployment(fx.Context(), &DeleteDeploymentRequest{
 			Name: created.Name,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -538,7 +542,7 @@ func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteDeployment(fx.ctx, &DeleteDeploymentRequest{
+		_, err := fx.service.DeleteDeployment(fx.Context(), &DeleteDeploymentRequest{
 			Name: "projects/-/deployments/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -549,7 +553,7 @@ func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteDeployment(fx.ctx, &DeleteDeploymentRequest{
+		_, err := fx.service.DeleteDeployment(fx.Context(), &DeleteDeploymentRequest{
 			Name: created.Name,
 			Etag: `"99999"`,
 		})
@@ -586,7 +590,7 @@ func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) maybeSkip(t *testing.T) {
 
 func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) create(t *testing.T, parent string) *Deployment {
 	t.Helper()
-	created, err := fx.service.CreateDeployment(fx.ctx, &CreateDeploymentRequest{
+	created, err := fx.service.CreateDeployment(fx.Context(), &CreateDeploymentRequest{
 		Parent:     parent,
 		Deployment: fx.Create(parent),
 	})
@@ -595,10 +599,12 @@ func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) create(t *testing.T, parent str
 }
 
 type GSuiteAddOnsInstallStatusTestSuiteConfig struct {
-	ctx        context.Context
 	service    GSuiteAddOnsServer
 	currParent int
 
+	// Context should return a new context.
+	// The context will be used for several tests.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -626,7 +632,7 @@ func (fx *GSuiteAddOnsInstallStatusTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetInstallStatus(fx.ctx, &GetInstallStatusRequest{
+		_, err := fx.service.GetInstallStatus(fx.Context(), &GetInstallStatusRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -635,7 +641,7 @@ func (fx *GSuiteAddOnsInstallStatusTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetInstallStatus(fx.ctx, &GetInstallStatusRequest{
+		_, err := fx.service.GetInstallStatus(fx.Context(), &GetInstallStatusRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -646,7 +652,7 @@ func (fx *GSuiteAddOnsInstallStatusTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		msg, err := fx.service.GetInstallStatus(fx.ctx, &GetInstallStatusRequest{
+		msg, err := fx.service.GetInstallStatus(fx.Context(), &GetInstallStatusRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -658,7 +664,7 @@ func (fx *GSuiteAddOnsInstallStatusTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.GetInstallStatus(fx.ctx, &GetInstallStatusRequest{
+		_, err := fx.service.GetInstallStatus(fx.Context(), &GetInstallStatusRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -667,7 +673,7 @@ func (fx *GSuiteAddOnsInstallStatusTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetInstallStatus(fx.ctx, &GetInstallStatusRequest{
+		_, err := fx.service.GetInstallStatus(fx.Context(), &GetInstallStatusRequest{
 			Name: "projects/-/deployments/-/installStatus",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -706,7 +712,7 @@ func (fx *GSuiteAddOnsInstallStatusTestSuiteConfig) create(t *testing.T, parent 
 	if fx.CreateResource == nil {
 		t.Skip("Test skipped because CreateResource not specified on GSuiteAddOnsInstallStatusTestSuiteConfig")
 	}
-	created, err := fx.CreateResource(fx.ctx, parent)
+	created, err := fx.CreateResource(fx.Context(), parent)
 	assert.NilError(t, err)
 	return created
 }

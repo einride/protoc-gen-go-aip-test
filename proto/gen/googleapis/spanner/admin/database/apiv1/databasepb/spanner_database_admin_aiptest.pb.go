@@ -23,7 +23,7 @@ type DatabaseAdminTestSuite struct {
 
 func (fx DatabaseAdminTestSuite) TestBackup(ctx context.Context, options DatabaseAdminBackupTestSuiteConfig) {
 	fx.T.Run("Backup", func(t *testing.T) {
-		options.ctx = ctx
+		options.Context = func() context.Context { return ctx }
 		options.service = fx.Server
 		options.test(t)
 	})
@@ -31,7 +31,7 @@ func (fx DatabaseAdminTestSuite) TestBackup(ctx context.Context, options Databas
 
 func (fx DatabaseAdminTestSuite) TestDatabase(ctx context.Context, options DatabaseAdminDatabaseTestSuiteConfig) {
 	fx.T.Run("Database", func(t *testing.T) {
-		options.ctx = ctx
+		options.Context = func() context.Context { return ctx }
 		options.service = fx.Server
 		options.test(t)
 	})
@@ -39,17 +39,19 @@ func (fx DatabaseAdminTestSuite) TestDatabase(ctx context.Context, options Datab
 
 func (fx DatabaseAdminTestSuite) TestDatabaseRole(ctx context.Context, options DatabaseAdminDatabaseRoleTestSuiteConfig) {
 	fx.T.Run("DatabaseRole", func(t *testing.T) {
-		options.ctx = ctx
+		options.Context = func() context.Context { return ctx }
 		options.service = fx.Server
 		options.test(t)
 	})
 }
 
 type DatabaseAdminBackupTestSuiteConfig struct {
-	ctx        context.Context
 	service    DatabaseAdminServer
 	currParent int
 
+	// Context should return a new context.
+	// The context will be used for several tests.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -81,7 +83,7 @@ func (fx *DatabaseAdminBackupTestSuiteConfig) testCreate(t *testing.T) {
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateBackup(fx.ctx, &CreateBackupRequest{
+		_, err := fx.service.CreateBackup(fx.Context(), &CreateBackupRequest{
 			Parent: "",
 			Backup: fx.Create(fx.nextParent(t, false)),
 		})
@@ -91,7 +93,7 @@ func (fx *DatabaseAdminBackupTestSuiteConfig) testCreate(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateBackup(fx.ctx, &CreateBackupRequest{
+		_, err := fx.service.CreateBackup(fx.Context(), &CreateBackupRequest{
 			Parent: "invalid resource name",
 			Backup: fx.Create(fx.nextParent(t, false)),
 		})
@@ -111,7 +113,7 @@ func (fx *DatabaseAdminBackupTestSuiteConfig) testCreate(t *testing.T) {
 				t.Skip("not reachable")
 			}
 			container.Database = "invalid resource name"
-			_, err := fx.service.CreateBackup(fx.ctx, &CreateBackupRequest{
+			_, err := fx.service.CreateBackup(fx.Context(), &CreateBackupRequest{
 				Parent: parent,
 				Backup: msg,
 			})
@@ -126,7 +128,7 @@ func (fx *DatabaseAdminBackupTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetBackup(fx.ctx, &GetBackupRequest{
+		_, err := fx.service.GetBackup(fx.Context(), &GetBackupRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -135,7 +137,7 @@ func (fx *DatabaseAdminBackupTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetBackup(fx.ctx, &GetBackupRequest{
+		_, err := fx.service.GetBackup(fx.Context(), &GetBackupRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -146,7 +148,7 @@ func (fx *DatabaseAdminBackupTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		msg, err := fx.service.GetBackup(fx.ctx, &GetBackupRequest{
+		msg, err := fx.service.GetBackup(fx.Context(), &GetBackupRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -158,7 +160,7 @@ func (fx *DatabaseAdminBackupTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.GetBackup(fx.ctx, &GetBackupRequest{
+		_, err := fx.service.GetBackup(fx.Context(), &GetBackupRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -167,7 +169,7 @@ func (fx *DatabaseAdminBackupTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetBackup(fx.ctx, &GetBackupRequest{
+		_, err := fx.service.GetBackup(fx.Context(), &GetBackupRequest{
 			Name: "projects/-/instances/-/backups/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -183,7 +185,7 @@ func (fx *DatabaseAdminBackupTestSuiteConfig) testUpdate(t *testing.T) {
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
 		msg.Name = ""
-		_, err := fx.service.UpdateBackup(fx.ctx, &UpdateBackupRequest{
+		_, err := fx.service.UpdateBackup(fx.Context(), &UpdateBackupRequest{
 			Backup: msg,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -195,7 +197,7 @@ func (fx *DatabaseAdminBackupTestSuiteConfig) testUpdate(t *testing.T) {
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
 		msg.Name = "invalid resource name"
-		_, err := fx.service.UpdateBackup(fx.ctx, &UpdateBackupRequest{
+		_, err := fx.service.UpdateBackup(fx.Context(), &UpdateBackupRequest{
 			Backup: msg,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -206,11 +208,11 @@ func (fx *DatabaseAdminBackupTestSuiteConfig) testUpdate(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		updated, err := fx.service.UpdateBackup(fx.ctx, &UpdateBackupRequest{
+		updated, err := fx.service.UpdateBackup(fx.Context(), &UpdateBackupRequest{
 			Backup: created,
 		})
 		assert.NilError(t, err)
-		persisted, err := fx.service.GetBackup(fx.ctx, &GetBackupRequest{
+		persisted, err := fx.service.GetBackup(fx.Context(), &GetBackupRequest{
 			Name: updated.Name,
 		})
 		assert.NilError(t, err)
@@ -224,7 +226,7 @@ func (fx *DatabaseAdminBackupTestSuiteConfig) testUpdate(t *testing.T) {
 		fx.maybeSkip(t)
 		msg := fx.Update(parent)
 		msg.Name = created.Name + "notfound"
-		_, err := fx.service.UpdateBackup(fx.ctx, &UpdateBackupRequest{
+		_, err := fx.service.UpdateBackup(fx.Context(), &UpdateBackupRequest{
 			Backup: msg,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -233,7 +235,7 @@ func (fx *DatabaseAdminBackupTestSuiteConfig) testUpdate(t *testing.T) {
 	// The method should fail with InvalidArgument if the update_mask is invalid.
 	t.Run("invalid update mask", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.UpdateBackup(fx.ctx, &UpdateBackupRequest{
+		_, err := fx.service.UpdateBackup(fx.Context(), &UpdateBackupRequest{
 			Backup: created,
 			UpdateMask: &fieldmaskpb.FieldMask{
 				Paths: []string{
@@ -251,7 +253,7 @@ func (fx *DatabaseAdminBackupTestSuiteConfig) testList(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.ListBackups(fx.ctx, &ListBackupsRequest{
+		_, err := fx.service.ListBackups(fx.Context(), &ListBackupsRequest{
 			Parent: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -261,7 +263,7 @@ func (fx *DatabaseAdminBackupTestSuiteConfig) testList(t *testing.T) {
 	t.Run("invalid page token", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListBackups(fx.ctx, &ListBackupsRequest{
+		_, err := fx.service.ListBackups(fx.Context(), &ListBackupsRequest{
 			Parent:    parent,
 			PageToken: "invalid page token",
 		})
@@ -272,7 +274,7 @@ func (fx *DatabaseAdminBackupTestSuiteConfig) testList(t *testing.T) {
 	t.Run("negative page size", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListBackups(fx.ctx, &ListBackupsRequest{
+		_, err := fx.service.ListBackups(fx.Context(), &ListBackupsRequest{
 			Parent:   parent,
 			PageSize: -10,
 		})
@@ -290,7 +292,7 @@ func (fx *DatabaseAdminBackupTestSuiteConfig) testList(t *testing.T) {
 	// under that parent.
 	t.Run("isolation", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListBackups(fx.ctx, &ListBackupsRequest{
+		response, err := fx.service.ListBackups(fx.Context(), &ListBackupsRequest{
 			Parent:   parent,
 			PageSize: 999,
 		})
@@ -309,7 +311,7 @@ func (fx *DatabaseAdminBackupTestSuiteConfig) testList(t *testing.T) {
 	// If there are no more resources, next_page_token should not be set.
 	t.Run("last page", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListBackups(fx.ctx, &ListBackupsRequest{
+		response, err := fx.service.ListBackups(fx.Context(), &ListBackupsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount,
 		})
@@ -320,7 +322,7 @@ func (fx *DatabaseAdminBackupTestSuiteConfig) testList(t *testing.T) {
 	// If there are more resources, next_page_token should be set.
 	t.Run("more pages", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListBackups(fx.ctx, &ListBackupsRequest{
+		response, err := fx.service.ListBackups(fx.Context(), &ListBackupsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount - 1,
 		})
@@ -334,7 +336,7 @@ func (fx *DatabaseAdminBackupTestSuiteConfig) testList(t *testing.T) {
 		msgs := make([]*Backup, 0, resourcesCount)
 		var nextPageToken string
 		for {
-			response, err := fx.service.ListBackups(fx.ctx, &ListBackupsRequest{
+			response, err := fx.service.ListBackups(fx.Context(), &ListBackupsRequest{
 				Parent:    parent,
 				PageSize:  1,
 				PageToken: nextPageToken,
@@ -363,12 +365,12 @@ func (fx *DatabaseAdminBackupTestSuiteConfig) testList(t *testing.T) {
 		fx.maybeSkip(t)
 		const deleteCount = 5
 		for i := 0; i < deleteCount; i++ {
-			_, err := fx.service.DeleteBackup(fx.ctx, &DeleteBackupRequest{
+			_, err := fx.service.DeleteBackup(fx.Context(), &DeleteBackupRequest{
 				Name: parentMsgs[i].Name,
 			})
 			assert.NilError(t, err)
 		}
-		response, err := fx.service.ListBackups(fx.ctx, &ListBackupsRequest{
+		response, err := fx.service.ListBackups(fx.Context(), &ListBackupsRequest{
 			Parent:   parent,
 			PageSize: 9999,
 		})
@@ -391,7 +393,7 @@ func (fx *DatabaseAdminBackupTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteBackup(fx.ctx, &DeleteBackupRequest{
+		_, err := fx.service.DeleteBackup(fx.Context(), &DeleteBackupRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -400,7 +402,7 @@ func (fx *DatabaseAdminBackupTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteBackup(fx.ctx, &DeleteBackupRequest{
+		_, err := fx.service.DeleteBackup(fx.Context(), &DeleteBackupRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -411,7 +413,7 @@ func (fx *DatabaseAdminBackupTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteBackup(fx.ctx, &DeleteBackupRequest{
+		_, err := fx.service.DeleteBackup(fx.Context(), &DeleteBackupRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -422,7 +424,7 @@ func (fx *DatabaseAdminBackupTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteBackup(fx.ctx, &DeleteBackupRequest{
+		_, err := fx.service.DeleteBackup(fx.Context(), &DeleteBackupRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -433,12 +435,12 @@ func (fx *DatabaseAdminBackupTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		deleted, err := fx.service.DeleteBackup(fx.ctx, &DeleteBackupRequest{
+		deleted, err := fx.service.DeleteBackup(fx.Context(), &DeleteBackupRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
 		_ = deleted
-		_, err = fx.service.DeleteBackup(fx.ctx, &DeleteBackupRequest{
+		_, err = fx.service.DeleteBackup(fx.Context(), &DeleteBackupRequest{
 			Name: created.Name,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -447,7 +449,7 @@ func (fx *DatabaseAdminBackupTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteBackup(fx.ctx, &DeleteBackupRequest{
+		_, err := fx.service.DeleteBackup(fx.Context(), &DeleteBackupRequest{
 			Name: "projects/-/instances/-/backups/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -488,10 +490,12 @@ func (fx *DatabaseAdminBackupTestSuiteConfig) create(t *testing.T, parent string
 }
 
 type DatabaseAdminDatabaseTestSuiteConfig struct {
-	ctx        context.Context
 	service    DatabaseAdminServer
 	currParent int
 
+	// Context should return a new context.
+	// The context will be used for several tests.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -524,7 +528,7 @@ func (fx *DatabaseAdminDatabaseTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetDatabase(fx.ctx, &GetDatabaseRequest{
+		_, err := fx.service.GetDatabase(fx.Context(), &GetDatabaseRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -533,7 +537,7 @@ func (fx *DatabaseAdminDatabaseTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetDatabase(fx.ctx, &GetDatabaseRequest{
+		_, err := fx.service.GetDatabase(fx.Context(), &GetDatabaseRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -544,7 +548,7 @@ func (fx *DatabaseAdminDatabaseTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		msg, err := fx.service.GetDatabase(fx.ctx, &GetDatabaseRequest{
+		msg, err := fx.service.GetDatabase(fx.Context(), &GetDatabaseRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -556,7 +560,7 @@ func (fx *DatabaseAdminDatabaseTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.GetDatabase(fx.ctx, &GetDatabaseRequest{
+		_, err := fx.service.GetDatabase(fx.Context(), &GetDatabaseRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -565,7 +569,7 @@ func (fx *DatabaseAdminDatabaseTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetDatabase(fx.ctx, &GetDatabaseRequest{
+		_, err := fx.service.GetDatabase(fx.Context(), &GetDatabaseRequest{
 			Name: "projects/-/instances/-/databases/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -581,7 +585,7 @@ func (fx *DatabaseAdminDatabaseTestSuiteConfig) testUpdate(t *testing.T) {
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
 		msg.Name = ""
-		_, err := fx.service.UpdateDatabase(fx.ctx, &UpdateDatabaseRequest{
+		_, err := fx.service.UpdateDatabase(fx.Context(), &UpdateDatabaseRequest{
 			Database: msg,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -593,7 +597,7 @@ func (fx *DatabaseAdminDatabaseTestSuiteConfig) testUpdate(t *testing.T) {
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
 		msg.Name = "invalid resource name"
-		_, err := fx.service.UpdateDatabase(fx.ctx, &UpdateDatabaseRequest{
+		_, err := fx.service.UpdateDatabase(fx.Context(), &UpdateDatabaseRequest{
 			Database: msg,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -606,7 +610,7 @@ func (fx *DatabaseAdminDatabaseTestSuiteConfig) testUpdate(t *testing.T) {
 		fx.maybeSkip(t)
 		msg := fx.Update(parent)
 		msg.Name = created.Name + "notfound"
-		_, err := fx.service.UpdateDatabase(fx.ctx, &UpdateDatabaseRequest{
+		_, err := fx.service.UpdateDatabase(fx.Context(), &UpdateDatabaseRequest{
 			Database: msg,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -615,7 +619,7 @@ func (fx *DatabaseAdminDatabaseTestSuiteConfig) testUpdate(t *testing.T) {
 	// The method should fail with InvalidArgument if the update_mask is invalid.
 	t.Run("invalid update mask", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.UpdateDatabase(fx.ctx, &UpdateDatabaseRequest{
+		_, err := fx.service.UpdateDatabase(fx.Context(), &UpdateDatabaseRequest{
 			Database: created,
 			UpdateMask: &fieldmaskpb.FieldMask{
 				Paths: []string{
@@ -639,7 +643,7 @@ func (fx *DatabaseAdminDatabaseTestSuiteConfig) testUpdate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateDatabase(fx.ctx, &UpdateDatabaseRequest{
+			_, err := fx.service.UpdateDatabase(fx.Context(), &UpdateDatabaseRequest{
 				Database: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
@@ -658,7 +662,7 @@ func (fx *DatabaseAdminDatabaseTestSuiteConfig) testList(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.ListDatabases(fx.ctx, &ListDatabasesRequest{
+		_, err := fx.service.ListDatabases(fx.Context(), &ListDatabasesRequest{
 			Parent: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -668,7 +672,7 @@ func (fx *DatabaseAdminDatabaseTestSuiteConfig) testList(t *testing.T) {
 	t.Run("invalid page token", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListDatabases(fx.ctx, &ListDatabasesRequest{
+		_, err := fx.service.ListDatabases(fx.Context(), &ListDatabasesRequest{
 			Parent:    parent,
 			PageToken: "invalid page token",
 		})
@@ -679,7 +683,7 @@ func (fx *DatabaseAdminDatabaseTestSuiteConfig) testList(t *testing.T) {
 	t.Run("negative page size", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListDatabases(fx.ctx, &ListDatabasesRequest{
+		_, err := fx.service.ListDatabases(fx.Context(), &ListDatabasesRequest{
 			Parent:   parent,
 			PageSize: -10,
 		})
@@ -697,7 +701,7 @@ func (fx *DatabaseAdminDatabaseTestSuiteConfig) testList(t *testing.T) {
 	// under that parent.
 	t.Run("isolation", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListDatabases(fx.ctx, &ListDatabasesRequest{
+		response, err := fx.service.ListDatabases(fx.Context(), &ListDatabasesRequest{
 			Parent:   parent,
 			PageSize: 999,
 		})
@@ -716,7 +720,7 @@ func (fx *DatabaseAdminDatabaseTestSuiteConfig) testList(t *testing.T) {
 	// If there are no more resources, next_page_token should not be set.
 	t.Run("last page", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListDatabases(fx.ctx, &ListDatabasesRequest{
+		response, err := fx.service.ListDatabases(fx.Context(), &ListDatabasesRequest{
 			Parent:   parent,
 			PageSize: resourcesCount,
 		})
@@ -727,7 +731,7 @@ func (fx *DatabaseAdminDatabaseTestSuiteConfig) testList(t *testing.T) {
 	// If there are more resources, next_page_token should be set.
 	t.Run("more pages", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListDatabases(fx.ctx, &ListDatabasesRequest{
+		response, err := fx.service.ListDatabases(fx.Context(), &ListDatabasesRequest{
 			Parent:   parent,
 			PageSize: resourcesCount - 1,
 		})
@@ -741,7 +745,7 @@ func (fx *DatabaseAdminDatabaseTestSuiteConfig) testList(t *testing.T) {
 		msgs := make([]*Database, 0, resourcesCount)
 		var nextPageToken string
 		for {
-			response, err := fx.service.ListDatabases(fx.ctx, &ListDatabasesRequest{
+			response, err := fx.service.ListDatabases(fx.Context(), &ListDatabasesRequest{
 				Parent:    parent,
 				PageSize:  1,
 				PageToken: nextPageToken,
@@ -798,16 +802,18 @@ func (fx *DatabaseAdminDatabaseTestSuiteConfig) create(t *testing.T, parent stri
 	if fx.CreateResource == nil {
 		t.Skip("Test skipped because CreateResource not specified on DatabaseAdminDatabaseTestSuiteConfig")
 	}
-	created, err := fx.CreateResource(fx.ctx, parent)
+	created, err := fx.CreateResource(fx.Context(), parent)
 	assert.NilError(t, err)
 	return created
 }
 
 type DatabaseAdminDatabaseRoleTestSuiteConfig struct {
-	ctx        context.Context
 	service    DatabaseAdminServer
 	currParent int
 
+	// Context should return a new context.
+	// The context will be used for several tests.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -835,7 +841,7 @@ func (fx *DatabaseAdminDatabaseRoleTestSuiteConfig) testList(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.ListDatabaseRoles(fx.ctx, &ListDatabaseRolesRequest{
+		_, err := fx.service.ListDatabaseRoles(fx.Context(), &ListDatabaseRolesRequest{
 			Parent: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -845,7 +851,7 @@ func (fx *DatabaseAdminDatabaseRoleTestSuiteConfig) testList(t *testing.T) {
 	t.Run("invalid page token", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListDatabaseRoles(fx.ctx, &ListDatabaseRolesRequest{
+		_, err := fx.service.ListDatabaseRoles(fx.Context(), &ListDatabaseRolesRequest{
 			Parent:    parent,
 			PageToken: "invalid page token",
 		})
@@ -856,7 +862,7 @@ func (fx *DatabaseAdminDatabaseRoleTestSuiteConfig) testList(t *testing.T) {
 	t.Run("negative page size", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListDatabaseRoles(fx.ctx, &ListDatabaseRolesRequest{
+		_, err := fx.service.ListDatabaseRoles(fx.Context(), &ListDatabaseRolesRequest{
 			Parent:   parent,
 			PageSize: -10,
 		})
@@ -874,7 +880,7 @@ func (fx *DatabaseAdminDatabaseRoleTestSuiteConfig) testList(t *testing.T) {
 	// under that parent.
 	t.Run("isolation", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListDatabaseRoles(fx.ctx, &ListDatabaseRolesRequest{
+		response, err := fx.service.ListDatabaseRoles(fx.Context(), &ListDatabaseRolesRequest{
 			Parent:   parent,
 			PageSize: 999,
 		})
@@ -893,7 +899,7 @@ func (fx *DatabaseAdminDatabaseRoleTestSuiteConfig) testList(t *testing.T) {
 	// If there are no more resources, next_page_token should not be set.
 	t.Run("last page", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListDatabaseRoles(fx.ctx, &ListDatabaseRolesRequest{
+		response, err := fx.service.ListDatabaseRoles(fx.Context(), &ListDatabaseRolesRequest{
 			Parent:   parent,
 			PageSize: resourcesCount,
 		})
@@ -904,7 +910,7 @@ func (fx *DatabaseAdminDatabaseRoleTestSuiteConfig) testList(t *testing.T) {
 	// If there are more resources, next_page_token should be set.
 	t.Run("more pages", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListDatabaseRoles(fx.ctx, &ListDatabaseRolesRequest{
+		response, err := fx.service.ListDatabaseRoles(fx.Context(), &ListDatabaseRolesRequest{
 			Parent:   parent,
 			PageSize: resourcesCount - 1,
 		})
@@ -918,7 +924,7 @@ func (fx *DatabaseAdminDatabaseRoleTestSuiteConfig) testList(t *testing.T) {
 		msgs := make([]*DatabaseRole, 0, resourcesCount)
 		var nextPageToken string
 		for {
-			response, err := fx.service.ListDatabaseRoles(fx.ctx, &ListDatabaseRolesRequest{
+			response, err := fx.service.ListDatabaseRoles(fx.Context(), &ListDatabaseRolesRequest{
 				Parent:    parent,
 				PageSize:  1,
 				PageToken: nextPageToken,
@@ -975,7 +981,7 @@ func (fx *DatabaseAdminDatabaseRoleTestSuiteConfig) create(t *testing.T, parent 
 	if fx.CreateResource == nil {
 		t.Skip("Test skipped because CreateResource not specified on DatabaseAdminDatabaseRoleTestSuiteConfig")
 	}
-	created, err := fx.CreateResource(fx.ctx, parent)
+	created, err := fx.CreateResource(fx.Context(), parent)
 	assert.NilError(t, err)
 	return created
 }

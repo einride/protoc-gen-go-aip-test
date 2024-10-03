@@ -65,7 +65,7 @@ func (s *serviceGenerator) generateTestMethods(f *protogen.GeneratedFile) {
 		resourceFx := resourceTestSuiteConfigName(s.service.Desc, resource)
 		f.P("func (fx ", serviceFx, ") Test", resourceType(resource), "(ctx ", context, ", options ", resourceFx, ") {")
 		f.P("fx.T.Run(", strconv.Quote(resourceType(resource)), ", func(t *", testingT, ") {")
-		f.P("options.ctx = ctx")
+		f.P("options.Context = func() ", context, " { return ctx }")
 		f.P("options.service = fx.Server")
 		f.P("options.test(t)")
 		f.P("})")
