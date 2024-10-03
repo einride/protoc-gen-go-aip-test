@@ -24,17 +24,19 @@ type ScheduleServiceTestSuite struct {
 
 func (fx ScheduleServiceTestSuite) TestSchedule(ctx context.Context, options ScheduleServiceScheduleTestSuiteConfig) {
 	fx.T.Run("Schedule", func(t *testing.T) {
-		options.ctx = ctx
+		options.Context = func() context.Context { return ctx }
 		options.service = fx.Server
 		options.test(t)
 	})
 }
 
 type ScheduleServiceScheduleTestSuiteConfig struct {
-	ctx        context.Context
 	service    ScheduleServiceServer
 	currParent int
 
+	// Context should return a new context.
+	// The context will be used for several tests.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -66,7 +68,7 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testCreate(t *testing.T) {
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateSchedule(fx.ctx, &CreateScheduleRequest{
+		_, err := fx.service.CreateSchedule(fx.Context(), &CreateScheduleRequest{
 			Parent:   "",
 			Schedule: fx.Create(fx.nextParent(t, false)),
 		})
@@ -76,7 +78,7 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testCreate(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateSchedule(fx.ctx, &CreateScheduleRequest{
+		_, err := fx.service.CreateSchedule(fx.Context(), &CreateScheduleRequest{
 			Parent:   "invalid resource name",
 			Schedule: fx.Create(fx.nextParent(t, false)),
 		})
@@ -88,7 +90,7 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		beforeCreate := time.Now()
-		msg, err := fx.service.CreateSchedule(fx.ctx, &CreateScheduleRequest{
+		msg, err := fx.service.CreateSchedule(fx.Context(), &CreateScheduleRequest{
 			Parent:   parent,
 			Schedule: fx.Create(parent),
 		})
@@ -102,12 +104,12 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testCreate(t *testing.T) {
 	t.Run("persisted", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		msg, err := fx.service.CreateSchedule(fx.ctx, &CreateScheduleRequest{
+		msg, err := fx.service.CreateSchedule(fx.Context(), &CreateScheduleRequest{
 			Parent:   parent,
 			Schedule: fx.Create(parent),
 		})
 		assert.NilError(t, err)
-		persisted, err := fx.service.GetSchedule(fx.ctx, &GetScheduleRequest{
+		persisted, err := fx.service.GetSchedule(fx.Context(), &GetScheduleRequest{
 			Name: msg.Name,
 		})
 		assert.NilError(t, err)
@@ -128,7 +130,7 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("parent")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateSchedule(fx.ctx, &CreateScheduleRequest{
+			_, err := fx.service.CreateSchedule(fx.Context(), &CreateScheduleRequest{
 				Parent:   parent,
 				Schedule: msg,
 			})
@@ -144,7 +146,7 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("pipeline_job")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateSchedule(fx.ctx, &CreateScheduleRequest{
+			_, err := fx.service.CreateSchedule(fx.Context(), &CreateScheduleRequest{
 				Parent:   parent,
 				Schedule: msg,
 			})
@@ -160,7 +162,7 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("gcs_output_directory")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateSchedule(fx.ctx, &CreateScheduleRequest{
+			_, err := fx.service.CreateSchedule(fx.Context(), &CreateScheduleRequest{
 				Parent:   parent,
 				Schedule: msg,
 			})
@@ -176,7 +178,7 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("kms_key_name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateSchedule(fx.ctx, &CreateScheduleRequest{
+			_, err := fx.service.CreateSchedule(fx.Context(), &CreateScheduleRequest{
 				Parent:   parent,
 				Schedule: msg,
 			})
@@ -192,7 +194,7 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateSchedule(fx.ctx, &CreateScheduleRequest{
+			_, err := fx.service.CreateSchedule(fx.Context(), &CreateScheduleRequest{
 				Parent:   parent,
 				Schedule: msg,
 			})
@@ -208,7 +210,7 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("max_concurrent_run_count")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateSchedule(fx.ctx, &CreateScheduleRequest{
+			_, err := fx.service.CreateSchedule(fx.Context(), &CreateScheduleRequest{
 				Parent:   parent,
 				Schedule: msg,
 			})
@@ -229,7 +231,7 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testCreate(t *testing.T) {
 				t.Skip("not reachable")
 			}
 			container.Parent = "invalid resource name"
-			_, err := fx.service.CreateSchedule(fx.ctx, &CreateScheduleRequest{
+			_, err := fx.service.CreateSchedule(fx.Context(), &CreateScheduleRequest{
 				Parent:   parent,
 				Schedule: msg,
 			})
@@ -244,7 +246,7 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testCreate(t *testing.T) {
 				t.Skip("not reachable")
 			}
 			container.Network = "invalid resource name"
-			_, err := fx.service.CreateSchedule(fx.ctx, &CreateScheduleRequest{
+			_, err := fx.service.CreateSchedule(fx.Context(), &CreateScheduleRequest{
 				Parent:   parent,
 				Schedule: msg,
 			})
@@ -259,7 +261,7 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetSchedule(fx.ctx, &GetScheduleRequest{
+		_, err := fx.service.GetSchedule(fx.Context(), &GetScheduleRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -268,7 +270,7 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetSchedule(fx.ctx, &GetScheduleRequest{
+		_, err := fx.service.GetSchedule(fx.Context(), &GetScheduleRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -279,7 +281,7 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		msg, err := fx.service.GetSchedule(fx.ctx, &GetScheduleRequest{
+		msg, err := fx.service.GetSchedule(fx.Context(), &GetScheduleRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -291,7 +293,7 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.GetSchedule(fx.ctx, &GetScheduleRequest{
+		_, err := fx.service.GetSchedule(fx.Context(), &GetScheduleRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -300,7 +302,7 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetSchedule(fx.ctx, &GetScheduleRequest{
+		_, err := fx.service.GetSchedule(fx.Context(), &GetScheduleRequest{
 			Name: "projects/-/locations/-/schedules/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -316,7 +318,7 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testUpdate(t *testing.T) {
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
 		msg.Name = ""
-		_, err := fx.service.UpdateSchedule(fx.ctx, &UpdateScheduleRequest{
+		_, err := fx.service.UpdateSchedule(fx.Context(), &UpdateScheduleRequest{
 			Schedule: msg,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -328,7 +330,7 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testUpdate(t *testing.T) {
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
 		msg.Name = "invalid resource name"
-		_, err := fx.service.UpdateSchedule(fx.ctx, &UpdateScheduleRequest{
+		_, err := fx.service.UpdateSchedule(fx.Context(), &UpdateScheduleRequest{
 			Schedule: msg,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -339,7 +341,7 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testUpdate(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		updated, err := fx.service.UpdateSchedule(fx.ctx, &UpdateScheduleRequest{
+		updated, err := fx.service.UpdateSchedule(fx.Context(), &UpdateScheduleRequest{
 			Schedule: created,
 		})
 		assert.NilError(t, err)
@@ -351,11 +353,11 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testUpdate(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		updated, err := fx.service.UpdateSchedule(fx.ctx, &UpdateScheduleRequest{
+		updated, err := fx.service.UpdateSchedule(fx.Context(), &UpdateScheduleRequest{
 			Schedule: created,
 		})
 		assert.NilError(t, err)
-		persisted, err := fx.service.GetSchedule(fx.ctx, &GetScheduleRequest{
+		persisted, err := fx.service.GetSchedule(fx.Context(), &GetScheduleRequest{
 			Name: updated.Name,
 		})
 		assert.NilError(t, err)
@@ -368,7 +370,7 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testUpdate(t *testing.T) {
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
 		originalCreateTime := created.CreateTime
-		updated, err := fx.service.UpdateSchedule(fx.ctx, &UpdateScheduleRequest{
+		updated, err := fx.service.UpdateSchedule(fx.Context(), &UpdateScheduleRequest{
 			Schedule: created,
 			UpdateMask: &fieldmaskpb.FieldMask{
 				Paths: []string{
@@ -387,7 +389,7 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testUpdate(t *testing.T) {
 		fx.maybeSkip(t)
 		msg := fx.Update(parent)
 		msg.Name = created.Name + "notfound"
-		_, err := fx.service.UpdateSchedule(fx.ctx, &UpdateScheduleRequest{
+		_, err := fx.service.UpdateSchedule(fx.Context(), &UpdateScheduleRequest{
 			Schedule: msg,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -396,7 +398,7 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testUpdate(t *testing.T) {
 	// The method should fail with InvalidArgument if the update_mask is invalid.
 	t.Run("invalid update mask", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.UpdateSchedule(fx.ctx, &UpdateScheduleRequest{
+		_, err := fx.service.UpdateSchedule(fx.Context(), &UpdateScheduleRequest{
 			Schedule: created,
 			UpdateMask: &fieldmaskpb.FieldMask{
 				Paths: []string{
@@ -420,7 +422,7 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testUpdate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("parent")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateSchedule(fx.ctx, &UpdateScheduleRequest{
+			_, err := fx.service.UpdateSchedule(fx.Context(), &UpdateScheduleRequest{
 				Schedule: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
@@ -439,7 +441,7 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testUpdate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("pipeline_job")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateSchedule(fx.ctx, &UpdateScheduleRequest{
+			_, err := fx.service.UpdateSchedule(fx.Context(), &UpdateScheduleRequest{
 				Schedule: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
@@ -458,7 +460,7 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testUpdate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("gcs_output_directory")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateSchedule(fx.ctx, &UpdateScheduleRequest{
+			_, err := fx.service.UpdateSchedule(fx.Context(), &UpdateScheduleRequest{
 				Schedule: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
@@ -477,7 +479,7 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testUpdate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("kms_key_name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateSchedule(fx.ctx, &UpdateScheduleRequest{
+			_, err := fx.service.UpdateSchedule(fx.Context(), &UpdateScheduleRequest{
 				Schedule: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
@@ -496,7 +498,7 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testUpdate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateSchedule(fx.ctx, &UpdateScheduleRequest{
+			_, err := fx.service.UpdateSchedule(fx.Context(), &UpdateScheduleRequest{
 				Schedule: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
@@ -515,7 +517,7 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testUpdate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("max_concurrent_run_count")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateSchedule(fx.ctx, &UpdateScheduleRequest{
+			_, err := fx.service.UpdateSchedule(fx.Context(), &UpdateScheduleRequest{
 				Schedule: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
@@ -534,7 +536,7 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testList(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.ListSchedules(fx.ctx, &ListSchedulesRequest{
+		_, err := fx.service.ListSchedules(fx.Context(), &ListSchedulesRequest{
 			Parent: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -544,7 +546,7 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testList(t *testing.T) {
 	t.Run("invalid page token", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListSchedules(fx.ctx, &ListSchedulesRequest{
+		_, err := fx.service.ListSchedules(fx.Context(), &ListSchedulesRequest{
 			Parent:    parent,
 			PageToken: "invalid page token",
 		})
@@ -555,7 +557,7 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testList(t *testing.T) {
 	t.Run("negative page size", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListSchedules(fx.ctx, &ListSchedulesRequest{
+		_, err := fx.service.ListSchedules(fx.Context(), &ListSchedulesRequest{
 			Parent:   parent,
 			PageSize: -10,
 		})
@@ -573,7 +575,7 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testList(t *testing.T) {
 	// under that parent.
 	t.Run("isolation", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListSchedules(fx.ctx, &ListSchedulesRequest{
+		response, err := fx.service.ListSchedules(fx.Context(), &ListSchedulesRequest{
 			Parent:   parent,
 			PageSize: 999,
 		})
@@ -592,7 +594,7 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testList(t *testing.T) {
 	// If there are no more resources, next_page_token should not be set.
 	t.Run("last page", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListSchedules(fx.ctx, &ListSchedulesRequest{
+		response, err := fx.service.ListSchedules(fx.Context(), &ListSchedulesRequest{
 			Parent:   parent,
 			PageSize: resourcesCount,
 		})
@@ -603,7 +605,7 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testList(t *testing.T) {
 	// If there are more resources, next_page_token should be set.
 	t.Run("more pages", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListSchedules(fx.ctx, &ListSchedulesRequest{
+		response, err := fx.service.ListSchedules(fx.Context(), &ListSchedulesRequest{
 			Parent:   parent,
 			PageSize: resourcesCount - 1,
 		})
@@ -617,7 +619,7 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testList(t *testing.T) {
 		msgs := make([]*Schedule, 0, resourcesCount)
 		var nextPageToken string
 		for {
-			response, err := fx.service.ListSchedules(fx.ctx, &ListSchedulesRequest{
+			response, err := fx.service.ListSchedules(fx.Context(), &ListSchedulesRequest{
 				Parent:    parent,
 				PageSize:  1,
 				PageToken: nextPageToken,
@@ -646,12 +648,12 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testList(t *testing.T) {
 		fx.maybeSkip(t)
 		const deleteCount = 5
 		for i := 0; i < deleteCount; i++ {
-			_, err := fx.service.DeleteSchedule(fx.ctx, &DeleteScheduleRequest{
+			_, err := fx.service.DeleteSchedule(fx.Context(), &DeleteScheduleRequest{
 				Name: parentMsgs[i].Name,
 			})
 			assert.NilError(t, err)
 		}
-		response, err := fx.service.ListSchedules(fx.ctx, &ListSchedulesRequest{
+		response, err := fx.service.ListSchedules(fx.Context(), &ListSchedulesRequest{
 			Parent:   parent,
 			PageSize: 9999,
 		})
@@ -674,7 +676,7 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteSchedule(fx.ctx, &DeleteScheduleRequest{
+		_, err := fx.service.DeleteSchedule(fx.Context(), &DeleteScheduleRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -683,7 +685,7 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteSchedule(fx.ctx, &DeleteScheduleRequest{
+		_, err := fx.service.DeleteSchedule(fx.Context(), &DeleteScheduleRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -694,7 +696,7 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteSchedule(fx.ctx, &DeleteScheduleRequest{
+		_, err := fx.service.DeleteSchedule(fx.Context(), &DeleteScheduleRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -705,7 +707,7 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteSchedule(fx.ctx, &DeleteScheduleRequest{
+		_, err := fx.service.DeleteSchedule(fx.Context(), &DeleteScheduleRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -716,12 +718,12 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		deleted, err := fx.service.DeleteSchedule(fx.ctx, &DeleteScheduleRequest{
+		deleted, err := fx.service.DeleteSchedule(fx.Context(), &DeleteScheduleRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
 		_ = deleted
-		_, err = fx.service.DeleteSchedule(fx.ctx, &DeleteScheduleRequest{
+		_, err = fx.service.DeleteSchedule(fx.Context(), &DeleteScheduleRequest{
 			Name: created.Name,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -730,7 +732,7 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteSchedule(fx.ctx, &DeleteScheduleRequest{
+		_, err := fx.service.DeleteSchedule(fx.Context(), &DeleteScheduleRequest{
 			Name: "projects/-/locations/-/schedules/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -766,7 +768,7 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) maybeSkip(t *testing.T) {
 
 func (fx *ScheduleServiceScheduleTestSuiteConfig) create(t *testing.T, parent string) *Schedule {
 	t.Helper()
-	created, err := fx.service.CreateSchedule(fx.ctx, &CreateScheduleRequest{
+	created, err := fx.service.CreateSchedule(fx.Context(), &CreateScheduleRequest{
 		Parent:   parent,
 		Schedule: fx.Create(parent),
 	})

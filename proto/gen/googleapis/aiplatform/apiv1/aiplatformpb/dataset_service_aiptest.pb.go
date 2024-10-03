@@ -23,7 +23,7 @@ type DatasetServiceTestSuite struct {
 
 func (fx DatasetServiceTestSuite) TestAnnotation(ctx context.Context, options DatasetServiceAnnotationTestSuiteConfig) {
 	fx.T.Run("Annotation", func(t *testing.T) {
-		options.ctx = ctx
+		options.Context = func() context.Context { return ctx }
 		options.service = fx.Server
 		options.test(t)
 	})
@@ -31,7 +31,7 @@ func (fx DatasetServiceTestSuite) TestAnnotation(ctx context.Context, options Da
 
 func (fx DatasetServiceTestSuite) TestAnnotationSpec(ctx context.Context, options DatasetServiceAnnotationSpecTestSuiteConfig) {
 	fx.T.Run("AnnotationSpec", func(t *testing.T) {
-		options.ctx = ctx
+		options.Context = func() context.Context { return ctx }
 		options.service = fx.Server
 		options.test(t)
 	})
@@ -39,7 +39,7 @@ func (fx DatasetServiceTestSuite) TestAnnotationSpec(ctx context.Context, option
 
 func (fx DatasetServiceTestSuite) TestDataItem(ctx context.Context, options DatasetServiceDataItemTestSuiteConfig) {
 	fx.T.Run("DataItem", func(t *testing.T) {
-		options.ctx = ctx
+		options.Context = func() context.Context { return ctx }
 		options.service = fx.Server
 		options.test(t)
 	})
@@ -47,7 +47,7 @@ func (fx DatasetServiceTestSuite) TestDataItem(ctx context.Context, options Data
 
 func (fx DatasetServiceTestSuite) TestDataset(ctx context.Context, options DatasetServiceDatasetTestSuiteConfig) {
 	fx.T.Run("Dataset", func(t *testing.T) {
-		options.ctx = ctx
+		options.Context = func() context.Context { return ctx }
 		options.service = fx.Server
 		options.test(t)
 	})
@@ -55,7 +55,7 @@ func (fx DatasetServiceTestSuite) TestDataset(ctx context.Context, options Datas
 
 func (fx DatasetServiceTestSuite) TestDatasetVersion(ctx context.Context, options DatasetServiceDatasetVersionTestSuiteConfig) {
 	fx.T.Run("DatasetVersion", func(t *testing.T) {
-		options.ctx = ctx
+		options.Context = func() context.Context { return ctx }
 		options.service = fx.Server
 		options.test(t)
 	})
@@ -63,17 +63,19 @@ func (fx DatasetServiceTestSuite) TestDatasetVersion(ctx context.Context, option
 
 func (fx DatasetServiceTestSuite) TestSavedQuery(ctx context.Context, options DatasetServiceSavedQueryTestSuiteConfig) {
 	fx.T.Run("SavedQuery", func(t *testing.T) {
-		options.ctx = ctx
+		options.Context = func() context.Context { return ctx }
 		options.service = fx.Server
 		options.test(t)
 	})
 }
 
 type DatasetServiceAnnotationTestSuiteConfig struct {
-	ctx        context.Context
 	service    DatasetServiceServer
 	currParent int
 
+	// Context should return a new context.
+	// The context will be used for several tests.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -101,7 +103,7 @@ func (fx *DatasetServiceAnnotationTestSuiteConfig) testList(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.ListAnnotations(fx.ctx, &ListAnnotationsRequest{
+		_, err := fx.service.ListAnnotations(fx.Context(), &ListAnnotationsRequest{
 			Parent: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -111,7 +113,7 @@ func (fx *DatasetServiceAnnotationTestSuiteConfig) testList(t *testing.T) {
 	t.Run("invalid page token", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListAnnotations(fx.ctx, &ListAnnotationsRequest{
+		_, err := fx.service.ListAnnotations(fx.Context(), &ListAnnotationsRequest{
 			Parent:    parent,
 			PageToken: "invalid page token",
 		})
@@ -122,7 +124,7 @@ func (fx *DatasetServiceAnnotationTestSuiteConfig) testList(t *testing.T) {
 	t.Run("negative page size", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListAnnotations(fx.ctx, &ListAnnotationsRequest{
+		_, err := fx.service.ListAnnotations(fx.Context(), &ListAnnotationsRequest{
 			Parent:   parent,
 			PageSize: -10,
 		})
@@ -140,7 +142,7 @@ func (fx *DatasetServiceAnnotationTestSuiteConfig) testList(t *testing.T) {
 	// under that parent.
 	t.Run("isolation", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListAnnotations(fx.ctx, &ListAnnotationsRequest{
+		response, err := fx.service.ListAnnotations(fx.Context(), &ListAnnotationsRequest{
 			Parent:   parent,
 			PageSize: 999,
 		})
@@ -159,7 +161,7 @@ func (fx *DatasetServiceAnnotationTestSuiteConfig) testList(t *testing.T) {
 	// If there are no more resources, next_page_token should not be set.
 	t.Run("last page", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListAnnotations(fx.ctx, &ListAnnotationsRequest{
+		response, err := fx.service.ListAnnotations(fx.Context(), &ListAnnotationsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount,
 		})
@@ -170,7 +172,7 @@ func (fx *DatasetServiceAnnotationTestSuiteConfig) testList(t *testing.T) {
 	// If there are more resources, next_page_token should be set.
 	t.Run("more pages", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListAnnotations(fx.ctx, &ListAnnotationsRequest{
+		response, err := fx.service.ListAnnotations(fx.Context(), &ListAnnotationsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount - 1,
 		})
@@ -184,7 +186,7 @@ func (fx *DatasetServiceAnnotationTestSuiteConfig) testList(t *testing.T) {
 		msgs := make([]*Annotation, 0, resourcesCount)
 		var nextPageToken string
 		for {
-			response, err := fx.service.ListAnnotations(fx.ctx, &ListAnnotationsRequest{
+			response, err := fx.service.ListAnnotations(fx.Context(), &ListAnnotationsRequest{
 				Parent:    parent,
 				PageSize:  1,
 				PageToken: nextPageToken,
@@ -241,16 +243,18 @@ func (fx *DatasetServiceAnnotationTestSuiteConfig) create(t *testing.T, parent s
 	if fx.CreateResource == nil {
 		t.Skip("Test skipped because CreateResource not specified on DatasetServiceAnnotationTestSuiteConfig")
 	}
-	created, err := fx.CreateResource(fx.ctx, parent)
+	created, err := fx.CreateResource(fx.Context(), parent)
 	assert.NilError(t, err)
 	return created
 }
 
 type DatasetServiceAnnotationSpecTestSuiteConfig struct {
-	ctx        context.Context
 	service    DatasetServiceServer
 	currParent int
 
+	// Context should return a new context.
+	// The context will be used for several tests.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -278,7 +282,7 @@ func (fx *DatasetServiceAnnotationSpecTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetAnnotationSpec(fx.ctx, &GetAnnotationSpecRequest{
+		_, err := fx.service.GetAnnotationSpec(fx.Context(), &GetAnnotationSpecRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -287,7 +291,7 @@ func (fx *DatasetServiceAnnotationSpecTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetAnnotationSpec(fx.ctx, &GetAnnotationSpecRequest{
+		_, err := fx.service.GetAnnotationSpec(fx.Context(), &GetAnnotationSpecRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -298,7 +302,7 @@ func (fx *DatasetServiceAnnotationSpecTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		msg, err := fx.service.GetAnnotationSpec(fx.ctx, &GetAnnotationSpecRequest{
+		msg, err := fx.service.GetAnnotationSpec(fx.Context(), &GetAnnotationSpecRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -310,7 +314,7 @@ func (fx *DatasetServiceAnnotationSpecTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.GetAnnotationSpec(fx.ctx, &GetAnnotationSpecRequest{
+		_, err := fx.service.GetAnnotationSpec(fx.Context(), &GetAnnotationSpecRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -319,7 +323,7 @@ func (fx *DatasetServiceAnnotationSpecTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetAnnotationSpec(fx.ctx, &GetAnnotationSpecRequest{
+		_, err := fx.service.GetAnnotationSpec(fx.Context(), &GetAnnotationSpecRequest{
 			Name: "projects/-/locations/-/datasets/-/annotationSpecs/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -358,16 +362,18 @@ func (fx *DatasetServiceAnnotationSpecTestSuiteConfig) create(t *testing.T, pare
 	if fx.CreateResource == nil {
 		t.Skip("Test skipped because CreateResource not specified on DatasetServiceAnnotationSpecTestSuiteConfig")
 	}
-	created, err := fx.CreateResource(fx.ctx, parent)
+	created, err := fx.CreateResource(fx.Context(), parent)
 	assert.NilError(t, err)
 	return created
 }
 
 type DatasetServiceDataItemTestSuiteConfig struct {
-	ctx        context.Context
 	service    DatasetServiceServer
 	currParent int
 
+	// Context should return a new context.
+	// The context will be used for several tests.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -395,7 +401,7 @@ func (fx *DatasetServiceDataItemTestSuiteConfig) testList(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.ListDataItems(fx.ctx, &ListDataItemsRequest{
+		_, err := fx.service.ListDataItems(fx.Context(), &ListDataItemsRequest{
 			Parent: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -405,7 +411,7 @@ func (fx *DatasetServiceDataItemTestSuiteConfig) testList(t *testing.T) {
 	t.Run("invalid page token", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListDataItems(fx.ctx, &ListDataItemsRequest{
+		_, err := fx.service.ListDataItems(fx.Context(), &ListDataItemsRequest{
 			Parent:    parent,
 			PageToken: "invalid page token",
 		})
@@ -416,7 +422,7 @@ func (fx *DatasetServiceDataItemTestSuiteConfig) testList(t *testing.T) {
 	t.Run("negative page size", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListDataItems(fx.ctx, &ListDataItemsRequest{
+		_, err := fx.service.ListDataItems(fx.Context(), &ListDataItemsRequest{
 			Parent:   parent,
 			PageSize: -10,
 		})
@@ -434,7 +440,7 @@ func (fx *DatasetServiceDataItemTestSuiteConfig) testList(t *testing.T) {
 	// under that parent.
 	t.Run("isolation", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListDataItems(fx.ctx, &ListDataItemsRequest{
+		response, err := fx.service.ListDataItems(fx.Context(), &ListDataItemsRequest{
 			Parent:   parent,
 			PageSize: 999,
 		})
@@ -453,7 +459,7 @@ func (fx *DatasetServiceDataItemTestSuiteConfig) testList(t *testing.T) {
 	// If there are no more resources, next_page_token should not be set.
 	t.Run("last page", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListDataItems(fx.ctx, &ListDataItemsRequest{
+		response, err := fx.service.ListDataItems(fx.Context(), &ListDataItemsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount,
 		})
@@ -464,7 +470,7 @@ func (fx *DatasetServiceDataItemTestSuiteConfig) testList(t *testing.T) {
 	// If there are more resources, next_page_token should be set.
 	t.Run("more pages", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListDataItems(fx.ctx, &ListDataItemsRequest{
+		response, err := fx.service.ListDataItems(fx.Context(), &ListDataItemsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount - 1,
 		})
@@ -478,7 +484,7 @@ func (fx *DatasetServiceDataItemTestSuiteConfig) testList(t *testing.T) {
 		msgs := make([]*DataItem, 0, resourcesCount)
 		var nextPageToken string
 		for {
-			response, err := fx.service.ListDataItems(fx.ctx, &ListDataItemsRequest{
+			response, err := fx.service.ListDataItems(fx.Context(), &ListDataItemsRequest{
 				Parent:    parent,
 				PageSize:  1,
 				PageToken: nextPageToken,
@@ -535,16 +541,18 @@ func (fx *DatasetServiceDataItemTestSuiteConfig) create(t *testing.T, parent str
 	if fx.CreateResource == nil {
 		t.Skip("Test skipped because CreateResource not specified on DatasetServiceDataItemTestSuiteConfig")
 	}
-	created, err := fx.CreateResource(fx.ctx, parent)
+	created, err := fx.CreateResource(fx.Context(), parent)
 	assert.NilError(t, err)
 	return created
 }
 
 type DatasetServiceDatasetTestSuiteConfig struct {
-	ctx        context.Context
 	service    DatasetServiceServer
 	currParent int
 
+	// Context should return a new context.
+	// The context will be used for several tests.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -576,7 +584,7 @@ func (fx *DatasetServiceDatasetTestSuiteConfig) testCreate(t *testing.T) {
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateDataset(fx.ctx, &CreateDatasetRequest{
+		_, err := fx.service.CreateDataset(fx.Context(), &CreateDatasetRequest{
 			Parent:  "",
 			Dataset: fx.Create(fx.nextParent(t, false)),
 		})
@@ -586,7 +594,7 @@ func (fx *DatasetServiceDatasetTestSuiteConfig) testCreate(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateDataset(fx.ctx, &CreateDatasetRequest{
+		_, err := fx.service.CreateDataset(fx.Context(), &CreateDatasetRequest{
 			Parent:  "invalid resource name",
 			Dataset: fx.Create(fx.nextParent(t, false)),
 		})
@@ -607,7 +615,7 @@ func (fx *DatasetServiceDatasetTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateDataset(fx.ctx, &CreateDatasetRequest{
+			_, err := fx.service.CreateDataset(fx.Context(), &CreateDatasetRequest{
 				Parent:  parent,
 				Dataset: msg,
 			})
@@ -623,7 +631,7 @@ func (fx *DatasetServiceDatasetTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("metadata_schema_uri")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateDataset(fx.ctx, &CreateDatasetRequest{
+			_, err := fx.service.CreateDataset(fx.Context(), &CreateDatasetRequest{
 				Parent:  parent,
 				Dataset: msg,
 			})
@@ -639,7 +647,7 @@ func (fx *DatasetServiceDatasetTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("metadata")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateDataset(fx.ctx, &CreateDatasetRequest{
+			_, err := fx.service.CreateDataset(fx.Context(), &CreateDatasetRequest{
 				Parent:  parent,
 				Dataset: msg,
 			})
@@ -655,7 +663,7 @@ func (fx *DatasetServiceDatasetTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("kms_key_name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateDataset(fx.ctx, &CreateDatasetRequest{
+			_, err := fx.service.CreateDataset(fx.Context(), &CreateDatasetRequest{
 				Parent:  parent,
 				Dataset: msg,
 			})
@@ -670,7 +678,7 @@ func (fx *DatasetServiceDatasetTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetDataset(fx.ctx, &GetDatasetRequest{
+		_, err := fx.service.GetDataset(fx.Context(), &GetDatasetRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -679,7 +687,7 @@ func (fx *DatasetServiceDatasetTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetDataset(fx.ctx, &GetDatasetRequest{
+		_, err := fx.service.GetDataset(fx.Context(), &GetDatasetRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -690,7 +698,7 @@ func (fx *DatasetServiceDatasetTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		msg, err := fx.service.GetDataset(fx.ctx, &GetDatasetRequest{
+		msg, err := fx.service.GetDataset(fx.Context(), &GetDatasetRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -702,7 +710,7 @@ func (fx *DatasetServiceDatasetTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.GetDataset(fx.ctx, &GetDatasetRequest{
+		_, err := fx.service.GetDataset(fx.Context(), &GetDatasetRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -711,7 +719,7 @@ func (fx *DatasetServiceDatasetTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetDataset(fx.ctx, &GetDatasetRequest{
+		_, err := fx.service.GetDataset(fx.Context(), &GetDatasetRequest{
 			Name: "projects/-/locations/-/datasets/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -727,7 +735,7 @@ func (fx *DatasetServiceDatasetTestSuiteConfig) testUpdate(t *testing.T) {
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
 		msg.Name = ""
-		_, err := fx.service.UpdateDataset(fx.ctx, &UpdateDatasetRequest{
+		_, err := fx.service.UpdateDataset(fx.Context(), &UpdateDatasetRequest{
 			Dataset: msg,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -739,7 +747,7 @@ func (fx *DatasetServiceDatasetTestSuiteConfig) testUpdate(t *testing.T) {
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
 		msg.Name = "invalid resource name"
-		_, err := fx.service.UpdateDataset(fx.ctx, &UpdateDatasetRequest{
+		_, err := fx.service.UpdateDataset(fx.Context(), &UpdateDatasetRequest{
 			Dataset: msg,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -750,11 +758,11 @@ func (fx *DatasetServiceDatasetTestSuiteConfig) testUpdate(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		updated, err := fx.service.UpdateDataset(fx.ctx, &UpdateDatasetRequest{
+		updated, err := fx.service.UpdateDataset(fx.Context(), &UpdateDatasetRequest{
 			Dataset: created,
 		})
 		assert.NilError(t, err)
-		persisted, err := fx.service.GetDataset(fx.ctx, &GetDatasetRequest{
+		persisted, err := fx.service.GetDataset(fx.Context(), &GetDatasetRequest{
 			Name: updated.Name,
 		})
 		assert.NilError(t, err)
@@ -767,7 +775,7 @@ func (fx *DatasetServiceDatasetTestSuiteConfig) testUpdate(t *testing.T) {
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
 		originalCreateTime := created.CreateTime
-		updated, err := fx.service.UpdateDataset(fx.ctx, &UpdateDatasetRequest{
+		updated, err := fx.service.UpdateDataset(fx.Context(), &UpdateDatasetRequest{
 			Dataset: created,
 			UpdateMask: &fieldmaskpb.FieldMask{
 				Paths: []string{
@@ -786,7 +794,7 @@ func (fx *DatasetServiceDatasetTestSuiteConfig) testUpdate(t *testing.T) {
 		fx.maybeSkip(t)
 		msg := fx.Update(parent)
 		msg.Name = created.Name + "notfound"
-		_, err := fx.service.UpdateDataset(fx.ctx, &UpdateDatasetRequest{
+		_, err := fx.service.UpdateDataset(fx.Context(), &UpdateDatasetRequest{
 			Dataset: msg,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -795,7 +803,7 @@ func (fx *DatasetServiceDatasetTestSuiteConfig) testUpdate(t *testing.T) {
 	// The method should fail with InvalidArgument if the update_mask is invalid.
 	t.Run("invalid update mask", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.UpdateDataset(fx.ctx, &UpdateDatasetRequest{
+		_, err := fx.service.UpdateDataset(fx.Context(), &UpdateDatasetRequest{
 			Dataset: created,
 			UpdateMask: &fieldmaskpb.FieldMask{
 				Paths: []string{
@@ -819,7 +827,7 @@ func (fx *DatasetServiceDatasetTestSuiteConfig) testUpdate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateDataset(fx.ctx, &UpdateDatasetRequest{
+			_, err := fx.service.UpdateDataset(fx.Context(), &UpdateDatasetRequest{
 				Dataset: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
@@ -838,7 +846,7 @@ func (fx *DatasetServiceDatasetTestSuiteConfig) testUpdate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("metadata_schema_uri")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateDataset(fx.ctx, &UpdateDatasetRequest{
+			_, err := fx.service.UpdateDataset(fx.Context(), &UpdateDatasetRequest{
 				Dataset: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
@@ -857,7 +865,7 @@ func (fx *DatasetServiceDatasetTestSuiteConfig) testUpdate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("metadata")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateDataset(fx.ctx, &UpdateDatasetRequest{
+			_, err := fx.service.UpdateDataset(fx.Context(), &UpdateDatasetRequest{
 				Dataset: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
@@ -876,7 +884,7 @@ func (fx *DatasetServiceDatasetTestSuiteConfig) testUpdate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("kms_key_name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateDataset(fx.ctx, &UpdateDatasetRequest{
+			_, err := fx.service.UpdateDataset(fx.Context(), &UpdateDatasetRequest{
 				Dataset: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
@@ -895,7 +903,7 @@ func (fx *DatasetServiceDatasetTestSuiteConfig) testList(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.ListDatasets(fx.ctx, &ListDatasetsRequest{
+		_, err := fx.service.ListDatasets(fx.Context(), &ListDatasetsRequest{
 			Parent: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -905,7 +913,7 @@ func (fx *DatasetServiceDatasetTestSuiteConfig) testList(t *testing.T) {
 	t.Run("invalid page token", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListDatasets(fx.ctx, &ListDatasetsRequest{
+		_, err := fx.service.ListDatasets(fx.Context(), &ListDatasetsRequest{
 			Parent:    parent,
 			PageToken: "invalid page token",
 		})
@@ -916,7 +924,7 @@ func (fx *DatasetServiceDatasetTestSuiteConfig) testList(t *testing.T) {
 	t.Run("negative page size", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListDatasets(fx.ctx, &ListDatasetsRequest{
+		_, err := fx.service.ListDatasets(fx.Context(), &ListDatasetsRequest{
 			Parent:   parent,
 			PageSize: -10,
 		})
@@ -934,7 +942,7 @@ func (fx *DatasetServiceDatasetTestSuiteConfig) testList(t *testing.T) {
 	// under that parent.
 	t.Run("isolation", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListDatasets(fx.ctx, &ListDatasetsRequest{
+		response, err := fx.service.ListDatasets(fx.Context(), &ListDatasetsRequest{
 			Parent:   parent,
 			PageSize: 999,
 		})
@@ -953,7 +961,7 @@ func (fx *DatasetServiceDatasetTestSuiteConfig) testList(t *testing.T) {
 	// If there are no more resources, next_page_token should not be set.
 	t.Run("last page", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListDatasets(fx.ctx, &ListDatasetsRequest{
+		response, err := fx.service.ListDatasets(fx.Context(), &ListDatasetsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount,
 		})
@@ -964,7 +972,7 @@ func (fx *DatasetServiceDatasetTestSuiteConfig) testList(t *testing.T) {
 	// If there are more resources, next_page_token should be set.
 	t.Run("more pages", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListDatasets(fx.ctx, &ListDatasetsRequest{
+		response, err := fx.service.ListDatasets(fx.Context(), &ListDatasetsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount - 1,
 		})
@@ -978,7 +986,7 @@ func (fx *DatasetServiceDatasetTestSuiteConfig) testList(t *testing.T) {
 		msgs := make([]*Dataset, 0, resourcesCount)
 		var nextPageToken string
 		for {
-			response, err := fx.service.ListDatasets(fx.ctx, &ListDatasetsRequest{
+			response, err := fx.service.ListDatasets(fx.Context(), &ListDatasetsRequest{
 				Parent:    parent,
 				PageSize:  1,
 				PageToken: nextPageToken,
@@ -1007,12 +1015,12 @@ func (fx *DatasetServiceDatasetTestSuiteConfig) testList(t *testing.T) {
 		fx.maybeSkip(t)
 		const deleteCount = 5
 		for i := 0; i < deleteCount; i++ {
-			_, err := fx.service.DeleteDataset(fx.ctx, &DeleteDatasetRequest{
+			_, err := fx.service.DeleteDataset(fx.Context(), &DeleteDatasetRequest{
 				Name: parentMsgs[i].Name,
 			})
 			assert.NilError(t, err)
 		}
-		response, err := fx.service.ListDatasets(fx.ctx, &ListDatasetsRequest{
+		response, err := fx.service.ListDatasets(fx.Context(), &ListDatasetsRequest{
 			Parent:   parent,
 			PageSize: 9999,
 		})
@@ -1035,7 +1043,7 @@ func (fx *DatasetServiceDatasetTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteDataset(fx.ctx, &DeleteDatasetRequest{
+		_, err := fx.service.DeleteDataset(fx.Context(), &DeleteDatasetRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1044,7 +1052,7 @@ func (fx *DatasetServiceDatasetTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteDataset(fx.ctx, &DeleteDatasetRequest{
+		_, err := fx.service.DeleteDataset(fx.Context(), &DeleteDatasetRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1055,7 +1063,7 @@ func (fx *DatasetServiceDatasetTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteDataset(fx.ctx, &DeleteDatasetRequest{
+		_, err := fx.service.DeleteDataset(fx.Context(), &DeleteDatasetRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -1066,7 +1074,7 @@ func (fx *DatasetServiceDatasetTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteDataset(fx.ctx, &DeleteDatasetRequest{
+		_, err := fx.service.DeleteDataset(fx.Context(), &DeleteDatasetRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -1077,12 +1085,12 @@ func (fx *DatasetServiceDatasetTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		deleted, err := fx.service.DeleteDataset(fx.ctx, &DeleteDatasetRequest{
+		deleted, err := fx.service.DeleteDataset(fx.Context(), &DeleteDatasetRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
 		_ = deleted
-		_, err = fx.service.DeleteDataset(fx.ctx, &DeleteDatasetRequest{
+		_, err = fx.service.DeleteDataset(fx.Context(), &DeleteDatasetRequest{
 			Name: created.Name,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -1091,7 +1099,7 @@ func (fx *DatasetServiceDatasetTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteDataset(fx.ctx, &DeleteDatasetRequest{
+		_, err := fx.service.DeleteDataset(fx.Context(), &DeleteDatasetRequest{
 			Name: "projects/-/locations/-/datasets/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1132,10 +1140,12 @@ func (fx *DatasetServiceDatasetTestSuiteConfig) create(t *testing.T, parent stri
 }
 
 type DatasetServiceDatasetVersionTestSuiteConfig struct {
-	ctx        context.Context
 	service    DatasetServiceServer
 	currParent int
 
+	// Context should return a new context.
+	// The context will be used for several tests.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -1163,7 +1173,7 @@ func (fx *DatasetServiceDatasetVersionTestSuiteConfig) testCreate(t *testing.T) 
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateDatasetVersion(fx.ctx, &CreateDatasetVersionRequest{
+		_, err := fx.service.CreateDatasetVersion(fx.Context(), &CreateDatasetVersionRequest{
 			Parent:         "",
 			DatasetVersion: fx.Create(fx.nextParent(t, false)),
 		})
@@ -1173,7 +1183,7 @@ func (fx *DatasetServiceDatasetVersionTestSuiteConfig) testCreate(t *testing.T) 
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateDatasetVersion(fx.ctx, &CreateDatasetVersionRequest{
+		_, err := fx.service.CreateDatasetVersion(fx.Context(), &CreateDatasetVersionRequest{
 			Parent:         "invalid resource name",
 			DatasetVersion: fx.Create(fx.nextParent(t, false)),
 		})
@@ -1187,7 +1197,7 @@ func (fx *DatasetServiceDatasetVersionTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetDatasetVersion(fx.ctx, &GetDatasetVersionRequest{
+		_, err := fx.service.GetDatasetVersion(fx.Context(), &GetDatasetVersionRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1196,7 +1206,7 @@ func (fx *DatasetServiceDatasetVersionTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetDatasetVersion(fx.ctx, &GetDatasetVersionRequest{
+		_, err := fx.service.GetDatasetVersion(fx.Context(), &GetDatasetVersionRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1207,7 +1217,7 @@ func (fx *DatasetServiceDatasetVersionTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		msg, err := fx.service.GetDatasetVersion(fx.ctx, &GetDatasetVersionRequest{
+		msg, err := fx.service.GetDatasetVersion(fx.Context(), &GetDatasetVersionRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -1219,7 +1229,7 @@ func (fx *DatasetServiceDatasetVersionTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.GetDatasetVersion(fx.ctx, &GetDatasetVersionRequest{
+		_, err := fx.service.GetDatasetVersion(fx.Context(), &GetDatasetVersionRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -1228,7 +1238,7 @@ func (fx *DatasetServiceDatasetVersionTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetDatasetVersion(fx.ctx, &GetDatasetVersionRequest{
+		_, err := fx.service.GetDatasetVersion(fx.Context(), &GetDatasetVersionRequest{
 			Name: "projects/-/locations/-/datasets/-/datasetVersions/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1241,7 +1251,7 @@ func (fx *DatasetServiceDatasetVersionTestSuiteConfig) testList(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.ListDatasetVersions(fx.ctx, &ListDatasetVersionsRequest{
+		_, err := fx.service.ListDatasetVersions(fx.Context(), &ListDatasetVersionsRequest{
 			Parent: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1251,7 +1261,7 @@ func (fx *DatasetServiceDatasetVersionTestSuiteConfig) testList(t *testing.T) {
 	t.Run("invalid page token", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListDatasetVersions(fx.ctx, &ListDatasetVersionsRequest{
+		_, err := fx.service.ListDatasetVersions(fx.Context(), &ListDatasetVersionsRequest{
 			Parent:    parent,
 			PageToken: "invalid page token",
 		})
@@ -1262,7 +1272,7 @@ func (fx *DatasetServiceDatasetVersionTestSuiteConfig) testList(t *testing.T) {
 	t.Run("negative page size", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListDatasetVersions(fx.ctx, &ListDatasetVersionsRequest{
+		_, err := fx.service.ListDatasetVersions(fx.Context(), &ListDatasetVersionsRequest{
 			Parent:   parent,
 			PageSize: -10,
 		})
@@ -1280,7 +1290,7 @@ func (fx *DatasetServiceDatasetVersionTestSuiteConfig) testList(t *testing.T) {
 	// under that parent.
 	t.Run("isolation", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListDatasetVersions(fx.ctx, &ListDatasetVersionsRequest{
+		response, err := fx.service.ListDatasetVersions(fx.Context(), &ListDatasetVersionsRequest{
 			Parent:   parent,
 			PageSize: 999,
 		})
@@ -1299,7 +1309,7 @@ func (fx *DatasetServiceDatasetVersionTestSuiteConfig) testList(t *testing.T) {
 	// If there are no more resources, next_page_token should not be set.
 	t.Run("last page", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListDatasetVersions(fx.ctx, &ListDatasetVersionsRequest{
+		response, err := fx.service.ListDatasetVersions(fx.Context(), &ListDatasetVersionsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount,
 		})
@@ -1310,7 +1320,7 @@ func (fx *DatasetServiceDatasetVersionTestSuiteConfig) testList(t *testing.T) {
 	// If there are more resources, next_page_token should be set.
 	t.Run("more pages", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListDatasetVersions(fx.ctx, &ListDatasetVersionsRequest{
+		response, err := fx.service.ListDatasetVersions(fx.Context(), &ListDatasetVersionsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount - 1,
 		})
@@ -1324,7 +1334,7 @@ func (fx *DatasetServiceDatasetVersionTestSuiteConfig) testList(t *testing.T) {
 		msgs := make([]*DatasetVersion, 0, resourcesCount)
 		var nextPageToken string
 		for {
-			response, err := fx.service.ListDatasetVersions(fx.ctx, &ListDatasetVersionsRequest{
+			response, err := fx.service.ListDatasetVersions(fx.Context(), &ListDatasetVersionsRequest{
 				Parent:    parent,
 				PageSize:  1,
 				PageToken: nextPageToken,
@@ -1353,12 +1363,12 @@ func (fx *DatasetServiceDatasetVersionTestSuiteConfig) testList(t *testing.T) {
 		fx.maybeSkip(t)
 		const deleteCount = 5
 		for i := 0; i < deleteCount; i++ {
-			_, err := fx.service.DeleteDatasetVersion(fx.ctx, &DeleteDatasetVersionRequest{
+			_, err := fx.service.DeleteDatasetVersion(fx.Context(), &DeleteDatasetVersionRequest{
 				Name: parentMsgs[i].Name,
 			})
 			assert.NilError(t, err)
 		}
-		response, err := fx.service.ListDatasetVersions(fx.ctx, &ListDatasetVersionsRequest{
+		response, err := fx.service.ListDatasetVersions(fx.Context(), &ListDatasetVersionsRequest{
 			Parent:   parent,
 			PageSize: 9999,
 		})
@@ -1381,7 +1391,7 @@ func (fx *DatasetServiceDatasetVersionTestSuiteConfig) testDelete(t *testing.T) 
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteDatasetVersion(fx.ctx, &DeleteDatasetVersionRequest{
+		_, err := fx.service.DeleteDatasetVersion(fx.Context(), &DeleteDatasetVersionRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1390,7 +1400,7 @@ func (fx *DatasetServiceDatasetVersionTestSuiteConfig) testDelete(t *testing.T) 
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteDatasetVersion(fx.ctx, &DeleteDatasetVersionRequest{
+		_, err := fx.service.DeleteDatasetVersion(fx.Context(), &DeleteDatasetVersionRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1401,7 +1411,7 @@ func (fx *DatasetServiceDatasetVersionTestSuiteConfig) testDelete(t *testing.T) 
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteDatasetVersion(fx.ctx, &DeleteDatasetVersionRequest{
+		_, err := fx.service.DeleteDatasetVersion(fx.Context(), &DeleteDatasetVersionRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -1412,7 +1422,7 @@ func (fx *DatasetServiceDatasetVersionTestSuiteConfig) testDelete(t *testing.T) 
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteDatasetVersion(fx.ctx, &DeleteDatasetVersionRequest{
+		_, err := fx.service.DeleteDatasetVersion(fx.Context(), &DeleteDatasetVersionRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -1423,12 +1433,12 @@ func (fx *DatasetServiceDatasetVersionTestSuiteConfig) testDelete(t *testing.T) 
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		deleted, err := fx.service.DeleteDatasetVersion(fx.ctx, &DeleteDatasetVersionRequest{
+		deleted, err := fx.service.DeleteDatasetVersion(fx.Context(), &DeleteDatasetVersionRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
 		_ = deleted
-		_, err = fx.service.DeleteDatasetVersion(fx.ctx, &DeleteDatasetVersionRequest{
+		_, err = fx.service.DeleteDatasetVersion(fx.Context(), &DeleteDatasetVersionRequest{
 			Name: created.Name,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -1437,7 +1447,7 @@ func (fx *DatasetServiceDatasetVersionTestSuiteConfig) testDelete(t *testing.T) 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteDatasetVersion(fx.ctx, &DeleteDatasetVersionRequest{
+		_, err := fx.service.DeleteDatasetVersion(fx.Context(), &DeleteDatasetVersionRequest{
 			Name: "projects/-/locations/-/datasets/-/datasetVersions/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1478,10 +1488,12 @@ func (fx *DatasetServiceDatasetVersionTestSuiteConfig) create(t *testing.T, pare
 }
 
 type DatasetServiceSavedQueryTestSuiteConfig struct {
-	ctx        context.Context
 	service    DatasetServiceServer
 	currParent int
 
+	// Context should return a new context.
+	// The context will be used for several tests.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -1510,7 +1522,7 @@ func (fx *DatasetServiceSavedQueryTestSuiteConfig) testList(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.ListSavedQueries(fx.ctx, &ListSavedQueriesRequest{
+		_, err := fx.service.ListSavedQueries(fx.Context(), &ListSavedQueriesRequest{
 			Parent: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1520,7 +1532,7 @@ func (fx *DatasetServiceSavedQueryTestSuiteConfig) testList(t *testing.T) {
 	t.Run("invalid page token", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListSavedQueries(fx.ctx, &ListSavedQueriesRequest{
+		_, err := fx.service.ListSavedQueries(fx.Context(), &ListSavedQueriesRequest{
 			Parent:    parent,
 			PageToken: "invalid page token",
 		})
@@ -1531,7 +1543,7 @@ func (fx *DatasetServiceSavedQueryTestSuiteConfig) testList(t *testing.T) {
 	t.Run("negative page size", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListSavedQueries(fx.ctx, &ListSavedQueriesRequest{
+		_, err := fx.service.ListSavedQueries(fx.Context(), &ListSavedQueriesRequest{
 			Parent:   parent,
 			PageSize: -10,
 		})
@@ -1549,7 +1561,7 @@ func (fx *DatasetServiceSavedQueryTestSuiteConfig) testList(t *testing.T) {
 	// under that parent.
 	t.Run("isolation", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListSavedQueries(fx.ctx, &ListSavedQueriesRequest{
+		response, err := fx.service.ListSavedQueries(fx.Context(), &ListSavedQueriesRequest{
 			Parent:   parent,
 			PageSize: 999,
 		})
@@ -1568,7 +1580,7 @@ func (fx *DatasetServiceSavedQueryTestSuiteConfig) testList(t *testing.T) {
 	// If there are no more resources, next_page_token should not be set.
 	t.Run("last page", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListSavedQueries(fx.ctx, &ListSavedQueriesRequest{
+		response, err := fx.service.ListSavedQueries(fx.Context(), &ListSavedQueriesRequest{
 			Parent:   parent,
 			PageSize: resourcesCount,
 		})
@@ -1579,7 +1591,7 @@ func (fx *DatasetServiceSavedQueryTestSuiteConfig) testList(t *testing.T) {
 	// If there are more resources, next_page_token should be set.
 	t.Run("more pages", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListSavedQueries(fx.ctx, &ListSavedQueriesRequest{
+		response, err := fx.service.ListSavedQueries(fx.Context(), &ListSavedQueriesRequest{
 			Parent:   parent,
 			PageSize: resourcesCount - 1,
 		})
@@ -1593,7 +1605,7 @@ func (fx *DatasetServiceSavedQueryTestSuiteConfig) testList(t *testing.T) {
 		msgs := make([]*SavedQuery, 0, resourcesCount)
 		var nextPageToken string
 		for {
-			response, err := fx.service.ListSavedQueries(fx.ctx, &ListSavedQueriesRequest{
+			response, err := fx.service.ListSavedQueries(fx.Context(), &ListSavedQueriesRequest{
 				Parent:    parent,
 				PageSize:  1,
 				PageToken: nextPageToken,
@@ -1622,12 +1634,12 @@ func (fx *DatasetServiceSavedQueryTestSuiteConfig) testList(t *testing.T) {
 		fx.maybeSkip(t)
 		const deleteCount = 5
 		for i := 0; i < deleteCount; i++ {
-			_, err := fx.service.DeleteSavedQuery(fx.ctx, &DeleteSavedQueryRequest{
+			_, err := fx.service.DeleteSavedQuery(fx.Context(), &DeleteSavedQueryRequest{
 				Name: parentMsgs[i].Name,
 			})
 			assert.NilError(t, err)
 		}
-		response, err := fx.service.ListSavedQueries(fx.ctx, &ListSavedQueriesRequest{
+		response, err := fx.service.ListSavedQueries(fx.Context(), &ListSavedQueriesRequest{
 			Parent:   parent,
 			PageSize: 9999,
 		})
@@ -1650,7 +1662,7 @@ func (fx *DatasetServiceSavedQueryTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteSavedQuery(fx.ctx, &DeleteSavedQueryRequest{
+		_, err := fx.service.DeleteSavedQuery(fx.Context(), &DeleteSavedQueryRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1659,7 +1671,7 @@ func (fx *DatasetServiceSavedQueryTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteSavedQuery(fx.ctx, &DeleteSavedQueryRequest{
+		_, err := fx.service.DeleteSavedQuery(fx.Context(), &DeleteSavedQueryRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1670,7 +1682,7 @@ func (fx *DatasetServiceSavedQueryTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteSavedQuery(fx.ctx, &DeleteSavedQueryRequest{
+		_, err := fx.service.DeleteSavedQuery(fx.Context(), &DeleteSavedQueryRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -1681,7 +1693,7 @@ func (fx *DatasetServiceSavedQueryTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteSavedQuery(fx.ctx, &DeleteSavedQueryRequest{
+		_, err := fx.service.DeleteSavedQuery(fx.Context(), &DeleteSavedQueryRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -1692,12 +1704,12 @@ func (fx *DatasetServiceSavedQueryTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		deleted, err := fx.service.DeleteSavedQuery(fx.ctx, &DeleteSavedQueryRequest{
+		deleted, err := fx.service.DeleteSavedQuery(fx.Context(), &DeleteSavedQueryRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
 		_ = deleted
-		_, err = fx.service.DeleteSavedQuery(fx.ctx, &DeleteSavedQueryRequest{
+		_, err = fx.service.DeleteSavedQuery(fx.Context(), &DeleteSavedQueryRequest{
 			Name: created.Name,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -1706,7 +1718,7 @@ func (fx *DatasetServiceSavedQueryTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteSavedQuery(fx.ctx, &DeleteSavedQueryRequest{
+		_, err := fx.service.DeleteSavedQuery(fx.Context(), &DeleteSavedQueryRequest{
 			Name: "projects/-/locations/-/datasets/-/savedQueries/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1745,7 +1757,7 @@ func (fx *DatasetServiceSavedQueryTestSuiteConfig) create(t *testing.T, parent s
 	if fx.CreateResource == nil {
 		t.Skip("Test skipped because CreateResource not specified on DatasetServiceSavedQueryTestSuiteConfig")
 	}
-	created, err := fx.CreateResource(fx.ctx, parent)
+	created, err := fx.CreateResource(fx.Context(), parent)
 	assert.NilError(t, err)
 	return created
 }

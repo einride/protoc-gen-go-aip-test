@@ -23,7 +23,7 @@ type MetadataServiceTestSuite struct {
 
 func (fx MetadataServiceTestSuite) TestArtifact(ctx context.Context, options MetadataServiceArtifactTestSuiteConfig) {
 	fx.T.Run("Artifact", func(t *testing.T) {
-		options.ctx = ctx
+		options.Context = func() context.Context { return ctx }
 		options.service = fx.Server
 		options.test(t)
 	})
@@ -31,7 +31,7 @@ func (fx MetadataServiceTestSuite) TestArtifact(ctx context.Context, options Met
 
 func (fx MetadataServiceTestSuite) TestContext(ctx context.Context, options MetadataServiceContextTestSuiteConfig) {
 	fx.T.Run("Context", func(t *testing.T) {
-		options.ctx = ctx
+		options.Context = func() context.Context { return ctx }
 		options.service = fx.Server
 		options.test(t)
 	})
@@ -39,7 +39,7 @@ func (fx MetadataServiceTestSuite) TestContext(ctx context.Context, options Meta
 
 func (fx MetadataServiceTestSuite) TestExecution(ctx context.Context, options MetadataServiceExecutionTestSuiteConfig) {
 	fx.T.Run("Execution", func(t *testing.T) {
-		options.ctx = ctx
+		options.Context = func() context.Context { return ctx }
 		options.service = fx.Server
 		options.test(t)
 	})
@@ -47,7 +47,7 @@ func (fx MetadataServiceTestSuite) TestExecution(ctx context.Context, options Me
 
 func (fx MetadataServiceTestSuite) TestMetadataSchema(ctx context.Context, options MetadataServiceMetadataSchemaTestSuiteConfig) {
 	fx.T.Run("MetadataSchema", func(t *testing.T) {
-		options.ctx = ctx
+		options.Context = func() context.Context { return ctx }
 		options.service = fx.Server
 		options.test(t)
 	})
@@ -55,17 +55,19 @@ func (fx MetadataServiceTestSuite) TestMetadataSchema(ctx context.Context, optio
 
 func (fx MetadataServiceTestSuite) TestMetadataStore(ctx context.Context, options MetadataServiceMetadataStoreTestSuiteConfig) {
 	fx.T.Run("MetadataStore", func(t *testing.T) {
-		options.ctx = ctx
+		options.Context = func() context.Context { return ctx }
 		options.service = fx.Server
 		options.test(t)
 	})
 }
 
 type MetadataServiceArtifactTestSuiteConfig struct {
-	ctx        context.Context
 	service    MetadataServiceServer
 	currParent int
 
+	// Context should return a new context.
+	// The context will be used for several tests.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -97,7 +99,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testCreate(t *testing.T) {
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateArtifact(fx.ctx, &CreateArtifactRequest{
+		_, err := fx.service.CreateArtifact(fx.Context(), &CreateArtifactRequest{
 			Parent:   "",
 			Artifact: fx.Create(fx.nextParent(t, false)),
 		})
@@ -107,7 +109,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testCreate(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateArtifact(fx.ctx, &CreateArtifactRequest{
+		_, err := fx.service.CreateArtifact(fx.Context(), &CreateArtifactRequest{
 			Parent:   "invalid resource name",
 			Artifact: fx.Create(fx.nextParent(t, false)),
 		})
@@ -119,7 +121,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		beforeCreate := time.Now()
-		msg, err := fx.service.CreateArtifact(fx.ctx, &CreateArtifactRequest{
+		msg, err := fx.service.CreateArtifact(fx.Context(), &CreateArtifactRequest{
 			Parent:   parent,
 			Artifact: fx.Create(parent),
 		})
@@ -133,12 +135,12 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testCreate(t *testing.T) {
 	t.Run("persisted", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		msg, err := fx.service.CreateArtifact(fx.ctx, &CreateArtifactRequest{
+		msg, err := fx.service.CreateArtifact(fx.Context(), &CreateArtifactRequest{
 			Parent:   parent,
 			Artifact: fx.Create(parent),
 		})
 		assert.NilError(t, err)
-		persisted, err := fx.service.GetArtifact(fx.ctx, &GetArtifactRequest{
+		persisted, err := fx.service.GetArtifact(fx.Context(), &GetArtifactRequest{
 			Name: msg.Name,
 		})
 		assert.NilError(t, err)
@@ -149,7 +151,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testCreate(t *testing.T) {
 	t.Run("etag populated", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		created, _ := fx.service.CreateArtifact(fx.ctx, &CreateArtifactRequest{
+		created, _ := fx.service.CreateArtifact(fx.Context(), &CreateArtifactRequest{
 			Parent:   parent,
 			Artifact: fx.Create(parent),
 		})
@@ -163,7 +165,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetArtifact(fx.ctx, &GetArtifactRequest{
+		_, err := fx.service.GetArtifact(fx.Context(), &GetArtifactRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -172,7 +174,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetArtifact(fx.ctx, &GetArtifactRequest{
+		_, err := fx.service.GetArtifact(fx.Context(), &GetArtifactRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -183,7 +185,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		msg, err := fx.service.GetArtifact(fx.ctx, &GetArtifactRequest{
+		msg, err := fx.service.GetArtifact(fx.Context(), &GetArtifactRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -195,7 +197,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.GetArtifact(fx.ctx, &GetArtifactRequest{
+		_, err := fx.service.GetArtifact(fx.Context(), &GetArtifactRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -204,7 +206,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetArtifact(fx.ctx, &GetArtifactRequest{
+		_, err := fx.service.GetArtifact(fx.Context(), &GetArtifactRequest{
 			Name: "projects/-/locations/-/metadataStores/-/artifacts/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -220,7 +222,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testUpdate(t *testing.T) {
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
 		msg.Name = ""
-		_, err := fx.service.UpdateArtifact(fx.ctx, &UpdateArtifactRequest{
+		_, err := fx.service.UpdateArtifact(fx.Context(), &UpdateArtifactRequest{
 			Artifact: msg,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -232,7 +234,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testUpdate(t *testing.T) {
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
 		msg.Name = "invalid resource name"
-		_, err := fx.service.UpdateArtifact(fx.ctx, &UpdateArtifactRequest{
+		_, err := fx.service.UpdateArtifact(fx.Context(), &UpdateArtifactRequest{
 			Artifact: msg,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -243,7 +245,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testUpdate(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		updated, err := fx.service.UpdateArtifact(fx.ctx, &UpdateArtifactRequest{
+		updated, err := fx.service.UpdateArtifact(fx.Context(), &UpdateArtifactRequest{
 			Artifact: created,
 		})
 		assert.NilError(t, err)
@@ -255,11 +257,11 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testUpdate(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		updated, err := fx.service.UpdateArtifact(fx.ctx, &UpdateArtifactRequest{
+		updated, err := fx.service.UpdateArtifact(fx.Context(), &UpdateArtifactRequest{
 			Artifact: created,
 		})
 		assert.NilError(t, err)
-		persisted, err := fx.service.GetArtifact(fx.ctx, &GetArtifactRequest{
+		persisted, err := fx.service.GetArtifact(fx.Context(), &GetArtifactRequest{
 			Name: updated.Name,
 		})
 		assert.NilError(t, err)
@@ -273,7 +275,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testUpdate(t *testing.T) {
 		fx.maybeSkip(t)
 		msg := fx.Update(parent)
 		msg.Name = created.Name + "notfound"
-		_, err := fx.service.UpdateArtifact(fx.ctx, &UpdateArtifactRequest{
+		_, err := fx.service.UpdateArtifact(fx.Context(), &UpdateArtifactRequest{
 			Artifact: msg,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -282,7 +284,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testUpdate(t *testing.T) {
 	// The method should fail with InvalidArgument if the update_mask is invalid.
 	t.Run("invalid update mask", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.UpdateArtifact(fx.ctx, &UpdateArtifactRequest{
+		_, err := fx.service.UpdateArtifact(fx.Context(), &UpdateArtifactRequest{
 			Artifact: created,
 			UpdateMask: &fieldmaskpb.FieldMask{
 				Paths: []string{
@@ -300,7 +302,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testList(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.ListArtifacts(fx.ctx, &ListArtifactsRequest{
+		_, err := fx.service.ListArtifacts(fx.Context(), &ListArtifactsRequest{
 			Parent: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -310,7 +312,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testList(t *testing.T) {
 	t.Run("invalid page token", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListArtifacts(fx.ctx, &ListArtifactsRequest{
+		_, err := fx.service.ListArtifacts(fx.Context(), &ListArtifactsRequest{
 			Parent:    parent,
 			PageToken: "invalid page token",
 		})
@@ -321,7 +323,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testList(t *testing.T) {
 	t.Run("negative page size", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListArtifacts(fx.ctx, &ListArtifactsRequest{
+		_, err := fx.service.ListArtifacts(fx.Context(), &ListArtifactsRequest{
 			Parent:   parent,
 			PageSize: -10,
 		})
@@ -339,7 +341,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testList(t *testing.T) {
 	// under that parent.
 	t.Run("isolation", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListArtifacts(fx.ctx, &ListArtifactsRequest{
+		response, err := fx.service.ListArtifacts(fx.Context(), &ListArtifactsRequest{
 			Parent:   parent,
 			PageSize: 999,
 		})
@@ -358,7 +360,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testList(t *testing.T) {
 	// If there are no more resources, next_page_token should not be set.
 	t.Run("last page", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListArtifacts(fx.ctx, &ListArtifactsRequest{
+		response, err := fx.service.ListArtifacts(fx.Context(), &ListArtifactsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount,
 		})
@@ -369,7 +371,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testList(t *testing.T) {
 	// If there are more resources, next_page_token should be set.
 	t.Run("more pages", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListArtifacts(fx.ctx, &ListArtifactsRequest{
+		response, err := fx.service.ListArtifacts(fx.Context(), &ListArtifactsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount - 1,
 		})
@@ -383,7 +385,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testList(t *testing.T) {
 		msgs := make([]*Artifact, 0, resourcesCount)
 		var nextPageToken string
 		for {
-			response, err := fx.service.ListArtifacts(fx.ctx, &ListArtifactsRequest{
+			response, err := fx.service.ListArtifacts(fx.Context(), &ListArtifactsRequest{
 				Parent:    parent,
 				PageSize:  1,
 				PageToken: nextPageToken,
@@ -412,12 +414,12 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testList(t *testing.T) {
 		fx.maybeSkip(t)
 		const deleteCount = 5
 		for i := 0; i < deleteCount; i++ {
-			_, err := fx.service.DeleteArtifact(fx.ctx, &DeleteArtifactRequest{
+			_, err := fx.service.DeleteArtifact(fx.Context(), &DeleteArtifactRequest{
 				Name: parentMsgs[i].Name,
 			})
 			assert.NilError(t, err)
 		}
-		response, err := fx.service.ListArtifacts(fx.ctx, &ListArtifactsRequest{
+		response, err := fx.service.ListArtifacts(fx.Context(), &ListArtifactsRequest{
 			Parent:   parent,
 			PageSize: 9999,
 		})
@@ -440,7 +442,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteArtifact(fx.ctx, &DeleteArtifactRequest{
+		_, err := fx.service.DeleteArtifact(fx.Context(), &DeleteArtifactRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -449,7 +451,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteArtifact(fx.ctx, &DeleteArtifactRequest{
+		_, err := fx.service.DeleteArtifact(fx.Context(), &DeleteArtifactRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -460,7 +462,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteArtifact(fx.ctx, &DeleteArtifactRequest{
+		_, err := fx.service.DeleteArtifact(fx.Context(), &DeleteArtifactRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -471,7 +473,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteArtifact(fx.ctx, &DeleteArtifactRequest{
+		_, err := fx.service.DeleteArtifact(fx.Context(), &DeleteArtifactRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -482,12 +484,12 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		deleted, err := fx.service.DeleteArtifact(fx.ctx, &DeleteArtifactRequest{
+		deleted, err := fx.service.DeleteArtifact(fx.Context(), &DeleteArtifactRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
 		_ = deleted
-		_, err = fx.service.DeleteArtifact(fx.ctx, &DeleteArtifactRequest{
+		_, err = fx.service.DeleteArtifact(fx.Context(), &DeleteArtifactRequest{
 			Name: created.Name,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -496,7 +498,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteArtifact(fx.ctx, &DeleteArtifactRequest{
+		_, err := fx.service.DeleteArtifact(fx.Context(), &DeleteArtifactRequest{
 			Name: "projects/-/locations/-/metadataStores/-/artifacts/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -507,7 +509,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteArtifact(fx.ctx, &DeleteArtifactRequest{
+		_, err := fx.service.DeleteArtifact(fx.Context(), &DeleteArtifactRequest{
 			Name: created.Name,
 			Etag: `"99999"`,
 		})
@@ -544,7 +546,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) maybeSkip(t *testing.T) {
 
 func (fx *MetadataServiceArtifactTestSuiteConfig) create(t *testing.T, parent string) *Artifact {
 	t.Helper()
-	created, err := fx.service.CreateArtifact(fx.ctx, &CreateArtifactRequest{
+	created, err := fx.service.CreateArtifact(fx.Context(), &CreateArtifactRequest{
 		Parent:   parent,
 		Artifact: fx.Create(parent),
 	})
@@ -553,10 +555,12 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) create(t *testing.T, parent st
 }
 
 type MetadataServiceContextTestSuiteConfig struct {
-	ctx        context.Context
 	service    MetadataServiceServer
 	currParent int
 
+	// Context should return a new context.
+	// The context will be used for several tests.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -588,7 +592,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testCreate(t *testing.T) {
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateContext(fx.ctx, &CreateContextRequest{
+		_, err := fx.service.CreateContext(fx.Context(), &CreateContextRequest{
 			Parent:  "",
 			Context: fx.Create(fx.nextParent(t, false)),
 		})
@@ -598,7 +602,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testCreate(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateContext(fx.ctx, &CreateContextRequest{
+		_, err := fx.service.CreateContext(fx.Context(), &CreateContextRequest{
 			Parent:  "invalid resource name",
 			Context: fx.Create(fx.nextParent(t, false)),
 		})
@@ -610,7 +614,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		beforeCreate := time.Now()
-		msg, err := fx.service.CreateContext(fx.ctx, &CreateContextRequest{
+		msg, err := fx.service.CreateContext(fx.Context(), &CreateContextRequest{
 			Parent:  parent,
 			Context: fx.Create(parent),
 		})
@@ -624,12 +628,12 @@ func (fx *MetadataServiceContextTestSuiteConfig) testCreate(t *testing.T) {
 	t.Run("persisted", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		msg, err := fx.service.CreateContext(fx.ctx, &CreateContextRequest{
+		msg, err := fx.service.CreateContext(fx.Context(), &CreateContextRequest{
 			Parent:  parent,
 			Context: fx.Create(parent),
 		})
 		assert.NilError(t, err)
-		persisted, err := fx.service.GetContext(fx.ctx, &GetContextRequest{
+		persisted, err := fx.service.GetContext(fx.Context(), &GetContextRequest{
 			Name: msg.Name,
 		})
 		assert.NilError(t, err)
@@ -640,7 +644,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testCreate(t *testing.T) {
 	t.Run("etag populated", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		created, _ := fx.service.CreateContext(fx.ctx, &CreateContextRequest{
+		created, _ := fx.service.CreateContext(fx.Context(), &CreateContextRequest{
 			Parent:  parent,
 			Context: fx.Create(parent),
 		})
@@ -654,7 +658,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetContext(fx.ctx, &GetContextRequest{
+		_, err := fx.service.GetContext(fx.Context(), &GetContextRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -663,7 +667,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetContext(fx.ctx, &GetContextRequest{
+		_, err := fx.service.GetContext(fx.Context(), &GetContextRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -674,7 +678,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		msg, err := fx.service.GetContext(fx.ctx, &GetContextRequest{
+		msg, err := fx.service.GetContext(fx.Context(), &GetContextRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -686,7 +690,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.GetContext(fx.ctx, &GetContextRequest{
+		_, err := fx.service.GetContext(fx.Context(), &GetContextRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -695,7 +699,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetContext(fx.ctx, &GetContextRequest{
+		_, err := fx.service.GetContext(fx.Context(), &GetContextRequest{
 			Name: "projects/-/locations/-/metadataStores/-/contexts/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -711,7 +715,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testUpdate(t *testing.T) {
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
 		msg.Name = ""
-		_, err := fx.service.UpdateContext(fx.ctx, &UpdateContextRequest{
+		_, err := fx.service.UpdateContext(fx.Context(), &UpdateContextRequest{
 			Context: msg,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -723,7 +727,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testUpdate(t *testing.T) {
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
 		msg.Name = "invalid resource name"
-		_, err := fx.service.UpdateContext(fx.ctx, &UpdateContextRequest{
+		_, err := fx.service.UpdateContext(fx.Context(), &UpdateContextRequest{
 			Context: msg,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -734,7 +738,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testUpdate(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		updated, err := fx.service.UpdateContext(fx.ctx, &UpdateContextRequest{
+		updated, err := fx.service.UpdateContext(fx.Context(), &UpdateContextRequest{
 			Context: created,
 		})
 		assert.NilError(t, err)
@@ -746,11 +750,11 @@ func (fx *MetadataServiceContextTestSuiteConfig) testUpdate(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		updated, err := fx.service.UpdateContext(fx.ctx, &UpdateContextRequest{
+		updated, err := fx.service.UpdateContext(fx.Context(), &UpdateContextRequest{
 			Context: created,
 		})
 		assert.NilError(t, err)
-		persisted, err := fx.service.GetContext(fx.ctx, &GetContextRequest{
+		persisted, err := fx.service.GetContext(fx.Context(), &GetContextRequest{
 			Name: updated.Name,
 		})
 		assert.NilError(t, err)
@@ -764,7 +768,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testUpdate(t *testing.T) {
 		fx.maybeSkip(t)
 		msg := fx.Update(parent)
 		msg.Name = created.Name + "notfound"
-		_, err := fx.service.UpdateContext(fx.ctx, &UpdateContextRequest{
+		_, err := fx.service.UpdateContext(fx.Context(), &UpdateContextRequest{
 			Context: msg,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -773,7 +777,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testUpdate(t *testing.T) {
 	// The method should fail with InvalidArgument if the update_mask is invalid.
 	t.Run("invalid update mask", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.UpdateContext(fx.ctx, &UpdateContextRequest{
+		_, err := fx.service.UpdateContext(fx.Context(), &UpdateContextRequest{
 			Context: created,
 			UpdateMask: &fieldmaskpb.FieldMask{
 				Paths: []string{
@@ -791,7 +795,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testList(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.ListContexts(fx.ctx, &ListContextsRequest{
+		_, err := fx.service.ListContexts(fx.Context(), &ListContextsRequest{
 			Parent: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -801,7 +805,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testList(t *testing.T) {
 	t.Run("invalid page token", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListContexts(fx.ctx, &ListContextsRequest{
+		_, err := fx.service.ListContexts(fx.Context(), &ListContextsRequest{
 			Parent:    parent,
 			PageToken: "invalid page token",
 		})
@@ -812,7 +816,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testList(t *testing.T) {
 	t.Run("negative page size", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListContexts(fx.ctx, &ListContextsRequest{
+		_, err := fx.service.ListContexts(fx.Context(), &ListContextsRequest{
 			Parent:   parent,
 			PageSize: -10,
 		})
@@ -830,7 +834,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testList(t *testing.T) {
 	// under that parent.
 	t.Run("isolation", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListContexts(fx.ctx, &ListContextsRequest{
+		response, err := fx.service.ListContexts(fx.Context(), &ListContextsRequest{
 			Parent:   parent,
 			PageSize: 999,
 		})
@@ -849,7 +853,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testList(t *testing.T) {
 	// If there are no more resources, next_page_token should not be set.
 	t.Run("last page", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListContexts(fx.ctx, &ListContextsRequest{
+		response, err := fx.service.ListContexts(fx.Context(), &ListContextsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount,
 		})
@@ -860,7 +864,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testList(t *testing.T) {
 	// If there are more resources, next_page_token should be set.
 	t.Run("more pages", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListContexts(fx.ctx, &ListContextsRequest{
+		response, err := fx.service.ListContexts(fx.Context(), &ListContextsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount - 1,
 		})
@@ -874,7 +878,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testList(t *testing.T) {
 		msgs := make([]*Context, 0, resourcesCount)
 		var nextPageToken string
 		for {
-			response, err := fx.service.ListContexts(fx.ctx, &ListContextsRequest{
+			response, err := fx.service.ListContexts(fx.Context(), &ListContextsRequest{
 				Parent:    parent,
 				PageSize:  1,
 				PageToken: nextPageToken,
@@ -903,12 +907,12 @@ func (fx *MetadataServiceContextTestSuiteConfig) testList(t *testing.T) {
 		fx.maybeSkip(t)
 		const deleteCount = 5
 		for i := 0; i < deleteCount; i++ {
-			_, err := fx.service.DeleteContext(fx.ctx, &DeleteContextRequest{
+			_, err := fx.service.DeleteContext(fx.Context(), &DeleteContextRequest{
 				Name: parentMsgs[i].Name,
 			})
 			assert.NilError(t, err)
 		}
-		response, err := fx.service.ListContexts(fx.ctx, &ListContextsRequest{
+		response, err := fx.service.ListContexts(fx.Context(), &ListContextsRequest{
 			Parent:   parent,
 			PageSize: 9999,
 		})
@@ -931,7 +935,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteContext(fx.ctx, &DeleteContextRequest{
+		_, err := fx.service.DeleteContext(fx.Context(), &DeleteContextRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -940,7 +944,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteContext(fx.ctx, &DeleteContextRequest{
+		_, err := fx.service.DeleteContext(fx.Context(), &DeleteContextRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -951,7 +955,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteContext(fx.ctx, &DeleteContextRequest{
+		_, err := fx.service.DeleteContext(fx.Context(), &DeleteContextRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -962,7 +966,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteContext(fx.ctx, &DeleteContextRequest{
+		_, err := fx.service.DeleteContext(fx.Context(), &DeleteContextRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -973,12 +977,12 @@ func (fx *MetadataServiceContextTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		deleted, err := fx.service.DeleteContext(fx.ctx, &DeleteContextRequest{
+		deleted, err := fx.service.DeleteContext(fx.Context(), &DeleteContextRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
 		_ = deleted
-		_, err = fx.service.DeleteContext(fx.ctx, &DeleteContextRequest{
+		_, err = fx.service.DeleteContext(fx.Context(), &DeleteContextRequest{
 			Name: created.Name,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -987,7 +991,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteContext(fx.ctx, &DeleteContextRequest{
+		_, err := fx.service.DeleteContext(fx.Context(), &DeleteContextRequest{
 			Name: "projects/-/locations/-/metadataStores/-/contexts/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -998,7 +1002,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteContext(fx.ctx, &DeleteContextRequest{
+		_, err := fx.service.DeleteContext(fx.Context(), &DeleteContextRequest{
 			Name: created.Name,
 			Etag: `"99999"`,
 		})
@@ -1035,7 +1039,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) maybeSkip(t *testing.T) {
 
 func (fx *MetadataServiceContextTestSuiteConfig) create(t *testing.T, parent string) *Context {
 	t.Helper()
-	created, err := fx.service.CreateContext(fx.ctx, &CreateContextRequest{
+	created, err := fx.service.CreateContext(fx.Context(), &CreateContextRequest{
 		Parent:  parent,
 		Context: fx.Create(parent),
 	})
@@ -1044,10 +1048,12 @@ func (fx *MetadataServiceContextTestSuiteConfig) create(t *testing.T, parent str
 }
 
 type MetadataServiceExecutionTestSuiteConfig struct {
-	ctx        context.Context
 	service    MetadataServiceServer
 	currParent int
 
+	// Context should return a new context.
+	// The context will be used for several tests.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -1079,7 +1085,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testCreate(t *testing.T) {
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateExecution(fx.ctx, &CreateExecutionRequest{
+		_, err := fx.service.CreateExecution(fx.Context(), &CreateExecutionRequest{
 			Parent:    "",
 			Execution: fx.Create(fx.nextParent(t, false)),
 		})
@@ -1089,7 +1095,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testCreate(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateExecution(fx.ctx, &CreateExecutionRequest{
+		_, err := fx.service.CreateExecution(fx.Context(), &CreateExecutionRequest{
 			Parent:    "invalid resource name",
 			Execution: fx.Create(fx.nextParent(t, false)),
 		})
@@ -1101,7 +1107,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		beforeCreate := time.Now()
-		msg, err := fx.service.CreateExecution(fx.ctx, &CreateExecutionRequest{
+		msg, err := fx.service.CreateExecution(fx.Context(), &CreateExecutionRequest{
 			Parent:    parent,
 			Execution: fx.Create(parent),
 		})
@@ -1115,12 +1121,12 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testCreate(t *testing.T) {
 	t.Run("persisted", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		msg, err := fx.service.CreateExecution(fx.ctx, &CreateExecutionRequest{
+		msg, err := fx.service.CreateExecution(fx.Context(), &CreateExecutionRequest{
 			Parent:    parent,
 			Execution: fx.Create(parent),
 		})
 		assert.NilError(t, err)
-		persisted, err := fx.service.GetExecution(fx.ctx, &GetExecutionRequest{
+		persisted, err := fx.service.GetExecution(fx.Context(), &GetExecutionRequest{
 			Name: msg.Name,
 		})
 		assert.NilError(t, err)
@@ -1131,7 +1137,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testCreate(t *testing.T) {
 	t.Run("etag populated", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		created, _ := fx.service.CreateExecution(fx.ctx, &CreateExecutionRequest{
+		created, _ := fx.service.CreateExecution(fx.Context(), &CreateExecutionRequest{
 			Parent:    parent,
 			Execution: fx.Create(parent),
 		})
@@ -1145,7 +1151,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetExecution(fx.ctx, &GetExecutionRequest{
+		_, err := fx.service.GetExecution(fx.Context(), &GetExecutionRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1154,7 +1160,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetExecution(fx.ctx, &GetExecutionRequest{
+		_, err := fx.service.GetExecution(fx.Context(), &GetExecutionRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1165,7 +1171,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		msg, err := fx.service.GetExecution(fx.ctx, &GetExecutionRequest{
+		msg, err := fx.service.GetExecution(fx.Context(), &GetExecutionRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -1177,7 +1183,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.GetExecution(fx.ctx, &GetExecutionRequest{
+		_, err := fx.service.GetExecution(fx.Context(), &GetExecutionRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -1186,7 +1192,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetExecution(fx.ctx, &GetExecutionRequest{
+		_, err := fx.service.GetExecution(fx.Context(), &GetExecutionRequest{
 			Name: "projects/-/locations/-/metadataStores/-/executions/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1202,7 +1208,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testUpdate(t *testing.T) {
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
 		msg.Name = ""
-		_, err := fx.service.UpdateExecution(fx.ctx, &UpdateExecutionRequest{
+		_, err := fx.service.UpdateExecution(fx.Context(), &UpdateExecutionRequest{
 			Execution: msg,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1214,7 +1220,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testUpdate(t *testing.T) {
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
 		msg.Name = "invalid resource name"
-		_, err := fx.service.UpdateExecution(fx.ctx, &UpdateExecutionRequest{
+		_, err := fx.service.UpdateExecution(fx.Context(), &UpdateExecutionRequest{
 			Execution: msg,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1225,7 +1231,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testUpdate(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		updated, err := fx.service.UpdateExecution(fx.ctx, &UpdateExecutionRequest{
+		updated, err := fx.service.UpdateExecution(fx.Context(), &UpdateExecutionRequest{
 			Execution: created,
 		})
 		assert.NilError(t, err)
@@ -1237,11 +1243,11 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testUpdate(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		updated, err := fx.service.UpdateExecution(fx.ctx, &UpdateExecutionRequest{
+		updated, err := fx.service.UpdateExecution(fx.Context(), &UpdateExecutionRequest{
 			Execution: created,
 		})
 		assert.NilError(t, err)
-		persisted, err := fx.service.GetExecution(fx.ctx, &GetExecutionRequest{
+		persisted, err := fx.service.GetExecution(fx.Context(), &GetExecutionRequest{
 			Name: updated.Name,
 		})
 		assert.NilError(t, err)
@@ -1255,7 +1261,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testUpdate(t *testing.T) {
 		fx.maybeSkip(t)
 		msg := fx.Update(parent)
 		msg.Name = created.Name + "notfound"
-		_, err := fx.service.UpdateExecution(fx.ctx, &UpdateExecutionRequest{
+		_, err := fx.service.UpdateExecution(fx.Context(), &UpdateExecutionRequest{
 			Execution: msg,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -1264,7 +1270,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testUpdate(t *testing.T) {
 	// The method should fail with InvalidArgument if the update_mask is invalid.
 	t.Run("invalid update mask", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.UpdateExecution(fx.ctx, &UpdateExecutionRequest{
+		_, err := fx.service.UpdateExecution(fx.Context(), &UpdateExecutionRequest{
 			Execution: created,
 			UpdateMask: &fieldmaskpb.FieldMask{
 				Paths: []string{
@@ -1282,7 +1288,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testList(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.ListExecutions(fx.ctx, &ListExecutionsRequest{
+		_, err := fx.service.ListExecutions(fx.Context(), &ListExecutionsRequest{
 			Parent: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1292,7 +1298,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testList(t *testing.T) {
 	t.Run("invalid page token", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListExecutions(fx.ctx, &ListExecutionsRequest{
+		_, err := fx.service.ListExecutions(fx.Context(), &ListExecutionsRequest{
 			Parent:    parent,
 			PageToken: "invalid page token",
 		})
@@ -1303,7 +1309,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testList(t *testing.T) {
 	t.Run("negative page size", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListExecutions(fx.ctx, &ListExecutionsRequest{
+		_, err := fx.service.ListExecutions(fx.Context(), &ListExecutionsRequest{
 			Parent:   parent,
 			PageSize: -10,
 		})
@@ -1321,7 +1327,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testList(t *testing.T) {
 	// under that parent.
 	t.Run("isolation", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListExecutions(fx.ctx, &ListExecutionsRequest{
+		response, err := fx.service.ListExecutions(fx.Context(), &ListExecutionsRequest{
 			Parent:   parent,
 			PageSize: 999,
 		})
@@ -1340,7 +1346,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testList(t *testing.T) {
 	// If there are no more resources, next_page_token should not be set.
 	t.Run("last page", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListExecutions(fx.ctx, &ListExecutionsRequest{
+		response, err := fx.service.ListExecutions(fx.Context(), &ListExecutionsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount,
 		})
@@ -1351,7 +1357,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testList(t *testing.T) {
 	// If there are more resources, next_page_token should be set.
 	t.Run("more pages", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListExecutions(fx.ctx, &ListExecutionsRequest{
+		response, err := fx.service.ListExecutions(fx.Context(), &ListExecutionsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount - 1,
 		})
@@ -1365,7 +1371,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testList(t *testing.T) {
 		msgs := make([]*Execution, 0, resourcesCount)
 		var nextPageToken string
 		for {
-			response, err := fx.service.ListExecutions(fx.ctx, &ListExecutionsRequest{
+			response, err := fx.service.ListExecutions(fx.Context(), &ListExecutionsRequest{
 				Parent:    parent,
 				PageSize:  1,
 				PageToken: nextPageToken,
@@ -1394,12 +1400,12 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testList(t *testing.T) {
 		fx.maybeSkip(t)
 		const deleteCount = 5
 		for i := 0; i < deleteCount; i++ {
-			_, err := fx.service.DeleteExecution(fx.ctx, &DeleteExecutionRequest{
+			_, err := fx.service.DeleteExecution(fx.Context(), &DeleteExecutionRequest{
 				Name: parentMsgs[i].Name,
 			})
 			assert.NilError(t, err)
 		}
-		response, err := fx.service.ListExecutions(fx.ctx, &ListExecutionsRequest{
+		response, err := fx.service.ListExecutions(fx.Context(), &ListExecutionsRequest{
 			Parent:   parent,
 			PageSize: 9999,
 		})
@@ -1422,7 +1428,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteExecution(fx.ctx, &DeleteExecutionRequest{
+		_, err := fx.service.DeleteExecution(fx.Context(), &DeleteExecutionRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1431,7 +1437,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteExecution(fx.ctx, &DeleteExecutionRequest{
+		_, err := fx.service.DeleteExecution(fx.Context(), &DeleteExecutionRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1442,7 +1448,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteExecution(fx.ctx, &DeleteExecutionRequest{
+		_, err := fx.service.DeleteExecution(fx.Context(), &DeleteExecutionRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -1453,7 +1459,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteExecution(fx.ctx, &DeleteExecutionRequest{
+		_, err := fx.service.DeleteExecution(fx.Context(), &DeleteExecutionRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -1464,12 +1470,12 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		deleted, err := fx.service.DeleteExecution(fx.ctx, &DeleteExecutionRequest{
+		deleted, err := fx.service.DeleteExecution(fx.Context(), &DeleteExecutionRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
 		_ = deleted
-		_, err = fx.service.DeleteExecution(fx.ctx, &DeleteExecutionRequest{
+		_, err = fx.service.DeleteExecution(fx.Context(), &DeleteExecutionRequest{
 			Name: created.Name,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -1478,7 +1484,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteExecution(fx.ctx, &DeleteExecutionRequest{
+		_, err := fx.service.DeleteExecution(fx.Context(), &DeleteExecutionRequest{
 			Name: "projects/-/locations/-/metadataStores/-/executions/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1489,7 +1495,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteExecution(fx.ctx, &DeleteExecutionRequest{
+		_, err := fx.service.DeleteExecution(fx.Context(), &DeleteExecutionRequest{
 			Name: created.Name,
 			Etag: `"99999"`,
 		})
@@ -1526,7 +1532,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) maybeSkip(t *testing.T) {
 
 func (fx *MetadataServiceExecutionTestSuiteConfig) create(t *testing.T, parent string) *Execution {
 	t.Helper()
-	created, err := fx.service.CreateExecution(fx.ctx, &CreateExecutionRequest{
+	created, err := fx.service.CreateExecution(fx.Context(), &CreateExecutionRequest{
 		Parent:    parent,
 		Execution: fx.Create(parent),
 	})
@@ -1535,10 +1541,12 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) create(t *testing.T, parent s
 }
 
 type MetadataServiceMetadataSchemaTestSuiteConfig struct {
-	ctx        context.Context
 	service    MetadataServiceServer
 	currParent int
 
+	// Context should return a new context.
+	// The context will be used for several tests.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -1565,7 +1573,7 @@ func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) testCreate(t *testing.T)
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateMetadataSchema(fx.ctx, &CreateMetadataSchemaRequest{
+		_, err := fx.service.CreateMetadataSchema(fx.Context(), &CreateMetadataSchemaRequest{
 			Parent:         "",
 			MetadataSchema: fx.Create(fx.nextParent(t, false)),
 		})
@@ -1575,7 +1583,7 @@ func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) testCreate(t *testing.T)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateMetadataSchema(fx.ctx, &CreateMetadataSchemaRequest{
+		_, err := fx.service.CreateMetadataSchema(fx.Context(), &CreateMetadataSchemaRequest{
 			Parent:         "invalid resource name",
 			MetadataSchema: fx.Create(fx.nextParent(t, false)),
 		})
@@ -1587,7 +1595,7 @@ func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) testCreate(t *testing.T)
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		beforeCreate := time.Now()
-		msg, err := fx.service.CreateMetadataSchema(fx.ctx, &CreateMetadataSchemaRequest{
+		msg, err := fx.service.CreateMetadataSchema(fx.Context(), &CreateMetadataSchemaRequest{
 			Parent:         parent,
 			MetadataSchema: fx.Create(parent),
 		})
@@ -1601,12 +1609,12 @@ func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) testCreate(t *testing.T)
 	t.Run("persisted", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		msg, err := fx.service.CreateMetadataSchema(fx.ctx, &CreateMetadataSchemaRequest{
+		msg, err := fx.service.CreateMetadataSchema(fx.Context(), &CreateMetadataSchemaRequest{
 			Parent:         parent,
 			MetadataSchema: fx.Create(parent),
 		})
 		assert.NilError(t, err)
-		persisted, err := fx.service.GetMetadataSchema(fx.ctx, &GetMetadataSchemaRequest{
+		persisted, err := fx.service.GetMetadataSchema(fx.Context(), &GetMetadataSchemaRequest{
 			Name: msg.Name,
 		})
 		assert.NilError(t, err)
@@ -1627,7 +1635,7 @@ func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) testCreate(t *testing.T)
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("schema")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateMetadataSchema(fx.ctx, &CreateMetadataSchemaRequest{
+			_, err := fx.service.CreateMetadataSchema(fx.Context(), &CreateMetadataSchemaRequest{
 				Parent:         parent,
 				MetadataSchema: msg,
 			})
@@ -1642,7 +1650,7 @@ func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetMetadataSchema(fx.ctx, &GetMetadataSchemaRequest{
+		_, err := fx.service.GetMetadataSchema(fx.Context(), &GetMetadataSchemaRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1651,7 +1659,7 @@ func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetMetadataSchema(fx.ctx, &GetMetadataSchemaRequest{
+		_, err := fx.service.GetMetadataSchema(fx.Context(), &GetMetadataSchemaRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1662,7 +1670,7 @@ func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		msg, err := fx.service.GetMetadataSchema(fx.ctx, &GetMetadataSchemaRequest{
+		msg, err := fx.service.GetMetadataSchema(fx.Context(), &GetMetadataSchemaRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -1674,7 +1682,7 @@ func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.GetMetadataSchema(fx.ctx, &GetMetadataSchemaRequest{
+		_, err := fx.service.GetMetadataSchema(fx.Context(), &GetMetadataSchemaRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -1683,7 +1691,7 @@ func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetMetadataSchema(fx.ctx, &GetMetadataSchemaRequest{
+		_, err := fx.service.GetMetadataSchema(fx.Context(), &GetMetadataSchemaRequest{
 			Name: "projects/-/locations/-/metadataStores/-/metadataSchemas/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1696,7 +1704,7 @@ func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) testList(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.ListMetadataSchemas(fx.ctx, &ListMetadataSchemasRequest{
+		_, err := fx.service.ListMetadataSchemas(fx.Context(), &ListMetadataSchemasRequest{
 			Parent: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1706,7 +1714,7 @@ func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) testList(t *testing.T) {
 	t.Run("invalid page token", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListMetadataSchemas(fx.ctx, &ListMetadataSchemasRequest{
+		_, err := fx.service.ListMetadataSchemas(fx.Context(), &ListMetadataSchemasRequest{
 			Parent:    parent,
 			PageToken: "invalid page token",
 		})
@@ -1717,7 +1725,7 @@ func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) testList(t *testing.T) {
 	t.Run("negative page size", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListMetadataSchemas(fx.ctx, &ListMetadataSchemasRequest{
+		_, err := fx.service.ListMetadataSchemas(fx.Context(), &ListMetadataSchemasRequest{
 			Parent:   parent,
 			PageSize: -10,
 		})
@@ -1735,7 +1743,7 @@ func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) testList(t *testing.T) {
 	// under that parent.
 	t.Run("isolation", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListMetadataSchemas(fx.ctx, &ListMetadataSchemasRequest{
+		response, err := fx.service.ListMetadataSchemas(fx.Context(), &ListMetadataSchemasRequest{
 			Parent:   parent,
 			PageSize: 999,
 		})
@@ -1754,7 +1762,7 @@ func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) testList(t *testing.T) {
 	// If there are no more resources, next_page_token should not be set.
 	t.Run("last page", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListMetadataSchemas(fx.ctx, &ListMetadataSchemasRequest{
+		response, err := fx.service.ListMetadataSchemas(fx.Context(), &ListMetadataSchemasRequest{
 			Parent:   parent,
 			PageSize: resourcesCount,
 		})
@@ -1765,7 +1773,7 @@ func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) testList(t *testing.T) {
 	// If there are more resources, next_page_token should be set.
 	t.Run("more pages", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListMetadataSchemas(fx.ctx, &ListMetadataSchemasRequest{
+		response, err := fx.service.ListMetadataSchemas(fx.Context(), &ListMetadataSchemasRequest{
 			Parent:   parent,
 			PageSize: resourcesCount - 1,
 		})
@@ -1779,7 +1787,7 @@ func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) testList(t *testing.T) {
 		msgs := make([]*MetadataSchema, 0, resourcesCount)
 		var nextPageToken string
 		for {
-			response, err := fx.service.ListMetadataSchemas(fx.ctx, &ListMetadataSchemasRequest{
+			response, err := fx.service.ListMetadataSchemas(fx.Context(), &ListMetadataSchemasRequest{
 				Parent:    parent,
 				PageSize:  1,
 				PageToken: nextPageToken,
@@ -1833,7 +1841,7 @@ func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) maybeSkip(t *testing.T) 
 
 func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) create(t *testing.T, parent string) *MetadataSchema {
 	t.Helper()
-	created, err := fx.service.CreateMetadataSchema(fx.ctx, &CreateMetadataSchemaRequest{
+	created, err := fx.service.CreateMetadataSchema(fx.Context(), &CreateMetadataSchemaRequest{
 		Parent:         parent,
 		MetadataSchema: fx.Create(parent),
 	})
@@ -1842,10 +1850,12 @@ func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) create(t *testing.T, par
 }
 
 type MetadataServiceMetadataStoreTestSuiteConfig struct {
-	ctx        context.Context
 	service    MetadataServiceServer
 	currParent int
 
+	// Context should return a new context.
+	// The context will be used for several tests.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -1873,7 +1883,7 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testCreate(t *testing.T) 
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateMetadataStore(fx.ctx, &CreateMetadataStoreRequest{
+		_, err := fx.service.CreateMetadataStore(fx.Context(), &CreateMetadataStoreRequest{
 			Parent:        "",
 			MetadataStore: fx.Create(fx.nextParent(t, false)),
 		})
@@ -1883,7 +1893,7 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testCreate(t *testing.T) 
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateMetadataStore(fx.ctx, &CreateMetadataStoreRequest{
+		_, err := fx.service.CreateMetadataStore(fx.Context(), &CreateMetadataStoreRequest{
 			Parent:        "invalid resource name",
 			MetadataStore: fx.Create(fx.nextParent(t, false)),
 		})
@@ -1904,7 +1914,7 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testCreate(t *testing.T) 
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("kms_key_name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateMetadataStore(fx.ctx, &CreateMetadataStoreRequest{
+			_, err := fx.service.CreateMetadataStore(fx.Context(), &CreateMetadataStoreRequest{
 				Parent:        parent,
 				MetadataStore: msg,
 			})
@@ -1919,7 +1929,7 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetMetadataStore(fx.ctx, &GetMetadataStoreRequest{
+		_, err := fx.service.GetMetadataStore(fx.Context(), &GetMetadataStoreRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1928,7 +1938,7 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetMetadataStore(fx.ctx, &GetMetadataStoreRequest{
+		_, err := fx.service.GetMetadataStore(fx.Context(), &GetMetadataStoreRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1939,7 +1949,7 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		msg, err := fx.service.GetMetadataStore(fx.ctx, &GetMetadataStoreRequest{
+		msg, err := fx.service.GetMetadataStore(fx.Context(), &GetMetadataStoreRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -1951,7 +1961,7 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.GetMetadataStore(fx.ctx, &GetMetadataStoreRequest{
+		_, err := fx.service.GetMetadataStore(fx.Context(), &GetMetadataStoreRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -1960,7 +1970,7 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetMetadataStore(fx.ctx, &GetMetadataStoreRequest{
+		_, err := fx.service.GetMetadataStore(fx.Context(), &GetMetadataStoreRequest{
 			Name: "projects/-/locations/-/metadataStores/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1973,7 +1983,7 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testList(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.ListMetadataStores(fx.ctx, &ListMetadataStoresRequest{
+		_, err := fx.service.ListMetadataStores(fx.Context(), &ListMetadataStoresRequest{
 			Parent: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1983,7 +1993,7 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testList(t *testing.T) {
 	t.Run("invalid page token", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListMetadataStores(fx.ctx, &ListMetadataStoresRequest{
+		_, err := fx.service.ListMetadataStores(fx.Context(), &ListMetadataStoresRequest{
 			Parent:    parent,
 			PageToken: "invalid page token",
 		})
@@ -1994,7 +2004,7 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testList(t *testing.T) {
 	t.Run("negative page size", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListMetadataStores(fx.ctx, &ListMetadataStoresRequest{
+		_, err := fx.service.ListMetadataStores(fx.Context(), &ListMetadataStoresRequest{
 			Parent:   parent,
 			PageSize: -10,
 		})
@@ -2012,7 +2022,7 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testList(t *testing.T) {
 	// under that parent.
 	t.Run("isolation", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListMetadataStores(fx.ctx, &ListMetadataStoresRequest{
+		response, err := fx.service.ListMetadataStores(fx.Context(), &ListMetadataStoresRequest{
 			Parent:   parent,
 			PageSize: 999,
 		})
@@ -2031,7 +2041,7 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testList(t *testing.T) {
 	// If there are no more resources, next_page_token should not be set.
 	t.Run("last page", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListMetadataStores(fx.ctx, &ListMetadataStoresRequest{
+		response, err := fx.service.ListMetadataStores(fx.Context(), &ListMetadataStoresRequest{
 			Parent:   parent,
 			PageSize: resourcesCount,
 		})
@@ -2042,7 +2052,7 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testList(t *testing.T) {
 	// If there are more resources, next_page_token should be set.
 	t.Run("more pages", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListMetadataStores(fx.ctx, &ListMetadataStoresRequest{
+		response, err := fx.service.ListMetadataStores(fx.Context(), &ListMetadataStoresRequest{
 			Parent:   parent,
 			PageSize: resourcesCount - 1,
 		})
@@ -2056,7 +2066,7 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testList(t *testing.T) {
 		msgs := make([]*MetadataStore, 0, resourcesCount)
 		var nextPageToken string
 		for {
-			response, err := fx.service.ListMetadataStores(fx.ctx, &ListMetadataStoresRequest{
+			response, err := fx.service.ListMetadataStores(fx.Context(), &ListMetadataStoresRequest{
 				Parent:    parent,
 				PageSize:  1,
 				PageToken: nextPageToken,
@@ -2085,12 +2095,12 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testList(t *testing.T) {
 		fx.maybeSkip(t)
 		const deleteCount = 5
 		for i := 0; i < deleteCount; i++ {
-			_, err := fx.service.DeleteMetadataStore(fx.ctx, &DeleteMetadataStoreRequest{
+			_, err := fx.service.DeleteMetadataStore(fx.Context(), &DeleteMetadataStoreRequest{
 				Name: parentMsgs[i].Name,
 			})
 			assert.NilError(t, err)
 		}
-		response, err := fx.service.ListMetadataStores(fx.ctx, &ListMetadataStoresRequest{
+		response, err := fx.service.ListMetadataStores(fx.Context(), &ListMetadataStoresRequest{
 			Parent:   parent,
 			PageSize: 9999,
 		})
@@ -2113,7 +2123,7 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testDelete(t *testing.T) 
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteMetadataStore(fx.ctx, &DeleteMetadataStoreRequest{
+		_, err := fx.service.DeleteMetadataStore(fx.Context(), &DeleteMetadataStoreRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -2122,7 +2132,7 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testDelete(t *testing.T) 
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteMetadataStore(fx.ctx, &DeleteMetadataStoreRequest{
+		_, err := fx.service.DeleteMetadataStore(fx.Context(), &DeleteMetadataStoreRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -2133,7 +2143,7 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testDelete(t *testing.T) 
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteMetadataStore(fx.ctx, &DeleteMetadataStoreRequest{
+		_, err := fx.service.DeleteMetadataStore(fx.Context(), &DeleteMetadataStoreRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -2144,7 +2154,7 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testDelete(t *testing.T) 
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteMetadataStore(fx.ctx, &DeleteMetadataStoreRequest{
+		_, err := fx.service.DeleteMetadataStore(fx.Context(), &DeleteMetadataStoreRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -2155,12 +2165,12 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testDelete(t *testing.T) 
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		deleted, err := fx.service.DeleteMetadataStore(fx.ctx, &DeleteMetadataStoreRequest{
+		deleted, err := fx.service.DeleteMetadataStore(fx.Context(), &DeleteMetadataStoreRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
 		_ = deleted
-		_, err = fx.service.DeleteMetadataStore(fx.ctx, &DeleteMetadataStoreRequest{
+		_, err = fx.service.DeleteMetadataStore(fx.Context(), &DeleteMetadataStoreRequest{
 			Name: created.Name,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -2169,7 +2179,7 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testDelete(t *testing.T) 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteMetadataStore(fx.ctx, &DeleteMetadataStoreRequest{
+		_, err := fx.service.DeleteMetadataStore(fx.Context(), &DeleteMetadataStoreRequest{
 			Name: "projects/-/locations/-/metadataStores/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)

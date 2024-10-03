@@ -22,7 +22,7 @@ type VizierServiceTestSuite struct {
 
 func (fx VizierServiceTestSuite) TestStudy(ctx context.Context, options VizierServiceStudyTestSuiteConfig) {
 	fx.T.Run("Study", func(t *testing.T) {
-		options.ctx = ctx
+		options.Context = func() context.Context { return ctx }
 		options.service = fx.Server
 		options.test(t)
 	})
@@ -30,17 +30,19 @@ func (fx VizierServiceTestSuite) TestStudy(ctx context.Context, options VizierSe
 
 func (fx VizierServiceTestSuite) TestTrial(ctx context.Context, options VizierServiceTrialTestSuiteConfig) {
 	fx.T.Run("Trial", func(t *testing.T) {
-		options.ctx = ctx
+		options.Context = func() context.Context { return ctx }
 		options.service = fx.Server
 		options.test(t)
 	})
 }
 
 type VizierServiceStudyTestSuiteConfig struct {
-	ctx        context.Context
 	service    VizierServiceServer
 	currParent int
 
+	// Context should return a new context.
+	// The context will be used for several tests.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -68,7 +70,7 @@ func (fx *VizierServiceStudyTestSuiteConfig) testCreate(t *testing.T) {
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateStudy(fx.ctx, &CreateStudyRequest{
+		_, err := fx.service.CreateStudy(fx.Context(), &CreateStudyRequest{
 			Parent: "",
 			Study:  fx.Create(fx.nextParent(t, false)),
 		})
@@ -78,7 +80,7 @@ func (fx *VizierServiceStudyTestSuiteConfig) testCreate(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateStudy(fx.ctx, &CreateStudyRequest{
+		_, err := fx.service.CreateStudy(fx.Context(), &CreateStudyRequest{
 			Parent: "invalid resource name",
 			Study:  fx.Create(fx.nextParent(t, false)),
 		})
@@ -90,7 +92,7 @@ func (fx *VizierServiceStudyTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		beforeCreate := time.Now()
-		msg, err := fx.service.CreateStudy(fx.ctx, &CreateStudyRequest{
+		msg, err := fx.service.CreateStudy(fx.Context(), &CreateStudyRequest{
 			Parent: parent,
 			Study:  fx.Create(parent),
 		})
@@ -104,12 +106,12 @@ func (fx *VizierServiceStudyTestSuiteConfig) testCreate(t *testing.T) {
 	t.Run("persisted", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		msg, err := fx.service.CreateStudy(fx.ctx, &CreateStudyRequest{
+		msg, err := fx.service.CreateStudy(fx.Context(), &CreateStudyRequest{
 			Parent: parent,
 			Study:  fx.Create(parent),
 		})
 		assert.NilError(t, err)
-		persisted, err := fx.service.GetStudy(fx.ctx, &GetStudyRequest{
+		persisted, err := fx.service.GetStudy(fx.Context(), &GetStudyRequest{
 			Name: msg.Name,
 		})
 		assert.NilError(t, err)
@@ -130,7 +132,7 @@ func (fx *VizierServiceStudyTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateStudy(fx.ctx, &CreateStudyRequest{
+			_, err := fx.service.CreateStudy(fx.Context(), &CreateStudyRequest{
 				Parent: parent,
 				Study:  msg,
 			})
@@ -146,7 +148,7 @@ func (fx *VizierServiceStudyTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("study_spec")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateStudy(fx.ctx, &CreateStudyRequest{
+			_, err := fx.service.CreateStudy(fx.Context(), &CreateStudyRequest{
 				Parent: parent,
 				Study:  msg,
 			})
@@ -162,7 +164,7 @@ func (fx *VizierServiceStudyTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("metrics")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateStudy(fx.ctx, &CreateStudyRequest{
+			_, err := fx.service.CreateStudy(fx.Context(), &CreateStudyRequest{
 				Parent: parent,
 				Study:  msg,
 			})
@@ -178,7 +180,7 @@ func (fx *VizierServiceStudyTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("parameters")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateStudy(fx.ctx, &CreateStudyRequest{
+			_, err := fx.service.CreateStudy(fx.Context(), &CreateStudyRequest{
 				Parent: parent,
 				Study:  msg,
 			})
@@ -193,7 +195,7 @@ func (fx *VizierServiceStudyTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetStudy(fx.ctx, &GetStudyRequest{
+		_, err := fx.service.GetStudy(fx.Context(), &GetStudyRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -202,7 +204,7 @@ func (fx *VizierServiceStudyTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetStudy(fx.ctx, &GetStudyRequest{
+		_, err := fx.service.GetStudy(fx.Context(), &GetStudyRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -213,7 +215,7 @@ func (fx *VizierServiceStudyTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		msg, err := fx.service.GetStudy(fx.ctx, &GetStudyRequest{
+		msg, err := fx.service.GetStudy(fx.Context(), &GetStudyRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -225,7 +227,7 @@ func (fx *VizierServiceStudyTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.GetStudy(fx.ctx, &GetStudyRequest{
+		_, err := fx.service.GetStudy(fx.Context(), &GetStudyRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -234,7 +236,7 @@ func (fx *VizierServiceStudyTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetStudy(fx.ctx, &GetStudyRequest{
+		_, err := fx.service.GetStudy(fx.Context(), &GetStudyRequest{
 			Name: "projects/-/locations/-/studies/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -247,7 +249,7 @@ func (fx *VizierServiceStudyTestSuiteConfig) testList(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.ListStudies(fx.ctx, &ListStudiesRequest{
+		_, err := fx.service.ListStudies(fx.Context(), &ListStudiesRequest{
 			Parent: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -257,7 +259,7 @@ func (fx *VizierServiceStudyTestSuiteConfig) testList(t *testing.T) {
 	t.Run("invalid page token", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListStudies(fx.ctx, &ListStudiesRequest{
+		_, err := fx.service.ListStudies(fx.Context(), &ListStudiesRequest{
 			Parent:    parent,
 			PageToken: "invalid page token",
 		})
@@ -268,7 +270,7 @@ func (fx *VizierServiceStudyTestSuiteConfig) testList(t *testing.T) {
 	t.Run("negative page size", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListStudies(fx.ctx, &ListStudiesRequest{
+		_, err := fx.service.ListStudies(fx.Context(), &ListStudiesRequest{
 			Parent:   parent,
 			PageSize: -10,
 		})
@@ -286,7 +288,7 @@ func (fx *VizierServiceStudyTestSuiteConfig) testList(t *testing.T) {
 	// under that parent.
 	t.Run("isolation", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListStudies(fx.ctx, &ListStudiesRequest{
+		response, err := fx.service.ListStudies(fx.Context(), &ListStudiesRequest{
 			Parent:   parent,
 			PageSize: 999,
 		})
@@ -305,7 +307,7 @@ func (fx *VizierServiceStudyTestSuiteConfig) testList(t *testing.T) {
 	// If there are no more resources, next_page_token should not be set.
 	t.Run("last page", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListStudies(fx.ctx, &ListStudiesRequest{
+		response, err := fx.service.ListStudies(fx.Context(), &ListStudiesRequest{
 			Parent:   parent,
 			PageSize: resourcesCount,
 		})
@@ -316,7 +318,7 @@ func (fx *VizierServiceStudyTestSuiteConfig) testList(t *testing.T) {
 	// If there are more resources, next_page_token should be set.
 	t.Run("more pages", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListStudies(fx.ctx, &ListStudiesRequest{
+		response, err := fx.service.ListStudies(fx.Context(), &ListStudiesRequest{
 			Parent:   parent,
 			PageSize: resourcesCount - 1,
 		})
@@ -330,7 +332,7 @@ func (fx *VizierServiceStudyTestSuiteConfig) testList(t *testing.T) {
 		msgs := make([]*Study, 0, resourcesCount)
 		var nextPageToken string
 		for {
-			response, err := fx.service.ListStudies(fx.ctx, &ListStudiesRequest{
+			response, err := fx.service.ListStudies(fx.Context(), &ListStudiesRequest{
 				Parent:    parent,
 				PageSize:  1,
 				PageToken: nextPageToken,
@@ -359,12 +361,12 @@ func (fx *VizierServiceStudyTestSuiteConfig) testList(t *testing.T) {
 		fx.maybeSkip(t)
 		const deleteCount = 5
 		for i := 0; i < deleteCount; i++ {
-			_, err := fx.service.DeleteStudy(fx.ctx, &DeleteStudyRequest{
+			_, err := fx.service.DeleteStudy(fx.Context(), &DeleteStudyRequest{
 				Name: parentMsgs[i].Name,
 			})
 			assert.NilError(t, err)
 		}
-		response, err := fx.service.ListStudies(fx.ctx, &ListStudiesRequest{
+		response, err := fx.service.ListStudies(fx.Context(), &ListStudiesRequest{
 			Parent:   parent,
 			PageSize: 9999,
 		})
@@ -387,7 +389,7 @@ func (fx *VizierServiceStudyTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteStudy(fx.ctx, &DeleteStudyRequest{
+		_, err := fx.service.DeleteStudy(fx.Context(), &DeleteStudyRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -396,7 +398,7 @@ func (fx *VizierServiceStudyTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteStudy(fx.ctx, &DeleteStudyRequest{
+		_, err := fx.service.DeleteStudy(fx.Context(), &DeleteStudyRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -407,7 +409,7 @@ func (fx *VizierServiceStudyTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteStudy(fx.ctx, &DeleteStudyRequest{
+		_, err := fx.service.DeleteStudy(fx.Context(), &DeleteStudyRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -418,7 +420,7 @@ func (fx *VizierServiceStudyTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteStudy(fx.ctx, &DeleteStudyRequest{
+		_, err := fx.service.DeleteStudy(fx.Context(), &DeleteStudyRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -429,12 +431,12 @@ func (fx *VizierServiceStudyTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		deleted, err := fx.service.DeleteStudy(fx.ctx, &DeleteStudyRequest{
+		deleted, err := fx.service.DeleteStudy(fx.Context(), &DeleteStudyRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
 		_ = deleted
-		_, err = fx.service.DeleteStudy(fx.ctx, &DeleteStudyRequest{
+		_, err = fx.service.DeleteStudy(fx.Context(), &DeleteStudyRequest{
 			Name: created.Name,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -443,7 +445,7 @@ func (fx *VizierServiceStudyTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteStudy(fx.ctx, &DeleteStudyRequest{
+		_, err := fx.service.DeleteStudy(fx.Context(), &DeleteStudyRequest{
 			Name: "projects/-/locations/-/studies/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -479,7 +481,7 @@ func (fx *VizierServiceStudyTestSuiteConfig) maybeSkip(t *testing.T) {
 
 func (fx *VizierServiceStudyTestSuiteConfig) create(t *testing.T, parent string) *Study {
 	t.Helper()
-	created, err := fx.service.CreateStudy(fx.ctx, &CreateStudyRequest{
+	created, err := fx.service.CreateStudy(fx.Context(), &CreateStudyRequest{
 		Parent: parent,
 		Study:  fx.Create(parent),
 	})
@@ -488,10 +490,12 @@ func (fx *VizierServiceStudyTestSuiteConfig) create(t *testing.T, parent string)
 }
 
 type VizierServiceTrialTestSuiteConfig struct {
-	ctx        context.Context
 	service    VizierServiceServer
 	currParent int
 
+	// Context should return a new context.
+	// The context will be used for several tests.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -519,7 +523,7 @@ func (fx *VizierServiceTrialTestSuiteConfig) testCreate(t *testing.T) {
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateTrial(fx.ctx, &CreateTrialRequest{
+		_, err := fx.service.CreateTrial(fx.Context(), &CreateTrialRequest{
 			Parent: "",
 			Trial:  fx.Create(fx.nextParent(t, false)),
 		})
@@ -529,7 +533,7 @@ func (fx *VizierServiceTrialTestSuiteConfig) testCreate(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateTrial(fx.ctx, &CreateTrialRequest{
+		_, err := fx.service.CreateTrial(fx.Context(), &CreateTrialRequest{
 			Parent: "invalid resource name",
 			Trial:  fx.Create(fx.nextParent(t, false)),
 		})
@@ -540,12 +544,12 @@ func (fx *VizierServiceTrialTestSuiteConfig) testCreate(t *testing.T) {
 	t.Run("persisted", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		msg, err := fx.service.CreateTrial(fx.ctx, &CreateTrialRequest{
+		msg, err := fx.service.CreateTrial(fx.Context(), &CreateTrialRequest{
 			Parent: parent,
 			Trial:  fx.Create(parent),
 		})
 		assert.NilError(t, err)
-		persisted, err := fx.service.GetTrial(fx.ctx, &GetTrialRequest{
+		persisted, err := fx.service.GetTrial(fx.Context(), &GetTrialRequest{
 			Name: msg.Name,
 		})
 		assert.NilError(t, err)
@@ -559,7 +563,7 @@ func (fx *VizierServiceTrialTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetTrial(fx.ctx, &GetTrialRequest{
+		_, err := fx.service.GetTrial(fx.Context(), &GetTrialRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -568,7 +572,7 @@ func (fx *VizierServiceTrialTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetTrial(fx.ctx, &GetTrialRequest{
+		_, err := fx.service.GetTrial(fx.Context(), &GetTrialRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -579,7 +583,7 @@ func (fx *VizierServiceTrialTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		msg, err := fx.service.GetTrial(fx.ctx, &GetTrialRequest{
+		msg, err := fx.service.GetTrial(fx.Context(), &GetTrialRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -591,7 +595,7 @@ func (fx *VizierServiceTrialTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.GetTrial(fx.ctx, &GetTrialRequest{
+		_, err := fx.service.GetTrial(fx.Context(), &GetTrialRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -600,7 +604,7 @@ func (fx *VizierServiceTrialTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetTrial(fx.ctx, &GetTrialRequest{
+		_, err := fx.service.GetTrial(fx.Context(), &GetTrialRequest{
 			Name: "projects/-/locations/-/studies/-/trials/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -613,7 +617,7 @@ func (fx *VizierServiceTrialTestSuiteConfig) testList(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.ListTrials(fx.ctx, &ListTrialsRequest{
+		_, err := fx.service.ListTrials(fx.Context(), &ListTrialsRequest{
 			Parent: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -623,7 +627,7 @@ func (fx *VizierServiceTrialTestSuiteConfig) testList(t *testing.T) {
 	t.Run("invalid page token", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListTrials(fx.ctx, &ListTrialsRequest{
+		_, err := fx.service.ListTrials(fx.Context(), &ListTrialsRequest{
 			Parent:    parent,
 			PageToken: "invalid page token",
 		})
@@ -634,7 +638,7 @@ func (fx *VizierServiceTrialTestSuiteConfig) testList(t *testing.T) {
 	t.Run("negative page size", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListTrials(fx.ctx, &ListTrialsRequest{
+		_, err := fx.service.ListTrials(fx.Context(), &ListTrialsRequest{
 			Parent:   parent,
 			PageSize: -10,
 		})
@@ -652,7 +656,7 @@ func (fx *VizierServiceTrialTestSuiteConfig) testList(t *testing.T) {
 	// under that parent.
 	t.Run("isolation", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListTrials(fx.ctx, &ListTrialsRequest{
+		response, err := fx.service.ListTrials(fx.Context(), &ListTrialsRequest{
 			Parent:   parent,
 			PageSize: 999,
 		})
@@ -671,7 +675,7 @@ func (fx *VizierServiceTrialTestSuiteConfig) testList(t *testing.T) {
 	// If there are no more resources, next_page_token should not be set.
 	t.Run("last page", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListTrials(fx.ctx, &ListTrialsRequest{
+		response, err := fx.service.ListTrials(fx.Context(), &ListTrialsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount,
 		})
@@ -682,7 +686,7 @@ func (fx *VizierServiceTrialTestSuiteConfig) testList(t *testing.T) {
 	// If there are more resources, next_page_token should be set.
 	t.Run("more pages", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListTrials(fx.ctx, &ListTrialsRequest{
+		response, err := fx.service.ListTrials(fx.Context(), &ListTrialsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount - 1,
 		})
@@ -696,7 +700,7 @@ func (fx *VizierServiceTrialTestSuiteConfig) testList(t *testing.T) {
 		msgs := make([]*Trial, 0, resourcesCount)
 		var nextPageToken string
 		for {
-			response, err := fx.service.ListTrials(fx.ctx, &ListTrialsRequest{
+			response, err := fx.service.ListTrials(fx.Context(), &ListTrialsRequest{
 				Parent:    parent,
 				PageSize:  1,
 				PageToken: nextPageToken,
@@ -725,12 +729,12 @@ func (fx *VizierServiceTrialTestSuiteConfig) testList(t *testing.T) {
 		fx.maybeSkip(t)
 		const deleteCount = 5
 		for i := 0; i < deleteCount; i++ {
-			_, err := fx.service.DeleteTrial(fx.ctx, &DeleteTrialRequest{
+			_, err := fx.service.DeleteTrial(fx.Context(), &DeleteTrialRequest{
 				Name: parentMsgs[i].Name,
 			})
 			assert.NilError(t, err)
 		}
-		response, err := fx.service.ListTrials(fx.ctx, &ListTrialsRequest{
+		response, err := fx.service.ListTrials(fx.Context(), &ListTrialsRequest{
 			Parent:   parent,
 			PageSize: 9999,
 		})
@@ -753,7 +757,7 @@ func (fx *VizierServiceTrialTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteTrial(fx.ctx, &DeleteTrialRequest{
+		_, err := fx.service.DeleteTrial(fx.Context(), &DeleteTrialRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -762,7 +766,7 @@ func (fx *VizierServiceTrialTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteTrial(fx.ctx, &DeleteTrialRequest{
+		_, err := fx.service.DeleteTrial(fx.Context(), &DeleteTrialRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -773,7 +777,7 @@ func (fx *VizierServiceTrialTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteTrial(fx.ctx, &DeleteTrialRequest{
+		_, err := fx.service.DeleteTrial(fx.Context(), &DeleteTrialRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -784,7 +788,7 @@ func (fx *VizierServiceTrialTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteTrial(fx.ctx, &DeleteTrialRequest{
+		_, err := fx.service.DeleteTrial(fx.Context(), &DeleteTrialRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -795,12 +799,12 @@ func (fx *VizierServiceTrialTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		deleted, err := fx.service.DeleteTrial(fx.ctx, &DeleteTrialRequest{
+		deleted, err := fx.service.DeleteTrial(fx.Context(), &DeleteTrialRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
 		_ = deleted
-		_, err = fx.service.DeleteTrial(fx.ctx, &DeleteTrialRequest{
+		_, err = fx.service.DeleteTrial(fx.Context(), &DeleteTrialRequest{
 			Name: created.Name,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -809,7 +813,7 @@ func (fx *VizierServiceTrialTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteTrial(fx.ctx, &DeleteTrialRequest{
+		_, err := fx.service.DeleteTrial(fx.Context(), &DeleteTrialRequest{
 			Name: "projects/-/locations/-/studies/-/trials/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -845,7 +849,7 @@ func (fx *VizierServiceTrialTestSuiteConfig) maybeSkip(t *testing.T) {
 
 func (fx *VizierServiceTrialTestSuiteConfig) create(t *testing.T, parent string) *Trial {
 	t.Helper()
-	created, err := fx.service.CreateTrial(fx.ctx, &CreateTrialRequest{
+	created, err := fx.service.CreateTrial(fx.Context(), &CreateTrialRequest{
 		Parent: parent,
 		Trial:  fx.Create(parent),
 	})

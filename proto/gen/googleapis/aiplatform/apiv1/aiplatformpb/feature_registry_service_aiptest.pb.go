@@ -23,7 +23,7 @@ type FeatureRegistryServiceTestSuite struct {
 
 func (fx FeatureRegistryServiceTestSuite) TestFeature(ctx context.Context, options FeatureRegistryServiceFeatureTestSuiteConfig) {
 	fx.T.Run("Feature", func(t *testing.T) {
-		options.ctx = ctx
+		options.Context = func() context.Context { return ctx }
 		options.service = fx.Server
 		options.test(t)
 	})
@@ -31,17 +31,19 @@ func (fx FeatureRegistryServiceTestSuite) TestFeature(ctx context.Context, optio
 
 func (fx FeatureRegistryServiceTestSuite) TestFeatureGroup(ctx context.Context, options FeatureRegistryServiceFeatureGroupTestSuiteConfig) {
 	fx.T.Run("FeatureGroup", func(t *testing.T) {
-		options.ctx = ctx
+		options.Context = func() context.Context { return ctx }
 		options.service = fx.Server
 		options.test(t)
 	})
 }
 
 type FeatureRegistryServiceFeatureTestSuiteConfig struct {
-	ctx        context.Context
 	service    FeatureRegistryServiceServer
 	currParent int
 
+	// Context should return a new context.
+	// The context will be used for several tests.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -81,7 +83,7 @@ func (fx *FeatureRegistryServiceFeatureTestSuiteConfig) testCreate(t *testing.T)
 		if fx.IDGenerator != nil {
 			userSetID = fx.IDGenerator()
 		}
-		_, err := fx.service.CreateFeature(fx.ctx, &CreateFeatureRequest{
+		_, err := fx.service.CreateFeature(fx.Context(), &CreateFeatureRequest{
 			Parent:    "",
 			Feature:   fx.Create(fx.nextParent(t, false)),
 			FeatureId: userSetID,
@@ -96,7 +98,7 @@ func (fx *FeatureRegistryServiceFeatureTestSuiteConfig) testCreate(t *testing.T)
 		if fx.IDGenerator != nil {
 			userSetID = fx.IDGenerator()
 		}
-		_, err := fx.service.CreateFeature(fx.ctx, &CreateFeatureRequest{
+		_, err := fx.service.CreateFeature(fx.Context(), &CreateFeatureRequest{
 			Parent:    "invalid resource name",
 			Feature:   fx.Create(fx.nextParent(t, false)),
 			FeatureId: userSetID,
@@ -111,7 +113,7 @@ func (fx *FeatureRegistryServiceFeatureTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetFeature(fx.ctx, &GetFeatureRequest{
+		_, err := fx.service.GetFeature(fx.Context(), &GetFeatureRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -120,7 +122,7 @@ func (fx *FeatureRegistryServiceFeatureTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetFeature(fx.ctx, &GetFeatureRequest{
+		_, err := fx.service.GetFeature(fx.Context(), &GetFeatureRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -131,7 +133,7 @@ func (fx *FeatureRegistryServiceFeatureTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		msg, err := fx.service.GetFeature(fx.ctx, &GetFeatureRequest{
+		msg, err := fx.service.GetFeature(fx.Context(), &GetFeatureRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -143,7 +145,7 @@ func (fx *FeatureRegistryServiceFeatureTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.GetFeature(fx.ctx, &GetFeatureRequest{
+		_, err := fx.service.GetFeature(fx.Context(), &GetFeatureRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -152,7 +154,7 @@ func (fx *FeatureRegistryServiceFeatureTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetFeature(fx.ctx, &GetFeatureRequest{
+		_, err := fx.service.GetFeature(fx.Context(), &GetFeatureRequest{
 			Name: "projects/-/locations/-/featurestores/-/entityTypes/-/features/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -168,7 +170,7 @@ func (fx *FeatureRegistryServiceFeatureTestSuiteConfig) testUpdate(t *testing.T)
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
 		msg.Name = ""
-		_, err := fx.service.UpdateFeature(fx.ctx, &UpdateFeatureRequest{
+		_, err := fx.service.UpdateFeature(fx.Context(), &UpdateFeatureRequest{
 			Feature: msg,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -180,7 +182,7 @@ func (fx *FeatureRegistryServiceFeatureTestSuiteConfig) testUpdate(t *testing.T)
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
 		msg.Name = "invalid resource name"
-		_, err := fx.service.UpdateFeature(fx.ctx, &UpdateFeatureRequest{
+		_, err := fx.service.UpdateFeature(fx.Context(), &UpdateFeatureRequest{
 			Feature: msg,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -193,7 +195,7 @@ func (fx *FeatureRegistryServiceFeatureTestSuiteConfig) testUpdate(t *testing.T)
 		fx.maybeSkip(t)
 		msg := fx.Update(parent)
 		msg.Name = created.Name + "notfound"
-		_, err := fx.service.UpdateFeature(fx.ctx, &UpdateFeatureRequest{
+		_, err := fx.service.UpdateFeature(fx.Context(), &UpdateFeatureRequest{
 			Feature: msg,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -202,7 +204,7 @@ func (fx *FeatureRegistryServiceFeatureTestSuiteConfig) testUpdate(t *testing.T)
 	// The method should fail with InvalidArgument if the update_mask is invalid.
 	t.Run("invalid update mask", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.UpdateFeature(fx.ctx, &UpdateFeatureRequest{
+		_, err := fx.service.UpdateFeature(fx.Context(), &UpdateFeatureRequest{
 			Feature: created,
 			UpdateMask: &fieldmaskpb.FieldMask{
 				Paths: []string{
@@ -220,7 +222,7 @@ func (fx *FeatureRegistryServiceFeatureTestSuiteConfig) testList(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.ListFeatures(fx.ctx, &ListFeaturesRequest{
+		_, err := fx.service.ListFeatures(fx.Context(), &ListFeaturesRequest{
 			Parent: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -230,7 +232,7 @@ func (fx *FeatureRegistryServiceFeatureTestSuiteConfig) testList(t *testing.T) {
 	t.Run("invalid page token", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListFeatures(fx.ctx, &ListFeaturesRequest{
+		_, err := fx.service.ListFeatures(fx.Context(), &ListFeaturesRequest{
 			Parent:    parent,
 			PageToken: "invalid page token",
 		})
@@ -241,7 +243,7 @@ func (fx *FeatureRegistryServiceFeatureTestSuiteConfig) testList(t *testing.T) {
 	t.Run("negative page size", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListFeatures(fx.ctx, &ListFeaturesRequest{
+		_, err := fx.service.ListFeatures(fx.Context(), &ListFeaturesRequest{
 			Parent:   parent,
 			PageSize: -10,
 		})
@@ -259,7 +261,7 @@ func (fx *FeatureRegistryServiceFeatureTestSuiteConfig) testList(t *testing.T) {
 	// under that parent.
 	t.Run("isolation", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListFeatures(fx.ctx, &ListFeaturesRequest{
+		response, err := fx.service.ListFeatures(fx.Context(), &ListFeaturesRequest{
 			Parent:   parent,
 			PageSize: 999,
 		})
@@ -278,7 +280,7 @@ func (fx *FeatureRegistryServiceFeatureTestSuiteConfig) testList(t *testing.T) {
 	// If there are no more resources, next_page_token should not be set.
 	t.Run("last page", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListFeatures(fx.ctx, &ListFeaturesRequest{
+		response, err := fx.service.ListFeatures(fx.Context(), &ListFeaturesRequest{
 			Parent:   parent,
 			PageSize: resourcesCount,
 		})
@@ -289,7 +291,7 @@ func (fx *FeatureRegistryServiceFeatureTestSuiteConfig) testList(t *testing.T) {
 	// If there are more resources, next_page_token should be set.
 	t.Run("more pages", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListFeatures(fx.ctx, &ListFeaturesRequest{
+		response, err := fx.service.ListFeatures(fx.Context(), &ListFeaturesRequest{
 			Parent:   parent,
 			PageSize: resourcesCount - 1,
 		})
@@ -303,7 +305,7 @@ func (fx *FeatureRegistryServiceFeatureTestSuiteConfig) testList(t *testing.T) {
 		msgs := make([]*Feature, 0, resourcesCount)
 		var nextPageToken string
 		for {
-			response, err := fx.service.ListFeatures(fx.ctx, &ListFeaturesRequest{
+			response, err := fx.service.ListFeatures(fx.Context(), &ListFeaturesRequest{
 				Parent:    parent,
 				PageSize:  1,
 				PageToken: nextPageToken,
@@ -332,12 +334,12 @@ func (fx *FeatureRegistryServiceFeatureTestSuiteConfig) testList(t *testing.T) {
 		fx.maybeSkip(t)
 		const deleteCount = 5
 		for i := 0; i < deleteCount; i++ {
-			_, err := fx.service.DeleteFeature(fx.ctx, &DeleteFeatureRequest{
+			_, err := fx.service.DeleteFeature(fx.Context(), &DeleteFeatureRequest{
 				Name: parentMsgs[i].Name,
 			})
 			assert.NilError(t, err)
 		}
-		response, err := fx.service.ListFeatures(fx.ctx, &ListFeaturesRequest{
+		response, err := fx.service.ListFeatures(fx.Context(), &ListFeaturesRequest{
 			Parent:   parent,
 			PageSize: 9999,
 		})
@@ -360,7 +362,7 @@ func (fx *FeatureRegistryServiceFeatureTestSuiteConfig) testDelete(t *testing.T)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteFeature(fx.ctx, &DeleteFeatureRequest{
+		_, err := fx.service.DeleteFeature(fx.Context(), &DeleteFeatureRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -369,7 +371,7 @@ func (fx *FeatureRegistryServiceFeatureTestSuiteConfig) testDelete(t *testing.T)
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteFeature(fx.ctx, &DeleteFeatureRequest{
+		_, err := fx.service.DeleteFeature(fx.Context(), &DeleteFeatureRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -380,7 +382,7 @@ func (fx *FeatureRegistryServiceFeatureTestSuiteConfig) testDelete(t *testing.T)
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteFeature(fx.ctx, &DeleteFeatureRequest{
+		_, err := fx.service.DeleteFeature(fx.Context(), &DeleteFeatureRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -391,7 +393,7 @@ func (fx *FeatureRegistryServiceFeatureTestSuiteConfig) testDelete(t *testing.T)
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteFeature(fx.ctx, &DeleteFeatureRequest{
+		_, err := fx.service.DeleteFeature(fx.Context(), &DeleteFeatureRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -402,12 +404,12 @@ func (fx *FeatureRegistryServiceFeatureTestSuiteConfig) testDelete(t *testing.T)
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		deleted, err := fx.service.DeleteFeature(fx.ctx, &DeleteFeatureRequest{
+		deleted, err := fx.service.DeleteFeature(fx.Context(), &DeleteFeatureRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
 		_ = deleted
-		_, err = fx.service.DeleteFeature(fx.ctx, &DeleteFeatureRequest{
+		_, err = fx.service.DeleteFeature(fx.Context(), &DeleteFeatureRequest{
 			Name: created.Name,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -416,7 +418,7 @@ func (fx *FeatureRegistryServiceFeatureTestSuiteConfig) testDelete(t *testing.T)
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteFeature(fx.ctx, &DeleteFeatureRequest{
+		_, err := fx.service.DeleteFeature(fx.Context(), &DeleteFeatureRequest{
 			Name: "projects/-/locations/-/featurestores/-/entityTypes/-/features/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -457,10 +459,12 @@ func (fx *FeatureRegistryServiceFeatureTestSuiteConfig) create(t *testing.T, par
 }
 
 type FeatureRegistryServiceFeatureGroupTestSuiteConfig struct {
-	ctx        context.Context
 	service    FeatureRegistryServiceServer
 	currParent int
 
+	// Context should return a new context.
+	// The context will be used for several tests.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -492,7 +496,7 @@ func (fx *FeatureRegistryServiceFeatureGroupTestSuiteConfig) testCreate(t *testi
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateFeatureGroup(fx.ctx, &CreateFeatureGroupRequest{
+		_, err := fx.service.CreateFeatureGroup(fx.Context(), &CreateFeatureGroupRequest{
 			Parent:       "",
 			FeatureGroup: fx.Create(fx.nextParent(t, false)),
 		})
@@ -502,7 +506,7 @@ func (fx *FeatureRegistryServiceFeatureGroupTestSuiteConfig) testCreate(t *testi
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateFeatureGroup(fx.ctx, &CreateFeatureGroupRequest{
+		_, err := fx.service.CreateFeatureGroup(fx.Context(), &CreateFeatureGroupRequest{
 			Parent:       "invalid resource name",
 			FeatureGroup: fx.Create(fx.nextParent(t, false)),
 		})
@@ -523,7 +527,7 @@ func (fx *FeatureRegistryServiceFeatureGroupTestSuiteConfig) testCreate(t *testi
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("big_query_source")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateFeatureGroup(fx.ctx, &CreateFeatureGroupRequest{
+			_, err := fx.service.CreateFeatureGroup(fx.Context(), &CreateFeatureGroupRequest{
 				Parent:       parent,
 				FeatureGroup: msg,
 			})
@@ -539,7 +543,7 @@ func (fx *FeatureRegistryServiceFeatureGroupTestSuiteConfig) testCreate(t *testi
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("input_uri")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateFeatureGroup(fx.ctx, &CreateFeatureGroupRequest{
+			_, err := fx.service.CreateFeatureGroup(fx.Context(), &CreateFeatureGroupRequest{
 				Parent:       parent,
 				FeatureGroup: msg,
 			})
@@ -554,7 +558,7 @@ func (fx *FeatureRegistryServiceFeatureGroupTestSuiteConfig) testGet(t *testing.
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetFeatureGroup(fx.ctx, &GetFeatureGroupRequest{
+		_, err := fx.service.GetFeatureGroup(fx.Context(), &GetFeatureGroupRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -563,7 +567,7 @@ func (fx *FeatureRegistryServiceFeatureGroupTestSuiteConfig) testGet(t *testing.
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetFeatureGroup(fx.ctx, &GetFeatureGroupRequest{
+		_, err := fx.service.GetFeatureGroup(fx.Context(), &GetFeatureGroupRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -574,7 +578,7 @@ func (fx *FeatureRegistryServiceFeatureGroupTestSuiteConfig) testGet(t *testing.
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		msg, err := fx.service.GetFeatureGroup(fx.ctx, &GetFeatureGroupRequest{
+		msg, err := fx.service.GetFeatureGroup(fx.Context(), &GetFeatureGroupRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -586,7 +590,7 @@ func (fx *FeatureRegistryServiceFeatureGroupTestSuiteConfig) testGet(t *testing.
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.GetFeatureGroup(fx.ctx, &GetFeatureGroupRequest{
+		_, err := fx.service.GetFeatureGroup(fx.Context(), &GetFeatureGroupRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -595,7 +599,7 @@ func (fx *FeatureRegistryServiceFeatureGroupTestSuiteConfig) testGet(t *testing.
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetFeatureGroup(fx.ctx, &GetFeatureGroupRequest{
+		_, err := fx.service.GetFeatureGroup(fx.Context(), &GetFeatureGroupRequest{
 			Name: "projects/-/locations/-/featureGroups/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -611,7 +615,7 @@ func (fx *FeatureRegistryServiceFeatureGroupTestSuiteConfig) testUpdate(t *testi
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
 		msg.Name = ""
-		_, err := fx.service.UpdateFeatureGroup(fx.ctx, &UpdateFeatureGroupRequest{
+		_, err := fx.service.UpdateFeatureGroup(fx.Context(), &UpdateFeatureGroupRequest{
 			FeatureGroup: msg,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -623,7 +627,7 @@ func (fx *FeatureRegistryServiceFeatureGroupTestSuiteConfig) testUpdate(t *testi
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
 		msg.Name = "invalid resource name"
-		_, err := fx.service.UpdateFeatureGroup(fx.ctx, &UpdateFeatureGroupRequest{
+		_, err := fx.service.UpdateFeatureGroup(fx.Context(), &UpdateFeatureGroupRequest{
 			FeatureGroup: msg,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -636,7 +640,7 @@ func (fx *FeatureRegistryServiceFeatureGroupTestSuiteConfig) testUpdate(t *testi
 		fx.maybeSkip(t)
 		msg := fx.Update(parent)
 		msg.Name = created.Name + "notfound"
-		_, err := fx.service.UpdateFeatureGroup(fx.ctx, &UpdateFeatureGroupRequest{
+		_, err := fx.service.UpdateFeatureGroup(fx.Context(), &UpdateFeatureGroupRequest{
 			FeatureGroup: msg,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -645,7 +649,7 @@ func (fx *FeatureRegistryServiceFeatureGroupTestSuiteConfig) testUpdate(t *testi
 	// The method should fail with InvalidArgument if the update_mask is invalid.
 	t.Run("invalid update mask", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.UpdateFeatureGroup(fx.ctx, &UpdateFeatureGroupRequest{
+		_, err := fx.service.UpdateFeatureGroup(fx.Context(), &UpdateFeatureGroupRequest{
 			FeatureGroup: created,
 			UpdateMask: &fieldmaskpb.FieldMask{
 				Paths: []string{
@@ -669,7 +673,7 @@ func (fx *FeatureRegistryServiceFeatureGroupTestSuiteConfig) testUpdate(t *testi
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("input_uri")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateFeatureGroup(fx.ctx, &UpdateFeatureGroupRequest{
+			_, err := fx.service.UpdateFeatureGroup(fx.Context(), &UpdateFeatureGroupRequest{
 				FeatureGroup: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
@@ -688,7 +692,7 @@ func (fx *FeatureRegistryServiceFeatureGroupTestSuiteConfig) testList(t *testing
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.ListFeatureGroups(fx.ctx, &ListFeatureGroupsRequest{
+		_, err := fx.service.ListFeatureGroups(fx.Context(), &ListFeatureGroupsRequest{
 			Parent: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -698,7 +702,7 @@ func (fx *FeatureRegistryServiceFeatureGroupTestSuiteConfig) testList(t *testing
 	t.Run("invalid page token", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListFeatureGroups(fx.ctx, &ListFeatureGroupsRequest{
+		_, err := fx.service.ListFeatureGroups(fx.Context(), &ListFeatureGroupsRequest{
 			Parent:    parent,
 			PageToken: "invalid page token",
 		})
@@ -709,7 +713,7 @@ func (fx *FeatureRegistryServiceFeatureGroupTestSuiteConfig) testList(t *testing
 	t.Run("negative page size", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListFeatureGroups(fx.ctx, &ListFeatureGroupsRequest{
+		_, err := fx.service.ListFeatureGroups(fx.Context(), &ListFeatureGroupsRequest{
 			Parent:   parent,
 			PageSize: -10,
 		})
@@ -727,7 +731,7 @@ func (fx *FeatureRegistryServiceFeatureGroupTestSuiteConfig) testList(t *testing
 	// under that parent.
 	t.Run("isolation", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListFeatureGroups(fx.ctx, &ListFeatureGroupsRequest{
+		response, err := fx.service.ListFeatureGroups(fx.Context(), &ListFeatureGroupsRequest{
 			Parent:   parent,
 			PageSize: 999,
 		})
@@ -746,7 +750,7 @@ func (fx *FeatureRegistryServiceFeatureGroupTestSuiteConfig) testList(t *testing
 	// If there are no more resources, next_page_token should not be set.
 	t.Run("last page", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListFeatureGroups(fx.ctx, &ListFeatureGroupsRequest{
+		response, err := fx.service.ListFeatureGroups(fx.Context(), &ListFeatureGroupsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount,
 		})
@@ -757,7 +761,7 @@ func (fx *FeatureRegistryServiceFeatureGroupTestSuiteConfig) testList(t *testing
 	// If there are more resources, next_page_token should be set.
 	t.Run("more pages", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListFeatureGroups(fx.ctx, &ListFeatureGroupsRequest{
+		response, err := fx.service.ListFeatureGroups(fx.Context(), &ListFeatureGroupsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount - 1,
 		})
@@ -771,7 +775,7 @@ func (fx *FeatureRegistryServiceFeatureGroupTestSuiteConfig) testList(t *testing
 		msgs := make([]*FeatureGroup, 0, resourcesCount)
 		var nextPageToken string
 		for {
-			response, err := fx.service.ListFeatureGroups(fx.ctx, &ListFeatureGroupsRequest{
+			response, err := fx.service.ListFeatureGroups(fx.Context(), &ListFeatureGroupsRequest{
 				Parent:    parent,
 				PageSize:  1,
 				PageToken: nextPageToken,
@@ -800,12 +804,12 @@ func (fx *FeatureRegistryServiceFeatureGroupTestSuiteConfig) testList(t *testing
 		fx.maybeSkip(t)
 		const deleteCount = 5
 		for i := 0; i < deleteCount; i++ {
-			_, err := fx.service.DeleteFeatureGroup(fx.ctx, &DeleteFeatureGroupRequest{
+			_, err := fx.service.DeleteFeatureGroup(fx.Context(), &DeleteFeatureGroupRequest{
 				Name: parentMsgs[i].Name,
 			})
 			assert.NilError(t, err)
 		}
-		response, err := fx.service.ListFeatureGroups(fx.ctx, &ListFeatureGroupsRequest{
+		response, err := fx.service.ListFeatureGroups(fx.Context(), &ListFeatureGroupsRequest{
 			Parent:   parent,
 			PageSize: 9999,
 		})
@@ -828,7 +832,7 @@ func (fx *FeatureRegistryServiceFeatureGroupTestSuiteConfig) testDelete(t *testi
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteFeatureGroup(fx.ctx, &DeleteFeatureGroupRequest{
+		_, err := fx.service.DeleteFeatureGroup(fx.Context(), &DeleteFeatureGroupRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -837,7 +841,7 @@ func (fx *FeatureRegistryServiceFeatureGroupTestSuiteConfig) testDelete(t *testi
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteFeatureGroup(fx.ctx, &DeleteFeatureGroupRequest{
+		_, err := fx.service.DeleteFeatureGroup(fx.Context(), &DeleteFeatureGroupRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -848,7 +852,7 @@ func (fx *FeatureRegistryServiceFeatureGroupTestSuiteConfig) testDelete(t *testi
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteFeatureGroup(fx.ctx, &DeleteFeatureGroupRequest{
+		_, err := fx.service.DeleteFeatureGroup(fx.Context(), &DeleteFeatureGroupRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -859,7 +863,7 @@ func (fx *FeatureRegistryServiceFeatureGroupTestSuiteConfig) testDelete(t *testi
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteFeatureGroup(fx.ctx, &DeleteFeatureGroupRequest{
+		_, err := fx.service.DeleteFeatureGroup(fx.Context(), &DeleteFeatureGroupRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -870,12 +874,12 @@ func (fx *FeatureRegistryServiceFeatureGroupTestSuiteConfig) testDelete(t *testi
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		deleted, err := fx.service.DeleteFeatureGroup(fx.ctx, &DeleteFeatureGroupRequest{
+		deleted, err := fx.service.DeleteFeatureGroup(fx.Context(), &DeleteFeatureGroupRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
 		_ = deleted
-		_, err = fx.service.DeleteFeatureGroup(fx.ctx, &DeleteFeatureGroupRequest{
+		_, err = fx.service.DeleteFeatureGroup(fx.Context(), &DeleteFeatureGroupRequest{
 			Name: created.Name,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -884,7 +888,7 @@ func (fx *FeatureRegistryServiceFeatureGroupTestSuiteConfig) testDelete(t *testi
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteFeatureGroup(fx.ctx, &DeleteFeatureGroupRequest{
+		_, err := fx.service.DeleteFeatureGroup(fx.Context(), &DeleteFeatureGroupRequest{
 			Name: "projects/-/locations/-/featureGroups/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)

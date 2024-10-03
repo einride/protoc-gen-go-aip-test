@@ -24,7 +24,7 @@ type FreightServiceTestSuite struct {
 
 func (fx FreightServiceTestSuite) TestShipper(ctx context.Context, options FreightServiceShipperTestSuiteConfig) {
 	fx.T.Run("Shipper", func(t *testing.T) {
-		options.ctx = ctx
+		options.Context = func() context.Context { return ctx }
 		options.service = fx.Server
 		options.test(t)
 	})
@@ -32,17 +32,19 @@ func (fx FreightServiceTestSuite) TestShipper(ctx context.Context, options Freig
 
 func (fx FreightServiceTestSuite) TestSite(ctx context.Context, options FreightServiceSiteTestSuiteConfig) {
 	fx.T.Run("Site", func(t *testing.T) {
-		options.ctx = ctx
+		options.Context = func() context.Context { return ctx }
 		options.service = fx.Server
 		options.test(t)
 	})
 }
 
 type FreightServiceShipperTestSuiteConfig struct {
-	ctx        context.Context
 	service    FreightServiceServer
 	currParent int
 
+	// Context should return a new context.
+	// The context will be used for several tests.
+	Context func() context.Context
 	// Create should return a resource which is valid to create, i.e.
 	// all required fields set.
 	Create func() *Shipper
@@ -78,7 +80,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testCreate(t *testing.T) {
 		if fx.IDGenerator != nil {
 			userSetID = fx.IDGenerator()
 		}
-		msg, err := fx.service.CreateShipper(fx.ctx, &CreateShipperRequest{
+		msg, err := fx.service.CreateShipper(fx.Context(), &CreateShipperRequest{
 			Shipper:   fx.Create(),
 			ShipperId: userSetID,
 		})
@@ -95,12 +97,12 @@ func (fx *FreightServiceShipperTestSuiteConfig) testCreate(t *testing.T) {
 		if fx.IDGenerator != nil {
 			userSetID = fx.IDGenerator()
 		}
-		msg, err := fx.service.CreateShipper(fx.ctx, &CreateShipperRequest{
+		msg, err := fx.service.CreateShipper(fx.Context(), &CreateShipperRequest{
 			Shipper:   fx.Create(),
 			ShipperId: userSetID,
 		})
 		assert.NilError(t, err)
-		persisted, err := fx.service.GetShipper(fx.ctx, &GetShipperRequest{
+		persisted, err := fx.service.GetShipper(fx.Context(), &GetShipperRequest{
 			Name: msg.Name,
 		})
 		assert.NilError(t, err)
@@ -111,7 +113,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testCreate(t *testing.T) {
 	// be returned with the provided ID.
 	t.Run("user settable id", func(t *testing.T) {
 		fx.maybeSkip(t)
-		msg, err := fx.service.CreateShipper(fx.ctx, &CreateShipperRequest{
+		msg, err := fx.service.CreateShipper(fx.Context(), &CreateShipperRequest{
 			Shipper:   fx.Create(),
 			ShipperId: "usersetid",
 		})
@@ -123,12 +125,12 @@ func (fx *FreightServiceShipperTestSuiteConfig) testCreate(t *testing.T) {
 	// the method should return AlreadyExists.
 	t.Run("already exists", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateShipper(fx.ctx, &CreateShipperRequest{
+		_, err := fx.service.CreateShipper(fx.Context(), &CreateShipperRequest{
 			Shipper:   fx.Create(),
 			ShipperId: "alreadyexists",
 		})
 		assert.NilError(t, err)
-		_, err = fx.service.CreateShipper(fx.ctx, &CreateShipperRequest{
+		_, err = fx.service.CreateShipper(fx.Context(), &CreateShipperRequest{
 			Shipper:   fx.Create(),
 			ShipperId: "alreadyexists",
 		})
@@ -152,7 +154,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testCreate(t *testing.T) {
 			if fx.IDGenerator != nil {
 				userSetID = fx.IDGenerator()
 			}
-			_, err := fx.service.CreateShipper(fx.ctx, &CreateShipperRequest{
+			_, err := fx.service.CreateShipper(fx.Context(), &CreateShipperRequest{
 				Shipper:   msg,
 				ShipperId: userSetID,
 			})
@@ -171,7 +173,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testCreate(t *testing.T) {
 			if fx.IDGenerator != nil {
 				userSetID = fx.IDGenerator()
 			}
-			_, err := fx.service.CreateShipper(fx.ctx, &CreateShipperRequest{
+			_, err := fx.service.CreateShipper(fx.Context(), &CreateShipperRequest{
 				Shipper:   msg,
 				ShipperId: userSetID,
 			})
@@ -195,7 +197,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testCreate(t *testing.T) {
 			if fx.IDGenerator != nil {
 				userSetID = fx.IDGenerator()
 			}
-			_, err := fx.service.CreateShipper(fx.ctx, &CreateShipperRequest{
+			_, err := fx.service.CreateShipper(fx.Context(), &CreateShipperRequest{
 				Shipper:   msg,
 				ShipperId: userSetID,
 			})
@@ -210,7 +212,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testCreate(t *testing.T) {
 		if fx.IDGenerator != nil {
 			userSetID = fx.IDGenerator()
 		}
-		created, _ := fx.service.CreateShipper(fx.ctx, &CreateShipperRequest{
+		created, _ := fx.service.CreateShipper(fx.Context(), &CreateShipperRequest{
 			Shipper:   fx.Create(),
 			ShipperId: userSetID,
 		})
@@ -224,7 +226,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetShipper(fx.ctx, &GetShipperRequest{
+		_, err := fx.service.GetShipper(fx.Context(), &GetShipperRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -233,7 +235,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetShipper(fx.ctx, &GetShipperRequest{
+		_, err := fx.service.GetShipper(fx.Context(), &GetShipperRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -243,7 +245,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testGet(t *testing.T) {
 	t.Run("exists", func(t *testing.T) {
 		fx.maybeSkip(t)
 		created := fx.create(t)
-		msg, err := fx.service.GetShipper(fx.ctx, &GetShipperRequest{
+		msg, err := fx.service.GetShipper(fx.Context(), &GetShipperRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -254,7 +256,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testGet(t *testing.T) {
 	t.Run("not found", func(t *testing.T) {
 		fx.maybeSkip(t)
 		created := fx.create(t)
-		_, err := fx.service.GetShipper(fx.ctx, &GetShipperRequest{
+		_, err := fx.service.GetShipper(fx.Context(), &GetShipperRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -263,7 +265,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetShipper(fx.ctx, &GetShipperRequest{
+		_, err := fx.service.GetShipper(fx.Context(), &GetShipperRequest{
 			Name: "shippers/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -273,11 +275,11 @@ func (fx *FreightServiceShipperTestSuiteConfig) testGet(t *testing.T) {
 	t.Run("soft-deleted", func(t *testing.T) {
 		fx.maybeSkip(t)
 		created := fx.create(t)
-		deleted, err := fx.service.DeleteShipper(fx.ctx, &DeleteShipperRequest{
+		deleted, err := fx.service.DeleteShipper(fx.Context(), &DeleteShipperRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
-		msg, err := fx.service.GetShipper(fx.ctx, &GetShipperRequest{
+		msg, err := fx.service.GetShipper(fx.Context(), &GetShipperRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -293,7 +295,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testUpdate(t *testing.T) {
 		fx.maybeSkip(t)
 		msg := fx.Update()
 		msg.Name = ""
-		_, err := fx.service.UpdateShipper(fx.ctx, &UpdateShipperRequest{
+		_, err := fx.service.UpdateShipper(fx.Context(), &UpdateShipperRequest{
 			Shipper: msg,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -304,7 +306,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testUpdate(t *testing.T) {
 		fx.maybeSkip(t)
 		msg := fx.Update()
 		msg.Name = "invalid resource name"
-		_, err := fx.service.UpdateShipper(fx.ctx, &UpdateShipperRequest{
+		_, err := fx.service.UpdateShipper(fx.Context(), &UpdateShipperRequest{
 			Shipper: msg,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -314,7 +316,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testUpdate(t *testing.T) {
 	t.Run("update time", func(t *testing.T) {
 		fx.maybeSkip(t)
 		created := fx.create(t)
-		updated, err := fx.service.UpdateShipper(fx.ctx, &UpdateShipperRequest{
+		updated, err := fx.service.UpdateShipper(fx.Context(), &UpdateShipperRequest{
 			Shipper: created,
 		})
 		assert.NilError(t, err)
@@ -325,11 +327,11 @@ func (fx *FreightServiceShipperTestSuiteConfig) testUpdate(t *testing.T) {
 	t.Run("persisted", func(t *testing.T) {
 		fx.maybeSkip(t)
 		created := fx.create(t)
-		updated, err := fx.service.UpdateShipper(fx.ctx, &UpdateShipperRequest{
+		updated, err := fx.service.UpdateShipper(fx.Context(), &UpdateShipperRequest{
 			Shipper: created,
 		})
 		assert.NilError(t, err)
-		persisted, err := fx.service.GetShipper(fx.ctx, &GetShipperRequest{
+		persisted, err := fx.service.GetShipper(fx.Context(), &GetShipperRequest{
 			Name: updated.Name,
 		})
 		assert.NilError(t, err)
@@ -341,7 +343,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testUpdate(t *testing.T) {
 		fx.maybeSkip(t)
 		created := fx.create(t)
 		originalCreateTime := created.CreateTime
-		updated, err := fx.service.UpdateShipper(fx.ctx, &UpdateShipperRequest{
+		updated, err := fx.service.UpdateShipper(fx.Context(), &UpdateShipperRequest{
 			Shipper: created,
 			UpdateMask: &fieldmaskpb.FieldMask{
 				Paths: []string{
@@ -357,7 +359,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testUpdate(t *testing.T) {
 	t.Run("etag mismatch", func(t *testing.T) {
 		fx.maybeSkip(t)
 		created := fx.create(t)
-		_, err := fx.service.UpdateShipper(fx.ctx, &UpdateShipperRequest{
+		_, err := fx.service.UpdateShipper(fx.Context(), &UpdateShipperRequest{
 			Shipper: created,
 			Etag:    `"99999"`,
 		})
@@ -370,7 +372,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testUpdate(t *testing.T) {
 		created := fx.create(t)
 		msg := fx.Update()
 		msg.Name = created.Name
-		updated, err := fx.service.UpdateShipper(fx.ctx, &UpdateShipperRequest{
+		updated, err := fx.service.UpdateShipper(fx.Context(), &UpdateShipperRequest{
 			Shipper: msg,
 			Etag:    created.Etag,
 		})
@@ -384,7 +386,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testUpdate(t *testing.T) {
 		fx.maybeSkip(t)
 		msg := fx.Update()
 		msg.Name = created.Name + "notfound"
-		_, err := fx.service.UpdateShipper(fx.ctx, &UpdateShipperRequest{
+		_, err := fx.service.UpdateShipper(fx.Context(), &UpdateShipperRequest{
 			Shipper: msg,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -393,7 +395,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testUpdate(t *testing.T) {
 	// The method should fail with InvalidArgument if the update_mask is invalid.
 	t.Run("invalid update mask", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.UpdateShipper(fx.ctx, &UpdateShipperRequest{
+		_, err := fx.service.UpdateShipper(fx.Context(), &UpdateShipperRequest{
 			Shipper: created,
 			UpdateMask: &fieldmaskpb.FieldMask{
 				Paths: []string{
@@ -417,7 +419,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testUpdate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateShipper(fx.ctx, &UpdateShipperRequest{
+			_, err := fx.service.UpdateShipper(fx.Context(), &UpdateShipperRequest{
 				Shipper: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
@@ -436,7 +438,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testUpdate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("billing_account")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateShipper(fx.ctx, &UpdateShipperRequest{
+			_, err := fx.service.UpdateShipper(fx.Context(), &UpdateShipperRequest{
 				Shipper: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
@@ -455,7 +457,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testList(t *testing.T) {
 	// Method should fail with InvalidArgument is provided page token is not valid.
 	t.Run("invalid page token", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.ListShippers(fx.ctx, &ListShippersRequest{
+		_, err := fx.service.ListShippers(fx.Context(), &ListShippersRequest{
 			PageToken: "invalid page token",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -464,7 +466,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testList(t *testing.T) {
 	// Method should fail with InvalidArgument is provided page size is negative.
 	t.Run("negative page size", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.ListShippers(fx.ctx, &ListShippersRequest{
+		_, err := fx.service.ListShippers(fx.Context(), &ListShippersRequest{
 			PageSize: -10,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -477,7 +479,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteShipper(fx.ctx, &DeleteShipperRequest{
+		_, err := fx.service.DeleteShipper(fx.Context(), &DeleteShipperRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -486,7 +488,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteShipper(fx.ctx, &DeleteShipperRequest{
+		_, err := fx.service.DeleteShipper(fx.Context(), &DeleteShipperRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -496,7 +498,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testDelete(t *testing.T) {
 	t.Run("exists", func(t *testing.T) {
 		fx.maybeSkip(t)
 		created := fx.create(t)
-		_, err := fx.service.DeleteShipper(fx.ctx, &DeleteShipperRequest{
+		_, err := fx.service.DeleteShipper(fx.Context(), &DeleteShipperRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -506,7 +508,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testDelete(t *testing.T) {
 	t.Run("not found", func(t *testing.T) {
 		fx.maybeSkip(t)
 		created := fx.create(t)
-		_, err := fx.service.DeleteShipper(fx.ctx, &DeleteShipperRequest{
+		_, err := fx.service.DeleteShipper(fx.Context(), &DeleteShipperRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -516,12 +518,12 @@ func (fx *FreightServiceShipperTestSuiteConfig) testDelete(t *testing.T) {
 	t.Run("already deleted", func(t *testing.T) {
 		fx.maybeSkip(t)
 		created := fx.create(t)
-		deleted, err := fx.service.DeleteShipper(fx.ctx, &DeleteShipperRequest{
+		deleted, err := fx.service.DeleteShipper(fx.Context(), &DeleteShipperRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
 		_ = deleted
-		_, err = fx.service.DeleteShipper(fx.ctx, &DeleteShipperRequest{
+		_, err = fx.service.DeleteShipper(fx.Context(), &DeleteShipperRequest{
 			Name: created.Name,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -530,7 +532,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteShipper(fx.ctx, &DeleteShipperRequest{
+		_, err := fx.service.DeleteShipper(fx.Context(), &DeleteShipperRequest{
 			Name: "shippers/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -540,7 +542,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testDelete(t *testing.T) {
 	t.Run("etag mismatch", func(t *testing.T) {
 		fx.maybeSkip(t)
 		created := fx.create(t)
-		_, err := fx.service.DeleteShipper(fx.ctx, &DeleteShipperRequest{
+		_, err := fx.service.DeleteShipper(fx.Context(), &DeleteShipperRequest{
 			Name: created.Name,
 			Etag: `"99999"`,
 		})
@@ -563,7 +565,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) create(t *testing.T) *Shipper {
 	if fx.IDGenerator != nil {
 		userSetID = fx.IDGenerator()
 	}
-	created, err := fx.service.CreateShipper(fx.ctx, &CreateShipperRequest{
+	created, err := fx.service.CreateShipper(fx.Context(), &CreateShipperRequest{
 		Shipper:   fx.Create(),
 		ShipperId: userSetID,
 	})
@@ -572,10 +574,12 @@ func (fx *FreightServiceShipperTestSuiteConfig) create(t *testing.T) *Shipper {
 }
 
 type FreightServiceSiteTestSuiteConfig struct {
-	ctx        context.Context
 	service    FreightServiceServer
 	currParent int
 
+	// Context should return a new context.
+	// The context will be used for several tests.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -608,7 +612,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testCreate(t *testing.T) {
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateSite(fx.ctx, &CreateSiteRequest{
+		_, err := fx.service.CreateSite(fx.Context(), &CreateSiteRequest{
 			Parent: "",
 			Site:   fx.Create(fx.nextParent(t, false)),
 		})
@@ -618,7 +622,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testCreate(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateSite(fx.ctx, &CreateSiteRequest{
+		_, err := fx.service.CreateSite(fx.Context(), &CreateSiteRequest{
 			Parent: "invalid resource name",
 			Site:   fx.Create(fx.nextParent(t, false)),
 		})
@@ -630,7 +634,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		beforeCreate := time.Now()
-		msg, err := fx.service.CreateSite(fx.ctx, &CreateSiteRequest{
+		msg, err := fx.service.CreateSite(fx.Context(), &CreateSiteRequest{
 			Parent: parent,
 			Site:   fx.Create(parent),
 		})
@@ -644,12 +648,12 @@ func (fx *FreightServiceSiteTestSuiteConfig) testCreate(t *testing.T) {
 	t.Run("persisted", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		msg, err := fx.service.CreateSite(fx.ctx, &CreateSiteRequest{
+		msg, err := fx.service.CreateSite(fx.Context(), &CreateSiteRequest{
 			Parent: parent,
 			Site:   fx.Create(parent),
 		})
 		assert.NilError(t, err)
-		persisted, err := fx.service.GetSite(fx.ctx, &GetSiteRequest{
+		persisted, err := fx.service.GetSite(fx.Context(), &GetSiteRequest{
 			Name: msg.Name,
 		})
 		assert.NilError(t, err)
@@ -670,7 +674,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateSite(fx.ctx, &CreateSiteRequest{
+			_, err := fx.service.CreateSite(fx.Context(), &CreateSiteRequest{
 				Parent: parent,
 				Site:   msg,
 			})
@@ -686,7 +690,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("region")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateSite(fx.ctx, &CreateSiteRequest{
+			_, err := fx.service.CreateSite(fx.Context(), &CreateSiteRequest{
 				Parent: parent,
 				Site:   msg,
 			})
@@ -707,7 +711,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testCreate(t *testing.T) {
 				t.Skip("not reachable")
 			}
 			container.BillingAccount = "invalid resource name"
-			_, err := fx.service.CreateSite(fx.ctx, &CreateSiteRequest{
+			_, err := fx.service.CreateSite(fx.Context(), &CreateSiteRequest{
 				Parent: parent,
 				Site:   msg,
 			})
@@ -719,7 +723,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testCreate(t *testing.T) {
 	t.Run("etag populated", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		created, _ := fx.service.CreateSite(fx.ctx, &CreateSiteRequest{
+		created, _ := fx.service.CreateSite(fx.Context(), &CreateSiteRequest{
 			Parent: parent,
 			Site:   fx.Create(parent),
 		})
@@ -733,7 +737,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetSite(fx.ctx, &GetSiteRequest{
+		_, err := fx.service.GetSite(fx.Context(), &GetSiteRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -742,7 +746,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetSite(fx.ctx, &GetSiteRequest{
+		_, err := fx.service.GetSite(fx.Context(), &GetSiteRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -753,7 +757,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		msg, err := fx.service.GetSite(fx.ctx, &GetSiteRequest{
+		msg, err := fx.service.GetSite(fx.Context(), &GetSiteRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -765,7 +769,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.GetSite(fx.ctx, &GetSiteRequest{
+		_, err := fx.service.GetSite(fx.Context(), &GetSiteRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -774,7 +778,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetSite(fx.ctx, &GetSiteRequest{
+		_, err := fx.service.GetSite(fx.Context(), &GetSiteRequest{
 			Name: "shippers/-/sites/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -785,12 +789,12 @@ func (fx *FreightServiceSiteTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		deleted, err := fx.service.DeleteSite(fx.ctx, &DeleteSiteRequest{
+		deleted, err := fx.service.DeleteSite(fx.Context(), &DeleteSiteRequest{
 			Name: created.Name,
 			Etag: created.Etag,
 		})
 		assert.NilError(t, err)
-		msg, err := fx.service.GetSite(fx.ctx, &GetSiteRequest{
+		msg, err := fx.service.GetSite(fx.Context(), &GetSiteRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -804,7 +808,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testBatchGet(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.BatchGetSites(fx.ctx, &BatchGetSitesRequest{
+		_, err := fx.service.BatchGetSites(fx.Context(), &BatchGetSitesRequest{
 			Parent: "invalid resource name",
 			Names:  []string{},
 		})
@@ -815,7 +819,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testBatchGet(t *testing.T) {
 	t.Run("names missing", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.BatchGetSites(fx.ctx, &BatchGetSitesRequest{
+		_, err := fx.service.BatchGetSites(fx.Context(), &BatchGetSitesRequest{
 			Parent: parent,
 			Names:  []string{},
 		})
@@ -826,7 +830,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testBatchGet(t *testing.T) {
 	t.Run("invalid names", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.BatchGetSites(fx.ctx, &BatchGetSitesRequest{
+		_, err := fx.service.BatchGetSites(fx.Context(), &BatchGetSitesRequest{
 			Parent: parent,
 			Names: []string{
 				"invalid resource name",
@@ -839,7 +843,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testBatchGet(t *testing.T) {
 	t.Run("wildcard name", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.BatchGetSites(fx.ctx, &BatchGetSitesRequest{
+		_, err := fx.service.BatchGetSites(fx.Context(), &BatchGetSitesRequest{
 			Parent: parent,
 			Names: []string{
 				"shippers/-/sites/-",
@@ -855,7 +859,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testBatchGet(t *testing.T) {
 	// Resources should be returned without errors if they exist.
 	t.Run("all exists", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.BatchGetSites(fx.ctx, &BatchGetSitesRequest{
+		response, err := fx.service.BatchGetSites(fx.Context(), &BatchGetSitesRequest{
 			Parent: parent,
 			Names: []string{
 				created00.Name,
@@ -880,7 +884,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testBatchGet(t *testing.T) {
 	// or succeed for all resources (no partial success).
 	t.Run("atomic", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.BatchGetSites(fx.ctx, &BatchGetSitesRequest{
+		_, err := fx.service.BatchGetSites(fx.Context(), &BatchGetSitesRequest{
 			Parent: parent,
 			Names: []string{
 				created00.Name,
@@ -895,7 +899,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testBatchGet(t *testing.T) {
 	// being retrieved does not match, the request must fail.
 	t.Run("parent mismatch", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.BatchGetSites(fx.ctx, &BatchGetSitesRequest{
+		_, err := fx.service.BatchGetSites(fx.Context(), &BatchGetSitesRequest{
 			Parent: fx.peekNextParent(t),
 			Names: []string{
 				created00.Name,
@@ -912,7 +916,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testBatchGet(t *testing.T) {
 			{created01, created00, created02},
 			{created02, created01, created00},
 		} {
-			response, err := fx.service.BatchGetSites(fx.ctx, &BatchGetSitesRequest{
+			response, err := fx.service.BatchGetSites(fx.Context(), &BatchGetSitesRequest{
 				Parent: parent,
 				Names: []string{
 					order[0].GetName(),
@@ -929,7 +933,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testBatchGet(t *testing.T) {
 	// duplicate resources.
 	t.Run("duplicate names", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.BatchGetSites(fx.ctx, &BatchGetSitesRequest{
+		response, err := fx.service.BatchGetSites(fx.Context(), &BatchGetSitesRequest{
 			Parent: parent,
 			Names: []string{
 				created00.Name,
@@ -958,7 +962,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
 		msg.Name = ""
-		_, err := fx.service.UpdateSite(fx.ctx, &UpdateSiteRequest{
+		_, err := fx.service.UpdateSite(fx.Context(), &UpdateSiteRequest{
 			Site: msg,
 			Etag: msg.Etag,
 		})
@@ -971,7 +975,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
 		msg.Name = "invalid resource name"
-		_, err := fx.service.UpdateSite(fx.ctx, &UpdateSiteRequest{
+		_, err := fx.service.UpdateSite(fx.Context(), &UpdateSiteRequest{
 			Site: msg,
 			Etag: msg.Etag,
 		})
@@ -983,7 +987,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		updated, err := fx.service.UpdateSite(fx.ctx, &UpdateSiteRequest{
+		updated, err := fx.service.UpdateSite(fx.Context(), &UpdateSiteRequest{
 			Site: created,
 			Etag: created.Etag,
 		})
@@ -996,12 +1000,12 @@ func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		updated, err := fx.service.UpdateSite(fx.ctx, &UpdateSiteRequest{
+		updated, err := fx.service.UpdateSite(fx.Context(), &UpdateSiteRequest{
 			Site: created,
 			Etag: created.Etag,
 		})
 		assert.NilError(t, err)
-		persisted, err := fx.service.GetSite(fx.ctx, &GetSiteRequest{
+		persisted, err := fx.service.GetSite(fx.Context(), &GetSiteRequest{
 			Name: updated.Name,
 		})
 		assert.NilError(t, err)
@@ -1014,7 +1018,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
 		originalCreateTime := created.CreateTime
-		updated, err := fx.service.UpdateSite(fx.ctx, &UpdateSiteRequest{
+		updated, err := fx.service.UpdateSite(fx.Context(), &UpdateSiteRequest{
 			Site: created,
 			UpdateMask: &fieldmaskpb.FieldMask{
 				Paths: []string{
@@ -1032,7 +1036,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.UpdateSite(fx.ctx, &UpdateSiteRequest{
+		_, err := fx.service.UpdateSite(fx.Context(), &UpdateSiteRequest{
 			Site: created,
 			Etag: `"99999"`,
 		})
@@ -1046,7 +1050,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
 		created := fx.create(t, parent)
 		msg := fx.Update(parent)
 		msg.Name = created.Name
-		updated, err := fx.service.UpdateSite(fx.ctx, &UpdateSiteRequest{
+		updated, err := fx.service.UpdateSite(fx.Context(), &UpdateSiteRequest{
 			Site: msg,
 			Etag: created.Etag,
 		})
@@ -1061,7 +1065,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
 		fx.maybeSkip(t)
 		msg := fx.Update(parent)
 		msg.Name = created.Name + "notfound"
-		_, err := fx.service.UpdateSite(fx.ctx, &UpdateSiteRequest{
+		_, err := fx.service.UpdateSite(fx.Context(), &UpdateSiteRequest{
 			Site: msg,
 			Etag: msg.Etag,
 		})
@@ -1071,7 +1075,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
 	// The method should fail with InvalidArgument if the update_mask is invalid.
 	t.Run("invalid update mask", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.UpdateSite(fx.ctx, &UpdateSiteRequest{
+		_, err := fx.service.UpdateSite(fx.Context(), &UpdateSiteRequest{
 			Site: created,
 			UpdateMask: &fieldmaskpb.FieldMask{
 				Paths: []string{
@@ -1096,7 +1100,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateSite(fx.ctx, &UpdateSiteRequest{
+			_, err := fx.service.UpdateSite(fx.Context(), &UpdateSiteRequest{
 				Site: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
@@ -1116,7 +1120,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testList(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.ListSites(fx.ctx, &ListSitesRequest{
+		_, err := fx.service.ListSites(fx.Context(), &ListSitesRequest{
 			Parent: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1126,7 +1130,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testList(t *testing.T) {
 	t.Run("invalid page token", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListSites(fx.ctx, &ListSitesRequest{
+		_, err := fx.service.ListSites(fx.Context(), &ListSitesRequest{
 			Parent:    parent,
 			PageToken: "invalid page token",
 		})
@@ -1137,7 +1141,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testList(t *testing.T) {
 	t.Run("negative page size", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListSites(fx.ctx, &ListSitesRequest{
+		_, err := fx.service.ListSites(fx.Context(), &ListSitesRequest{
 			Parent:   parent,
 			PageSize: -10,
 		})
@@ -1155,7 +1159,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testList(t *testing.T) {
 	// under that parent.
 	t.Run("isolation", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListSites(fx.ctx, &ListSitesRequest{
+		response, err := fx.service.ListSites(fx.Context(), &ListSitesRequest{
 			Parent:   parent,
 			PageSize: 999,
 		})
@@ -1174,7 +1178,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testList(t *testing.T) {
 	// If there are no more resources, next_page_token should not be set.
 	t.Run("last page", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListSites(fx.ctx, &ListSitesRequest{
+		response, err := fx.service.ListSites(fx.Context(), &ListSitesRequest{
 			Parent:   parent,
 			PageSize: resourcesCount,
 		})
@@ -1185,7 +1189,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testList(t *testing.T) {
 	// If there are more resources, next_page_token should be set.
 	t.Run("more pages", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListSites(fx.ctx, &ListSitesRequest{
+		response, err := fx.service.ListSites(fx.Context(), &ListSitesRequest{
 			Parent:   parent,
 			PageSize: resourcesCount - 1,
 		})
@@ -1199,7 +1203,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testList(t *testing.T) {
 		msgs := make([]*Site, 0, resourcesCount)
 		var nextPageToken string
 		for {
-			response, err := fx.service.ListSites(fx.ctx, &ListSitesRequest{
+			response, err := fx.service.ListSites(fx.Context(), &ListSitesRequest{
 				Parent:    parent,
 				PageSize:  1,
 				PageToken: nextPageToken,
@@ -1228,13 +1232,13 @@ func (fx *FreightServiceSiteTestSuiteConfig) testList(t *testing.T) {
 		fx.maybeSkip(t)
 		const deleteCount = 5
 		for i := 0; i < deleteCount; i++ {
-			_, err := fx.service.DeleteSite(fx.ctx, &DeleteSiteRequest{
+			_, err := fx.service.DeleteSite(fx.Context(), &DeleteSiteRequest{
 				Name: parentMsgs[i].Name,
 				Etag: parentMsgs[i].Etag,
 			})
 			assert.NilError(t, err)
 		}
-		response, err := fx.service.ListSites(fx.ctx, &ListSitesRequest{
+		response, err := fx.service.ListSites(fx.Context(), &ListSitesRequest{
 			Parent:   parent,
 			PageSize: 9999,
 		})
@@ -1257,7 +1261,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteSite(fx.ctx, &DeleteSiteRequest{
+		_, err := fx.service.DeleteSite(fx.Context(), &DeleteSiteRequest{
 			Name: "",
 			Etag: "",
 		})
@@ -1267,7 +1271,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteSite(fx.ctx, &DeleteSiteRequest{
+		_, err := fx.service.DeleteSite(fx.Context(), &DeleteSiteRequest{
 			Name: "invalid resource name",
 			Etag: "",
 		})
@@ -1279,7 +1283,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteSite(fx.ctx, &DeleteSiteRequest{
+		_, err := fx.service.DeleteSite(fx.Context(), &DeleteSiteRequest{
 			Name: created.Name,
 			Etag: created.Etag,
 		})
@@ -1291,7 +1295,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteSite(fx.ctx, &DeleteSiteRequest{
+		_, err := fx.service.DeleteSite(fx.Context(), &DeleteSiteRequest{
 			Name: created.Name + "notfound",
 			Etag: created.Etag,
 		})
@@ -1303,13 +1307,13 @@ func (fx *FreightServiceSiteTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		deleted, err := fx.service.DeleteSite(fx.ctx, &DeleteSiteRequest{
+		deleted, err := fx.service.DeleteSite(fx.Context(), &DeleteSiteRequest{
 			Name: created.Name,
 			Etag: created.Etag,
 		})
 		assert.NilError(t, err)
 		_ = deleted
-		_, err = fx.service.DeleteSite(fx.ctx, &DeleteSiteRequest{
+		_, err = fx.service.DeleteSite(fx.Context(), &DeleteSiteRequest{
 			Name: created.Name,
 			Etag: deleted.Etag,
 		})
@@ -1319,7 +1323,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteSite(fx.ctx, &DeleteSiteRequest{
+		_, err := fx.service.DeleteSite(fx.Context(), &DeleteSiteRequest{
 			Name: "shippers/-/sites/-",
 			Etag: "",
 		})
@@ -1331,7 +1335,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteSite(fx.ctx, &DeleteSiteRequest{
+		_, err := fx.service.DeleteSite(fx.Context(), &DeleteSiteRequest{
 			Name: created.Name,
 			Etag: `"99999"`,
 		})
@@ -1368,7 +1372,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) maybeSkip(t *testing.T) {
 
 func (fx *FreightServiceSiteTestSuiteConfig) create(t *testing.T, parent string) *Site {
 	t.Helper()
-	created, err := fx.service.CreateSite(fx.ctx, &CreateSiteRequest{
+	created, err := fx.service.CreateSite(fx.Context(), &CreateSiteRequest{
 		Parent: parent,
 		Site:   fx.Create(parent),
 	})
