@@ -14,6 +14,69 @@ import (
 	testing "testing"
 )
 
+// TablesServiceTestSuiteConfigProvider is the interface to implement to decide which resources
+// that should be tested and configured.
+type TablesServiceTestSuiteConfigProvider interface {
+	RowTestSuiteConfig(t *testing.T) *TablesServiceRowTestSuiteConfig
+	TableTestSuiteConfig(t *testing.T) *TablesServiceTableTestSuiteConfig
+	WorkspaceTestSuiteConfig(t *testing.T) *TablesServiceWorkspaceTestSuiteConfig
+}
+
+// TestTablesService is the main entrypoint for starting the AIP tests.
+func TestTablesService(t *testing.T, s TablesServiceTestSuiteConfigProvider) {
+	testTablesServiceRowTestSuiteConfig(t, s)
+	testTablesServiceTableTestSuiteConfig(t, s)
+	testTablesServiceWorkspaceTestSuiteConfig(t, s)
+}
+
+func testTablesServiceRowTestSuiteConfig(t *testing.T, s TablesServiceTestSuiteConfigProvider) {
+	t.Run("Row", func(t *testing.T) {
+		config := s.RowTestSuiteConfig(t)
+		if config == nil {
+			t.Skip("Method RowTestSuiteConfig not implemented")
+		}
+		if config.Service == nil {
+			t.Skip("Method TablesServiceRowTestSuiteConfig.Service() not implemented")
+		}
+		if config.Context == nil {
+			config.Context = func() context.Context { return context.Background() }
+		}
+		config.test(t)
+	})
+}
+
+func testTablesServiceTableTestSuiteConfig(t *testing.T, s TablesServiceTestSuiteConfigProvider) {
+	t.Run("Table", func(t *testing.T) {
+		config := s.TableTestSuiteConfig(t)
+		if config == nil {
+			t.Skip("Method TableTestSuiteConfig not implemented")
+		}
+		if config.Service == nil {
+			t.Skip("Method TablesServiceTableTestSuiteConfig.Service() not implemented")
+		}
+		if config.Context == nil {
+			config.Context = func() context.Context { return context.Background() }
+		}
+		config.test(t)
+	})
+}
+
+func testTablesServiceWorkspaceTestSuiteConfig(t *testing.T, s TablesServiceTestSuiteConfigProvider) {
+	t.Run("Workspace", func(t *testing.T) {
+		config := s.WorkspaceTestSuiteConfig(t)
+		if config == nil {
+			t.Skip("Method WorkspaceTestSuiteConfig not implemented")
+		}
+		if config.Service == nil {
+			t.Skip("Method TablesServiceWorkspaceTestSuiteConfig.Service() not implemented")
+		}
+		if config.Context == nil {
+			config.Context = func() context.Context { return context.Background() }
+		}
+		config.test(t)
+	})
+}
+
 type TablesServiceTestSuite struct {
 	T *testing.T
 	// Server to test.

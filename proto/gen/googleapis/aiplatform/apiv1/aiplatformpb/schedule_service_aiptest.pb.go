@@ -16,6 +16,33 @@ import (
 	time "time"
 )
 
+// ScheduleServiceTestSuiteConfigProvider is the interface to implement to decide which resources
+// that should be tested and configured.
+type ScheduleServiceTestSuiteConfigProvider interface {
+	ScheduleTestSuiteConfig(t *testing.T) *ScheduleServiceScheduleTestSuiteConfig
+}
+
+// TestScheduleService is the main entrypoint for starting the AIP tests.
+func TestScheduleService(t *testing.T, s ScheduleServiceTestSuiteConfigProvider) {
+	testScheduleServiceScheduleTestSuiteConfig(t, s)
+}
+
+func testScheduleServiceScheduleTestSuiteConfig(t *testing.T, s ScheduleServiceTestSuiteConfigProvider) {
+	t.Run("Schedule", func(t *testing.T) {
+		config := s.ScheduleTestSuiteConfig(t)
+		if config == nil {
+			t.Skip("Method ScheduleTestSuiteConfig not implemented")
+		}
+		if config.Service == nil {
+			t.Skip("Method ScheduleServiceScheduleTestSuiteConfig.Service() not implemented")
+		}
+		if config.Context == nil {
+			config.Context = func() context.Context { return context.Background() }
+		}
+		config.test(t)
+	})
+}
+
 type ScheduleServiceTestSuite struct {
 	T *testing.T
 	// Server to test.

@@ -16,6 +16,51 @@ import (
 	time "time"
 )
 
+// FreightServiceTestSuiteConfigProvider is the interface to implement to decide which resources
+// that should be tested and configured.
+type FreightServiceTestSuiteConfigProvider interface {
+	ShipperTestSuiteConfig(t *testing.T) *FreightServiceShipperTestSuiteConfig
+	SiteTestSuiteConfig(t *testing.T) *FreightServiceSiteTestSuiteConfig
+}
+
+// TestFreightService is the main entrypoint for starting the AIP tests.
+func TestFreightService(t *testing.T, s FreightServiceTestSuiteConfigProvider) {
+	testFreightServiceShipperTestSuiteConfig(t, s)
+	testFreightServiceSiteTestSuiteConfig(t, s)
+}
+
+func testFreightServiceShipperTestSuiteConfig(t *testing.T, s FreightServiceTestSuiteConfigProvider) {
+	t.Run("Shipper", func(t *testing.T) {
+		config := s.ShipperTestSuiteConfig(t)
+		if config == nil {
+			t.Skip("Method ShipperTestSuiteConfig not implemented")
+		}
+		if config.Service == nil {
+			t.Skip("Method FreightServiceShipperTestSuiteConfig.Service() not implemented")
+		}
+		if config.Context == nil {
+			config.Context = func() context.Context { return context.Background() }
+		}
+		config.test(t)
+	})
+}
+
+func testFreightServiceSiteTestSuiteConfig(t *testing.T, s FreightServiceTestSuiteConfigProvider) {
+	t.Run("Site", func(t *testing.T) {
+		config := s.SiteTestSuiteConfig(t)
+		if config == nil {
+			t.Skip("Method SiteTestSuiteConfig not implemented")
+		}
+		if config.Service == nil {
+			t.Skip("Method FreightServiceSiteTestSuiteConfig.Service() not implemented")
+		}
+		if config.Context == nil {
+			config.Context = func() context.Context { return context.Background() }
+		}
+		config.test(t)
+	})
+}
+
 type FreightServiceTestSuite struct {
 	T *testing.T
 	// Server to test.

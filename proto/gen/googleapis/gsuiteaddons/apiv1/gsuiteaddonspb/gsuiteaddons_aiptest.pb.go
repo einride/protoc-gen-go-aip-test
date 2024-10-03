@@ -13,6 +13,69 @@ import (
 	testing "testing"
 )
 
+// GSuiteAddOnsTestSuiteConfigProvider is the interface to implement to decide which resources
+// that should be tested and configured.
+type GSuiteAddOnsTestSuiteConfigProvider interface {
+	AuthorizationTestSuiteConfig(t *testing.T) *GSuiteAddOnsAuthorizationTestSuiteConfig
+	DeploymentTestSuiteConfig(t *testing.T) *GSuiteAddOnsDeploymentTestSuiteConfig
+	InstallStatusTestSuiteConfig(t *testing.T) *GSuiteAddOnsInstallStatusTestSuiteConfig
+}
+
+// TestGSuiteAddOns is the main entrypoint for starting the AIP tests.
+func TestGSuiteAddOns(t *testing.T, s GSuiteAddOnsTestSuiteConfigProvider) {
+	testGSuiteAddOnsAuthorizationTestSuiteConfig(t, s)
+	testGSuiteAddOnsDeploymentTestSuiteConfig(t, s)
+	testGSuiteAddOnsInstallStatusTestSuiteConfig(t, s)
+}
+
+func testGSuiteAddOnsAuthorizationTestSuiteConfig(t *testing.T, s GSuiteAddOnsTestSuiteConfigProvider) {
+	t.Run("Authorization", func(t *testing.T) {
+		config := s.AuthorizationTestSuiteConfig(t)
+		if config == nil {
+			t.Skip("Method AuthorizationTestSuiteConfig not implemented")
+		}
+		if config.Service == nil {
+			t.Skip("Method GSuiteAddOnsAuthorizationTestSuiteConfig.Service() not implemented")
+		}
+		if config.Context == nil {
+			config.Context = func() context.Context { return context.Background() }
+		}
+		config.test(t)
+	})
+}
+
+func testGSuiteAddOnsDeploymentTestSuiteConfig(t *testing.T, s GSuiteAddOnsTestSuiteConfigProvider) {
+	t.Run("Deployment", func(t *testing.T) {
+		config := s.DeploymentTestSuiteConfig(t)
+		if config == nil {
+			t.Skip("Method DeploymentTestSuiteConfig not implemented")
+		}
+		if config.Service == nil {
+			t.Skip("Method GSuiteAddOnsDeploymentTestSuiteConfig.Service() not implemented")
+		}
+		if config.Context == nil {
+			config.Context = func() context.Context { return context.Background() }
+		}
+		config.test(t)
+	})
+}
+
+func testGSuiteAddOnsInstallStatusTestSuiteConfig(t *testing.T, s GSuiteAddOnsTestSuiteConfigProvider) {
+	t.Run("InstallStatus", func(t *testing.T) {
+		config := s.InstallStatusTestSuiteConfig(t)
+		if config == nil {
+			t.Skip("Method InstallStatusTestSuiteConfig not implemented")
+		}
+		if config.Service == nil {
+			t.Skip("Method GSuiteAddOnsInstallStatusTestSuiteConfig.Service() not implemented")
+		}
+		if config.Context == nil {
+			config.Context = func() context.Context { return context.Background() }
+		}
+		config.test(t)
+	})
+}
+
 type GSuiteAddOnsTestSuite struct {
 	T *testing.T
 	// Server to test.

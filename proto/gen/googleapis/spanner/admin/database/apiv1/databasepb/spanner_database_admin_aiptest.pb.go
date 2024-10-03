@@ -15,6 +15,69 @@ import (
 	testing "testing"
 )
 
+// DatabaseAdminTestSuiteConfigProvider is the interface to implement to decide which resources
+// that should be tested and configured.
+type DatabaseAdminTestSuiteConfigProvider interface {
+	BackupTestSuiteConfig(t *testing.T) *DatabaseAdminBackupTestSuiteConfig
+	DatabaseTestSuiteConfig(t *testing.T) *DatabaseAdminDatabaseTestSuiteConfig
+	DatabaseRoleTestSuiteConfig(t *testing.T) *DatabaseAdminDatabaseRoleTestSuiteConfig
+}
+
+// TestDatabaseAdmin is the main entrypoint for starting the AIP tests.
+func TestDatabaseAdmin(t *testing.T, s DatabaseAdminTestSuiteConfigProvider) {
+	testDatabaseAdminBackupTestSuiteConfig(t, s)
+	testDatabaseAdminDatabaseTestSuiteConfig(t, s)
+	testDatabaseAdminDatabaseRoleTestSuiteConfig(t, s)
+}
+
+func testDatabaseAdminBackupTestSuiteConfig(t *testing.T, s DatabaseAdminTestSuiteConfigProvider) {
+	t.Run("Backup", func(t *testing.T) {
+		config := s.BackupTestSuiteConfig(t)
+		if config == nil {
+			t.Skip("Method BackupTestSuiteConfig not implemented")
+		}
+		if config.Service == nil {
+			t.Skip("Method DatabaseAdminBackupTestSuiteConfig.Service() not implemented")
+		}
+		if config.Context == nil {
+			config.Context = func() context.Context { return context.Background() }
+		}
+		config.test(t)
+	})
+}
+
+func testDatabaseAdminDatabaseTestSuiteConfig(t *testing.T, s DatabaseAdminTestSuiteConfigProvider) {
+	t.Run("Database", func(t *testing.T) {
+		config := s.DatabaseTestSuiteConfig(t)
+		if config == nil {
+			t.Skip("Method DatabaseTestSuiteConfig not implemented")
+		}
+		if config.Service == nil {
+			t.Skip("Method DatabaseAdminDatabaseTestSuiteConfig.Service() not implemented")
+		}
+		if config.Context == nil {
+			config.Context = func() context.Context { return context.Background() }
+		}
+		config.test(t)
+	})
+}
+
+func testDatabaseAdminDatabaseRoleTestSuiteConfig(t *testing.T, s DatabaseAdminTestSuiteConfigProvider) {
+	t.Run("DatabaseRole", func(t *testing.T) {
+		config := s.DatabaseRoleTestSuiteConfig(t)
+		if config == nil {
+			t.Skip("Method DatabaseRoleTestSuiteConfig not implemented")
+		}
+		if config.Service == nil {
+			t.Skip("Method DatabaseAdminDatabaseRoleTestSuiteConfig.Service() not implemented")
+		}
+		if config.Context == nil {
+			config.Context = func() context.Context { return context.Background() }
+		}
+		config.test(t)
+	})
+}
+
 type DatabaseAdminTestSuite struct {
 	T *testing.T
 	// Server to test.

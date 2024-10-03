@@ -15,6 +15,69 @@ import (
 	testing "testing"
 )
 
+// FeatureOnlineStoreAdminServiceTestSuiteConfigProvider is the interface to implement to decide which resources
+// that should be tested and configured.
+type FeatureOnlineStoreAdminServiceTestSuiteConfigProvider interface {
+	FeatureOnlineStoreTestSuiteConfig(t *testing.T) *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig
+	FeatureViewTestSuiteConfig(t *testing.T) *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig
+	FeatureViewSyncTestSuiteConfig(t *testing.T) *FeatureOnlineStoreAdminServiceFeatureViewSyncTestSuiteConfig
+}
+
+// TestFeatureOnlineStoreAdminService is the main entrypoint for starting the AIP tests.
+func TestFeatureOnlineStoreAdminService(t *testing.T, s FeatureOnlineStoreAdminServiceTestSuiteConfigProvider) {
+	testFeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig(t, s)
+	testFeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig(t, s)
+	testFeatureOnlineStoreAdminServiceFeatureViewSyncTestSuiteConfig(t, s)
+}
+
+func testFeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig(t *testing.T, s FeatureOnlineStoreAdminServiceTestSuiteConfigProvider) {
+	t.Run("FeatureOnlineStore", func(t *testing.T) {
+		config := s.FeatureOnlineStoreTestSuiteConfig(t)
+		if config == nil {
+			t.Skip("Method FeatureOnlineStoreTestSuiteConfig not implemented")
+		}
+		if config.Service == nil {
+			t.Skip("Method FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig.Service() not implemented")
+		}
+		if config.Context == nil {
+			config.Context = func() context.Context { return context.Background() }
+		}
+		config.test(t)
+	})
+}
+
+func testFeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig(t *testing.T, s FeatureOnlineStoreAdminServiceTestSuiteConfigProvider) {
+	t.Run("FeatureView", func(t *testing.T) {
+		config := s.FeatureViewTestSuiteConfig(t)
+		if config == nil {
+			t.Skip("Method FeatureViewTestSuiteConfig not implemented")
+		}
+		if config.Service == nil {
+			t.Skip("Method FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig.Service() not implemented")
+		}
+		if config.Context == nil {
+			config.Context = func() context.Context { return context.Background() }
+		}
+		config.test(t)
+	})
+}
+
+func testFeatureOnlineStoreAdminServiceFeatureViewSyncTestSuiteConfig(t *testing.T, s FeatureOnlineStoreAdminServiceTestSuiteConfigProvider) {
+	t.Run("FeatureViewSync", func(t *testing.T) {
+		config := s.FeatureViewSyncTestSuiteConfig(t)
+		if config == nil {
+			t.Skip("Method FeatureViewSyncTestSuiteConfig not implemented")
+		}
+		if config.Service == nil {
+			t.Skip("Method FeatureOnlineStoreAdminServiceFeatureViewSyncTestSuiteConfig.Service() not implemented")
+		}
+		if config.Context == nil {
+			config.Context = func() context.Context { return context.Background() }
+		}
+		config.test(t)
+	})
+}
+
 type FeatureOnlineStoreAdminServiceTestSuite struct {
 	T *testing.T
 	// Server to test.

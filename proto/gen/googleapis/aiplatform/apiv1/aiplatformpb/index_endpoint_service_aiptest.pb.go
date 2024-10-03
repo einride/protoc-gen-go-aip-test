@@ -15,6 +15,33 @@ import (
 	testing "testing"
 )
 
+// IndexEndpointServiceTestSuiteConfigProvider is the interface to implement to decide which resources
+// that should be tested and configured.
+type IndexEndpointServiceTestSuiteConfigProvider interface {
+	IndexEndpointTestSuiteConfig(t *testing.T) *IndexEndpointServiceIndexEndpointTestSuiteConfig
+}
+
+// TestIndexEndpointService is the main entrypoint for starting the AIP tests.
+func TestIndexEndpointService(t *testing.T, s IndexEndpointServiceTestSuiteConfigProvider) {
+	testIndexEndpointServiceIndexEndpointTestSuiteConfig(t, s)
+}
+
+func testIndexEndpointServiceIndexEndpointTestSuiteConfig(t *testing.T, s IndexEndpointServiceTestSuiteConfigProvider) {
+	t.Run("IndexEndpoint", func(t *testing.T) {
+		config := s.IndexEndpointTestSuiteConfig(t)
+		if config == nil {
+			t.Skip("Method IndexEndpointTestSuiteConfig not implemented")
+		}
+		if config.Service == nil {
+			t.Skip("Method IndexEndpointServiceIndexEndpointTestSuiteConfig.Service() not implemented")
+		}
+		if config.Context == nil {
+			config.Context = func() context.Context { return context.Background() }
+		}
+		config.test(t)
+	})
+}
+
 type IndexEndpointServiceTestSuite struct {
 	T *testing.T
 	// Server to test.

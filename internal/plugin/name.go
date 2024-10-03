@@ -14,9 +14,20 @@ func serviceTestSuiteName(service protoreflect.ServiceDescriptor) string {
 	return string(service.Name()) + "TestSuite"
 }
 
+func serviceResourceName(
+	service protoreflect.ServiceDescriptor,
+	resource *annotations.ResourceDescriptor,
+) string {
+	return string(service.Name()) + resourceType(resource)
+}
+
 func resourceTestSuiteConfigName(
 	service protoreflect.ServiceDescriptor,
 	resource *annotations.ResourceDescriptor,
 ) string {
-	return string(service.Name()) + resourceType(resource) + "TestSuiteConfig"
+	return serviceResourceName(service, resource) + "TestSuiteConfig"
+}
+
+func serviceTestConfigSupplierName(service protoreflect.ServiceDescriptor) string {
+	return string(service.Name()) + "TestSuiteConfigProvider"
 }

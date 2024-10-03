@@ -15,6 +15,105 @@ import (
 	time "time"
 )
 
+// MetadataServiceTestSuiteConfigProvider is the interface to implement to decide which resources
+// that should be tested and configured.
+type MetadataServiceTestSuiteConfigProvider interface {
+	ArtifactTestSuiteConfig(t *testing.T) *MetadataServiceArtifactTestSuiteConfig
+	ContextTestSuiteConfig(t *testing.T) *MetadataServiceContextTestSuiteConfig
+	ExecutionTestSuiteConfig(t *testing.T) *MetadataServiceExecutionTestSuiteConfig
+	MetadataSchemaTestSuiteConfig(t *testing.T) *MetadataServiceMetadataSchemaTestSuiteConfig
+	MetadataStoreTestSuiteConfig(t *testing.T) *MetadataServiceMetadataStoreTestSuiteConfig
+}
+
+// TestMetadataService is the main entrypoint for starting the AIP tests.
+func TestMetadataService(t *testing.T, s MetadataServiceTestSuiteConfigProvider) {
+	testMetadataServiceArtifactTestSuiteConfig(t, s)
+	testMetadataServiceContextTestSuiteConfig(t, s)
+	testMetadataServiceExecutionTestSuiteConfig(t, s)
+	testMetadataServiceMetadataSchemaTestSuiteConfig(t, s)
+	testMetadataServiceMetadataStoreTestSuiteConfig(t, s)
+}
+
+func testMetadataServiceArtifactTestSuiteConfig(t *testing.T, s MetadataServiceTestSuiteConfigProvider) {
+	t.Run("Artifact", func(t *testing.T) {
+		config := s.ArtifactTestSuiteConfig(t)
+		if config == nil {
+			t.Skip("Method ArtifactTestSuiteConfig not implemented")
+		}
+		if config.Service == nil {
+			t.Skip("Method MetadataServiceArtifactTestSuiteConfig.Service() not implemented")
+		}
+		if config.Context == nil {
+			config.Context = func() context.Context { return context.Background() }
+		}
+		config.test(t)
+	})
+}
+
+func testMetadataServiceContextTestSuiteConfig(t *testing.T, s MetadataServiceTestSuiteConfigProvider) {
+	t.Run("Context", func(t *testing.T) {
+		config := s.ContextTestSuiteConfig(t)
+		if config == nil {
+			t.Skip("Method ContextTestSuiteConfig not implemented")
+		}
+		if config.Service == nil {
+			t.Skip("Method MetadataServiceContextTestSuiteConfig.Service() not implemented")
+		}
+		if config.Context == nil {
+			config.Context = func() context.Context { return context.Background() }
+		}
+		config.test(t)
+	})
+}
+
+func testMetadataServiceExecutionTestSuiteConfig(t *testing.T, s MetadataServiceTestSuiteConfigProvider) {
+	t.Run("Execution", func(t *testing.T) {
+		config := s.ExecutionTestSuiteConfig(t)
+		if config == nil {
+			t.Skip("Method ExecutionTestSuiteConfig not implemented")
+		}
+		if config.Service == nil {
+			t.Skip("Method MetadataServiceExecutionTestSuiteConfig.Service() not implemented")
+		}
+		if config.Context == nil {
+			config.Context = func() context.Context { return context.Background() }
+		}
+		config.test(t)
+	})
+}
+
+func testMetadataServiceMetadataSchemaTestSuiteConfig(t *testing.T, s MetadataServiceTestSuiteConfigProvider) {
+	t.Run("MetadataSchema", func(t *testing.T) {
+		config := s.MetadataSchemaTestSuiteConfig(t)
+		if config == nil {
+			t.Skip("Method MetadataSchemaTestSuiteConfig not implemented")
+		}
+		if config.Service == nil {
+			t.Skip("Method MetadataServiceMetadataSchemaTestSuiteConfig.Service() not implemented")
+		}
+		if config.Context == nil {
+			config.Context = func() context.Context { return context.Background() }
+		}
+		config.test(t)
+	})
+}
+
+func testMetadataServiceMetadataStoreTestSuiteConfig(t *testing.T, s MetadataServiceTestSuiteConfigProvider) {
+	t.Run("MetadataStore", func(t *testing.T) {
+		config := s.MetadataStoreTestSuiteConfig(t)
+		if config == nil {
+			t.Skip("Method MetadataStoreTestSuiteConfig not implemented")
+		}
+		if config.Service == nil {
+			t.Skip("Method MetadataServiceMetadataStoreTestSuiteConfig.Service() not implemented")
+		}
+		if config.Context == nil {
+			config.Context = func() context.Context { return context.Background() }
+		}
+		config.test(t)
+	})
+}
+
 type MetadataServiceTestSuite struct {
 	T *testing.T
 	// Server to test.

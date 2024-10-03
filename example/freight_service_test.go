@@ -51,3 +51,26 @@ func Test_FreightService(t *testing.T) {
 		},
 	})
 }
+
+func Test_FreightService_AlternativeSetup(t *testing.T) {
+	// Even though no implementation exists, the tests will pass but be skipped.
+	examplefreightv1.TestFreightService(t, &aipTests{})
+}
+
+type aipTests struct{}
+
+var _ examplefreightv1.FreightServiceTestSuiteConfigProvider = &aipTests{}
+
+func (a aipTests) ShipperTestSuiteConfig(_ *testing.T) *examplefreightv1.FreightServiceShipperTestSuiteConfig {
+	// Returns nil to indicate that it's not ready to be tested.
+	return nil
+}
+
+func (a aipTests) SiteTestSuiteConfig(_ *testing.T) *examplefreightv1.FreightServiceSiteTestSuiteConfig {
+	// Since the service isn't implemented, no proper configuration can be given.
+	// The configuration is used as shown above, the only addition is the Service and Context methods.
+	return &examplefreightv1.FreightServiceSiteTestSuiteConfig{
+		Service: nil, // No service can be provided since it's not implemented.
+		Context: context.Background,
+	}
+}

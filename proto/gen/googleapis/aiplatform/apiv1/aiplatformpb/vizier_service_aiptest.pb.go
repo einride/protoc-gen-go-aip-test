@@ -14,6 +14,51 @@ import (
 	time "time"
 )
 
+// VizierServiceTestSuiteConfigProvider is the interface to implement to decide which resources
+// that should be tested and configured.
+type VizierServiceTestSuiteConfigProvider interface {
+	StudyTestSuiteConfig(t *testing.T) *VizierServiceStudyTestSuiteConfig
+	TrialTestSuiteConfig(t *testing.T) *VizierServiceTrialTestSuiteConfig
+}
+
+// TestVizierService is the main entrypoint for starting the AIP tests.
+func TestVizierService(t *testing.T, s VizierServiceTestSuiteConfigProvider) {
+	testVizierServiceStudyTestSuiteConfig(t, s)
+	testVizierServiceTrialTestSuiteConfig(t, s)
+}
+
+func testVizierServiceStudyTestSuiteConfig(t *testing.T, s VizierServiceTestSuiteConfigProvider) {
+	t.Run("Study", func(t *testing.T) {
+		config := s.StudyTestSuiteConfig(t)
+		if config == nil {
+			t.Skip("Method StudyTestSuiteConfig not implemented")
+		}
+		if config.Service == nil {
+			t.Skip("Method VizierServiceStudyTestSuiteConfig.Service() not implemented")
+		}
+		if config.Context == nil {
+			config.Context = func() context.Context { return context.Background() }
+		}
+		config.test(t)
+	})
+}
+
+func testVizierServiceTrialTestSuiteConfig(t *testing.T, s VizierServiceTestSuiteConfigProvider) {
+	t.Run("Trial", func(t *testing.T) {
+		config := s.TrialTestSuiteConfig(t)
+		if config == nil {
+			t.Skip("Method TrialTestSuiteConfig not implemented")
+		}
+		if config.Service == nil {
+			t.Skip("Method VizierServiceTrialTestSuiteConfig.Service() not implemented")
+		}
+		if config.Context == nil {
+			config.Context = func() context.Context { return context.Background() }
+		}
+		config.test(t)
+	})
+}
+
 type VizierServiceTestSuite struct {
 	T *testing.T
 	// Server to test.
