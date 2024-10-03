@@ -51,3 +51,22 @@ func Test_FreightService(t *testing.T) {
 		},
 	})
 }
+
+func Test_FreightService_AlternativeSetup(t *testing.T) {
+	// Even though no implementation exists, the tests will pass but be skipped.
+	examplefreightv1.TestFreightService(t, &aipTests{})
+}
+
+type aipTests struct{}
+
+var _ examplefreightv1.FreightServiceTestSuiteConfigProvider = &aipTests{}
+
+func (a aipTests) ShipperTestSuiteConfig(_ *testing.T) *examplefreightv1.FreightServiceShipperTestSuiteConfig {
+	// Returns nil to indicate that it's not ready to be tested.
+	return nil
+}
+
+func (a aipTests) SiteTestSuiteConfig(_ *testing.T) *examplefreightv1.FreightServiceSiteTestSuiteConfig {
+	// Returns nil to indicate that it's not ready to be tested.
+	return nil
+}

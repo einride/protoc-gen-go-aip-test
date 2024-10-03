@@ -16,6 +16,148 @@ import (
 	time "time"
 )
 
+// JobServiceTestSuiteConfigProvider is the interface to implement to decide which resources
+// that should be tested and how it's configured.
+type JobServiceTestSuiteConfigProvider interface {
+	// JobServiceBatchPredictionJobTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
+	BatchPredictionJobTestSuiteConfig(t *testing.T) *JobServiceBatchPredictionJobTestSuiteConfig
+	// JobServiceCustomJobTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
+	CustomJobTestSuiteConfig(t *testing.T) *JobServiceCustomJobTestSuiteConfig
+	// JobServiceDataLabelingJobTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
+	DataLabelingJobTestSuiteConfig(t *testing.T) *JobServiceDataLabelingJobTestSuiteConfig
+	// JobServiceHyperparameterTuningJobTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
+	HyperparameterTuningJobTestSuiteConfig(t *testing.T) *JobServiceHyperparameterTuningJobTestSuiteConfig
+	// JobServiceModelDeploymentMonitoringJobTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
+	ModelDeploymentMonitoringJobTestSuiteConfig(t *testing.T) *JobServiceModelDeploymentMonitoringJobTestSuiteConfig
+	// JobServiceNasJobTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
+	NasJobTestSuiteConfig(t *testing.T) *JobServiceNasJobTestSuiteConfig
+	// JobServiceNasTrialDetailTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
+	NasTrialDetailTestSuiteConfig(t *testing.T) *JobServiceNasTrialDetailTestSuiteConfig
+}
+
+// TestJobService is the main entrypoint for starting the AIP tests.
+func TestJobService(t *testing.T, s JobServiceTestSuiteConfigProvider) {
+	testJobServiceBatchPredictionJobTestSuiteConfig(t, s)
+	testJobServiceCustomJobTestSuiteConfig(t, s)
+	testJobServiceDataLabelingJobTestSuiteConfig(t, s)
+	testJobServiceHyperparameterTuningJobTestSuiteConfig(t, s)
+	testJobServiceModelDeploymentMonitoringJobTestSuiteConfig(t, s)
+	testJobServiceNasJobTestSuiteConfig(t, s)
+	testJobServiceNasTrialDetailTestSuiteConfig(t, s)
+}
+
+func testJobServiceBatchPredictionJobTestSuiteConfig(t *testing.T, s JobServiceTestSuiteConfigProvider) {
+	t.Run("BatchPredictionJob", func(t *testing.T) {
+		config := s.BatchPredictionJobTestSuiteConfig(t)
+		if config == nil {
+			t.Skip("Method BatchPredictionJobTestSuiteConfig not implemented")
+		}
+		if config.Service == nil {
+			t.Skip("Method JobServiceBatchPredictionJobTestSuiteConfig.Service() not implemented")
+		}
+		if config.Context == nil {
+			config.Context = func() context.Context { return context.Background() }
+		}
+		config.test(t)
+	})
+}
+
+func testJobServiceCustomJobTestSuiteConfig(t *testing.T, s JobServiceTestSuiteConfigProvider) {
+	t.Run("CustomJob", func(t *testing.T) {
+		config := s.CustomJobTestSuiteConfig(t)
+		if config == nil {
+			t.Skip("Method CustomJobTestSuiteConfig not implemented")
+		}
+		if config.Service == nil {
+			t.Skip("Method JobServiceCustomJobTestSuiteConfig.Service() not implemented")
+		}
+		if config.Context == nil {
+			config.Context = func() context.Context { return context.Background() }
+		}
+		config.test(t)
+	})
+}
+
+func testJobServiceDataLabelingJobTestSuiteConfig(t *testing.T, s JobServiceTestSuiteConfigProvider) {
+	t.Run("DataLabelingJob", func(t *testing.T) {
+		config := s.DataLabelingJobTestSuiteConfig(t)
+		if config == nil {
+			t.Skip("Method DataLabelingJobTestSuiteConfig not implemented")
+		}
+		if config.Service == nil {
+			t.Skip("Method JobServiceDataLabelingJobTestSuiteConfig.Service() not implemented")
+		}
+		if config.Context == nil {
+			config.Context = func() context.Context { return context.Background() }
+		}
+		config.test(t)
+	})
+}
+
+func testJobServiceHyperparameterTuningJobTestSuiteConfig(t *testing.T, s JobServiceTestSuiteConfigProvider) {
+	t.Run("HyperparameterTuningJob", func(t *testing.T) {
+		config := s.HyperparameterTuningJobTestSuiteConfig(t)
+		if config == nil {
+			t.Skip("Method HyperparameterTuningJobTestSuiteConfig not implemented")
+		}
+		if config.Service == nil {
+			t.Skip("Method JobServiceHyperparameterTuningJobTestSuiteConfig.Service() not implemented")
+		}
+		if config.Context == nil {
+			config.Context = func() context.Context { return context.Background() }
+		}
+		config.test(t)
+	})
+}
+
+func testJobServiceModelDeploymentMonitoringJobTestSuiteConfig(t *testing.T, s JobServiceTestSuiteConfigProvider) {
+	t.Run("ModelDeploymentMonitoringJob", func(t *testing.T) {
+		config := s.ModelDeploymentMonitoringJobTestSuiteConfig(t)
+		if config == nil {
+			t.Skip("Method ModelDeploymentMonitoringJobTestSuiteConfig not implemented")
+		}
+		if config.Service == nil {
+			t.Skip("Method JobServiceModelDeploymentMonitoringJobTestSuiteConfig.Service() not implemented")
+		}
+		if config.Context == nil {
+			config.Context = func() context.Context { return context.Background() }
+		}
+		config.test(t)
+	})
+}
+
+func testJobServiceNasJobTestSuiteConfig(t *testing.T, s JobServiceTestSuiteConfigProvider) {
+	t.Run("NasJob", func(t *testing.T) {
+		config := s.NasJobTestSuiteConfig(t)
+		if config == nil {
+			t.Skip("Method NasJobTestSuiteConfig not implemented")
+		}
+		if config.Service == nil {
+			t.Skip("Method JobServiceNasJobTestSuiteConfig.Service() not implemented")
+		}
+		if config.Context == nil {
+			config.Context = func() context.Context { return context.Background() }
+		}
+		config.test(t)
+	})
+}
+
+func testJobServiceNasTrialDetailTestSuiteConfig(t *testing.T, s JobServiceTestSuiteConfigProvider) {
+	t.Run("NasTrialDetail", func(t *testing.T) {
+		config := s.NasTrialDetailTestSuiteConfig(t)
+		if config == nil {
+			t.Skip("Method NasTrialDetailTestSuiteConfig not implemented")
+		}
+		if config.Service == nil {
+			t.Skip("Method JobServiceNasTrialDetailTestSuiteConfig.Service() not implemented")
+		}
+		if config.Context == nil {
+			config.Context = func() context.Context { return context.Background() }
+		}
+		config.test(t)
+	})
+}
+
 type JobServiceTestSuite struct {
 	T *testing.T
 	// Server to test.

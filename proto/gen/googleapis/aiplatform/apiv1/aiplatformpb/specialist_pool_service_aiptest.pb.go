@@ -15,6 +15,34 @@ import (
 	testing "testing"
 )
 
+// SpecialistPoolServiceTestSuiteConfigProvider is the interface to implement to decide which resources
+// that should be tested and how it's configured.
+type SpecialistPoolServiceTestSuiteConfigProvider interface {
+	// SpecialistPoolServiceSpecialistPoolTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
+	SpecialistPoolTestSuiteConfig(t *testing.T) *SpecialistPoolServiceSpecialistPoolTestSuiteConfig
+}
+
+// TestSpecialistPoolService is the main entrypoint for starting the AIP tests.
+func TestSpecialistPoolService(t *testing.T, s SpecialistPoolServiceTestSuiteConfigProvider) {
+	testSpecialistPoolServiceSpecialistPoolTestSuiteConfig(t, s)
+}
+
+func testSpecialistPoolServiceSpecialistPoolTestSuiteConfig(t *testing.T, s SpecialistPoolServiceTestSuiteConfigProvider) {
+	t.Run("SpecialistPool", func(t *testing.T) {
+		config := s.SpecialistPoolTestSuiteConfig(t)
+		if config == nil {
+			t.Skip("Method SpecialistPoolTestSuiteConfig not implemented")
+		}
+		if config.Service == nil {
+			t.Skip("Method SpecialistPoolServiceSpecialistPoolTestSuiteConfig.Service() not implemented")
+		}
+		if config.Context == nil {
+			config.Context = func() context.Context { return context.Background() }
+		}
+		config.test(t)
+	})
+}
+
 type SpecialistPoolServiceTestSuite struct {
 	T *testing.T
 	// Server to test.

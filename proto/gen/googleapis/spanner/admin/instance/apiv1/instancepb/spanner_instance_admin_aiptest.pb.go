@@ -15,6 +15,72 @@ import (
 	testing "testing"
 )
 
+// InstanceAdminTestSuiteConfigProvider is the interface to implement to decide which resources
+// that should be tested and how it's configured.
+type InstanceAdminTestSuiteConfigProvider interface {
+	// InstanceAdminInstanceTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
+	InstanceTestSuiteConfig(t *testing.T) *InstanceAdminInstanceTestSuiteConfig
+	// InstanceAdminInstanceConfigTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
+	InstanceConfigTestSuiteConfig(t *testing.T) *InstanceAdminInstanceConfigTestSuiteConfig
+	// InstanceAdminInstancePartitionTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
+	InstancePartitionTestSuiteConfig(t *testing.T) *InstanceAdminInstancePartitionTestSuiteConfig
+}
+
+// TestInstanceAdmin is the main entrypoint for starting the AIP tests.
+func TestInstanceAdmin(t *testing.T, s InstanceAdminTestSuiteConfigProvider) {
+	testInstanceAdminInstanceTestSuiteConfig(t, s)
+	testInstanceAdminInstanceConfigTestSuiteConfig(t, s)
+	testInstanceAdminInstancePartitionTestSuiteConfig(t, s)
+}
+
+func testInstanceAdminInstanceTestSuiteConfig(t *testing.T, s InstanceAdminTestSuiteConfigProvider) {
+	t.Run("Instance", func(t *testing.T) {
+		config := s.InstanceTestSuiteConfig(t)
+		if config == nil {
+			t.Skip("Method InstanceTestSuiteConfig not implemented")
+		}
+		if config.Service == nil {
+			t.Skip("Method InstanceAdminInstanceTestSuiteConfig.Service() not implemented")
+		}
+		if config.Context == nil {
+			config.Context = func() context.Context { return context.Background() }
+		}
+		config.test(t)
+	})
+}
+
+func testInstanceAdminInstanceConfigTestSuiteConfig(t *testing.T, s InstanceAdminTestSuiteConfigProvider) {
+	t.Run("InstanceConfig", func(t *testing.T) {
+		config := s.InstanceConfigTestSuiteConfig(t)
+		if config == nil {
+			t.Skip("Method InstanceConfigTestSuiteConfig not implemented")
+		}
+		if config.Service == nil {
+			t.Skip("Method InstanceAdminInstanceConfigTestSuiteConfig.Service() not implemented")
+		}
+		if config.Context == nil {
+			config.Context = func() context.Context { return context.Background() }
+		}
+		config.test(t)
+	})
+}
+
+func testInstanceAdminInstancePartitionTestSuiteConfig(t *testing.T, s InstanceAdminTestSuiteConfigProvider) {
+	t.Run("InstancePartition", func(t *testing.T) {
+		config := s.InstancePartitionTestSuiteConfig(t)
+		if config == nil {
+			t.Skip("Method InstancePartitionTestSuiteConfig not implemented")
+		}
+		if config.Service == nil {
+			t.Skip("Method InstanceAdminInstancePartitionTestSuiteConfig.Service() not implemented")
+		}
+		if config.Context == nil {
+			config.Context = func() context.Context { return context.Background() }
+		}
+		config.test(t)
+	})
+}
+
 type InstanceAdminTestSuite struct {
 	T *testing.T
 	// Server to test.

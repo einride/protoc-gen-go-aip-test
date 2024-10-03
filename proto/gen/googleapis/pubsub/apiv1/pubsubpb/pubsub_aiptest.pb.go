@@ -13,6 +13,34 @@ import (
 	testing "testing"
 )
 
+// PublisherTestSuiteConfigProvider is the interface to implement to decide which resources
+// that should be tested and how it's configured.
+type PublisherTestSuiteConfigProvider interface {
+	// PublisherTopicTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
+	TopicTestSuiteConfig(t *testing.T) *PublisherTopicTestSuiteConfig
+}
+
+// TestPublisher is the main entrypoint for starting the AIP tests.
+func TestPublisher(t *testing.T, s PublisherTestSuiteConfigProvider) {
+	testPublisherTopicTestSuiteConfig(t, s)
+}
+
+func testPublisherTopicTestSuiteConfig(t *testing.T, s PublisherTestSuiteConfigProvider) {
+	t.Run("Topic", func(t *testing.T) {
+		config := s.TopicTestSuiteConfig(t)
+		if config == nil {
+			t.Skip("Method TopicTestSuiteConfig not implemented")
+		}
+		if config.Service == nil {
+			t.Skip("Method PublisherTopicTestSuiteConfig.Service() not implemented")
+		}
+		if config.Context == nil {
+			config.Context = func() context.Context { return context.Background() }
+		}
+		config.test(t)
+	})
+}
+
 type PublisherTestSuite struct {
 	T *testing.T
 	// Server to test.
@@ -270,6 +298,53 @@ func (fx *PublisherTopicTestSuiteConfig) create(t *testing.T, parent string) *To
 	created, err := fx.CreateResource(fx.Context(), parent)
 	assert.NilError(t, err)
 	return created
+}
+
+// SubscriberTestSuiteConfigProvider is the interface to implement to decide which resources
+// that should be tested and how it's configured.
+type SubscriberTestSuiteConfigProvider interface {
+	// SubscriberSnapshotTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
+	SnapshotTestSuiteConfig(t *testing.T) *SubscriberSnapshotTestSuiteConfig
+	// SubscriberSubscriptionTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
+	SubscriptionTestSuiteConfig(t *testing.T) *SubscriberSubscriptionTestSuiteConfig
+}
+
+// TestSubscriber is the main entrypoint for starting the AIP tests.
+func TestSubscriber(t *testing.T, s SubscriberTestSuiteConfigProvider) {
+	testSubscriberSnapshotTestSuiteConfig(t, s)
+	testSubscriberSubscriptionTestSuiteConfig(t, s)
+}
+
+func testSubscriberSnapshotTestSuiteConfig(t *testing.T, s SubscriberTestSuiteConfigProvider) {
+	t.Run("Snapshot", func(t *testing.T) {
+		config := s.SnapshotTestSuiteConfig(t)
+		if config == nil {
+			t.Skip("Method SnapshotTestSuiteConfig not implemented")
+		}
+		if config.Service == nil {
+			t.Skip("Method SubscriberSnapshotTestSuiteConfig.Service() not implemented")
+		}
+		if config.Context == nil {
+			config.Context = func() context.Context { return context.Background() }
+		}
+		config.test(t)
+	})
+}
+
+func testSubscriberSubscriptionTestSuiteConfig(t *testing.T, s SubscriberTestSuiteConfigProvider) {
+	t.Run("Subscription", func(t *testing.T) {
+		config := s.SubscriptionTestSuiteConfig(t)
+		if config == nil {
+			t.Skip("Method SubscriptionTestSuiteConfig not implemented")
+		}
+		if config.Service == nil {
+			t.Skip("Method SubscriberSubscriptionTestSuiteConfig.Service() not implemented")
+		}
+		if config.Context == nil {
+			config.Context = func() context.Context { return context.Background() }
+		}
+		config.test(t)
+	})
 }
 
 type SubscriberTestSuite struct {
