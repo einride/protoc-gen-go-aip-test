@@ -15,6 +15,72 @@ import (
 	testing "testing"
 )
 
+// FeaturestoreServiceTestSuiteConfigProvider is the interface to implement to decide which resources
+// that should be tested and how it's configured.
+type FeaturestoreServiceTestSuiteConfigProvider interface {
+	// FeaturestoreServiceEntityTypeTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
+	EntityTypeTestSuiteConfig(t *testing.T) *FeaturestoreServiceEntityTypeTestSuiteConfig
+	// FeaturestoreServiceFeatureTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
+	FeatureTestSuiteConfig(t *testing.T) *FeaturestoreServiceFeatureTestSuiteConfig
+	// FeaturestoreServiceFeaturestoreTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
+	FeaturestoreTestSuiteConfig(t *testing.T) *FeaturestoreServiceFeaturestoreTestSuiteConfig
+}
+
+// TestFeaturestoreService is the main entrypoint for starting the AIP tests.
+func TestFeaturestoreService(t *testing.T, s FeaturestoreServiceTestSuiteConfigProvider) {
+	testFeaturestoreServiceEntityTypeTestSuiteConfig(t, s)
+	testFeaturestoreServiceFeatureTestSuiteConfig(t, s)
+	testFeaturestoreServiceFeaturestoreTestSuiteConfig(t, s)
+}
+
+func testFeaturestoreServiceEntityTypeTestSuiteConfig(t *testing.T, s FeaturestoreServiceTestSuiteConfigProvider) {
+	t.Run("EntityType", func(t *testing.T) {
+		config := s.EntityTypeTestSuiteConfig(t)
+		if config == nil {
+			t.Skip("Method EntityTypeTestSuiteConfig not implemented")
+		}
+		if config.Service == nil {
+			t.Skip("Method FeaturestoreServiceEntityTypeTestSuiteConfig.Service() not implemented")
+		}
+		if config.Context == nil {
+			config.Context = func() context.Context { return context.Background() }
+		}
+		config.test(t)
+	})
+}
+
+func testFeaturestoreServiceFeatureTestSuiteConfig(t *testing.T, s FeaturestoreServiceTestSuiteConfigProvider) {
+	t.Run("Feature", func(t *testing.T) {
+		config := s.FeatureTestSuiteConfig(t)
+		if config == nil {
+			t.Skip("Method FeatureTestSuiteConfig not implemented")
+		}
+		if config.Service == nil {
+			t.Skip("Method FeaturestoreServiceFeatureTestSuiteConfig.Service() not implemented")
+		}
+		if config.Context == nil {
+			config.Context = func() context.Context { return context.Background() }
+		}
+		config.test(t)
+	})
+}
+
+func testFeaturestoreServiceFeaturestoreTestSuiteConfig(t *testing.T, s FeaturestoreServiceTestSuiteConfigProvider) {
+	t.Run("Featurestore", func(t *testing.T) {
+		config := s.FeaturestoreTestSuiteConfig(t)
+		if config == nil {
+			t.Skip("Method FeaturestoreTestSuiteConfig not implemented")
+		}
+		if config.Service == nil {
+			t.Skip("Method FeaturestoreServiceFeaturestoreTestSuiteConfig.Service() not implemented")
+		}
+		if config.Context == nil {
+			config.Context = func() context.Context { return context.Background() }
+		}
+		config.test(t)
+	})
+}
+
 type FeaturestoreServiceTestSuite struct {
 	T *testing.T
 	// Server to test.

@@ -14,6 +14,9 @@ type serviceGenerator struct {
 }
 
 func (s *serviceGenerator) Generate(f *protogen.GeneratedFile) error {
+	s.generateConfigProvider(f)
+	s.generateMainTestFunction(f)
+	s.generateTestFunctions(f)
 	s.generateFixture(f)
 	s.generateTestMethods(f)
 	for i, resource := range s.resources {
@@ -28,6 +31,74 @@ func (s *serviceGenerator) Generate(f *protogen.GeneratedFile) error {
 		}
 	}
 	return nil
+}
+
+func (s *serviceGenerator) generateConfigProvider(f *protogen.GeneratedFile) {
+	t := f.QualifiedGoIdent(protogen.GoIdent{
+		GoName:       "T",
+		GoImportPath: "testing",
+	})
+	name := serviceTestConfigSupplierName(s.service.Desc)
+	f.P("// ", name, " is the interface to implement to decide which resources")
+	f.P("// that should be tested and how it's configured.")
+	f.P("type ", name, " interface {")
+	for _, resource := range s.resources {
+		resourceFx := resourceTestSuiteConfigName(s.service.Desc, resource)
+		f.P("// ", resourceFx, " should return a config, or nil, which means that the tests will be skipped.")
+		f.P(resourceType(resource), "TestSuiteConfig(t *", t, ") *", resourceFx, "")
+	}
+	f.P("}")
+	f.P()
+}
+
+func (s *serviceGenerator) generateMainTestFunction(f *protogen.GeneratedFile) {
+	t := f.QualifiedGoIdent(protogen.GoIdent{
+		GoName:       "T",
+		GoImportPath: "testing",
+	})
+	funcName := "Test" + string(s.service.Desc.Name())
+	f.P("// ", funcName, " is the main entrypoint for starting the AIP tests.")
+	f.P("func ", funcName, "(t *", t, ",s ", serviceTestConfigSupplierName(s.service.Desc), ") {")
+	for _, resource := range s.resources {
+		name := resourceTestSuiteConfigName(s.service.Desc, resource)
+		f.P("test", name, "(t, s)")
+	}
+	f.P("}")
+	f.P()
+}
+
+func (s *serviceGenerator) generateTestFunctions(f *protogen.GeneratedFile) {
+	t := f.QualifiedGoIdent(protogen.GoIdent{
+		GoName:       "T",
+		GoImportPath: "testing",
+	})
+	context := f.QualifiedGoIdent(protogen.GoIdent{
+		GoName:       "Context",
+		GoImportPath: "context",
+	})
+	background := f.QualifiedGoIdent(protogen.GoIdent{
+		GoName:       "Background",
+		GoImportPath: "context",
+	})
+	for _, resource := range s.resources {
+		name := resourceTestSuiteConfigName(s.service.Desc, resource)
+		f.P("func test", name, "(t *", t, ",s ", serviceTestConfigSupplierName(s.service.Desc), ") {")
+		f.P("t.Run(", strconv.Quote(resourceType(resource)), ", func(t *", t, ") {")
+		f.P("config := s.", resourceType(resource), "TestSuiteConfig(t)")
+		f.P("if (config == nil) {")
+		f.P("t.Skip(\"Method ", resourceType(resource), "TestSuiteConfig not implemented\")")
+		f.P("}")
+		f.P("if (config.Service == nil) {")
+		f.P("t.Skip(\"Method ", name, ".Service() not implemented\")")
+		f.P("}")
+		f.P("if (config.Context == nil) {")
+		f.P("config.Context = func() ", context, " { return ", background, "() }")
+		f.P("}")
+		f.P("config.test(t)")
+		f.P("})")
+		f.P("}")
+		f.P()
+	}
 }
 
 func (s *serviceGenerator) generateFixture(f *protogen.GeneratedFile) {

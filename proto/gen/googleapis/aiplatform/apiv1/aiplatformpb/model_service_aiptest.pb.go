@@ -15,6 +15,72 @@ import (
 	testing "testing"
 )
 
+// ModelServiceTestSuiteConfigProvider is the interface to implement to decide which resources
+// that should be tested and how it's configured.
+type ModelServiceTestSuiteConfigProvider interface {
+	// ModelServiceModelTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
+	ModelTestSuiteConfig(t *testing.T) *ModelServiceModelTestSuiteConfig
+	// ModelServiceModelEvaluationTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
+	ModelEvaluationTestSuiteConfig(t *testing.T) *ModelServiceModelEvaluationTestSuiteConfig
+	// ModelServiceModelEvaluationSliceTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
+	ModelEvaluationSliceTestSuiteConfig(t *testing.T) *ModelServiceModelEvaluationSliceTestSuiteConfig
+}
+
+// TestModelService is the main entrypoint for starting the AIP tests.
+func TestModelService(t *testing.T, s ModelServiceTestSuiteConfigProvider) {
+	testModelServiceModelTestSuiteConfig(t, s)
+	testModelServiceModelEvaluationTestSuiteConfig(t, s)
+	testModelServiceModelEvaluationSliceTestSuiteConfig(t, s)
+}
+
+func testModelServiceModelTestSuiteConfig(t *testing.T, s ModelServiceTestSuiteConfigProvider) {
+	t.Run("Model", func(t *testing.T) {
+		config := s.ModelTestSuiteConfig(t)
+		if config == nil {
+			t.Skip("Method ModelTestSuiteConfig not implemented")
+		}
+		if config.Service == nil {
+			t.Skip("Method ModelServiceModelTestSuiteConfig.Service() not implemented")
+		}
+		if config.Context == nil {
+			config.Context = func() context.Context { return context.Background() }
+		}
+		config.test(t)
+	})
+}
+
+func testModelServiceModelEvaluationTestSuiteConfig(t *testing.T, s ModelServiceTestSuiteConfigProvider) {
+	t.Run("ModelEvaluation", func(t *testing.T) {
+		config := s.ModelEvaluationTestSuiteConfig(t)
+		if config == nil {
+			t.Skip("Method ModelEvaluationTestSuiteConfig not implemented")
+		}
+		if config.Service == nil {
+			t.Skip("Method ModelServiceModelEvaluationTestSuiteConfig.Service() not implemented")
+		}
+		if config.Context == nil {
+			config.Context = func() context.Context { return context.Background() }
+		}
+		config.test(t)
+	})
+}
+
+func testModelServiceModelEvaluationSliceTestSuiteConfig(t *testing.T, s ModelServiceTestSuiteConfigProvider) {
+	t.Run("ModelEvaluationSlice", func(t *testing.T) {
+		config := s.ModelEvaluationSliceTestSuiteConfig(t)
+		if config == nil {
+			t.Skip("Method ModelEvaluationSliceTestSuiteConfig not implemented")
+		}
+		if config.Service == nil {
+			t.Skip("Method ModelServiceModelEvaluationSliceTestSuiteConfig.Service() not implemented")
+		}
+		if config.Context == nil {
+			config.Context = func() context.Context { return context.Background() }
+		}
+		config.test(t)
+	})
+}
+
 type ModelServiceTestSuite struct {
 	T *testing.T
 	// Server to test.
