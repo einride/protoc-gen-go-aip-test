@@ -21,15 +21,17 @@ type ModelGardenServiceTestSuite struct {
 func (fx ModelGardenServiceTestSuite) TestPublisherModel(ctx context.Context, options ModelGardenServicePublisherModelTestSuiteConfig) {
 	fx.T.Run("PublisherModel", func(t *testing.T) {
 		options.Context = func() context.Context { return ctx }
-		options.service = fx.Server
+		options.Service = func() ModelGardenServiceServer { return fx.Server }
 		options.test(t)
 	})
 }
 
 type ModelGardenServicePublisherModelTestSuiteConfig struct {
-	service    ModelGardenServiceServer
 	currParent int
 
+	// Service should return the service that should be tested.
+	// The service will be used for several tests.
+	Service func() ModelGardenServiceServer
 	// Context should return a new context.
 	// The context will be used for several tests.
 	Context func() context.Context
@@ -60,7 +62,7 @@ func (fx *ModelGardenServicePublisherModelTestSuiteConfig) testGet(t *testing.T)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetPublisherModel(fx.Context(), &GetPublisherModelRequest{
+		_, err := fx.Service().GetPublisherModel(fx.Context(), &GetPublisherModelRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -69,7 +71,7 @@ func (fx *ModelGardenServicePublisherModelTestSuiteConfig) testGet(t *testing.T)
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetPublisherModel(fx.Context(), &GetPublisherModelRequest{
+		_, err := fx.Service().GetPublisherModel(fx.Context(), &GetPublisherModelRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -80,7 +82,7 @@ func (fx *ModelGardenServicePublisherModelTestSuiteConfig) testGet(t *testing.T)
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		msg, err := fx.service.GetPublisherModel(fx.Context(), &GetPublisherModelRequest{
+		msg, err := fx.Service().GetPublisherModel(fx.Context(), &GetPublisherModelRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -92,7 +94,7 @@ func (fx *ModelGardenServicePublisherModelTestSuiteConfig) testGet(t *testing.T)
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.GetPublisherModel(fx.Context(), &GetPublisherModelRequest{
+		_, err := fx.Service().GetPublisherModel(fx.Context(), &GetPublisherModelRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -101,7 +103,7 @@ func (fx *ModelGardenServicePublisherModelTestSuiteConfig) testGet(t *testing.T)
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetPublisherModel(fx.Context(), &GetPublisherModelRequest{
+		_, err := fx.Service().GetPublisherModel(fx.Context(), &GetPublisherModelRequest{
 			Name: "publishers/-/models/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)

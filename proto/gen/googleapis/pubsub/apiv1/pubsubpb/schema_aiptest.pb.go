@@ -22,15 +22,17 @@ type SchemaServiceTestSuite struct {
 func (fx SchemaServiceTestSuite) TestSchema(ctx context.Context, options SchemaServiceSchemaTestSuiteConfig) {
 	fx.T.Run("Schema", func(t *testing.T) {
 		options.Context = func() context.Context { return ctx }
-		options.service = fx.Server
+		options.Service = func() SchemaServiceServer { return fx.Server }
 		options.test(t)
 	})
 }
 
 type SchemaServiceSchemaTestSuiteConfig struct {
-	service    SchemaServiceServer
 	currParent int
 
+	// Service should return the service that should be tested.
+	// The service will be used for several tests.
+	Service func() SchemaServiceServer
 	// Context should return a new context.
 	// The context will be used for several tests.
 	Context func() context.Context
@@ -61,7 +63,7 @@ func (fx *SchemaServiceSchemaTestSuiteConfig) testCreate(t *testing.T) {
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateSchema(fx.Context(), &CreateSchemaRequest{
+		_, err := fx.Service().CreateSchema(fx.Context(), &CreateSchemaRequest{
 			Parent: "",
 			Schema: fx.Create(fx.nextParent(t, false)),
 		})
@@ -71,7 +73,7 @@ func (fx *SchemaServiceSchemaTestSuiteConfig) testCreate(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateSchema(fx.Context(), &CreateSchemaRequest{
+		_, err := fx.Service().CreateSchema(fx.Context(), &CreateSchemaRequest{
 			Parent: "invalid resource name",
 			Schema: fx.Create(fx.nextParent(t, false)),
 		})
@@ -82,12 +84,12 @@ func (fx *SchemaServiceSchemaTestSuiteConfig) testCreate(t *testing.T) {
 	t.Run("persisted", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		msg, err := fx.service.CreateSchema(fx.Context(), &CreateSchemaRequest{
+		msg, err := fx.Service().CreateSchema(fx.Context(), &CreateSchemaRequest{
 			Parent: parent,
 			Schema: fx.Create(parent),
 		})
 		assert.NilError(t, err)
-		persisted, err := fx.service.GetSchema(fx.Context(), &GetSchemaRequest{
+		persisted, err := fx.Service().GetSchema(fx.Context(), &GetSchemaRequest{
 			Name: msg.Name,
 		})
 		assert.NilError(t, err)
@@ -108,7 +110,7 @@ func (fx *SchemaServiceSchemaTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateSchema(fx.Context(), &CreateSchemaRequest{
+			_, err := fx.Service().CreateSchema(fx.Context(), &CreateSchemaRequest{
 				Parent: parent,
 				Schema: msg,
 			})
@@ -123,7 +125,7 @@ func (fx *SchemaServiceSchemaTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetSchema(fx.Context(), &GetSchemaRequest{
+		_, err := fx.Service().GetSchema(fx.Context(), &GetSchemaRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -132,7 +134,7 @@ func (fx *SchemaServiceSchemaTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetSchema(fx.Context(), &GetSchemaRequest{
+		_, err := fx.Service().GetSchema(fx.Context(), &GetSchemaRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -143,7 +145,7 @@ func (fx *SchemaServiceSchemaTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		msg, err := fx.service.GetSchema(fx.Context(), &GetSchemaRequest{
+		msg, err := fx.Service().GetSchema(fx.Context(), &GetSchemaRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -155,7 +157,7 @@ func (fx *SchemaServiceSchemaTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.GetSchema(fx.Context(), &GetSchemaRequest{
+		_, err := fx.Service().GetSchema(fx.Context(), &GetSchemaRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -164,7 +166,7 @@ func (fx *SchemaServiceSchemaTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetSchema(fx.Context(), &GetSchemaRequest{
+		_, err := fx.Service().GetSchema(fx.Context(), &GetSchemaRequest{
 			Name: "projects/-/schemas/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -177,7 +179,7 @@ func (fx *SchemaServiceSchemaTestSuiteConfig) testList(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.ListSchemas(fx.Context(), &ListSchemasRequest{
+		_, err := fx.Service().ListSchemas(fx.Context(), &ListSchemasRequest{
 			Parent: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -187,7 +189,7 @@ func (fx *SchemaServiceSchemaTestSuiteConfig) testList(t *testing.T) {
 	t.Run("invalid page token", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListSchemas(fx.Context(), &ListSchemasRequest{
+		_, err := fx.Service().ListSchemas(fx.Context(), &ListSchemasRequest{
 			Parent:    parent,
 			PageToken: "invalid page token",
 		})
@@ -198,7 +200,7 @@ func (fx *SchemaServiceSchemaTestSuiteConfig) testList(t *testing.T) {
 	t.Run("negative page size", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListSchemas(fx.Context(), &ListSchemasRequest{
+		_, err := fx.Service().ListSchemas(fx.Context(), &ListSchemasRequest{
 			Parent:   parent,
 			PageSize: -10,
 		})
@@ -216,7 +218,7 @@ func (fx *SchemaServiceSchemaTestSuiteConfig) testList(t *testing.T) {
 	// under that parent.
 	t.Run("isolation", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListSchemas(fx.Context(), &ListSchemasRequest{
+		response, err := fx.Service().ListSchemas(fx.Context(), &ListSchemasRequest{
 			Parent:   parent,
 			PageSize: 999,
 		})
@@ -235,7 +237,7 @@ func (fx *SchemaServiceSchemaTestSuiteConfig) testList(t *testing.T) {
 	// If there are no more resources, next_page_token should not be set.
 	t.Run("last page", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListSchemas(fx.Context(), &ListSchemasRequest{
+		response, err := fx.Service().ListSchemas(fx.Context(), &ListSchemasRequest{
 			Parent:   parent,
 			PageSize: resourcesCount,
 		})
@@ -246,7 +248,7 @@ func (fx *SchemaServiceSchemaTestSuiteConfig) testList(t *testing.T) {
 	// If there are more resources, next_page_token should be set.
 	t.Run("more pages", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListSchemas(fx.Context(), &ListSchemasRequest{
+		response, err := fx.Service().ListSchemas(fx.Context(), &ListSchemasRequest{
 			Parent:   parent,
 			PageSize: resourcesCount - 1,
 		})
@@ -260,7 +262,7 @@ func (fx *SchemaServiceSchemaTestSuiteConfig) testList(t *testing.T) {
 		msgs := make([]*Schema, 0, resourcesCount)
 		var nextPageToken string
 		for {
-			response, err := fx.service.ListSchemas(fx.Context(), &ListSchemasRequest{
+			response, err := fx.Service().ListSchemas(fx.Context(), &ListSchemasRequest{
 				Parent:    parent,
 				PageSize:  1,
 				PageToken: nextPageToken,
@@ -289,12 +291,12 @@ func (fx *SchemaServiceSchemaTestSuiteConfig) testList(t *testing.T) {
 		fx.maybeSkip(t)
 		const deleteCount = 5
 		for i := 0; i < deleteCount; i++ {
-			_, err := fx.service.DeleteSchemaRevision(fx.Context(), &DeleteSchemaRevisionRequest{
+			_, err := fx.Service().DeleteSchemaRevision(fx.Context(), &DeleteSchemaRevisionRequest{
 				Name: parentMsgs[i].Name,
 			})
 			assert.NilError(t, err)
 		}
-		response, err := fx.service.ListSchemas(fx.Context(), &ListSchemasRequest{
+		response, err := fx.Service().ListSchemas(fx.Context(), &ListSchemasRequest{
 			Parent:   parent,
 			PageSize: 9999,
 		})
@@ -317,7 +319,7 @@ func (fx *SchemaServiceSchemaTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteSchemaRevision(fx.Context(), &DeleteSchemaRevisionRequest{
+		_, err := fx.Service().DeleteSchemaRevision(fx.Context(), &DeleteSchemaRevisionRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -326,7 +328,7 @@ func (fx *SchemaServiceSchemaTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteSchemaRevision(fx.Context(), &DeleteSchemaRevisionRequest{
+		_, err := fx.Service().DeleteSchemaRevision(fx.Context(), &DeleteSchemaRevisionRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -337,7 +339,7 @@ func (fx *SchemaServiceSchemaTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteSchemaRevision(fx.Context(), &DeleteSchemaRevisionRequest{
+		_, err := fx.Service().DeleteSchemaRevision(fx.Context(), &DeleteSchemaRevisionRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -348,7 +350,7 @@ func (fx *SchemaServiceSchemaTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteSchemaRevision(fx.Context(), &DeleteSchemaRevisionRequest{
+		_, err := fx.Service().DeleteSchemaRevision(fx.Context(), &DeleteSchemaRevisionRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -359,12 +361,12 @@ func (fx *SchemaServiceSchemaTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		deleted, err := fx.service.DeleteSchemaRevision(fx.Context(), &DeleteSchemaRevisionRequest{
+		deleted, err := fx.Service().DeleteSchemaRevision(fx.Context(), &DeleteSchemaRevisionRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
 		_ = deleted
-		_, err = fx.service.DeleteSchemaRevision(fx.Context(), &DeleteSchemaRevisionRequest{
+		_, err = fx.Service().DeleteSchemaRevision(fx.Context(), &DeleteSchemaRevisionRequest{
 			Name: created.Name,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -373,7 +375,7 @@ func (fx *SchemaServiceSchemaTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteSchemaRevision(fx.Context(), &DeleteSchemaRevisionRequest{
+		_, err := fx.Service().DeleteSchemaRevision(fx.Context(), &DeleteSchemaRevisionRequest{
 			Name: "projects/-/schemas/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -409,7 +411,7 @@ func (fx *SchemaServiceSchemaTestSuiteConfig) maybeSkip(t *testing.T) {
 
 func (fx *SchemaServiceSchemaTestSuiteConfig) create(t *testing.T, parent string) *Schema {
 	t.Helper()
-	created, err := fx.service.CreateSchema(fx.Context(), &CreateSchemaRequest{
+	created, err := fx.Service().CreateSchema(fx.Context(), &CreateSchemaRequest{
 		Parent: parent,
 		Schema: fx.Create(parent),
 	})

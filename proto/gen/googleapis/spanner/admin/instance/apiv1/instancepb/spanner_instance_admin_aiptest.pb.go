@@ -24,7 +24,7 @@ type InstanceAdminTestSuite struct {
 func (fx InstanceAdminTestSuite) TestInstance(ctx context.Context, options InstanceAdminInstanceTestSuiteConfig) {
 	fx.T.Run("Instance", func(t *testing.T) {
 		options.Context = func() context.Context { return ctx }
-		options.service = fx.Server
+		options.Service = func() InstanceAdminServer { return fx.Server }
 		options.test(t)
 	})
 }
@@ -32,7 +32,7 @@ func (fx InstanceAdminTestSuite) TestInstance(ctx context.Context, options Insta
 func (fx InstanceAdminTestSuite) TestInstanceConfig(ctx context.Context, options InstanceAdminInstanceConfigTestSuiteConfig) {
 	fx.T.Run("InstanceConfig", func(t *testing.T) {
 		options.Context = func() context.Context { return ctx }
-		options.service = fx.Server
+		options.Service = func() InstanceAdminServer { return fx.Server }
 		options.test(t)
 	})
 }
@@ -40,15 +40,17 @@ func (fx InstanceAdminTestSuite) TestInstanceConfig(ctx context.Context, options
 func (fx InstanceAdminTestSuite) TestInstancePartition(ctx context.Context, options InstanceAdminInstancePartitionTestSuiteConfig) {
 	fx.T.Run("InstancePartition", func(t *testing.T) {
 		options.Context = func() context.Context { return ctx }
-		options.service = fx.Server
+		options.Service = func() InstanceAdminServer { return fx.Server }
 		options.test(t)
 	})
 }
 
 type InstanceAdminInstanceTestSuiteConfig struct {
-	service    InstanceAdminServer
 	currParent int
 
+	// Service should return the service that should be tested.
+	// The service will be used for several tests.
+	Service func() InstanceAdminServer
 	// Context should return a new context.
 	// The context will be used for several tests.
 	Context func() context.Context
@@ -83,7 +85,7 @@ func (fx *InstanceAdminInstanceTestSuiteConfig) testCreate(t *testing.T) {
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateInstance(fx.Context(), &CreateInstanceRequest{
+		_, err := fx.Service().CreateInstance(fx.Context(), &CreateInstanceRequest{
 			Parent:   "",
 			Instance: fx.Create(fx.nextParent(t, false)),
 		})
@@ -93,7 +95,7 @@ func (fx *InstanceAdminInstanceTestSuiteConfig) testCreate(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateInstance(fx.Context(), &CreateInstanceRequest{
+		_, err := fx.Service().CreateInstance(fx.Context(), &CreateInstanceRequest{
 			Parent:   "invalid resource name",
 			Instance: fx.Create(fx.nextParent(t, false)),
 		})
@@ -114,7 +116,7 @@ func (fx *InstanceAdminInstanceTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateInstance(fx.Context(), &CreateInstanceRequest{
+			_, err := fx.Service().CreateInstance(fx.Context(), &CreateInstanceRequest{
 				Parent:   parent,
 				Instance: msg,
 			})
@@ -130,7 +132,7 @@ func (fx *InstanceAdminInstanceTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("config")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateInstance(fx.Context(), &CreateInstanceRequest{
+			_, err := fx.Service().CreateInstance(fx.Context(), &CreateInstanceRequest{
 				Parent:   parent,
 				Instance: msg,
 			})
@@ -146,7 +148,7 @@ func (fx *InstanceAdminInstanceTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateInstance(fx.Context(), &CreateInstanceRequest{
+			_, err := fx.Service().CreateInstance(fx.Context(), &CreateInstanceRequest{
 				Parent:   parent,
 				Instance: msg,
 			})
@@ -162,7 +164,7 @@ func (fx *InstanceAdminInstanceTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("autoscaling_limits")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateInstance(fx.Context(), &CreateInstanceRequest{
+			_, err := fx.Service().CreateInstance(fx.Context(), &CreateInstanceRequest{
 				Parent:   parent,
 				Instance: msg,
 			})
@@ -178,7 +180,7 @@ func (fx *InstanceAdminInstanceTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("autoscaling_targets")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateInstance(fx.Context(), &CreateInstanceRequest{
+			_, err := fx.Service().CreateInstance(fx.Context(), &CreateInstanceRequest{
 				Parent:   parent,
 				Instance: msg,
 			})
@@ -194,7 +196,7 @@ func (fx *InstanceAdminInstanceTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("high_priority_cpu_utilization_percent")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateInstance(fx.Context(), &CreateInstanceRequest{
+			_, err := fx.Service().CreateInstance(fx.Context(), &CreateInstanceRequest{
 				Parent:   parent,
 				Instance: msg,
 			})
@@ -210,7 +212,7 @@ func (fx *InstanceAdminInstanceTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("storage_utilization_percent")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateInstance(fx.Context(), &CreateInstanceRequest{
+			_, err := fx.Service().CreateInstance(fx.Context(), &CreateInstanceRequest{
 				Parent:   parent,
 				Instance: msg,
 			})
@@ -231,7 +233,7 @@ func (fx *InstanceAdminInstanceTestSuiteConfig) testCreate(t *testing.T) {
 				t.Skip("not reachable")
 			}
 			container.Config = "invalid resource name"
-			_, err := fx.service.CreateInstance(fx.Context(), &CreateInstanceRequest{
+			_, err := fx.Service().CreateInstance(fx.Context(), &CreateInstanceRequest{
 				Parent:   parent,
 				Instance: msg,
 			})
@@ -246,7 +248,7 @@ func (fx *InstanceAdminInstanceTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetInstance(fx.Context(), &GetInstanceRequest{
+		_, err := fx.Service().GetInstance(fx.Context(), &GetInstanceRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -255,7 +257,7 @@ func (fx *InstanceAdminInstanceTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetInstance(fx.Context(), &GetInstanceRequest{
+		_, err := fx.Service().GetInstance(fx.Context(), &GetInstanceRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -266,7 +268,7 @@ func (fx *InstanceAdminInstanceTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		msg, err := fx.service.GetInstance(fx.Context(), &GetInstanceRequest{
+		msg, err := fx.Service().GetInstance(fx.Context(), &GetInstanceRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -278,7 +280,7 @@ func (fx *InstanceAdminInstanceTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.GetInstance(fx.Context(), &GetInstanceRequest{
+		_, err := fx.Service().GetInstance(fx.Context(), &GetInstanceRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -287,7 +289,7 @@ func (fx *InstanceAdminInstanceTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetInstance(fx.Context(), &GetInstanceRequest{
+		_, err := fx.Service().GetInstance(fx.Context(), &GetInstanceRequest{
 			Name: "projects/-/instances/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -303,7 +305,7 @@ func (fx *InstanceAdminInstanceTestSuiteConfig) testUpdate(t *testing.T) {
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
 		msg.Name = ""
-		_, err := fx.service.UpdateInstance(fx.Context(), &UpdateInstanceRequest{
+		_, err := fx.Service().UpdateInstance(fx.Context(), &UpdateInstanceRequest{
 			Instance: msg,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -315,7 +317,7 @@ func (fx *InstanceAdminInstanceTestSuiteConfig) testUpdate(t *testing.T) {
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
 		msg.Name = "invalid resource name"
-		_, err := fx.service.UpdateInstance(fx.Context(), &UpdateInstanceRequest{
+		_, err := fx.Service().UpdateInstance(fx.Context(), &UpdateInstanceRequest{
 			Instance: msg,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -328,7 +330,7 @@ func (fx *InstanceAdminInstanceTestSuiteConfig) testUpdate(t *testing.T) {
 		fx.maybeSkip(t)
 		msg := fx.Update(parent)
 		msg.Name = created.Name + "notfound"
-		_, err := fx.service.UpdateInstance(fx.Context(), &UpdateInstanceRequest{
+		_, err := fx.Service().UpdateInstance(fx.Context(), &UpdateInstanceRequest{
 			Instance: msg,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -347,7 +349,7 @@ func (fx *InstanceAdminInstanceTestSuiteConfig) testUpdate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateInstance(fx.Context(), &UpdateInstanceRequest{
+			_, err := fx.Service().UpdateInstance(fx.Context(), &UpdateInstanceRequest{
 				Instance: msg,
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -361,7 +363,7 @@ func (fx *InstanceAdminInstanceTestSuiteConfig) testUpdate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("config")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateInstance(fx.Context(), &UpdateInstanceRequest{
+			_, err := fx.Service().UpdateInstance(fx.Context(), &UpdateInstanceRequest{
 				Instance: msg,
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -375,7 +377,7 @@ func (fx *InstanceAdminInstanceTestSuiteConfig) testUpdate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateInstance(fx.Context(), &UpdateInstanceRequest{
+			_, err := fx.Service().UpdateInstance(fx.Context(), &UpdateInstanceRequest{
 				Instance: msg,
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -389,7 +391,7 @@ func (fx *InstanceAdminInstanceTestSuiteConfig) testUpdate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("autoscaling_limits")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateInstance(fx.Context(), &UpdateInstanceRequest{
+			_, err := fx.Service().UpdateInstance(fx.Context(), &UpdateInstanceRequest{
 				Instance: msg,
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -403,7 +405,7 @@ func (fx *InstanceAdminInstanceTestSuiteConfig) testUpdate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("autoscaling_targets")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateInstance(fx.Context(), &UpdateInstanceRequest{
+			_, err := fx.Service().UpdateInstance(fx.Context(), &UpdateInstanceRequest{
 				Instance: msg,
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -417,7 +419,7 @@ func (fx *InstanceAdminInstanceTestSuiteConfig) testUpdate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("high_priority_cpu_utilization_percent")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateInstance(fx.Context(), &UpdateInstanceRequest{
+			_, err := fx.Service().UpdateInstance(fx.Context(), &UpdateInstanceRequest{
 				Instance: msg,
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -431,7 +433,7 @@ func (fx *InstanceAdminInstanceTestSuiteConfig) testUpdate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("storage_utilization_percent")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateInstance(fx.Context(), &UpdateInstanceRequest{
+			_, err := fx.Service().UpdateInstance(fx.Context(), &UpdateInstanceRequest{
 				Instance: msg,
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -445,7 +447,7 @@ func (fx *InstanceAdminInstanceTestSuiteConfig) testList(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.ListInstances(fx.Context(), &ListInstancesRequest{
+		_, err := fx.Service().ListInstances(fx.Context(), &ListInstancesRequest{
 			Parent: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -455,7 +457,7 @@ func (fx *InstanceAdminInstanceTestSuiteConfig) testList(t *testing.T) {
 	t.Run("invalid page token", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListInstances(fx.Context(), &ListInstancesRequest{
+		_, err := fx.Service().ListInstances(fx.Context(), &ListInstancesRequest{
 			Parent:    parent,
 			PageToken: "invalid page token",
 		})
@@ -466,7 +468,7 @@ func (fx *InstanceAdminInstanceTestSuiteConfig) testList(t *testing.T) {
 	t.Run("negative page size", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListInstances(fx.Context(), &ListInstancesRequest{
+		_, err := fx.Service().ListInstances(fx.Context(), &ListInstancesRequest{
 			Parent:   parent,
 			PageSize: -10,
 		})
@@ -484,7 +486,7 @@ func (fx *InstanceAdminInstanceTestSuiteConfig) testList(t *testing.T) {
 	// under that parent.
 	t.Run("isolation", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListInstances(fx.Context(), &ListInstancesRequest{
+		response, err := fx.Service().ListInstances(fx.Context(), &ListInstancesRequest{
 			Parent:   parent,
 			PageSize: 999,
 		})
@@ -503,7 +505,7 @@ func (fx *InstanceAdminInstanceTestSuiteConfig) testList(t *testing.T) {
 	// If there are no more resources, next_page_token should not be set.
 	t.Run("last page", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListInstances(fx.Context(), &ListInstancesRequest{
+		response, err := fx.Service().ListInstances(fx.Context(), &ListInstancesRequest{
 			Parent:   parent,
 			PageSize: resourcesCount,
 		})
@@ -514,7 +516,7 @@ func (fx *InstanceAdminInstanceTestSuiteConfig) testList(t *testing.T) {
 	// If there are more resources, next_page_token should be set.
 	t.Run("more pages", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListInstances(fx.Context(), &ListInstancesRequest{
+		response, err := fx.Service().ListInstances(fx.Context(), &ListInstancesRequest{
 			Parent:   parent,
 			PageSize: resourcesCount - 1,
 		})
@@ -528,7 +530,7 @@ func (fx *InstanceAdminInstanceTestSuiteConfig) testList(t *testing.T) {
 		msgs := make([]*Instance, 0, resourcesCount)
 		var nextPageToken string
 		for {
-			response, err := fx.service.ListInstances(fx.Context(), &ListInstancesRequest{
+			response, err := fx.Service().ListInstances(fx.Context(), &ListInstancesRequest{
 				Parent:    parent,
 				PageSize:  1,
 				PageToken: nextPageToken,
@@ -557,12 +559,12 @@ func (fx *InstanceAdminInstanceTestSuiteConfig) testList(t *testing.T) {
 		fx.maybeSkip(t)
 		const deleteCount = 5
 		for i := 0; i < deleteCount; i++ {
-			_, err := fx.service.DeleteInstance(fx.Context(), &DeleteInstanceRequest{
+			_, err := fx.Service().DeleteInstance(fx.Context(), &DeleteInstanceRequest{
 				Name: parentMsgs[i].Name,
 			})
 			assert.NilError(t, err)
 		}
-		response, err := fx.service.ListInstances(fx.Context(), &ListInstancesRequest{
+		response, err := fx.Service().ListInstances(fx.Context(), &ListInstancesRequest{
 			Parent:   parent,
 			PageSize: 9999,
 		})
@@ -585,7 +587,7 @@ func (fx *InstanceAdminInstanceTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteInstance(fx.Context(), &DeleteInstanceRequest{
+		_, err := fx.Service().DeleteInstance(fx.Context(), &DeleteInstanceRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -594,7 +596,7 @@ func (fx *InstanceAdminInstanceTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteInstance(fx.Context(), &DeleteInstanceRequest{
+		_, err := fx.Service().DeleteInstance(fx.Context(), &DeleteInstanceRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -605,7 +607,7 @@ func (fx *InstanceAdminInstanceTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteInstance(fx.Context(), &DeleteInstanceRequest{
+		_, err := fx.Service().DeleteInstance(fx.Context(), &DeleteInstanceRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -616,7 +618,7 @@ func (fx *InstanceAdminInstanceTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteInstance(fx.Context(), &DeleteInstanceRequest{
+		_, err := fx.Service().DeleteInstance(fx.Context(), &DeleteInstanceRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -627,12 +629,12 @@ func (fx *InstanceAdminInstanceTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		deleted, err := fx.service.DeleteInstance(fx.Context(), &DeleteInstanceRequest{
+		deleted, err := fx.Service().DeleteInstance(fx.Context(), &DeleteInstanceRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
 		_ = deleted
-		_, err = fx.service.DeleteInstance(fx.Context(), &DeleteInstanceRequest{
+		_, err = fx.Service().DeleteInstance(fx.Context(), &DeleteInstanceRequest{
 			Name: created.Name,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -641,7 +643,7 @@ func (fx *InstanceAdminInstanceTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteInstance(fx.Context(), &DeleteInstanceRequest{
+		_, err := fx.Service().DeleteInstance(fx.Context(), &DeleteInstanceRequest{
 			Name: "projects/-/instances/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -682,9 +684,11 @@ func (fx *InstanceAdminInstanceTestSuiteConfig) create(t *testing.T, parent stri
 }
 
 type InstanceAdminInstanceConfigTestSuiteConfig struct {
-	service    InstanceAdminServer
 	currParent int
 
+	// Service should return the service that should be tested.
+	// The service will be used for several tests.
+	Service func() InstanceAdminServer
 	// Context should return a new context.
 	// The context will be used for several tests.
 	Context func() context.Context
@@ -719,7 +723,7 @@ func (fx *InstanceAdminInstanceConfigTestSuiteConfig) testCreate(t *testing.T) {
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateInstanceConfig(fx.Context(), &CreateInstanceConfigRequest{
+		_, err := fx.Service().CreateInstanceConfig(fx.Context(), &CreateInstanceConfigRequest{
 			Parent:         "",
 			InstanceConfig: fx.Create(fx.nextParent(t, false)),
 		})
@@ -729,7 +733,7 @@ func (fx *InstanceAdminInstanceConfigTestSuiteConfig) testCreate(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateInstanceConfig(fx.Context(), &CreateInstanceConfigRequest{
+		_, err := fx.Service().CreateInstanceConfig(fx.Context(), &CreateInstanceConfigRequest{
 			Parent:         "invalid resource name",
 			InstanceConfig: fx.Create(fx.nextParent(t, false)),
 		})
@@ -749,7 +753,7 @@ func (fx *InstanceAdminInstanceConfigTestSuiteConfig) testCreate(t *testing.T) {
 				t.Skip("not reachable")
 			}
 			container.BaseConfig = "invalid resource name"
-			_, err := fx.service.CreateInstanceConfig(fx.Context(), &CreateInstanceConfigRequest{
+			_, err := fx.Service().CreateInstanceConfig(fx.Context(), &CreateInstanceConfigRequest{
 				Parent:         parent,
 				InstanceConfig: msg,
 			})
@@ -764,7 +768,7 @@ func (fx *InstanceAdminInstanceConfigTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetInstanceConfig(fx.Context(), &GetInstanceConfigRequest{
+		_, err := fx.Service().GetInstanceConfig(fx.Context(), &GetInstanceConfigRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -773,7 +777,7 @@ func (fx *InstanceAdminInstanceConfigTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetInstanceConfig(fx.Context(), &GetInstanceConfigRequest{
+		_, err := fx.Service().GetInstanceConfig(fx.Context(), &GetInstanceConfigRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -784,7 +788,7 @@ func (fx *InstanceAdminInstanceConfigTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		msg, err := fx.service.GetInstanceConfig(fx.Context(), &GetInstanceConfigRequest{
+		msg, err := fx.Service().GetInstanceConfig(fx.Context(), &GetInstanceConfigRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -796,7 +800,7 @@ func (fx *InstanceAdminInstanceConfigTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.GetInstanceConfig(fx.Context(), &GetInstanceConfigRequest{
+		_, err := fx.Service().GetInstanceConfig(fx.Context(), &GetInstanceConfigRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -805,7 +809,7 @@ func (fx *InstanceAdminInstanceConfigTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetInstanceConfig(fx.Context(), &GetInstanceConfigRequest{
+		_, err := fx.Service().GetInstanceConfig(fx.Context(), &GetInstanceConfigRequest{
 			Name: "projects/-/instanceConfigs/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -821,7 +825,7 @@ func (fx *InstanceAdminInstanceConfigTestSuiteConfig) testUpdate(t *testing.T) {
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
 		msg.Name = ""
-		_, err := fx.service.UpdateInstanceConfig(fx.Context(), &UpdateInstanceConfigRequest{
+		_, err := fx.Service().UpdateInstanceConfig(fx.Context(), &UpdateInstanceConfigRequest{
 			InstanceConfig: msg,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -833,7 +837,7 @@ func (fx *InstanceAdminInstanceConfigTestSuiteConfig) testUpdate(t *testing.T) {
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
 		msg.Name = "invalid resource name"
-		_, err := fx.service.UpdateInstanceConfig(fx.Context(), &UpdateInstanceConfigRequest{
+		_, err := fx.Service().UpdateInstanceConfig(fx.Context(), &UpdateInstanceConfigRequest{
 			InstanceConfig: msg,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -846,7 +850,7 @@ func (fx *InstanceAdminInstanceConfigTestSuiteConfig) testUpdate(t *testing.T) {
 		fx.maybeSkip(t)
 		msg := fx.Update(parent)
 		msg.Name = created.Name + "notfound"
-		_, err := fx.service.UpdateInstanceConfig(fx.Context(), &UpdateInstanceConfigRequest{
+		_, err := fx.Service().UpdateInstanceConfig(fx.Context(), &UpdateInstanceConfigRequest{
 			InstanceConfig: msg,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -855,7 +859,7 @@ func (fx *InstanceAdminInstanceConfigTestSuiteConfig) testUpdate(t *testing.T) {
 	// The method should fail with InvalidArgument if the update_mask is invalid.
 	t.Run("invalid update mask", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.UpdateInstanceConfig(fx.Context(), &UpdateInstanceConfigRequest{
+		_, err := fx.Service().UpdateInstanceConfig(fx.Context(), &UpdateInstanceConfigRequest{
 			InstanceConfig: created,
 			UpdateMask: &fieldmaskpb.FieldMask{
 				Paths: []string{
@@ -873,7 +877,7 @@ func (fx *InstanceAdminInstanceConfigTestSuiteConfig) testList(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.ListInstanceConfigs(fx.Context(), &ListInstanceConfigsRequest{
+		_, err := fx.Service().ListInstanceConfigs(fx.Context(), &ListInstanceConfigsRequest{
 			Parent: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -883,7 +887,7 @@ func (fx *InstanceAdminInstanceConfigTestSuiteConfig) testList(t *testing.T) {
 	t.Run("invalid page token", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListInstanceConfigs(fx.Context(), &ListInstanceConfigsRequest{
+		_, err := fx.Service().ListInstanceConfigs(fx.Context(), &ListInstanceConfigsRequest{
 			Parent:    parent,
 			PageToken: "invalid page token",
 		})
@@ -894,7 +898,7 @@ func (fx *InstanceAdminInstanceConfigTestSuiteConfig) testList(t *testing.T) {
 	t.Run("negative page size", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListInstanceConfigs(fx.Context(), &ListInstanceConfigsRequest{
+		_, err := fx.Service().ListInstanceConfigs(fx.Context(), &ListInstanceConfigsRequest{
 			Parent:   parent,
 			PageSize: -10,
 		})
@@ -912,7 +916,7 @@ func (fx *InstanceAdminInstanceConfigTestSuiteConfig) testList(t *testing.T) {
 	// under that parent.
 	t.Run("isolation", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListInstanceConfigs(fx.Context(), &ListInstanceConfigsRequest{
+		response, err := fx.Service().ListInstanceConfigs(fx.Context(), &ListInstanceConfigsRequest{
 			Parent:   parent,
 			PageSize: 999,
 		})
@@ -931,7 +935,7 @@ func (fx *InstanceAdminInstanceConfigTestSuiteConfig) testList(t *testing.T) {
 	// If there are no more resources, next_page_token should not be set.
 	t.Run("last page", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListInstanceConfigs(fx.Context(), &ListInstanceConfigsRequest{
+		response, err := fx.Service().ListInstanceConfigs(fx.Context(), &ListInstanceConfigsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount,
 		})
@@ -942,7 +946,7 @@ func (fx *InstanceAdminInstanceConfigTestSuiteConfig) testList(t *testing.T) {
 	// If there are more resources, next_page_token should be set.
 	t.Run("more pages", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListInstanceConfigs(fx.Context(), &ListInstanceConfigsRequest{
+		response, err := fx.Service().ListInstanceConfigs(fx.Context(), &ListInstanceConfigsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount - 1,
 		})
@@ -956,7 +960,7 @@ func (fx *InstanceAdminInstanceConfigTestSuiteConfig) testList(t *testing.T) {
 		msgs := make([]*InstanceConfig, 0, resourcesCount)
 		var nextPageToken string
 		for {
-			response, err := fx.service.ListInstanceConfigs(fx.Context(), &ListInstanceConfigsRequest{
+			response, err := fx.Service().ListInstanceConfigs(fx.Context(), &ListInstanceConfigsRequest{
 				Parent:    parent,
 				PageSize:  1,
 				PageToken: nextPageToken,
@@ -985,12 +989,12 @@ func (fx *InstanceAdminInstanceConfigTestSuiteConfig) testList(t *testing.T) {
 		fx.maybeSkip(t)
 		const deleteCount = 5
 		for i := 0; i < deleteCount; i++ {
-			_, err := fx.service.DeleteInstanceConfig(fx.Context(), &DeleteInstanceConfigRequest{
+			_, err := fx.Service().DeleteInstanceConfig(fx.Context(), &DeleteInstanceConfigRequest{
 				Name: parentMsgs[i].Name,
 			})
 			assert.NilError(t, err)
 		}
-		response, err := fx.service.ListInstanceConfigs(fx.Context(), &ListInstanceConfigsRequest{
+		response, err := fx.Service().ListInstanceConfigs(fx.Context(), &ListInstanceConfigsRequest{
 			Parent:   parent,
 			PageSize: 9999,
 		})
@@ -1013,7 +1017,7 @@ func (fx *InstanceAdminInstanceConfigTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteInstanceConfig(fx.Context(), &DeleteInstanceConfigRequest{
+		_, err := fx.Service().DeleteInstanceConfig(fx.Context(), &DeleteInstanceConfigRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1022,7 +1026,7 @@ func (fx *InstanceAdminInstanceConfigTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteInstanceConfig(fx.Context(), &DeleteInstanceConfigRequest{
+		_, err := fx.Service().DeleteInstanceConfig(fx.Context(), &DeleteInstanceConfigRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1033,7 +1037,7 @@ func (fx *InstanceAdminInstanceConfigTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteInstanceConfig(fx.Context(), &DeleteInstanceConfigRequest{
+		_, err := fx.Service().DeleteInstanceConfig(fx.Context(), &DeleteInstanceConfigRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -1044,7 +1048,7 @@ func (fx *InstanceAdminInstanceConfigTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteInstanceConfig(fx.Context(), &DeleteInstanceConfigRequest{
+		_, err := fx.Service().DeleteInstanceConfig(fx.Context(), &DeleteInstanceConfigRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -1055,12 +1059,12 @@ func (fx *InstanceAdminInstanceConfigTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		deleted, err := fx.service.DeleteInstanceConfig(fx.Context(), &DeleteInstanceConfigRequest{
+		deleted, err := fx.Service().DeleteInstanceConfig(fx.Context(), &DeleteInstanceConfigRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
 		_ = deleted
-		_, err = fx.service.DeleteInstanceConfig(fx.Context(), &DeleteInstanceConfigRequest{
+		_, err = fx.Service().DeleteInstanceConfig(fx.Context(), &DeleteInstanceConfigRequest{
 			Name: created.Name,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -1069,7 +1073,7 @@ func (fx *InstanceAdminInstanceConfigTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteInstanceConfig(fx.Context(), &DeleteInstanceConfigRequest{
+		_, err := fx.Service().DeleteInstanceConfig(fx.Context(), &DeleteInstanceConfigRequest{
 			Name: "projects/-/instanceConfigs/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1080,7 +1084,7 @@ func (fx *InstanceAdminInstanceConfigTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteInstanceConfig(fx.Context(), &DeleteInstanceConfigRequest{
+		_, err := fx.Service().DeleteInstanceConfig(fx.Context(), &DeleteInstanceConfigRequest{
 			Name: created.Name,
 			Etag: `"99999"`,
 		})
@@ -1122,9 +1126,11 @@ func (fx *InstanceAdminInstanceConfigTestSuiteConfig) create(t *testing.T, paren
 }
 
 type InstanceAdminInstancePartitionTestSuiteConfig struct {
-	service    InstanceAdminServer
 	currParent int
 
+	// Service should return the service that should be tested.
+	// The service will be used for several tests.
+	Service func() InstanceAdminServer
 	// Context should return a new context.
 	// The context will be used for several tests.
 	Context func() context.Context
@@ -1159,7 +1165,7 @@ func (fx *InstanceAdminInstancePartitionTestSuiteConfig) testCreate(t *testing.T
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateInstancePartition(fx.Context(), &CreateInstancePartitionRequest{
+		_, err := fx.Service().CreateInstancePartition(fx.Context(), &CreateInstancePartitionRequest{
 			Parent:            "",
 			InstancePartition: fx.Create(fx.nextParent(t, false)),
 		})
@@ -1169,7 +1175,7 @@ func (fx *InstanceAdminInstancePartitionTestSuiteConfig) testCreate(t *testing.T
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateInstancePartition(fx.Context(), &CreateInstancePartitionRequest{
+		_, err := fx.Service().CreateInstancePartition(fx.Context(), &CreateInstancePartitionRequest{
 			Parent:            "invalid resource name",
 			InstancePartition: fx.Create(fx.nextParent(t, false)),
 		})
@@ -1190,7 +1196,7 @@ func (fx *InstanceAdminInstancePartitionTestSuiteConfig) testCreate(t *testing.T
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateInstancePartition(fx.Context(), &CreateInstancePartitionRequest{
+			_, err := fx.Service().CreateInstancePartition(fx.Context(), &CreateInstancePartitionRequest{
 				Parent:            parent,
 				InstancePartition: msg,
 			})
@@ -1206,7 +1212,7 @@ func (fx *InstanceAdminInstancePartitionTestSuiteConfig) testCreate(t *testing.T
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("config")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateInstancePartition(fx.Context(), &CreateInstancePartitionRequest{
+			_, err := fx.Service().CreateInstancePartition(fx.Context(), &CreateInstancePartitionRequest{
 				Parent:            parent,
 				InstancePartition: msg,
 			})
@@ -1222,7 +1228,7 @@ func (fx *InstanceAdminInstancePartitionTestSuiteConfig) testCreate(t *testing.T
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateInstancePartition(fx.Context(), &CreateInstancePartitionRequest{
+			_, err := fx.Service().CreateInstancePartition(fx.Context(), &CreateInstancePartitionRequest{
 				Parent:            parent,
 				InstancePartition: msg,
 			})
@@ -1243,7 +1249,7 @@ func (fx *InstanceAdminInstancePartitionTestSuiteConfig) testCreate(t *testing.T
 				t.Skip("not reachable")
 			}
 			container.Config = "invalid resource name"
-			_, err := fx.service.CreateInstancePartition(fx.Context(), &CreateInstancePartitionRequest{
+			_, err := fx.Service().CreateInstancePartition(fx.Context(), &CreateInstancePartitionRequest{
 				Parent:            parent,
 				InstancePartition: msg,
 			})
@@ -1258,7 +1264,7 @@ func (fx *InstanceAdminInstancePartitionTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetInstancePartition(fx.Context(), &GetInstancePartitionRequest{
+		_, err := fx.Service().GetInstancePartition(fx.Context(), &GetInstancePartitionRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1267,7 +1273,7 @@ func (fx *InstanceAdminInstancePartitionTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetInstancePartition(fx.Context(), &GetInstancePartitionRequest{
+		_, err := fx.Service().GetInstancePartition(fx.Context(), &GetInstancePartitionRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1278,7 +1284,7 @@ func (fx *InstanceAdminInstancePartitionTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		msg, err := fx.service.GetInstancePartition(fx.Context(), &GetInstancePartitionRequest{
+		msg, err := fx.Service().GetInstancePartition(fx.Context(), &GetInstancePartitionRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -1290,7 +1296,7 @@ func (fx *InstanceAdminInstancePartitionTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.GetInstancePartition(fx.Context(), &GetInstancePartitionRequest{
+		_, err := fx.Service().GetInstancePartition(fx.Context(), &GetInstancePartitionRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -1299,7 +1305,7 @@ func (fx *InstanceAdminInstancePartitionTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetInstancePartition(fx.Context(), &GetInstancePartitionRequest{
+		_, err := fx.Service().GetInstancePartition(fx.Context(), &GetInstancePartitionRequest{
 			Name: "projects/-/instances/-/instancePartitions/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1315,7 +1321,7 @@ func (fx *InstanceAdminInstancePartitionTestSuiteConfig) testUpdate(t *testing.T
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
 		msg.Name = ""
-		_, err := fx.service.UpdateInstancePartition(fx.Context(), &UpdateInstancePartitionRequest{
+		_, err := fx.Service().UpdateInstancePartition(fx.Context(), &UpdateInstancePartitionRequest{
 			InstancePartition: msg,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1327,7 +1333,7 @@ func (fx *InstanceAdminInstancePartitionTestSuiteConfig) testUpdate(t *testing.T
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
 		msg.Name = "invalid resource name"
-		_, err := fx.service.UpdateInstancePartition(fx.Context(), &UpdateInstancePartitionRequest{
+		_, err := fx.Service().UpdateInstancePartition(fx.Context(), &UpdateInstancePartitionRequest{
 			InstancePartition: msg,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1340,7 +1346,7 @@ func (fx *InstanceAdminInstancePartitionTestSuiteConfig) testUpdate(t *testing.T
 		fx.maybeSkip(t)
 		msg := fx.Update(parent)
 		msg.Name = created.Name + "notfound"
-		_, err := fx.service.UpdateInstancePartition(fx.Context(), &UpdateInstancePartitionRequest{
+		_, err := fx.Service().UpdateInstancePartition(fx.Context(), &UpdateInstancePartitionRequest{
 			InstancePartition: msg,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -1359,7 +1365,7 @@ func (fx *InstanceAdminInstancePartitionTestSuiteConfig) testUpdate(t *testing.T
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateInstancePartition(fx.Context(), &UpdateInstancePartitionRequest{
+			_, err := fx.Service().UpdateInstancePartition(fx.Context(), &UpdateInstancePartitionRequest{
 				InstancePartition: msg,
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1373,7 +1379,7 @@ func (fx *InstanceAdminInstancePartitionTestSuiteConfig) testUpdate(t *testing.T
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("config")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateInstancePartition(fx.Context(), &UpdateInstancePartitionRequest{
+			_, err := fx.Service().UpdateInstancePartition(fx.Context(), &UpdateInstancePartitionRequest{
 				InstancePartition: msg,
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1387,7 +1393,7 @@ func (fx *InstanceAdminInstancePartitionTestSuiteConfig) testUpdate(t *testing.T
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateInstancePartition(fx.Context(), &UpdateInstancePartitionRequest{
+			_, err := fx.Service().UpdateInstancePartition(fx.Context(), &UpdateInstancePartitionRequest{
 				InstancePartition: msg,
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1401,7 +1407,7 @@ func (fx *InstanceAdminInstancePartitionTestSuiteConfig) testList(t *testing.T) 
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.ListInstancePartitions(fx.Context(), &ListInstancePartitionsRequest{
+		_, err := fx.Service().ListInstancePartitions(fx.Context(), &ListInstancePartitionsRequest{
 			Parent: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1411,7 +1417,7 @@ func (fx *InstanceAdminInstancePartitionTestSuiteConfig) testList(t *testing.T) 
 	t.Run("invalid page token", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListInstancePartitions(fx.Context(), &ListInstancePartitionsRequest{
+		_, err := fx.Service().ListInstancePartitions(fx.Context(), &ListInstancePartitionsRequest{
 			Parent:    parent,
 			PageToken: "invalid page token",
 		})
@@ -1422,7 +1428,7 @@ func (fx *InstanceAdminInstancePartitionTestSuiteConfig) testList(t *testing.T) 
 	t.Run("negative page size", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListInstancePartitions(fx.Context(), &ListInstancePartitionsRequest{
+		_, err := fx.Service().ListInstancePartitions(fx.Context(), &ListInstancePartitionsRequest{
 			Parent:   parent,
 			PageSize: -10,
 		})
@@ -1440,7 +1446,7 @@ func (fx *InstanceAdminInstancePartitionTestSuiteConfig) testList(t *testing.T) 
 	// under that parent.
 	t.Run("isolation", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListInstancePartitions(fx.Context(), &ListInstancePartitionsRequest{
+		response, err := fx.Service().ListInstancePartitions(fx.Context(), &ListInstancePartitionsRequest{
 			Parent:   parent,
 			PageSize: 999,
 		})
@@ -1459,7 +1465,7 @@ func (fx *InstanceAdminInstancePartitionTestSuiteConfig) testList(t *testing.T) 
 	// If there are no more resources, next_page_token should not be set.
 	t.Run("last page", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListInstancePartitions(fx.Context(), &ListInstancePartitionsRequest{
+		response, err := fx.Service().ListInstancePartitions(fx.Context(), &ListInstancePartitionsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount,
 		})
@@ -1470,7 +1476,7 @@ func (fx *InstanceAdminInstancePartitionTestSuiteConfig) testList(t *testing.T) 
 	// If there are more resources, next_page_token should be set.
 	t.Run("more pages", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListInstancePartitions(fx.Context(), &ListInstancePartitionsRequest{
+		response, err := fx.Service().ListInstancePartitions(fx.Context(), &ListInstancePartitionsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount - 1,
 		})
@@ -1484,7 +1490,7 @@ func (fx *InstanceAdminInstancePartitionTestSuiteConfig) testList(t *testing.T) 
 		msgs := make([]*InstancePartition, 0, resourcesCount)
 		var nextPageToken string
 		for {
-			response, err := fx.service.ListInstancePartitions(fx.Context(), &ListInstancePartitionsRequest{
+			response, err := fx.Service().ListInstancePartitions(fx.Context(), &ListInstancePartitionsRequest{
 				Parent:    parent,
 				PageSize:  1,
 				PageToken: nextPageToken,
@@ -1513,12 +1519,12 @@ func (fx *InstanceAdminInstancePartitionTestSuiteConfig) testList(t *testing.T) 
 		fx.maybeSkip(t)
 		const deleteCount = 5
 		for i := 0; i < deleteCount; i++ {
-			_, err := fx.service.DeleteInstancePartition(fx.Context(), &DeleteInstancePartitionRequest{
+			_, err := fx.Service().DeleteInstancePartition(fx.Context(), &DeleteInstancePartitionRequest{
 				Name: parentMsgs[i].Name,
 			})
 			assert.NilError(t, err)
 		}
-		response, err := fx.service.ListInstancePartitions(fx.Context(), &ListInstancePartitionsRequest{
+		response, err := fx.Service().ListInstancePartitions(fx.Context(), &ListInstancePartitionsRequest{
 			Parent:   parent,
 			PageSize: 9999,
 		})
@@ -1541,7 +1547,7 @@ func (fx *InstanceAdminInstancePartitionTestSuiteConfig) testDelete(t *testing.T
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteInstancePartition(fx.Context(), &DeleteInstancePartitionRequest{
+		_, err := fx.Service().DeleteInstancePartition(fx.Context(), &DeleteInstancePartitionRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1550,7 +1556,7 @@ func (fx *InstanceAdminInstancePartitionTestSuiteConfig) testDelete(t *testing.T
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteInstancePartition(fx.Context(), &DeleteInstancePartitionRequest{
+		_, err := fx.Service().DeleteInstancePartition(fx.Context(), &DeleteInstancePartitionRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1561,7 +1567,7 @@ func (fx *InstanceAdminInstancePartitionTestSuiteConfig) testDelete(t *testing.T
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteInstancePartition(fx.Context(), &DeleteInstancePartitionRequest{
+		_, err := fx.Service().DeleteInstancePartition(fx.Context(), &DeleteInstancePartitionRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -1572,7 +1578,7 @@ func (fx *InstanceAdminInstancePartitionTestSuiteConfig) testDelete(t *testing.T
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteInstancePartition(fx.Context(), &DeleteInstancePartitionRequest{
+		_, err := fx.Service().DeleteInstancePartition(fx.Context(), &DeleteInstancePartitionRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -1583,12 +1589,12 @@ func (fx *InstanceAdminInstancePartitionTestSuiteConfig) testDelete(t *testing.T
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		deleted, err := fx.service.DeleteInstancePartition(fx.Context(), &DeleteInstancePartitionRequest{
+		deleted, err := fx.Service().DeleteInstancePartition(fx.Context(), &DeleteInstancePartitionRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
 		_ = deleted
-		_, err = fx.service.DeleteInstancePartition(fx.Context(), &DeleteInstancePartitionRequest{
+		_, err = fx.Service().DeleteInstancePartition(fx.Context(), &DeleteInstancePartitionRequest{
 			Name: created.Name,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -1597,7 +1603,7 @@ func (fx *InstanceAdminInstancePartitionTestSuiteConfig) testDelete(t *testing.T
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteInstancePartition(fx.Context(), &DeleteInstancePartitionRequest{
+		_, err := fx.Service().DeleteInstancePartition(fx.Context(), &DeleteInstancePartitionRequest{
 			Name: "projects/-/instances/-/instancePartitions/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1608,7 +1614,7 @@ func (fx *InstanceAdminInstancePartitionTestSuiteConfig) testDelete(t *testing.T
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteInstancePartition(fx.Context(), &DeleteInstancePartitionRequest{
+		_, err := fx.Service().DeleteInstancePartition(fx.Context(), &DeleteInstancePartitionRequest{
 			Name: created.Name,
 			Etag: `"99999"`,
 		})

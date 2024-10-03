@@ -60,13 +60,17 @@ func (s *serviceGenerator) generateTestMethods(f *protogen.GeneratedFile) {
 		GoName:       "T",
 		GoImportPath: "testing",
 	})
+	service := f.QualifiedGoIdent(protogen.GoIdent{
+		GoName:       s.service.GoName + "Server",
+		GoImportPath: s.service.Methods[0].Input.GoIdent.GoImportPath,
+	})
 	serviceFx := serviceTestSuiteName(s.service.Desc)
 	for _, resource := range s.resources {
 		resourceFx := resourceTestSuiteConfigName(s.service.Desc, resource)
 		f.P("func (fx ", serviceFx, ") Test", resourceType(resource), "(ctx ", context, ", options ", resourceFx, ") {")
 		f.P("fx.T.Run(", strconv.Quote(resourceType(resource)), ", func(t *", testingT, ") {")
 		f.P("options.Context = func() ", context, " { return ctx }")
-		f.P("options.service = fx.Server")
+		f.P("options.Service = func() ", service, " { return fx.Server", "}")
 		f.P("options.test(t)")
 		f.P("})")
 		f.P("}")
