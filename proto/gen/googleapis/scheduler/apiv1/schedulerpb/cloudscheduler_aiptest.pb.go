@@ -22,17 +22,19 @@ type CloudSchedulerTestSuite struct {
 
 func (fx CloudSchedulerTestSuite) TestJob(ctx context.Context, options CloudSchedulerJobTestSuiteConfig) {
 	fx.T.Run("Job", func(t *testing.T) {
-		options.ctx = ctx
+		options.Context = func() context.Context { return ctx }
 		options.service = fx.Server
 		options.test(t)
 	})
 }
 
 type CloudSchedulerJobTestSuiteConfig struct {
-	ctx        context.Context
 	service    CloudSchedulerServer
 	currParent int
 
+	// Context should return a new context.
+	// The context will be used for several tests.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -64,7 +66,7 @@ func (fx *CloudSchedulerJobTestSuiteConfig) testCreate(t *testing.T) {
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateJob(fx.ctx, &CreateJobRequest{
+		_, err := fx.service.CreateJob(fx.Context(), &CreateJobRequest{
 			Parent: "",
 			Job:    fx.Create(fx.nextParent(t, false)),
 		})
@@ -74,7 +76,7 @@ func (fx *CloudSchedulerJobTestSuiteConfig) testCreate(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateJob(fx.ctx, &CreateJobRequest{
+		_, err := fx.service.CreateJob(fx.Context(), &CreateJobRequest{
 			Parent: "invalid resource name",
 			Job:    fx.Create(fx.nextParent(t, false)),
 		})
@@ -85,12 +87,12 @@ func (fx *CloudSchedulerJobTestSuiteConfig) testCreate(t *testing.T) {
 	t.Run("persisted", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		msg, err := fx.service.CreateJob(fx.ctx, &CreateJobRequest{
+		msg, err := fx.service.CreateJob(fx.Context(), &CreateJobRequest{
 			Parent: parent,
 			Job:    fx.Create(parent),
 		})
 		assert.NilError(t, err)
-		persisted, err := fx.service.GetJob(fx.ctx, &GetJobRequest{
+		persisted, err := fx.service.GetJob(fx.Context(), &GetJobRequest{
 			Name: msg.Name,
 		})
 		assert.NilError(t, err)
@@ -110,7 +112,7 @@ func (fx *CloudSchedulerJobTestSuiteConfig) testCreate(t *testing.T) {
 				t.Skip("not reachable")
 			}
 			container.TopicName = "invalid resource name"
-			_, err := fx.service.CreateJob(fx.ctx, &CreateJobRequest{
+			_, err := fx.service.CreateJob(fx.Context(), &CreateJobRequest{
 				Parent: parent,
 				Job:    msg,
 			})
@@ -125,7 +127,7 @@ func (fx *CloudSchedulerJobTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetJob(fx.ctx, &GetJobRequest{
+		_, err := fx.service.GetJob(fx.Context(), &GetJobRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -134,7 +136,7 @@ func (fx *CloudSchedulerJobTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetJob(fx.ctx, &GetJobRequest{
+		_, err := fx.service.GetJob(fx.Context(), &GetJobRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -145,7 +147,7 @@ func (fx *CloudSchedulerJobTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		msg, err := fx.service.GetJob(fx.ctx, &GetJobRequest{
+		msg, err := fx.service.GetJob(fx.Context(), &GetJobRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -157,7 +159,7 @@ func (fx *CloudSchedulerJobTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.GetJob(fx.ctx, &GetJobRequest{
+		_, err := fx.service.GetJob(fx.Context(), &GetJobRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -166,7 +168,7 @@ func (fx *CloudSchedulerJobTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetJob(fx.ctx, &GetJobRequest{
+		_, err := fx.service.GetJob(fx.Context(), &GetJobRequest{
 			Name: "projects/-/locations/-/jobs/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -182,7 +184,7 @@ func (fx *CloudSchedulerJobTestSuiteConfig) testUpdate(t *testing.T) {
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
 		msg.Name = ""
-		_, err := fx.service.UpdateJob(fx.ctx, &UpdateJobRequest{
+		_, err := fx.service.UpdateJob(fx.Context(), &UpdateJobRequest{
 			Job: msg,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -194,7 +196,7 @@ func (fx *CloudSchedulerJobTestSuiteConfig) testUpdate(t *testing.T) {
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
 		msg.Name = "invalid resource name"
-		_, err := fx.service.UpdateJob(fx.ctx, &UpdateJobRequest{
+		_, err := fx.service.UpdateJob(fx.Context(), &UpdateJobRequest{
 			Job: msg,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -205,11 +207,11 @@ func (fx *CloudSchedulerJobTestSuiteConfig) testUpdate(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		updated, err := fx.service.UpdateJob(fx.ctx, &UpdateJobRequest{
+		updated, err := fx.service.UpdateJob(fx.Context(), &UpdateJobRequest{
 			Job: created,
 		})
 		assert.NilError(t, err)
-		persisted, err := fx.service.GetJob(fx.ctx, &GetJobRequest{
+		persisted, err := fx.service.GetJob(fx.Context(), &GetJobRequest{
 			Name: updated.Name,
 		})
 		assert.NilError(t, err)
@@ -223,7 +225,7 @@ func (fx *CloudSchedulerJobTestSuiteConfig) testUpdate(t *testing.T) {
 		fx.maybeSkip(t)
 		msg := fx.Update(parent)
 		msg.Name = created.Name + "notfound"
-		_, err := fx.service.UpdateJob(fx.ctx, &UpdateJobRequest{
+		_, err := fx.service.UpdateJob(fx.Context(), &UpdateJobRequest{
 			Job: msg,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -232,7 +234,7 @@ func (fx *CloudSchedulerJobTestSuiteConfig) testUpdate(t *testing.T) {
 	// The method should fail with InvalidArgument if the update_mask is invalid.
 	t.Run("invalid update mask", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.UpdateJob(fx.ctx, &UpdateJobRequest{
+		_, err := fx.service.UpdateJob(fx.Context(), &UpdateJobRequest{
 			Job: created,
 			UpdateMask: &fieldmaskpb.FieldMask{
 				Paths: []string{
@@ -250,7 +252,7 @@ func (fx *CloudSchedulerJobTestSuiteConfig) testList(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.ListJobs(fx.ctx, &ListJobsRequest{
+		_, err := fx.service.ListJobs(fx.Context(), &ListJobsRequest{
 			Parent: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -260,7 +262,7 @@ func (fx *CloudSchedulerJobTestSuiteConfig) testList(t *testing.T) {
 	t.Run("invalid page token", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListJobs(fx.ctx, &ListJobsRequest{
+		_, err := fx.service.ListJobs(fx.Context(), &ListJobsRequest{
 			Parent:    parent,
 			PageToken: "invalid page token",
 		})
@@ -271,7 +273,7 @@ func (fx *CloudSchedulerJobTestSuiteConfig) testList(t *testing.T) {
 	t.Run("negative page size", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListJobs(fx.ctx, &ListJobsRequest{
+		_, err := fx.service.ListJobs(fx.Context(), &ListJobsRequest{
 			Parent:   parent,
 			PageSize: -10,
 		})
@@ -289,7 +291,7 @@ func (fx *CloudSchedulerJobTestSuiteConfig) testList(t *testing.T) {
 	// under that parent.
 	t.Run("isolation", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListJobs(fx.ctx, &ListJobsRequest{
+		response, err := fx.service.ListJobs(fx.Context(), &ListJobsRequest{
 			Parent:   parent,
 			PageSize: 999,
 		})
@@ -308,7 +310,7 @@ func (fx *CloudSchedulerJobTestSuiteConfig) testList(t *testing.T) {
 	// If there are no more resources, next_page_token should not be set.
 	t.Run("last page", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListJobs(fx.ctx, &ListJobsRequest{
+		response, err := fx.service.ListJobs(fx.Context(), &ListJobsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount,
 		})
@@ -319,7 +321,7 @@ func (fx *CloudSchedulerJobTestSuiteConfig) testList(t *testing.T) {
 	// If there are more resources, next_page_token should be set.
 	t.Run("more pages", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListJobs(fx.ctx, &ListJobsRequest{
+		response, err := fx.service.ListJobs(fx.Context(), &ListJobsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount - 1,
 		})
@@ -333,7 +335,7 @@ func (fx *CloudSchedulerJobTestSuiteConfig) testList(t *testing.T) {
 		msgs := make([]*Job, 0, resourcesCount)
 		var nextPageToken string
 		for {
-			response, err := fx.service.ListJobs(fx.ctx, &ListJobsRequest{
+			response, err := fx.service.ListJobs(fx.Context(), &ListJobsRequest{
 				Parent:    parent,
 				PageSize:  1,
 				PageToken: nextPageToken,
@@ -362,12 +364,12 @@ func (fx *CloudSchedulerJobTestSuiteConfig) testList(t *testing.T) {
 		fx.maybeSkip(t)
 		const deleteCount = 5
 		for i := 0; i < deleteCount; i++ {
-			_, err := fx.service.DeleteJob(fx.ctx, &DeleteJobRequest{
+			_, err := fx.service.DeleteJob(fx.Context(), &DeleteJobRequest{
 				Name: parentMsgs[i].Name,
 			})
 			assert.NilError(t, err)
 		}
-		response, err := fx.service.ListJobs(fx.ctx, &ListJobsRequest{
+		response, err := fx.service.ListJobs(fx.Context(), &ListJobsRequest{
 			Parent:   parent,
 			PageSize: 9999,
 		})
@@ -390,7 +392,7 @@ func (fx *CloudSchedulerJobTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteJob(fx.ctx, &DeleteJobRequest{
+		_, err := fx.service.DeleteJob(fx.Context(), &DeleteJobRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -399,7 +401,7 @@ func (fx *CloudSchedulerJobTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteJob(fx.ctx, &DeleteJobRequest{
+		_, err := fx.service.DeleteJob(fx.Context(), &DeleteJobRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -410,7 +412,7 @@ func (fx *CloudSchedulerJobTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteJob(fx.ctx, &DeleteJobRequest{
+		_, err := fx.service.DeleteJob(fx.Context(), &DeleteJobRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -421,7 +423,7 @@ func (fx *CloudSchedulerJobTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteJob(fx.ctx, &DeleteJobRequest{
+		_, err := fx.service.DeleteJob(fx.Context(), &DeleteJobRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -432,12 +434,12 @@ func (fx *CloudSchedulerJobTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		deleted, err := fx.service.DeleteJob(fx.ctx, &DeleteJobRequest{
+		deleted, err := fx.service.DeleteJob(fx.Context(), &DeleteJobRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
 		_ = deleted
-		_, err = fx.service.DeleteJob(fx.ctx, &DeleteJobRequest{
+		_, err = fx.service.DeleteJob(fx.Context(), &DeleteJobRequest{
 			Name: created.Name,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -446,7 +448,7 @@ func (fx *CloudSchedulerJobTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteJob(fx.ctx, &DeleteJobRequest{
+		_, err := fx.service.DeleteJob(fx.Context(), &DeleteJobRequest{
 			Name: "projects/-/locations/-/jobs/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -482,7 +484,7 @@ func (fx *CloudSchedulerJobTestSuiteConfig) maybeSkip(t *testing.T) {
 
 func (fx *CloudSchedulerJobTestSuiteConfig) create(t *testing.T, parent string) *Job {
 	t.Helper()
-	created, err := fx.service.CreateJob(fx.ctx, &CreateJobRequest{
+	created, err := fx.service.CreateJob(fx.Context(), &CreateJobRequest{
 		Parent: parent,
 		Job:    fx.Create(parent),
 	})

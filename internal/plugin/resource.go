@@ -41,11 +41,13 @@ func (r *resourceGenerator) generateFixture(f *protogen.GeneratedFile) {
 	})
 
 	f.P("type ", resourceTestSuiteConfigName(r.service.Desc, r.resource), " struct {")
-	f.P("ctx ", context)
 	f.P("service ", service)
 	f.P("currParent int")
 	f.P()
 
+	f.P("// Context should return a new context.")
+	f.P("// The context will be used for several tests.")
+	f.P("Context", " func() ", context)
 	if util.HasParent(r.resource) {
 		f.P("// The parents to use when creating resources.")
 		f.P("// At least one parent needs to be set. Depending on methods available on the resource,")
@@ -239,7 +241,7 @@ func (r *resourceGenerator) generateCreate(f *protogen.GeneratedFile) {
 		f.P("if fx.CreateResource == nil {")
 		f.P("t.Skip(\"Test skipped because CreateResource not specified on ", fixtureName, "\")")
 		f.P("}")
-		f.P("created, err := fx.CreateResource(fx.ctx", parentCallArg, ")")
+		f.P("created, err := fx.CreateResource(fx.Context()", parentCallArg, ")")
 		f.P(ident.AssertNilError, "(t, err)")
 		f.P("return created")
 	}

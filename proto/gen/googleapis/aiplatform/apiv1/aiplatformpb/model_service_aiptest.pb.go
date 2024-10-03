@@ -23,7 +23,7 @@ type ModelServiceTestSuite struct {
 
 func (fx ModelServiceTestSuite) TestModel(ctx context.Context, options ModelServiceModelTestSuiteConfig) {
 	fx.T.Run("Model", func(t *testing.T) {
-		options.ctx = ctx
+		options.Context = func() context.Context { return ctx }
 		options.service = fx.Server
 		options.test(t)
 	})
@@ -31,7 +31,7 @@ func (fx ModelServiceTestSuite) TestModel(ctx context.Context, options ModelServ
 
 func (fx ModelServiceTestSuite) TestModelEvaluation(ctx context.Context, options ModelServiceModelEvaluationTestSuiteConfig) {
 	fx.T.Run("ModelEvaluation", func(t *testing.T) {
-		options.ctx = ctx
+		options.Context = func() context.Context { return ctx }
 		options.service = fx.Server
 		options.test(t)
 	})
@@ -39,17 +39,19 @@ func (fx ModelServiceTestSuite) TestModelEvaluation(ctx context.Context, options
 
 func (fx ModelServiceTestSuite) TestModelEvaluationSlice(ctx context.Context, options ModelServiceModelEvaluationSliceTestSuiteConfig) {
 	fx.T.Run("ModelEvaluationSlice", func(t *testing.T) {
-		options.ctx = ctx
+		options.Context = func() context.Context { return ctx }
 		options.service = fx.Server
 		options.test(t)
 	})
 }
 
 type ModelServiceModelTestSuiteConfig struct {
-	ctx        context.Context
 	service    ModelServiceServer
 	currParent int
 
+	// Context should return a new context.
+	// The context will be used for several tests.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -83,7 +85,7 @@ func (fx *ModelServiceModelTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetModel(fx.ctx, &GetModelRequest{
+		_, err := fx.service.GetModel(fx.Context(), &GetModelRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -92,7 +94,7 @@ func (fx *ModelServiceModelTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetModel(fx.ctx, &GetModelRequest{
+		_, err := fx.service.GetModel(fx.Context(), &GetModelRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -103,7 +105,7 @@ func (fx *ModelServiceModelTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		msg, err := fx.service.GetModel(fx.ctx, &GetModelRequest{
+		msg, err := fx.service.GetModel(fx.Context(), &GetModelRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -115,7 +117,7 @@ func (fx *ModelServiceModelTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.GetModel(fx.ctx, &GetModelRequest{
+		_, err := fx.service.GetModel(fx.Context(), &GetModelRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -124,7 +126,7 @@ func (fx *ModelServiceModelTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetModel(fx.ctx, &GetModelRequest{
+		_, err := fx.service.GetModel(fx.Context(), &GetModelRequest{
 			Name: "projects/-/locations/-/models/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -140,7 +142,7 @@ func (fx *ModelServiceModelTestSuiteConfig) testUpdate(t *testing.T) {
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
 		msg.Name = ""
-		_, err := fx.service.UpdateModel(fx.ctx, &UpdateModelRequest{
+		_, err := fx.service.UpdateModel(fx.Context(), &UpdateModelRequest{
 			Model: msg,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -152,7 +154,7 @@ func (fx *ModelServiceModelTestSuiteConfig) testUpdate(t *testing.T) {
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
 		msg.Name = "invalid resource name"
-		_, err := fx.service.UpdateModel(fx.ctx, &UpdateModelRequest{
+		_, err := fx.service.UpdateModel(fx.Context(), &UpdateModelRequest{
 			Model: msg,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -163,11 +165,11 @@ func (fx *ModelServiceModelTestSuiteConfig) testUpdate(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		updated, err := fx.service.UpdateModel(fx.ctx, &UpdateModelRequest{
+		updated, err := fx.service.UpdateModel(fx.Context(), &UpdateModelRequest{
 			Model: created,
 		})
 		assert.NilError(t, err)
-		persisted, err := fx.service.GetModel(fx.ctx, &GetModelRequest{
+		persisted, err := fx.service.GetModel(fx.Context(), &GetModelRequest{
 			Name: updated.Name,
 		})
 		assert.NilError(t, err)
@@ -180,7 +182,7 @@ func (fx *ModelServiceModelTestSuiteConfig) testUpdate(t *testing.T) {
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
 		originalCreateTime := created.CreateTime
-		updated, err := fx.service.UpdateModel(fx.ctx, &UpdateModelRequest{
+		updated, err := fx.service.UpdateModel(fx.Context(), &UpdateModelRequest{
 			Model: created,
 			UpdateMask: &fieldmaskpb.FieldMask{
 				Paths: []string{
@@ -199,7 +201,7 @@ func (fx *ModelServiceModelTestSuiteConfig) testUpdate(t *testing.T) {
 		fx.maybeSkip(t)
 		msg := fx.Update(parent)
 		msg.Name = created.Name + "notfound"
-		_, err := fx.service.UpdateModel(fx.ctx, &UpdateModelRequest{
+		_, err := fx.service.UpdateModel(fx.Context(), &UpdateModelRequest{
 			Model: msg,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -208,7 +210,7 @@ func (fx *ModelServiceModelTestSuiteConfig) testUpdate(t *testing.T) {
 	// The method should fail with InvalidArgument if the update_mask is invalid.
 	t.Run("invalid update mask", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.UpdateModel(fx.ctx, &UpdateModelRequest{
+		_, err := fx.service.UpdateModel(fx.Context(), &UpdateModelRequest{
 			Model: created,
 			UpdateMask: &fieldmaskpb.FieldMask{
 				Paths: []string{
@@ -232,7 +234,7 @@ func (fx *ModelServiceModelTestSuiteConfig) testUpdate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateModel(fx.ctx, &UpdateModelRequest{
+			_, err := fx.service.UpdateModel(fx.Context(), &UpdateModelRequest{
 				Model: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
@@ -251,7 +253,7 @@ func (fx *ModelServiceModelTestSuiteConfig) testUpdate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("parameters")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateModel(fx.ctx, &UpdateModelRequest{
+			_, err := fx.service.UpdateModel(fx.Context(), &UpdateModelRequest{
 				Model: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
@@ -270,7 +272,7 @@ func (fx *ModelServiceModelTestSuiteConfig) testUpdate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("path_count")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateModel(fx.ctx, &UpdateModelRequest{
+			_, err := fx.service.UpdateModel(fx.Context(), &UpdateModelRequest{
 				Model: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
@@ -289,7 +291,7 @@ func (fx *ModelServiceModelTestSuiteConfig) testUpdate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("step_count")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateModel(fx.ctx, &UpdateModelRequest{
+			_, err := fx.service.UpdateModel(fx.Context(), &UpdateModelRequest{
 				Model: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
@@ -308,7 +310,7 @@ func (fx *ModelServiceModelTestSuiteConfig) testUpdate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("step_count")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateModel(fx.ctx, &UpdateModelRequest{
+			_, err := fx.service.UpdateModel(fx.Context(), &UpdateModelRequest{
 				Model: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
@@ -327,7 +329,7 @@ func (fx *ModelServiceModelTestSuiteConfig) testUpdate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("uris")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateModel(fx.ctx, &UpdateModelRequest{
+			_, err := fx.service.UpdateModel(fx.Context(), &UpdateModelRequest{
 				Model: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
@@ -346,7 +348,7 @@ func (fx *ModelServiceModelTestSuiteConfig) testUpdate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("inputs")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateModel(fx.ctx, &UpdateModelRequest{
+			_, err := fx.service.UpdateModel(fx.Context(), &UpdateModelRequest{
 				Model: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
@@ -365,7 +367,7 @@ func (fx *ModelServiceModelTestSuiteConfig) testUpdate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("outputs")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateModel(fx.ctx, &UpdateModelRequest{
+			_, err := fx.service.UpdateModel(fx.Context(), &UpdateModelRequest{
 				Model: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
@@ -384,7 +386,7 @@ func (fx *ModelServiceModelTestSuiteConfig) testUpdate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("kms_key_name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateModel(fx.ctx, &UpdateModelRequest{
+			_, err := fx.service.UpdateModel(fx.Context(), &UpdateModelRequest{
 				Model: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
@@ -403,7 +405,7 @@ func (fx *ModelServiceModelTestSuiteConfig) testList(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.ListModels(fx.ctx, &ListModelsRequest{
+		_, err := fx.service.ListModels(fx.Context(), &ListModelsRequest{
 			Parent: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -413,7 +415,7 @@ func (fx *ModelServiceModelTestSuiteConfig) testList(t *testing.T) {
 	t.Run("invalid page token", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListModels(fx.ctx, &ListModelsRequest{
+		_, err := fx.service.ListModels(fx.Context(), &ListModelsRequest{
 			Parent:    parent,
 			PageToken: "invalid page token",
 		})
@@ -424,7 +426,7 @@ func (fx *ModelServiceModelTestSuiteConfig) testList(t *testing.T) {
 	t.Run("negative page size", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListModels(fx.ctx, &ListModelsRequest{
+		_, err := fx.service.ListModels(fx.Context(), &ListModelsRequest{
 			Parent:   parent,
 			PageSize: -10,
 		})
@@ -442,7 +444,7 @@ func (fx *ModelServiceModelTestSuiteConfig) testList(t *testing.T) {
 	// under that parent.
 	t.Run("isolation", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListModels(fx.ctx, &ListModelsRequest{
+		response, err := fx.service.ListModels(fx.Context(), &ListModelsRequest{
 			Parent:   parent,
 			PageSize: 999,
 		})
@@ -461,7 +463,7 @@ func (fx *ModelServiceModelTestSuiteConfig) testList(t *testing.T) {
 	// If there are no more resources, next_page_token should not be set.
 	t.Run("last page", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListModels(fx.ctx, &ListModelsRequest{
+		response, err := fx.service.ListModels(fx.Context(), &ListModelsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount,
 		})
@@ -472,7 +474,7 @@ func (fx *ModelServiceModelTestSuiteConfig) testList(t *testing.T) {
 	// If there are more resources, next_page_token should be set.
 	t.Run("more pages", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListModels(fx.ctx, &ListModelsRequest{
+		response, err := fx.service.ListModels(fx.Context(), &ListModelsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount - 1,
 		})
@@ -486,7 +488,7 @@ func (fx *ModelServiceModelTestSuiteConfig) testList(t *testing.T) {
 		msgs := make([]*Model, 0, resourcesCount)
 		var nextPageToken string
 		for {
-			response, err := fx.service.ListModels(fx.ctx, &ListModelsRequest{
+			response, err := fx.service.ListModels(fx.Context(), &ListModelsRequest{
 				Parent:    parent,
 				PageSize:  1,
 				PageToken: nextPageToken,
@@ -515,12 +517,12 @@ func (fx *ModelServiceModelTestSuiteConfig) testList(t *testing.T) {
 		fx.maybeSkip(t)
 		const deleteCount = 5
 		for i := 0; i < deleteCount; i++ {
-			_, err := fx.service.DeleteModel(fx.ctx, &DeleteModelRequest{
+			_, err := fx.service.DeleteModel(fx.Context(), &DeleteModelRequest{
 				Name: parentMsgs[i].Name,
 			})
 			assert.NilError(t, err)
 		}
-		response, err := fx.service.ListModels(fx.ctx, &ListModelsRequest{
+		response, err := fx.service.ListModels(fx.Context(), &ListModelsRequest{
 			Parent:   parent,
 			PageSize: 9999,
 		})
@@ -543,7 +545,7 @@ func (fx *ModelServiceModelTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteModel(fx.ctx, &DeleteModelRequest{
+		_, err := fx.service.DeleteModel(fx.Context(), &DeleteModelRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -552,7 +554,7 @@ func (fx *ModelServiceModelTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteModel(fx.ctx, &DeleteModelRequest{
+		_, err := fx.service.DeleteModel(fx.Context(), &DeleteModelRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -563,7 +565,7 @@ func (fx *ModelServiceModelTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteModel(fx.ctx, &DeleteModelRequest{
+		_, err := fx.service.DeleteModel(fx.Context(), &DeleteModelRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -574,7 +576,7 @@ func (fx *ModelServiceModelTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteModel(fx.ctx, &DeleteModelRequest{
+		_, err := fx.service.DeleteModel(fx.Context(), &DeleteModelRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -585,12 +587,12 @@ func (fx *ModelServiceModelTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		deleted, err := fx.service.DeleteModel(fx.ctx, &DeleteModelRequest{
+		deleted, err := fx.service.DeleteModel(fx.Context(), &DeleteModelRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
 		_ = deleted
-		_, err = fx.service.DeleteModel(fx.ctx, &DeleteModelRequest{
+		_, err = fx.service.DeleteModel(fx.Context(), &DeleteModelRequest{
 			Name: created.Name,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -599,7 +601,7 @@ func (fx *ModelServiceModelTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteModel(fx.ctx, &DeleteModelRequest{
+		_, err := fx.service.DeleteModel(fx.Context(), &DeleteModelRequest{
 			Name: "projects/-/locations/-/models/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -638,16 +640,18 @@ func (fx *ModelServiceModelTestSuiteConfig) create(t *testing.T, parent string) 
 	if fx.CreateResource == nil {
 		t.Skip("Test skipped because CreateResource not specified on ModelServiceModelTestSuiteConfig")
 	}
-	created, err := fx.CreateResource(fx.ctx, parent)
+	created, err := fx.CreateResource(fx.Context(), parent)
 	assert.NilError(t, err)
 	return created
 }
 
 type ModelServiceModelEvaluationTestSuiteConfig struct {
-	ctx        context.Context
 	service    ModelServiceServer
 	currParent int
 
+	// Context should return a new context.
+	// The context will be used for several tests.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -676,7 +680,7 @@ func (fx *ModelServiceModelEvaluationTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetModelEvaluation(fx.ctx, &GetModelEvaluationRequest{
+		_, err := fx.service.GetModelEvaluation(fx.Context(), &GetModelEvaluationRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -685,7 +689,7 @@ func (fx *ModelServiceModelEvaluationTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetModelEvaluation(fx.ctx, &GetModelEvaluationRequest{
+		_, err := fx.service.GetModelEvaluation(fx.Context(), &GetModelEvaluationRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -696,7 +700,7 @@ func (fx *ModelServiceModelEvaluationTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		msg, err := fx.service.GetModelEvaluation(fx.ctx, &GetModelEvaluationRequest{
+		msg, err := fx.service.GetModelEvaluation(fx.Context(), &GetModelEvaluationRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -708,7 +712,7 @@ func (fx *ModelServiceModelEvaluationTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.GetModelEvaluation(fx.ctx, &GetModelEvaluationRequest{
+		_, err := fx.service.GetModelEvaluation(fx.Context(), &GetModelEvaluationRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -717,7 +721,7 @@ func (fx *ModelServiceModelEvaluationTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetModelEvaluation(fx.ctx, &GetModelEvaluationRequest{
+		_, err := fx.service.GetModelEvaluation(fx.Context(), &GetModelEvaluationRequest{
 			Name: "projects/-/locations/-/models/-/evaluations/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -730,7 +734,7 @@ func (fx *ModelServiceModelEvaluationTestSuiteConfig) testList(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.ListModelEvaluations(fx.ctx, &ListModelEvaluationsRequest{
+		_, err := fx.service.ListModelEvaluations(fx.Context(), &ListModelEvaluationsRequest{
 			Parent: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -740,7 +744,7 @@ func (fx *ModelServiceModelEvaluationTestSuiteConfig) testList(t *testing.T) {
 	t.Run("invalid page token", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListModelEvaluations(fx.ctx, &ListModelEvaluationsRequest{
+		_, err := fx.service.ListModelEvaluations(fx.Context(), &ListModelEvaluationsRequest{
 			Parent:    parent,
 			PageToken: "invalid page token",
 		})
@@ -751,7 +755,7 @@ func (fx *ModelServiceModelEvaluationTestSuiteConfig) testList(t *testing.T) {
 	t.Run("negative page size", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListModelEvaluations(fx.ctx, &ListModelEvaluationsRequest{
+		_, err := fx.service.ListModelEvaluations(fx.Context(), &ListModelEvaluationsRequest{
 			Parent:   parent,
 			PageSize: -10,
 		})
@@ -769,7 +773,7 @@ func (fx *ModelServiceModelEvaluationTestSuiteConfig) testList(t *testing.T) {
 	// under that parent.
 	t.Run("isolation", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListModelEvaluations(fx.ctx, &ListModelEvaluationsRequest{
+		response, err := fx.service.ListModelEvaluations(fx.Context(), &ListModelEvaluationsRequest{
 			Parent:   parent,
 			PageSize: 999,
 		})
@@ -788,7 +792,7 @@ func (fx *ModelServiceModelEvaluationTestSuiteConfig) testList(t *testing.T) {
 	// If there are no more resources, next_page_token should not be set.
 	t.Run("last page", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListModelEvaluations(fx.ctx, &ListModelEvaluationsRequest{
+		response, err := fx.service.ListModelEvaluations(fx.Context(), &ListModelEvaluationsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount,
 		})
@@ -799,7 +803,7 @@ func (fx *ModelServiceModelEvaluationTestSuiteConfig) testList(t *testing.T) {
 	// If there are more resources, next_page_token should be set.
 	t.Run("more pages", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListModelEvaluations(fx.ctx, &ListModelEvaluationsRequest{
+		response, err := fx.service.ListModelEvaluations(fx.Context(), &ListModelEvaluationsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount - 1,
 		})
@@ -813,7 +817,7 @@ func (fx *ModelServiceModelEvaluationTestSuiteConfig) testList(t *testing.T) {
 		msgs := make([]*ModelEvaluation, 0, resourcesCount)
 		var nextPageToken string
 		for {
-			response, err := fx.service.ListModelEvaluations(fx.ctx, &ListModelEvaluationsRequest{
+			response, err := fx.service.ListModelEvaluations(fx.Context(), &ListModelEvaluationsRequest{
 				Parent:    parent,
 				PageSize:  1,
 				PageToken: nextPageToken,
@@ -870,16 +874,18 @@ func (fx *ModelServiceModelEvaluationTestSuiteConfig) create(t *testing.T, paren
 	if fx.CreateResource == nil {
 		t.Skip("Test skipped because CreateResource not specified on ModelServiceModelEvaluationTestSuiteConfig")
 	}
-	created, err := fx.CreateResource(fx.ctx, parent)
+	created, err := fx.CreateResource(fx.Context(), parent)
 	assert.NilError(t, err)
 	return created
 }
 
 type ModelServiceModelEvaluationSliceTestSuiteConfig struct {
-	ctx        context.Context
 	service    ModelServiceServer
 	currParent int
 
+	// Context should return a new context.
+	// The context will be used for several tests.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -908,7 +914,7 @@ func (fx *ModelServiceModelEvaluationSliceTestSuiteConfig) testGet(t *testing.T)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetModelEvaluationSlice(fx.ctx, &GetModelEvaluationSliceRequest{
+		_, err := fx.service.GetModelEvaluationSlice(fx.Context(), &GetModelEvaluationSliceRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -917,7 +923,7 @@ func (fx *ModelServiceModelEvaluationSliceTestSuiteConfig) testGet(t *testing.T)
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetModelEvaluationSlice(fx.ctx, &GetModelEvaluationSliceRequest{
+		_, err := fx.service.GetModelEvaluationSlice(fx.Context(), &GetModelEvaluationSliceRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -928,7 +934,7 @@ func (fx *ModelServiceModelEvaluationSliceTestSuiteConfig) testGet(t *testing.T)
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		msg, err := fx.service.GetModelEvaluationSlice(fx.ctx, &GetModelEvaluationSliceRequest{
+		msg, err := fx.service.GetModelEvaluationSlice(fx.Context(), &GetModelEvaluationSliceRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -940,7 +946,7 @@ func (fx *ModelServiceModelEvaluationSliceTestSuiteConfig) testGet(t *testing.T)
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.GetModelEvaluationSlice(fx.ctx, &GetModelEvaluationSliceRequest{
+		_, err := fx.service.GetModelEvaluationSlice(fx.Context(), &GetModelEvaluationSliceRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -949,7 +955,7 @@ func (fx *ModelServiceModelEvaluationSliceTestSuiteConfig) testGet(t *testing.T)
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetModelEvaluationSlice(fx.ctx, &GetModelEvaluationSliceRequest{
+		_, err := fx.service.GetModelEvaluationSlice(fx.Context(), &GetModelEvaluationSliceRequest{
 			Name: "projects/-/locations/-/models/-/evaluations/-/slices/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -962,7 +968,7 @@ func (fx *ModelServiceModelEvaluationSliceTestSuiteConfig) testList(t *testing.T
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.ListModelEvaluationSlices(fx.ctx, &ListModelEvaluationSlicesRequest{
+		_, err := fx.service.ListModelEvaluationSlices(fx.Context(), &ListModelEvaluationSlicesRequest{
 			Parent: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -972,7 +978,7 @@ func (fx *ModelServiceModelEvaluationSliceTestSuiteConfig) testList(t *testing.T
 	t.Run("invalid page token", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListModelEvaluationSlices(fx.ctx, &ListModelEvaluationSlicesRequest{
+		_, err := fx.service.ListModelEvaluationSlices(fx.Context(), &ListModelEvaluationSlicesRequest{
 			Parent:    parent,
 			PageToken: "invalid page token",
 		})
@@ -983,7 +989,7 @@ func (fx *ModelServiceModelEvaluationSliceTestSuiteConfig) testList(t *testing.T
 	t.Run("negative page size", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListModelEvaluationSlices(fx.ctx, &ListModelEvaluationSlicesRequest{
+		_, err := fx.service.ListModelEvaluationSlices(fx.Context(), &ListModelEvaluationSlicesRequest{
 			Parent:   parent,
 			PageSize: -10,
 		})
@@ -1001,7 +1007,7 @@ func (fx *ModelServiceModelEvaluationSliceTestSuiteConfig) testList(t *testing.T
 	// under that parent.
 	t.Run("isolation", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListModelEvaluationSlices(fx.ctx, &ListModelEvaluationSlicesRequest{
+		response, err := fx.service.ListModelEvaluationSlices(fx.Context(), &ListModelEvaluationSlicesRequest{
 			Parent:   parent,
 			PageSize: 999,
 		})
@@ -1020,7 +1026,7 @@ func (fx *ModelServiceModelEvaluationSliceTestSuiteConfig) testList(t *testing.T
 	// If there are no more resources, next_page_token should not be set.
 	t.Run("last page", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListModelEvaluationSlices(fx.ctx, &ListModelEvaluationSlicesRequest{
+		response, err := fx.service.ListModelEvaluationSlices(fx.Context(), &ListModelEvaluationSlicesRequest{
 			Parent:   parent,
 			PageSize: resourcesCount,
 		})
@@ -1031,7 +1037,7 @@ func (fx *ModelServiceModelEvaluationSliceTestSuiteConfig) testList(t *testing.T
 	// If there are more resources, next_page_token should be set.
 	t.Run("more pages", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListModelEvaluationSlices(fx.ctx, &ListModelEvaluationSlicesRequest{
+		response, err := fx.service.ListModelEvaluationSlices(fx.Context(), &ListModelEvaluationSlicesRequest{
 			Parent:   parent,
 			PageSize: resourcesCount - 1,
 		})
@@ -1045,7 +1051,7 @@ func (fx *ModelServiceModelEvaluationSliceTestSuiteConfig) testList(t *testing.T
 		msgs := make([]*ModelEvaluationSlice, 0, resourcesCount)
 		var nextPageToken string
 		for {
-			response, err := fx.service.ListModelEvaluationSlices(fx.ctx, &ListModelEvaluationSlicesRequest{
+			response, err := fx.service.ListModelEvaluationSlices(fx.Context(), &ListModelEvaluationSlicesRequest{
 				Parent:    parent,
 				PageSize:  1,
 				PageToken: nextPageToken,
@@ -1102,7 +1108,7 @@ func (fx *ModelServiceModelEvaluationSliceTestSuiteConfig) create(t *testing.T, 
 	if fx.CreateResource == nil {
 		t.Skip("Test skipped because CreateResource not specified on ModelServiceModelEvaluationSliceTestSuiteConfig")
 	}
-	created, err := fx.CreateResource(fx.ctx, parent)
+	created, err := fx.CreateResource(fx.Context(), parent)
 	assert.NilError(t, err)
 	return created
 }

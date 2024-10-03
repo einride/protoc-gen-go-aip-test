@@ -23,17 +23,19 @@ type SpecialistPoolServiceTestSuite struct {
 
 func (fx SpecialistPoolServiceTestSuite) TestSpecialistPool(ctx context.Context, options SpecialistPoolServiceSpecialistPoolTestSuiteConfig) {
 	fx.T.Run("SpecialistPool", func(t *testing.T) {
-		options.ctx = ctx
+		options.Context = func() context.Context { return ctx }
 		options.service = fx.Server
 		options.test(t)
 	})
 }
 
 type SpecialistPoolServiceSpecialistPoolTestSuiteConfig struct {
-	ctx        context.Context
 	service    SpecialistPoolServiceServer
 	currParent int
 
+	// Context should return a new context.
+	// The context will be used for several tests.
+	Context func() context.Context
 	// The parents to use when creating resources.
 	// At least one parent needs to be set. Depending on methods available on the resource,
 	// more may be required. If insufficient number of parents are
@@ -65,7 +67,7 @@ func (fx *SpecialistPoolServiceSpecialistPoolTestSuiteConfig) testCreate(t *test
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateSpecialistPool(fx.ctx, &CreateSpecialistPoolRequest{
+		_, err := fx.service.CreateSpecialistPool(fx.Context(), &CreateSpecialistPoolRequest{
 			Parent:         "",
 			SpecialistPool: fx.Create(fx.nextParent(t, false)),
 		})
@@ -75,7 +77,7 @@ func (fx *SpecialistPoolServiceSpecialistPoolTestSuiteConfig) testCreate(t *test
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateSpecialistPool(fx.ctx, &CreateSpecialistPoolRequest{
+		_, err := fx.service.CreateSpecialistPool(fx.Context(), &CreateSpecialistPoolRequest{
 			Parent:         "invalid resource name",
 			SpecialistPool: fx.Create(fx.nextParent(t, false)),
 		})
@@ -96,7 +98,7 @@ func (fx *SpecialistPoolServiceSpecialistPoolTestSuiteConfig) testCreate(t *test
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateSpecialistPool(fx.ctx, &CreateSpecialistPoolRequest{
+			_, err := fx.service.CreateSpecialistPool(fx.Context(), &CreateSpecialistPoolRequest{
 				Parent:         parent,
 				SpecialistPool: msg,
 			})
@@ -112,7 +114,7 @@ func (fx *SpecialistPoolServiceSpecialistPoolTestSuiteConfig) testCreate(t *test
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateSpecialistPool(fx.ctx, &CreateSpecialistPoolRequest{
+			_, err := fx.service.CreateSpecialistPool(fx.Context(), &CreateSpecialistPoolRequest{
 				Parent:         parent,
 				SpecialistPool: msg,
 			})
@@ -127,7 +129,7 @@ func (fx *SpecialistPoolServiceSpecialistPoolTestSuiteConfig) testGet(t *testing
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetSpecialistPool(fx.ctx, &GetSpecialistPoolRequest{
+		_, err := fx.service.GetSpecialistPool(fx.Context(), &GetSpecialistPoolRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -136,7 +138,7 @@ func (fx *SpecialistPoolServiceSpecialistPoolTestSuiteConfig) testGet(t *testing
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetSpecialistPool(fx.ctx, &GetSpecialistPoolRequest{
+		_, err := fx.service.GetSpecialistPool(fx.Context(), &GetSpecialistPoolRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -147,7 +149,7 @@ func (fx *SpecialistPoolServiceSpecialistPoolTestSuiteConfig) testGet(t *testing
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		msg, err := fx.service.GetSpecialistPool(fx.ctx, &GetSpecialistPoolRequest{
+		msg, err := fx.service.GetSpecialistPool(fx.Context(), &GetSpecialistPoolRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -159,7 +161,7 @@ func (fx *SpecialistPoolServiceSpecialistPoolTestSuiteConfig) testGet(t *testing
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.GetSpecialistPool(fx.ctx, &GetSpecialistPoolRequest{
+		_, err := fx.service.GetSpecialistPool(fx.Context(), &GetSpecialistPoolRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -168,7 +170,7 @@ func (fx *SpecialistPoolServiceSpecialistPoolTestSuiteConfig) testGet(t *testing
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetSpecialistPool(fx.ctx, &GetSpecialistPoolRequest{
+		_, err := fx.service.GetSpecialistPool(fx.Context(), &GetSpecialistPoolRequest{
 			Name: "projects/-/locations/-/specialistPools/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -184,7 +186,7 @@ func (fx *SpecialistPoolServiceSpecialistPoolTestSuiteConfig) testUpdate(t *test
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
 		msg.Name = ""
-		_, err := fx.service.UpdateSpecialistPool(fx.ctx, &UpdateSpecialistPoolRequest{
+		_, err := fx.service.UpdateSpecialistPool(fx.Context(), &UpdateSpecialistPoolRequest{
 			SpecialistPool: msg,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -196,7 +198,7 @@ func (fx *SpecialistPoolServiceSpecialistPoolTestSuiteConfig) testUpdate(t *test
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
 		msg.Name = "invalid resource name"
-		_, err := fx.service.UpdateSpecialistPool(fx.ctx, &UpdateSpecialistPoolRequest{
+		_, err := fx.service.UpdateSpecialistPool(fx.Context(), &UpdateSpecialistPoolRequest{
 			SpecialistPool: msg,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -209,7 +211,7 @@ func (fx *SpecialistPoolServiceSpecialistPoolTestSuiteConfig) testUpdate(t *test
 		fx.maybeSkip(t)
 		msg := fx.Update(parent)
 		msg.Name = created.Name + "notfound"
-		_, err := fx.service.UpdateSpecialistPool(fx.ctx, &UpdateSpecialistPoolRequest{
+		_, err := fx.service.UpdateSpecialistPool(fx.Context(), &UpdateSpecialistPoolRequest{
 			SpecialistPool: msg,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -218,7 +220,7 @@ func (fx *SpecialistPoolServiceSpecialistPoolTestSuiteConfig) testUpdate(t *test
 	// The method should fail with InvalidArgument if the update_mask is invalid.
 	t.Run("invalid update mask", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.UpdateSpecialistPool(fx.ctx, &UpdateSpecialistPoolRequest{
+		_, err := fx.service.UpdateSpecialistPool(fx.Context(), &UpdateSpecialistPoolRequest{
 			SpecialistPool: created,
 			UpdateMask: &fieldmaskpb.FieldMask{
 				Paths: []string{
@@ -242,7 +244,7 @@ func (fx *SpecialistPoolServiceSpecialistPoolTestSuiteConfig) testUpdate(t *test
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateSpecialistPool(fx.ctx, &UpdateSpecialistPoolRequest{
+			_, err := fx.service.UpdateSpecialistPool(fx.Context(), &UpdateSpecialistPoolRequest{
 				SpecialistPool: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
@@ -261,7 +263,7 @@ func (fx *SpecialistPoolServiceSpecialistPoolTestSuiteConfig) testUpdate(t *test
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateSpecialistPool(fx.ctx, &UpdateSpecialistPoolRequest{
+			_, err := fx.service.UpdateSpecialistPool(fx.Context(), &UpdateSpecialistPoolRequest{
 				SpecialistPool: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
@@ -280,7 +282,7 @@ func (fx *SpecialistPoolServiceSpecialistPoolTestSuiteConfig) testList(t *testin
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.ListSpecialistPools(fx.ctx, &ListSpecialistPoolsRequest{
+		_, err := fx.service.ListSpecialistPools(fx.Context(), &ListSpecialistPoolsRequest{
 			Parent: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -290,7 +292,7 @@ func (fx *SpecialistPoolServiceSpecialistPoolTestSuiteConfig) testList(t *testin
 	t.Run("invalid page token", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListSpecialistPools(fx.ctx, &ListSpecialistPoolsRequest{
+		_, err := fx.service.ListSpecialistPools(fx.Context(), &ListSpecialistPoolsRequest{
 			Parent:    parent,
 			PageToken: "invalid page token",
 		})
@@ -301,7 +303,7 @@ func (fx *SpecialistPoolServiceSpecialistPoolTestSuiteConfig) testList(t *testin
 	t.Run("negative page size", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListSpecialistPools(fx.ctx, &ListSpecialistPoolsRequest{
+		_, err := fx.service.ListSpecialistPools(fx.Context(), &ListSpecialistPoolsRequest{
 			Parent:   parent,
 			PageSize: -10,
 		})
@@ -319,7 +321,7 @@ func (fx *SpecialistPoolServiceSpecialistPoolTestSuiteConfig) testList(t *testin
 	// under that parent.
 	t.Run("isolation", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListSpecialistPools(fx.ctx, &ListSpecialistPoolsRequest{
+		response, err := fx.service.ListSpecialistPools(fx.Context(), &ListSpecialistPoolsRequest{
 			Parent:   parent,
 			PageSize: 999,
 		})
@@ -338,7 +340,7 @@ func (fx *SpecialistPoolServiceSpecialistPoolTestSuiteConfig) testList(t *testin
 	// If there are no more resources, next_page_token should not be set.
 	t.Run("last page", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListSpecialistPools(fx.ctx, &ListSpecialistPoolsRequest{
+		response, err := fx.service.ListSpecialistPools(fx.Context(), &ListSpecialistPoolsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount,
 		})
@@ -349,7 +351,7 @@ func (fx *SpecialistPoolServiceSpecialistPoolTestSuiteConfig) testList(t *testin
 	// If there are more resources, next_page_token should be set.
 	t.Run("more pages", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListSpecialistPools(fx.ctx, &ListSpecialistPoolsRequest{
+		response, err := fx.service.ListSpecialistPools(fx.Context(), &ListSpecialistPoolsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount - 1,
 		})
@@ -363,7 +365,7 @@ func (fx *SpecialistPoolServiceSpecialistPoolTestSuiteConfig) testList(t *testin
 		msgs := make([]*SpecialistPool, 0, resourcesCount)
 		var nextPageToken string
 		for {
-			response, err := fx.service.ListSpecialistPools(fx.ctx, &ListSpecialistPoolsRequest{
+			response, err := fx.service.ListSpecialistPools(fx.Context(), &ListSpecialistPoolsRequest{
 				Parent:    parent,
 				PageSize:  1,
 				PageToken: nextPageToken,
@@ -392,12 +394,12 @@ func (fx *SpecialistPoolServiceSpecialistPoolTestSuiteConfig) testList(t *testin
 		fx.maybeSkip(t)
 		const deleteCount = 5
 		for i := 0; i < deleteCount; i++ {
-			_, err := fx.service.DeleteSpecialistPool(fx.ctx, &DeleteSpecialistPoolRequest{
+			_, err := fx.service.DeleteSpecialistPool(fx.Context(), &DeleteSpecialistPoolRequest{
 				Name: parentMsgs[i].Name,
 			})
 			assert.NilError(t, err)
 		}
-		response, err := fx.service.ListSpecialistPools(fx.ctx, &ListSpecialistPoolsRequest{
+		response, err := fx.service.ListSpecialistPools(fx.Context(), &ListSpecialistPoolsRequest{
 			Parent:   parent,
 			PageSize: 9999,
 		})
@@ -420,7 +422,7 @@ func (fx *SpecialistPoolServiceSpecialistPoolTestSuiteConfig) testDelete(t *test
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteSpecialistPool(fx.ctx, &DeleteSpecialistPoolRequest{
+		_, err := fx.service.DeleteSpecialistPool(fx.Context(), &DeleteSpecialistPoolRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -429,7 +431,7 @@ func (fx *SpecialistPoolServiceSpecialistPoolTestSuiteConfig) testDelete(t *test
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteSpecialistPool(fx.ctx, &DeleteSpecialistPoolRequest{
+		_, err := fx.service.DeleteSpecialistPool(fx.Context(), &DeleteSpecialistPoolRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -440,7 +442,7 @@ func (fx *SpecialistPoolServiceSpecialistPoolTestSuiteConfig) testDelete(t *test
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteSpecialistPool(fx.ctx, &DeleteSpecialistPoolRequest{
+		_, err := fx.service.DeleteSpecialistPool(fx.Context(), &DeleteSpecialistPoolRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -451,7 +453,7 @@ func (fx *SpecialistPoolServiceSpecialistPoolTestSuiteConfig) testDelete(t *test
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteSpecialistPool(fx.ctx, &DeleteSpecialistPoolRequest{
+		_, err := fx.service.DeleteSpecialistPool(fx.Context(), &DeleteSpecialistPoolRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -462,12 +464,12 @@ func (fx *SpecialistPoolServiceSpecialistPoolTestSuiteConfig) testDelete(t *test
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		deleted, err := fx.service.DeleteSpecialistPool(fx.ctx, &DeleteSpecialistPoolRequest{
+		deleted, err := fx.service.DeleteSpecialistPool(fx.Context(), &DeleteSpecialistPoolRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
 		_ = deleted
-		_, err = fx.service.DeleteSpecialistPool(fx.ctx, &DeleteSpecialistPoolRequest{
+		_, err = fx.service.DeleteSpecialistPool(fx.Context(), &DeleteSpecialistPoolRequest{
 			Name: created.Name,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -476,7 +478,7 @@ func (fx *SpecialistPoolServiceSpecialistPoolTestSuiteConfig) testDelete(t *test
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteSpecialistPool(fx.ctx, &DeleteSpecialistPoolRequest{
+		_, err := fx.service.DeleteSpecialistPool(fx.Context(), &DeleteSpecialistPoolRequest{
 			Name: "projects/-/locations/-/specialistPools/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)

@@ -25,7 +25,7 @@ func (m MethodCreate) Generate(f *protogen.GeneratedFile, response, err, assign 
 		f.P("}")
 	}
 
-	f.P(response, ", ", err, " ", assign, " fx.service.", m.Method.GoName, "(fx.ctx, &", m.Method.Input.GoIdent, "{")
+	f.P(response, ", ", err, " ", assign, " fx.service.", m.Method.GoName, "(fx.Context(), &", m.Method.Input.GoIdent, "{")
 	if HasParent(m.Resource) {
 		f.P("Parent: ", m.Parent, ",")
 	}
@@ -59,7 +59,7 @@ type MethodGet struct {
 }
 
 func (m MethodGet) Generate(f *protogen.GeneratedFile, response, err, assign string) {
-	f.P(response, ", ", err, " ", assign, " fx.service.", m.Method.GoName, "(fx.ctx, &", m.Method.Input.GoIdent, "{")
+	f.P(response, ", ", err, " ", assign, " fx.service.", m.Method.GoName, "(fx.Context(), &", m.Method.Input.GoIdent, "{")
 	f.P("Name: ", m.Name, ",")
 	f.P("})")
 }
@@ -73,7 +73,7 @@ type MethodBatchGet struct {
 }
 
 func (m MethodBatchGet) Generate(f *protogen.GeneratedFile, response, err, assign string) {
-	f.P(response, ", ", err, " ", assign, " fx.service.", m.Method.GoName, "(fx.ctx, &", m.Method.Input.GoIdent, "{")
+	f.P(response, ", ", err, " ", assign, " fx.service.", m.Method.GoName, "(fx.Context(), &", m.Method.Input.GoIdent, "{")
 	if HasParent(m.Resource) {
 		f.P("Parent: ", m.Parent, ",")
 	}
@@ -111,7 +111,7 @@ func (m MethodUpdate) Generate(f *protogen.GeneratedFile, response, err, assign 
 		}
 		f.P("msg.Name = ", m.Name)
 	}
-	f.P(response, ", ", err, " ", assign, " fx.service.", m.Method.GoName, "(fx.ctx, &", m.Method.Input.GoIdent, "{")
+	f.P(response, ", ", err, " ", assign, " fx.service.", m.Method.GoName, "(fx.Context(), &", m.Method.Input.GoIdent, "{")
 	if m.Msg != "" {
 		f.P(upper, ":", m.Msg, ",")
 	} else {
@@ -154,7 +154,7 @@ type MethodList struct {
 }
 
 func (m MethodList) Generate(f *protogen.GeneratedFile, response, err, assign string) {
-	f.P(response, ", ", err, " ", assign, " fx.service.", m.Method.GoName, "(fx.ctx, &", m.Method.Input.GoIdent, "{")
+	f.P(response, ", ", err, " ", assign, " fx.service.", m.Method.GoName, "(fx.Context(), &", m.Method.Input.GoIdent, "{")
 	if HasParent(m.Resource) {
 		f.P("Parent: ", m.Parent, ",")
 	}
@@ -177,7 +177,7 @@ type MethodSearch struct {
 }
 
 func (m MethodSearch) Generate(f *protogen.GeneratedFile, response, err, assign string) {
-	f.P(response, ", ", err, " ", assign, " fx.service.", m.Method.GoName, "(fx.ctx, &", m.Method.Input.GoIdent, "{")
+	f.P(response, ", ", err, " ", assign, " fx.service.", m.Method.GoName, "(fx.Context(), &", m.Method.Input.GoIdent, "{")
 	if HasParent(m.Resource) {
 		f.P("Parent: ", m.Parent, ",")
 	}
@@ -200,7 +200,7 @@ type MethodDelete struct {
 }
 
 func (m MethodDelete) Generate(f *protogen.GeneratedFile, response, err, assign string) {
-	f.P(response, ", ", err, " ", assign, " fx.service.", m.Method.GoName, "(fx.ctx, &", m.Method.Input.GoIdent, "{")
+	f.P(response, ", ", err, " ", assign, " fx.service.", m.Method.GoName, "(fx.Context(), &", m.Method.Input.GoIdent, "{")
 	if m.Name != "" {
 		f.P("Name: ", m.Name, ",")
 	} else {
