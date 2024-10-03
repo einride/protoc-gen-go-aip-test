@@ -21,15 +21,17 @@ type SpannerTestSuite struct {
 func (fx SpannerTestSuite) TestSession(ctx context.Context, options SpannerSessionTestSuiteConfig) {
 	fx.T.Run("Session", func(t *testing.T) {
 		options.Context = func() context.Context { return ctx }
-		options.service = fx.Server
+		options.Service = func() SpannerServer { return fx.Server }
 		options.test(t)
 	})
 }
 
 type SpannerSessionTestSuiteConfig struct {
-	service    SpannerServer
 	currParent int
 
+	// Service should return the service that should be tested.
+	// The service will be used for several tests.
+	Service func() SpannerServer
 	// Context should return a new context.
 	// The context will be used for several tests.
 	Context func() context.Context
@@ -61,7 +63,7 @@ func (fx *SpannerSessionTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetSession(fx.Context(), &GetSessionRequest{
+		_, err := fx.Service().GetSession(fx.Context(), &GetSessionRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -70,7 +72,7 @@ func (fx *SpannerSessionTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetSession(fx.Context(), &GetSessionRequest{
+		_, err := fx.Service().GetSession(fx.Context(), &GetSessionRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -81,7 +83,7 @@ func (fx *SpannerSessionTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		msg, err := fx.service.GetSession(fx.Context(), &GetSessionRequest{
+		msg, err := fx.Service().GetSession(fx.Context(), &GetSessionRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -93,7 +95,7 @@ func (fx *SpannerSessionTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.GetSession(fx.Context(), &GetSessionRequest{
+		_, err := fx.Service().GetSession(fx.Context(), &GetSessionRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -102,7 +104,7 @@ func (fx *SpannerSessionTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetSession(fx.Context(), &GetSessionRequest{
+		_, err := fx.Service().GetSession(fx.Context(), &GetSessionRequest{
 			Name: "projects/-/instances/-/databases/-/sessions/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -115,7 +117,7 @@ func (fx *SpannerSessionTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteSession(fx.Context(), &DeleteSessionRequest{
+		_, err := fx.Service().DeleteSession(fx.Context(), &DeleteSessionRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -124,7 +126,7 @@ func (fx *SpannerSessionTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteSession(fx.Context(), &DeleteSessionRequest{
+		_, err := fx.Service().DeleteSession(fx.Context(), &DeleteSessionRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -135,7 +137,7 @@ func (fx *SpannerSessionTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteSession(fx.Context(), &DeleteSessionRequest{
+		_, err := fx.Service().DeleteSession(fx.Context(), &DeleteSessionRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -146,7 +148,7 @@ func (fx *SpannerSessionTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteSession(fx.Context(), &DeleteSessionRequest{
+		_, err := fx.Service().DeleteSession(fx.Context(), &DeleteSessionRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -157,12 +159,12 @@ func (fx *SpannerSessionTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		deleted, err := fx.service.DeleteSession(fx.Context(), &DeleteSessionRequest{
+		deleted, err := fx.Service().DeleteSession(fx.Context(), &DeleteSessionRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
 		_ = deleted
-		_, err = fx.service.DeleteSession(fx.Context(), &DeleteSessionRequest{
+		_, err = fx.Service().DeleteSession(fx.Context(), &DeleteSessionRequest{
 			Name: created.Name,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -171,7 +173,7 @@ func (fx *SpannerSessionTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteSession(fx.Context(), &DeleteSessionRequest{
+		_, err := fx.Service().DeleteSession(fx.Context(), &DeleteSessionRequest{
 			Name: "projects/-/instances/-/databases/-/sessions/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)

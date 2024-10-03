@@ -24,15 +24,17 @@ type EndpointServiceTestSuite struct {
 func (fx EndpointServiceTestSuite) TestEndpoint(ctx context.Context, options EndpointServiceEndpointTestSuiteConfig) {
 	fx.T.Run("Endpoint", func(t *testing.T) {
 		options.Context = func() context.Context { return ctx }
-		options.service = fx.Server
+		options.Service = func() EndpointServiceServer { return fx.Server }
 		options.test(t)
 	})
 }
 
 type EndpointServiceEndpointTestSuiteConfig struct {
-	service    EndpointServiceServer
 	currParent int
 
+	// Service should return the service that should be tested.
+	// The service will be used for several tests.
+	Service func() EndpointServiceServer
 	// Context should return a new context.
 	// The context will be used for several tests.
 	Context func() context.Context
@@ -67,7 +69,7 @@ func (fx *EndpointServiceEndpointTestSuiteConfig) testCreate(t *testing.T) {
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateEndpoint(fx.Context(), &CreateEndpointRequest{
+		_, err := fx.Service().CreateEndpoint(fx.Context(), &CreateEndpointRequest{
 			Parent:   "",
 			Endpoint: fx.Create(fx.nextParent(t, false)),
 		})
@@ -77,7 +79,7 @@ func (fx *EndpointServiceEndpointTestSuiteConfig) testCreate(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateEndpoint(fx.Context(), &CreateEndpointRequest{
+		_, err := fx.Service().CreateEndpoint(fx.Context(), &CreateEndpointRequest{
 			Parent:   "invalid resource name",
 			Endpoint: fx.Create(fx.nextParent(t, false)),
 		})
@@ -98,7 +100,7 @@ func (fx *EndpointServiceEndpointTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateEndpoint(fx.Context(), &CreateEndpointRequest{
+			_, err := fx.Service().CreateEndpoint(fx.Context(), &CreateEndpointRequest{
 				Parent:   parent,
 				Endpoint: msg,
 			})
@@ -114,7 +116,7 @@ func (fx *EndpointServiceEndpointTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("kms_key_name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateEndpoint(fx.Context(), &CreateEndpointRequest{
+			_, err := fx.Service().CreateEndpoint(fx.Context(), &CreateEndpointRequest{
 				Parent:   parent,
 				Endpoint: msg,
 			})
@@ -130,7 +132,7 @@ func (fx *EndpointServiceEndpointTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("output_uri")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateEndpoint(fx.Context(), &CreateEndpointRequest{
+			_, err := fx.Service().CreateEndpoint(fx.Context(), &CreateEndpointRequest{
 				Parent:   parent,
 				Endpoint: msg,
 			})
@@ -151,7 +153,7 @@ func (fx *EndpointServiceEndpointTestSuiteConfig) testCreate(t *testing.T) {
 				t.Skip("not reachable")
 			}
 			container.Network = "invalid resource name"
-			_, err := fx.service.CreateEndpoint(fx.Context(), &CreateEndpointRequest{
+			_, err := fx.Service().CreateEndpoint(fx.Context(), &CreateEndpointRequest{
 				Parent:   parent,
 				Endpoint: msg,
 			})
@@ -166,7 +168,7 @@ func (fx *EndpointServiceEndpointTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetEndpoint(fx.Context(), &GetEndpointRequest{
+		_, err := fx.Service().GetEndpoint(fx.Context(), &GetEndpointRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -175,7 +177,7 @@ func (fx *EndpointServiceEndpointTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetEndpoint(fx.Context(), &GetEndpointRequest{
+		_, err := fx.Service().GetEndpoint(fx.Context(), &GetEndpointRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -186,7 +188,7 @@ func (fx *EndpointServiceEndpointTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		msg, err := fx.service.GetEndpoint(fx.Context(), &GetEndpointRequest{
+		msg, err := fx.Service().GetEndpoint(fx.Context(), &GetEndpointRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -198,7 +200,7 @@ func (fx *EndpointServiceEndpointTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.GetEndpoint(fx.Context(), &GetEndpointRequest{
+		_, err := fx.Service().GetEndpoint(fx.Context(), &GetEndpointRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -207,7 +209,7 @@ func (fx *EndpointServiceEndpointTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetEndpoint(fx.Context(), &GetEndpointRequest{
+		_, err := fx.Service().GetEndpoint(fx.Context(), &GetEndpointRequest{
 			Name: "projects/-/locations/-/endpoints/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -223,7 +225,7 @@ func (fx *EndpointServiceEndpointTestSuiteConfig) testUpdate(t *testing.T) {
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
 		msg.Name = ""
-		_, err := fx.service.UpdateEndpoint(fx.Context(), &UpdateEndpointRequest{
+		_, err := fx.Service().UpdateEndpoint(fx.Context(), &UpdateEndpointRequest{
 			Endpoint: msg,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -235,7 +237,7 @@ func (fx *EndpointServiceEndpointTestSuiteConfig) testUpdate(t *testing.T) {
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
 		msg.Name = "invalid resource name"
-		_, err := fx.service.UpdateEndpoint(fx.Context(), &UpdateEndpointRequest{
+		_, err := fx.Service().UpdateEndpoint(fx.Context(), &UpdateEndpointRequest{
 			Endpoint: msg,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -246,11 +248,11 @@ func (fx *EndpointServiceEndpointTestSuiteConfig) testUpdate(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		updated, err := fx.service.UpdateEndpoint(fx.Context(), &UpdateEndpointRequest{
+		updated, err := fx.Service().UpdateEndpoint(fx.Context(), &UpdateEndpointRequest{
 			Endpoint: created,
 		})
 		assert.NilError(t, err)
-		persisted, err := fx.service.GetEndpoint(fx.Context(), &GetEndpointRequest{
+		persisted, err := fx.Service().GetEndpoint(fx.Context(), &GetEndpointRequest{
 			Name: updated.Name,
 		})
 		assert.NilError(t, err)
@@ -263,7 +265,7 @@ func (fx *EndpointServiceEndpointTestSuiteConfig) testUpdate(t *testing.T) {
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
 		originalCreateTime := created.CreateTime
-		updated, err := fx.service.UpdateEndpoint(fx.Context(), &UpdateEndpointRequest{
+		updated, err := fx.Service().UpdateEndpoint(fx.Context(), &UpdateEndpointRequest{
 			Endpoint: created,
 			UpdateMask: &fieldmaskpb.FieldMask{
 				Paths: []string{
@@ -282,7 +284,7 @@ func (fx *EndpointServiceEndpointTestSuiteConfig) testUpdate(t *testing.T) {
 		fx.maybeSkip(t)
 		msg := fx.Update(parent)
 		msg.Name = created.Name + "notfound"
-		_, err := fx.service.UpdateEndpoint(fx.Context(), &UpdateEndpointRequest{
+		_, err := fx.Service().UpdateEndpoint(fx.Context(), &UpdateEndpointRequest{
 			Endpoint: msg,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -291,7 +293,7 @@ func (fx *EndpointServiceEndpointTestSuiteConfig) testUpdate(t *testing.T) {
 	// The method should fail with InvalidArgument if the update_mask is invalid.
 	t.Run("invalid update mask", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.UpdateEndpoint(fx.Context(), &UpdateEndpointRequest{
+		_, err := fx.Service().UpdateEndpoint(fx.Context(), &UpdateEndpointRequest{
 			Endpoint: created,
 			UpdateMask: &fieldmaskpb.FieldMask{
 				Paths: []string{
@@ -315,7 +317,7 @@ func (fx *EndpointServiceEndpointTestSuiteConfig) testUpdate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateEndpoint(fx.Context(), &UpdateEndpointRequest{
+			_, err := fx.Service().UpdateEndpoint(fx.Context(), &UpdateEndpointRequest{
 				Endpoint: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
@@ -334,7 +336,7 @@ func (fx *EndpointServiceEndpointTestSuiteConfig) testUpdate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("kms_key_name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateEndpoint(fx.Context(), &UpdateEndpointRequest{
+			_, err := fx.Service().UpdateEndpoint(fx.Context(), &UpdateEndpointRequest{
 				Endpoint: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
@@ -353,7 +355,7 @@ func (fx *EndpointServiceEndpointTestSuiteConfig) testUpdate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("output_uri")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateEndpoint(fx.Context(), &UpdateEndpointRequest{
+			_, err := fx.Service().UpdateEndpoint(fx.Context(), &UpdateEndpointRequest{
 				Endpoint: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
@@ -372,7 +374,7 @@ func (fx *EndpointServiceEndpointTestSuiteConfig) testList(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.ListEndpoints(fx.Context(), &ListEndpointsRequest{
+		_, err := fx.Service().ListEndpoints(fx.Context(), &ListEndpointsRequest{
 			Parent: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -382,7 +384,7 @@ func (fx *EndpointServiceEndpointTestSuiteConfig) testList(t *testing.T) {
 	t.Run("invalid page token", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListEndpoints(fx.Context(), &ListEndpointsRequest{
+		_, err := fx.Service().ListEndpoints(fx.Context(), &ListEndpointsRequest{
 			Parent:    parent,
 			PageToken: "invalid page token",
 		})
@@ -393,7 +395,7 @@ func (fx *EndpointServiceEndpointTestSuiteConfig) testList(t *testing.T) {
 	t.Run("negative page size", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListEndpoints(fx.Context(), &ListEndpointsRequest{
+		_, err := fx.Service().ListEndpoints(fx.Context(), &ListEndpointsRequest{
 			Parent:   parent,
 			PageSize: -10,
 		})
@@ -411,7 +413,7 @@ func (fx *EndpointServiceEndpointTestSuiteConfig) testList(t *testing.T) {
 	// under that parent.
 	t.Run("isolation", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListEndpoints(fx.Context(), &ListEndpointsRequest{
+		response, err := fx.Service().ListEndpoints(fx.Context(), &ListEndpointsRequest{
 			Parent:   parent,
 			PageSize: 999,
 		})
@@ -430,7 +432,7 @@ func (fx *EndpointServiceEndpointTestSuiteConfig) testList(t *testing.T) {
 	// If there are no more resources, next_page_token should not be set.
 	t.Run("last page", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListEndpoints(fx.Context(), &ListEndpointsRequest{
+		response, err := fx.Service().ListEndpoints(fx.Context(), &ListEndpointsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount,
 		})
@@ -441,7 +443,7 @@ func (fx *EndpointServiceEndpointTestSuiteConfig) testList(t *testing.T) {
 	// If there are more resources, next_page_token should be set.
 	t.Run("more pages", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListEndpoints(fx.Context(), &ListEndpointsRequest{
+		response, err := fx.Service().ListEndpoints(fx.Context(), &ListEndpointsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount - 1,
 		})
@@ -455,7 +457,7 @@ func (fx *EndpointServiceEndpointTestSuiteConfig) testList(t *testing.T) {
 		msgs := make([]*Endpoint, 0, resourcesCount)
 		var nextPageToken string
 		for {
-			response, err := fx.service.ListEndpoints(fx.Context(), &ListEndpointsRequest{
+			response, err := fx.Service().ListEndpoints(fx.Context(), &ListEndpointsRequest{
 				Parent:    parent,
 				PageSize:  1,
 				PageToken: nextPageToken,
@@ -484,12 +486,12 @@ func (fx *EndpointServiceEndpointTestSuiteConfig) testList(t *testing.T) {
 		fx.maybeSkip(t)
 		const deleteCount = 5
 		for i := 0; i < deleteCount; i++ {
-			_, err := fx.service.DeleteEndpoint(fx.Context(), &DeleteEndpointRequest{
+			_, err := fx.Service().DeleteEndpoint(fx.Context(), &DeleteEndpointRequest{
 				Name: parentMsgs[i].Name,
 			})
 			assert.NilError(t, err)
 		}
-		response, err := fx.service.ListEndpoints(fx.Context(), &ListEndpointsRequest{
+		response, err := fx.Service().ListEndpoints(fx.Context(), &ListEndpointsRequest{
 			Parent:   parent,
 			PageSize: 9999,
 		})
@@ -512,7 +514,7 @@ func (fx *EndpointServiceEndpointTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteEndpoint(fx.Context(), &DeleteEndpointRequest{
+		_, err := fx.Service().DeleteEndpoint(fx.Context(), &DeleteEndpointRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -521,7 +523,7 @@ func (fx *EndpointServiceEndpointTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteEndpoint(fx.Context(), &DeleteEndpointRequest{
+		_, err := fx.Service().DeleteEndpoint(fx.Context(), &DeleteEndpointRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -532,7 +534,7 @@ func (fx *EndpointServiceEndpointTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteEndpoint(fx.Context(), &DeleteEndpointRequest{
+		_, err := fx.Service().DeleteEndpoint(fx.Context(), &DeleteEndpointRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -543,7 +545,7 @@ func (fx *EndpointServiceEndpointTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteEndpoint(fx.Context(), &DeleteEndpointRequest{
+		_, err := fx.Service().DeleteEndpoint(fx.Context(), &DeleteEndpointRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -554,12 +556,12 @@ func (fx *EndpointServiceEndpointTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		deleted, err := fx.service.DeleteEndpoint(fx.Context(), &DeleteEndpointRequest{
+		deleted, err := fx.Service().DeleteEndpoint(fx.Context(), &DeleteEndpointRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
 		_ = deleted
-		_, err = fx.service.DeleteEndpoint(fx.Context(), &DeleteEndpointRequest{
+		_, err = fx.Service().DeleteEndpoint(fx.Context(), &DeleteEndpointRequest{
 			Name: created.Name,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -568,7 +570,7 @@ func (fx *EndpointServiceEndpointTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteEndpoint(fx.Context(), &DeleteEndpointRequest{
+		_, err := fx.Service().DeleteEndpoint(fx.Context(), &DeleteEndpointRequest{
 			Name: "projects/-/locations/-/endpoints/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)

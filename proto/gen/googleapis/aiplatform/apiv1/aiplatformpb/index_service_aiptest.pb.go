@@ -24,15 +24,17 @@ type IndexServiceTestSuite struct {
 func (fx IndexServiceTestSuite) TestIndex(ctx context.Context, options IndexServiceIndexTestSuiteConfig) {
 	fx.T.Run("Index", func(t *testing.T) {
 		options.Context = func() context.Context { return ctx }
-		options.service = fx.Server
+		options.Service = func() IndexServiceServer { return fx.Server }
 		options.test(t)
 	})
 }
 
 type IndexServiceIndexTestSuiteConfig struct {
-	service    IndexServiceServer
 	currParent int
 
+	// Service should return the service that should be tested.
+	// The service will be used for several tests.
+	Service func() IndexServiceServer
 	// Context should return a new context.
 	// The context will be used for several tests.
 	Context func() context.Context
@@ -67,7 +69,7 @@ func (fx *IndexServiceIndexTestSuiteConfig) testCreate(t *testing.T) {
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateIndex(fx.Context(), &CreateIndexRequest{
+		_, err := fx.Service().CreateIndex(fx.Context(), &CreateIndexRequest{
 			Parent: "",
 			Index:  fx.Create(fx.nextParent(t, false)),
 		})
@@ -77,7 +79,7 @@ func (fx *IndexServiceIndexTestSuiteConfig) testCreate(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateIndex(fx.Context(), &CreateIndexRequest{
+		_, err := fx.Service().CreateIndex(fx.Context(), &CreateIndexRequest{
 			Parent: "invalid resource name",
 			Index:  fx.Create(fx.nextParent(t, false)),
 		})
@@ -98,7 +100,7 @@ func (fx *IndexServiceIndexTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateIndex(fx.Context(), &CreateIndexRequest{
+			_, err := fx.Service().CreateIndex(fx.Context(), &CreateIndexRequest{
 				Parent: parent,
 				Index:  msg,
 			})
@@ -114,7 +116,7 @@ func (fx *IndexServiceIndexTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("kms_key_name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateIndex(fx.Context(), &CreateIndexRequest{
+			_, err := fx.Service().CreateIndex(fx.Context(), &CreateIndexRequest{
 				Parent: parent,
 				Index:  msg,
 			})
@@ -129,7 +131,7 @@ func (fx *IndexServiceIndexTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetIndex(fx.Context(), &GetIndexRequest{
+		_, err := fx.Service().GetIndex(fx.Context(), &GetIndexRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -138,7 +140,7 @@ func (fx *IndexServiceIndexTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetIndex(fx.Context(), &GetIndexRequest{
+		_, err := fx.Service().GetIndex(fx.Context(), &GetIndexRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -149,7 +151,7 @@ func (fx *IndexServiceIndexTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		msg, err := fx.service.GetIndex(fx.Context(), &GetIndexRequest{
+		msg, err := fx.Service().GetIndex(fx.Context(), &GetIndexRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -161,7 +163,7 @@ func (fx *IndexServiceIndexTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.GetIndex(fx.Context(), &GetIndexRequest{
+		_, err := fx.Service().GetIndex(fx.Context(), &GetIndexRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -170,7 +172,7 @@ func (fx *IndexServiceIndexTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetIndex(fx.Context(), &GetIndexRequest{
+		_, err := fx.Service().GetIndex(fx.Context(), &GetIndexRequest{
 			Name: "projects/-/locations/-/indexes/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -186,7 +188,7 @@ func (fx *IndexServiceIndexTestSuiteConfig) testUpdate(t *testing.T) {
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
 		msg.Name = ""
-		_, err := fx.service.UpdateIndex(fx.Context(), &UpdateIndexRequest{
+		_, err := fx.Service().UpdateIndex(fx.Context(), &UpdateIndexRequest{
 			Index: msg,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -198,7 +200,7 @@ func (fx *IndexServiceIndexTestSuiteConfig) testUpdate(t *testing.T) {
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
 		msg.Name = "invalid resource name"
-		_, err := fx.service.UpdateIndex(fx.Context(), &UpdateIndexRequest{
+		_, err := fx.Service().UpdateIndex(fx.Context(), &UpdateIndexRequest{
 			Index: msg,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -211,7 +213,7 @@ func (fx *IndexServiceIndexTestSuiteConfig) testUpdate(t *testing.T) {
 		fx.maybeSkip(t)
 		msg := fx.Update(parent)
 		msg.Name = created.Name + "notfound"
-		_, err := fx.service.UpdateIndex(fx.Context(), &UpdateIndexRequest{
+		_, err := fx.Service().UpdateIndex(fx.Context(), &UpdateIndexRequest{
 			Index: msg,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -220,7 +222,7 @@ func (fx *IndexServiceIndexTestSuiteConfig) testUpdate(t *testing.T) {
 	// The method should fail with InvalidArgument if the update_mask is invalid.
 	t.Run("invalid update mask", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.UpdateIndex(fx.Context(), &UpdateIndexRequest{
+		_, err := fx.Service().UpdateIndex(fx.Context(), &UpdateIndexRequest{
 			Index: created,
 			UpdateMask: &fieldmaskpb.FieldMask{
 				Paths: []string{
@@ -244,7 +246,7 @@ func (fx *IndexServiceIndexTestSuiteConfig) testUpdate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateIndex(fx.Context(), &UpdateIndexRequest{
+			_, err := fx.Service().UpdateIndex(fx.Context(), &UpdateIndexRequest{
 				Index: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
@@ -263,7 +265,7 @@ func (fx *IndexServiceIndexTestSuiteConfig) testUpdate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("kms_key_name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateIndex(fx.Context(), &UpdateIndexRequest{
+			_, err := fx.Service().UpdateIndex(fx.Context(), &UpdateIndexRequest{
 				Index: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
@@ -282,7 +284,7 @@ func (fx *IndexServiceIndexTestSuiteConfig) testList(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.ListIndexes(fx.Context(), &ListIndexesRequest{
+		_, err := fx.Service().ListIndexes(fx.Context(), &ListIndexesRequest{
 			Parent: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -292,7 +294,7 @@ func (fx *IndexServiceIndexTestSuiteConfig) testList(t *testing.T) {
 	t.Run("invalid page token", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListIndexes(fx.Context(), &ListIndexesRequest{
+		_, err := fx.Service().ListIndexes(fx.Context(), &ListIndexesRequest{
 			Parent:    parent,
 			PageToken: "invalid page token",
 		})
@@ -303,7 +305,7 @@ func (fx *IndexServiceIndexTestSuiteConfig) testList(t *testing.T) {
 	t.Run("negative page size", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListIndexes(fx.Context(), &ListIndexesRequest{
+		_, err := fx.Service().ListIndexes(fx.Context(), &ListIndexesRequest{
 			Parent:   parent,
 			PageSize: -10,
 		})
@@ -321,7 +323,7 @@ func (fx *IndexServiceIndexTestSuiteConfig) testList(t *testing.T) {
 	// under that parent.
 	t.Run("isolation", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListIndexes(fx.Context(), &ListIndexesRequest{
+		response, err := fx.Service().ListIndexes(fx.Context(), &ListIndexesRequest{
 			Parent:   parent,
 			PageSize: 999,
 		})
@@ -340,7 +342,7 @@ func (fx *IndexServiceIndexTestSuiteConfig) testList(t *testing.T) {
 	// If there are no more resources, next_page_token should not be set.
 	t.Run("last page", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListIndexes(fx.Context(), &ListIndexesRequest{
+		response, err := fx.Service().ListIndexes(fx.Context(), &ListIndexesRequest{
 			Parent:   parent,
 			PageSize: resourcesCount,
 		})
@@ -351,7 +353,7 @@ func (fx *IndexServiceIndexTestSuiteConfig) testList(t *testing.T) {
 	// If there are more resources, next_page_token should be set.
 	t.Run("more pages", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListIndexes(fx.Context(), &ListIndexesRequest{
+		response, err := fx.Service().ListIndexes(fx.Context(), &ListIndexesRequest{
 			Parent:   parent,
 			PageSize: resourcesCount - 1,
 		})
@@ -365,7 +367,7 @@ func (fx *IndexServiceIndexTestSuiteConfig) testList(t *testing.T) {
 		msgs := make([]*Index, 0, resourcesCount)
 		var nextPageToken string
 		for {
-			response, err := fx.service.ListIndexes(fx.Context(), &ListIndexesRequest{
+			response, err := fx.Service().ListIndexes(fx.Context(), &ListIndexesRequest{
 				Parent:    parent,
 				PageSize:  1,
 				PageToken: nextPageToken,
@@ -394,12 +396,12 @@ func (fx *IndexServiceIndexTestSuiteConfig) testList(t *testing.T) {
 		fx.maybeSkip(t)
 		const deleteCount = 5
 		for i := 0; i < deleteCount; i++ {
-			_, err := fx.service.DeleteIndex(fx.Context(), &DeleteIndexRequest{
+			_, err := fx.Service().DeleteIndex(fx.Context(), &DeleteIndexRequest{
 				Name: parentMsgs[i].Name,
 			})
 			assert.NilError(t, err)
 		}
-		response, err := fx.service.ListIndexes(fx.Context(), &ListIndexesRequest{
+		response, err := fx.Service().ListIndexes(fx.Context(), &ListIndexesRequest{
 			Parent:   parent,
 			PageSize: 9999,
 		})
@@ -422,7 +424,7 @@ func (fx *IndexServiceIndexTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteIndex(fx.Context(), &DeleteIndexRequest{
+		_, err := fx.Service().DeleteIndex(fx.Context(), &DeleteIndexRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -431,7 +433,7 @@ func (fx *IndexServiceIndexTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteIndex(fx.Context(), &DeleteIndexRequest{
+		_, err := fx.Service().DeleteIndex(fx.Context(), &DeleteIndexRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -442,7 +444,7 @@ func (fx *IndexServiceIndexTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteIndex(fx.Context(), &DeleteIndexRequest{
+		_, err := fx.Service().DeleteIndex(fx.Context(), &DeleteIndexRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -453,7 +455,7 @@ func (fx *IndexServiceIndexTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteIndex(fx.Context(), &DeleteIndexRequest{
+		_, err := fx.Service().DeleteIndex(fx.Context(), &DeleteIndexRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -464,12 +466,12 @@ func (fx *IndexServiceIndexTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		deleted, err := fx.service.DeleteIndex(fx.Context(), &DeleteIndexRequest{
+		deleted, err := fx.Service().DeleteIndex(fx.Context(), &DeleteIndexRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
 		_ = deleted
-		_, err = fx.service.DeleteIndex(fx.Context(), &DeleteIndexRequest{
+		_, err = fx.Service().DeleteIndex(fx.Context(), &DeleteIndexRequest{
 			Name: created.Name,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -478,7 +480,7 @@ func (fx *IndexServiceIndexTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteIndex(fx.Context(), &DeleteIndexRequest{
+		_, err := fx.Service().DeleteIndex(fx.Context(), &DeleteIndexRequest{
 			Name: "projects/-/locations/-/indexes/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)

@@ -25,7 +25,7 @@ type JobServiceTestSuite struct {
 func (fx JobServiceTestSuite) TestBatchPredictionJob(ctx context.Context, options JobServiceBatchPredictionJobTestSuiteConfig) {
 	fx.T.Run("BatchPredictionJob", func(t *testing.T) {
 		options.Context = func() context.Context { return ctx }
-		options.service = fx.Server
+		options.Service = func() JobServiceServer { return fx.Server }
 		options.test(t)
 	})
 }
@@ -33,7 +33,7 @@ func (fx JobServiceTestSuite) TestBatchPredictionJob(ctx context.Context, option
 func (fx JobServiceTestSuite) TestCustomJob(ctx context.Context, options JobServiceCustomJobTestSuiteConfig) {
 	fx.T.Run("CustomJob", func(t *testing.T) {
 		options.Context = func() context.Context { return ctx }
-		options.service = fx.Server
+		options.Service = func() JobServiceServer { return fx.Server }
 		options.test(t)
 	})
 }
@@ -41,7 +41,7 @@ func (fx JobServiceTestSuite) TestCustomJob(ctx context.Context, options JobServ
 func (fx JobServiceTestSuite) TestDataLabelingJob(ctx context.Context, options JobServiceDataLabelingJobTestSuiteConfig) {
 	fx.T.Run("DataLabelingJob", func(t *testing.T) {
 		options.Context = func() context.Context { return ctx }
-		options.service = fx.Server
+		options.Service = func() JobServiceServer { return fx.Server }
 		options.test(t)
 	})
 }
@@ -49,7 +49,7 @@ func (fx JobServiceTestSuite) TestDataLabelingJob(ctx context.Context, options J
 func (fx JobServiceTestSuite) TestHyperparameterTuningJob(ctx context.Context, options JobServiceHyperparameterTuningJobTestSuiteConfig) {
 	fx.T.Run("HyperparameterTuningJob", func(t *testing.T) {
 		options.Context = func() context.Context { return ctx }
-		options.service = fx.Server
+		options.Service = func() JobServiceServer { return fx.Server }
 		options.test(t)
 	})
 }
@@ -57,7 +57,7 @@ func (fx JobServiceTestSuite) TestHyperparameterTuningJob(ctx context.Context, o
 func (fx JobServiceTestSuite) TestModelDeploymentMonitoringJob(ctx context.Context, options JobServiceModelDeploymentMonitoringJobTestSuiteConfig) {
 	fx.T.Run("ModelDeploymentMonitoringJob", func(t *testing.T) {
 		options.Context = func() context.Context { return ctx }
-		options.service = fx.Server
+		options.Service = func() JobServiceServer { return fx.Server }
 		options.test(t)
 	})
 }
@@ -65,7 +65,7 @@ func (fx JobServiceTestSuite) TestModelDeploymentMonitoringJob(ctx context.Conte
 func (fx JobServiceTestSuite) TestNasJob(ctx context.Context, options JobServiceNasJobTestSuiteConfig) {
 	fx.T.Run("NasJob", func(t *testing.T) {
 		options.Context = func() context.Context { return ctx }
-		options.service = fx.Server
+		options.Service = func() JobServiceServer { return fx.Server }
 		options.test(t)
 	})
 }
@@ -73,15 +73,17 @@ func (fx JobServiceTestSuite) TestNasJob(ctx context.Context, options JobService
 func (fx JobServiceTestSuite) TestNasTrialDetail(ctx context.Context, options JobServiceNasTrialDetailTestSuiteConfig) {
 	fx.T.Run("NasTrialDetail", func(t *testing.T) {
 		options.Context = func() context.Context { return ctx }
-		options.service = fx.Server
+		options.Service = func() JobServiceServer { return fx.Server }
 		options.test(t)
 	})
 }
 
 type JobServiceBatchPredictionJobTestSuiteConfig struct {
-	service    JobServiceServer
 	currParent int
 
+	// Service should return the service that should be tested.
+	// The service will be used for several tests.
+	Service func() JobServiceServer
 	// Context should return a new context.
 	// The context will be used for several tests.
 	Context func() context.Context
@@ -112,7 +114,7 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) testCreate(t *testing.T) 
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateBatchPredictionJob(fx.Context(), &CreateBatchPredictionJobRequest{
+		_, err := fx.Service().CreateBatchPredictionJob(fx.Context(), &CreateBatchPredictionJobRequest{
 			Parent:             "",
 			BatchPredictionJob: fx.Create(fx.nextParent(t, false)),
 		})
@@ -122,7 +124,7 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) testCreate(t *testing.T) 
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateBatchPredictionJob(fx.Context(), &CreateBatchPredictionJobRequest{
+		_, err := fx.Service().CreateBatchPredictionJob(fx.Context(), &CreateBatchPredictionJobRequest{
 			Parent:             "invalid resource name",
 			BatchPredictionJob: fx.Create(fx.nextParent(t, false)),
 		})
@@ -134,7 +136,7 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) testCreate(t *testing.T) 
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		beforeCreate := time.Now()
-		msg, err := fx.service.CreateBatchPredictionJob(fx.Context(), &CreateBatchPredictionJobRequest{
+		msg, err := fx.Service().CreateBatchPredictionJob(fx.Context(), &CreateBatchPredictionJobRequest{
 			Parent:             parent,
 			BatchPredictionJob: fx.Create(parent),
 		})
@@ -148,12 +150,12 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) testCreate(t *testing.T) 
 	t.Run("persisted", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		msg, err := fx.service.CreateBatchPredictionJob(fx.Context(), &CreateBatchPredictionJobRequest{
+		msg, err := fx.Service().CreateBatchPredictionJob(fx.Context(), &CreateBatchPredictionJobRequest{
 			Parent:             parent,
 			BatchPredictionJob: fx.Create(parent),
 		})
 		assert.NilError(t, err)
-		persisted, err := fx.service.GetBatchPredictionJob(fx.Context(), &GetBatchPredictionJobRequest{
+		persisted, err := fx.Service().GetBatchPredictionJob(fx.Context(), &GetBatchPredictionJobRequest{
 			Name: msg.Name,
 		})
 		assert.NilError(t, err)
@@ -174,7 +176,7 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) testCreate(t *testing.T) 
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateBatchPredictionJob(fx.Context(), &CreateBatchPredictionJobRequest{
+			_, err := fx.Service().CreateBatchPredictionJob(fx.Context(), &CreateBatchPredictionJobRequest{
 				Parent:             parent,
 				BatchPredictionJob: msg,
 			})
@@ -190,7 +192,7 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) testCreate(t *testing.T) 
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("image_uri")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateBatchPredictionJob(fx.Context(), &CreateBatchPredictionJobRequest{
+			_, err := fx.Service().CreateBatchPredictionJob(fx.Context(), &CreateBatchPredictionJobRequest{
 				Parent:             parent,
 				BatchPredictionJob: msg,
 			})
@@ -206,7 +208,7 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) testCreate(t *testing.T) 
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("input_config")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateBatchPredictionJob(fx.Context(), &CreateBatchPredictionJobRequest{
+			_, err := fx.Service().CreateBatchPredictionJob(fx.Context(), &CreateBatchPredictionJobRequest{
 				Parent:             parent,
 				BatchPredictionJob: msg,
 			})
@@ -222,7 +224,7 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) testCreate(t *testing.T) 
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("uris")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateBatchPredictionJob(fx.Context(), &CreateBatchPredictionJobRequest{
+			_, err := fx.Service().CreateBatchPredictionJob(fx.Context(), &CreateBatchPredictionJobRequest{
 				Parent:             parent,
 				BatchPredictionJob: msg,
 			})
@@ -238,7 +240,7 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) testCreate(t *testing.T) 
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("input_uri")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateBatchPredictionJob(fx.Context(), &CreateBatchPredictionJobRequest{
+			_, err := fx.Service().CreateBatchPredictionJob(fx.Context(), &CreateBatchPredictionJobRequest{
 				Parent:             parent,
 				BatchPredictionJob: msg,
 			})
@@ -254,7 +256,7 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) testCreate(t *testing.T) 
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("instances_format")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateBatchPredictionJob(fx.Context(), &CreateBatchPredictionJobRequest{
+			_, err := fx.Service().CreateBatchPredictionJob(fx.Context(), &CreateBatchPredictionJobRequest{
 				Parent:             parent,
 				BatchPredictionJob: msg,
 			})
@@ -270,7 +272,7 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) testCreate(t *testing.T) 
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("output_config")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateBatchPredictionJob(fx.Context(), &CreateBatchPredictionJobRequest{
+			_, err := fx.Service().CreateBatchPredictionJob(fx.Context(), &CreateBatchPredictionJobRequest{
 				Parent:             parent,
 				BatchPredictionJob: msg,
 			})
@@ -286,7 +288,7 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) testCreate(t *testing.T) 
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("output_uri_prefix")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateBatchPredictionJob(fx.Context(), &CreateBatchPredictionJobRequest{
+			_, err := fx.Service().CreateBatchPredictionJob(fx.Context(), &CreateBatchPredictionJobRequest{
 				Parent:             parent,
 				BatchPredictionJob: msg,
 			})
@@ -302,7 +304,7 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) testCreate(t *testing.T) 
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("output_uri")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateBatchPredictionJob(fx.Context(), &CreateBatchPredictionJobRequest{
+			_, err := fx.Service().CreateBatchPredictionJob(fx.Context(), &CreateBatchPredictionJobRequest{
 				Parent:             parent,
 				BatchPredictionJob: msg,
 			})
@@ -318,7 +320,7 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) testCreate(t *testing.T) 
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("predictions_format")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateBatchPredictionJob(fx.Context(), &CreateBatchPredictionJobRequest{
+			_, err := fx.Service().CreateBatchPredictionJob(fx.Context(), &CreateBatchPredictionJobRequest{
 				Parent:             parent,
 				BatchPredictionJob: msg,
 			})
@@ -334,7 +336,7 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) testCreate(t *testing.T) 
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("machine_spec")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateBatchPredictionJob(fx.Context(), &CreateBatchPredictionJobRequest{
+			_, err := fx.Service().CreateBatchPredictionJob(fx.Context(), &CreateBatchPredictionJobRequest{
 				Parent:             parent,
 				BatchPredictionJob: msg,
 			})
@@ -350,7 +352,7 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) testCreate(t *testing.T) 
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("parameters")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateBatchPredictionJob(fx.Context(), &CreateBatchPredictionJobRequest{
+			_, err := fx.Service().CreateBatchPredictionJob(fx.Context(), &CreateBatchPredictionJobRequest{
 				Parent:             parent,
 				BatchPredictionJob: msg,
 			})
@@ -366,7 +368,7 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) testCreate(t *testing.T) 
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("path_count")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateBatchPredictionJob(fx.Context(), &CreateBatchPredictionJobRequest{
+			_, err := fx.Service().CreateBatchPredictionJob(fx.Context(), &CreateBatchPredictionJobRequest{
 				Parent:             parent,
 				BatchPredictionJob: msg,
 			})
@@ -382,7 +384,7 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) testCreate(t *testing.T) 
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("step_count")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateBatchPredictionJob(fx.Context(), &CreateBatchPredictionJobRequest{
+			_, err := fx.Service().CreateBatchPredictionJob(fx.Context(), &CreateBatchPredictionJobRequest{
 				Parent:             parent,
 				BatchPredictionJob: msg,
 			})
@@ -398,7 +400,7 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) testCreate(t *testing.T) 
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("step_count")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateBatchPredictionJob(fx.Context(), &CreateBatchPredictionJobRequest{
+			_, err := fx.Service().CreateBatchPredictionJob(fx.Context(), &CreateBatchPredictionJobRequest{
 				Parent:             parent,
 				BatchPredictionJob: msg,
 			})
@@ -414,7 +416,7 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) testCreate(t *testing.T) 
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("inputs")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateBatchPredictionJob(fx.Context(), &CreateBatchPredictionJobRequest{
+			_, err := fx.Service().CreateBatchPredictionJob(fx.Context(), &CreateBatchPredictionJobRequest{
 				Parent:             parent,
 				BatchPredictionJob: msg,
 			})
@@ -430,7 +432,7 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) testCreate(t *testing.T) 
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("outputs")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateBatchPredictionJob(fx.Context(), &CreateBatchPredictionJobRequest{
+			_, err := fx.Service().CreateBatchPredictionJob(fx.Context(), &CreateBatchPredictionJobRequest{
 				Parent:             parent,
 				BatchPredictionJob: msg,
 			})
@@ -446,7 +448,7 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) testCreate(t *testing.T) 
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("kms_key_name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateBatchPredictionJob(fx.Context(), &CreateBatchPredictionJobRequest{
+			_, err := fx.Service().CreateBatchPredictionJob(fx.Context(), &CreateBatchPredictionJobRequest{
 				Parent:             parent,
 				BatchPredictionJob: msg,
 			})
@@ -467,7 +469,7 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) testCreate(t *testing.T) 
 				t.Skip("not reachable")
 			}
 			container.Model = "invalid resource name"
-			_, err := fx.service.CreateBatchPredictionJob(fx.Context(), &CreateBatchPredictionJobRequest{
+			_, err := fx.Service().CreateBatchPredictionJob(fx.Context(), &CreateBatchPredictionJobRequest{
 				Parent:             parent,
 				BatchPredictionJob: msg,
 			})
@@ -482,7 +484,7 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetBatchPredictionJob(fx.Context(), &GetBatchPredictionJobRequest{
+		_, err := fx.Service().GetBatchPredictionJob(fx.Context(), &GetBatchPredictionJobRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -491,7 +493,7 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetBatchPredictionJob(fx.Context(), &GetBatchPredictionJobRequest{
+		_, err := fx.Service().GetBatchPredictionJob(fx.Context(), &GetBatchPredictionJobRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -502,7 +504,7 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		msg, err := fx.service.GetBatchPredictionJob(fx.Context(), &GetBatchPredictionJobRequest{
+		msg, err := fx.Service().GetBatchPredictionJob(fx.Context(), &GetBatchPredictionJobRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -514,7 +516,7 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.GetBatchPredictionJob(fx.Context(), &GetBatchPredictionJobRequest{
+		_, err := fx.Service().GetBatchPredictionJob(fx.Context(), &GetBatchPredictionJobRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -523,7 +525,7 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetBatchPredictionJob(fx.Context(), &GetBatchPredictionJobRequest{
+		_, err := fx.Service().GetBatchPredictionJob(fx.Context(), &GetBatchPredictionJobRequest{
 			Name: "projects/-/locations/-/batchPredictionJobs/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -536,7 +538,7 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) testList(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.ListBatchPredictionJobs(fx.Context(), &ListBatchPredictionJobsRequest{
+		_, err := fx.Service().ListBatchPredictionJobs(fx.Context(), &ListBatchPredictionJobsRequest{
 			Parent: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -546,7 +548,7 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) testList(t *testing.T) {
 	t.Run("invalid page token", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListBatchPredictionJobs(fx.Context(), &ListBatchPredictionJobsRequest{
+		_, err := fx.Service().ListBatchPredictionJobs(fx.Context(), &ListBatchPredictionJobsRequest{
 			Parent:    parent,
 			PageToken: "invalid page token",
 		})
@@ -557,7 +559,7 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) testList(t *testing.T) {
 	t.Run("negative page size", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListBatchPredictionJobs(fx.Context(), &ListBatchPredictionJobsRequest{
+		_, err := fx.Service().ListBatchPredictionJobs(fx.Context(), &ListBatchPredictionJobsRequest{
 			Parent:   parent,
 			PageSize: -10,
 		})
@@ -575,7 +577,7 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) testList(t *testing.T) {
 	// under that parent.
 	t.Run("isolation", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListBatchPredictionJobs(fx.Context(), &ListBatchPredictionJobsRequest{
+		response, err := fx.Service().ListBatchPredictionJobs(fx.Context(), &ListBatchPredictionJobsRequest{
 			Parent:   parent,
 			PageSize: 999,
 		})
@@ -594,7 +596,7 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) testList(t *testing.T) {
 	// If there are no more resources, next_page_token should not be set.
 	t.Run("last page", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListBatchPredictionJobs(fx.Context(), &ListBatchPredictionJobsRequest{
+		response, err := fx.Service().ListBatchPredictionJobs(fx.Context(), &ListBatchPredictionJobsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount,
 		})
@@ -605,7 +607,7 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) testList(t *testing.T) {
 	// If there are more resources, next_page_token should be set.
 	t.Run("more pages", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListBatchPredictionJobs(fx.Context(), &ListBatchPredictionJobsRequest{
+		response, err := fx.Service().ListBatchPredictionJobs(fx.Context(), &ListBatchPredictionJobsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount - 1,
 		})
@@ -619,7 +621,7 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) testList(t *testing.T) {
 		msgs := make([]*BatchPredictionJob, 0, resourcesCount)
 		var nextPageToken string
 		for {
-			response, err := fx.service.ListBatchPredictionJobs(fx.Context(), &ListBatchPredictionJobsRequest{
+			response, err := fx.Service().ListBatchPredictionJobs(fx.Context(), &ListBatchPredictionJobsRequest{
 				Parent:    parent,
 				PageSize:  1,
 				PageToken: nextPageToken,
@@ -648,12 +650,12 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) testList(t *testing.T) {
 		fx.maybeSkip(t)
 		const deleteCount = 5
 		for i := 0; i < deleteCount; i++ {
-			_, err := fx.service.DeleteBatchPredictionJob(fx.Context(), &DeleteBatchPredictionJobRequest{
+			_, err := fx.Service().DeleteBatchPredictionJob(fx.Context(), &DeleteBatchPredictionJobRequest{
 				Name: parentMsgs[i].Name,
 			})
 			assert.NilError(t, err)
 		}
-		response, err := fx.service.ListBatchPredictionJobs(fx.Context(), &ListBatchPredictionJobsRequest{
+		response, err := fx.Service().ListBatchPredictionJobs(fx.Context(), &ListBatchPredictionJobsRequest{
 			Parent:   parent,
 			PageSize: 9999,
 		})
@@ -676,7 +678,7 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) testDelete(t *testing.T) 
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteBatchPredictionJob(fx.Context(), &DeleteBatchPredictionJobRequest{
+		_, err := fx.Service().DeleteBatchPredictionJob(fx.Context(), &DeleteBatchPredictionJobRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -685,7 +687,7 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) testDelete(t *testing.T) 
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteBatchPredictionJob(fx.Context(), &DeleteBatchPredictionJobRequest{
+		_, err := fx.Service().DeleteBatchPredictionJob(fx.Context(), &DeleteBatchPredictionJobRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -696,7 +698,7 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) testDelete(t *testing.T) 
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteBatchPredictionJob(fx.Context(), &DeleteBatchPredictionJobRequest{
+		_, err := fx.Service().DeleteBatchPredictionJob(fx.Context(), &DeleteBatchPredictionJobRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -707,7 +709,7 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) testDelete(t *testing.T) 
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteBatchPredictionJob(fx.Context(), &DeleteBatchPredictionJobRequest{
+		_, err := fx.Service().DeleteBatchPredictionJob(fx.Context(), &DeleteBatchPredictionJobRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -718,12 +720,12 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) testDelete(t *testing.T) 
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		deleted, err := fx.service.DeleteBatchPredictionJob(fx.Context(), &DeleteBatchPredictionJobRequest{
+		deleted, err := fx.Service().DeleteBatchPredictionJob(fx.Context(), &DeleteBatchPredictionJobRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
 		_ = deleted
-		_, err = fx.service.DeleteBatchPredictionJob(fx.Context(), &DeleteBatchPredictionJobRequest{
+		_, err = fx.Service().DeleteBatchPredictionJob(fx.Context(), &DeleteBatchPredictionJobRequest{
 			Name: created.Name,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -732,7 +734,7 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) testDelete(t *testing.T) 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteBatchPredictionJob(fx.Context(), &DeleteBatchPredictionJobRequest{
+		_, err := fx.Service().DeleteBatchPredictionJob(fx.Context(), &DeleteBatchPredictionJobRequest{
 			Name: "projects/-/locations/-/batchPredictionJobs/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -768,7 +770,7 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) maybeSkip(t *testing.T) {
 
 func (fx *JobServiceBatchPredictionJobTestSuiteConfig) create(t *testing.T, parent string) *BatchPredictionJob {
 	t.Helper()
-	created, err := fx.service.CreateBatchPredictionJob(fx.Context(), &CreateBatchPredictionJobRequest{
+	created, err := fx.Service().CreateBatchPredictionJob(fx.Context(), &CreateBatchPredictionJobRequest{
 		Parent:             parent,
 		BatchPredictionJob: fx.Create(parent),
 	})
@@ -777,9 +779,11 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) create(t *testing.T, pare
 }
 
 type JobServiceCustomJobTestSuiteConfig struct {
-	service    JobServiceServer
 	currParent int
 
+	// Service should return the service that should be tested.
+	// The service will be used for several tests.
+	Service func() JobServiceServer
 	// Context should return a new context.
 	// The context will be used for several tests.
 	Context func() context.Context
@@ -810,7 +814,7 @@ func (fx *JobServiceCustomJobTestSuiteConfig) testCreate(t *testing.T) {
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateCustomJob(fx.Context(), &CreateCustomJobRequest{
+		_, err := fx.Service().CreateCustomJob(fx.Context(), &CreateCustomJobRequest{
 			Parent:    "",
 			CustomJob: fx.Create(fx.nextParent(t, false)),
 		})
@@ -820,7 +824,7 @@ func (fx *JobServiceCustomJobTestSuiteConfig) testCreate(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateCustomJob(fx.Context(), &CreateCustomJobRequest{
+		_, err := fx.Service().CreateCustomJob(fx.Context(), &CreateCustomJobRequest{
 			Parent:    "invalid resource name",
 			CustomJob: fx.Create(fx.nextParent(t, false)),
 		})
@@ -832,7 +836,7 @@ func (fx *JobServiceCustomJobTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		beforeCreate := time.Now()
-		msg, err := fx.service.CreateCustomJob(fx.Context(), &CreateCustomJobRequest{
+		msg, err := fx.Service().CreateCustomJob(fx.Context(), &CreateCustomJobRequest{
 			Parent:    parent,
 			CustomJob: fx.Create(parent),
 		})
@@ -846,12 +850,12 @@ func (fx *JobServiceCustomJobTestSuiteConfig) testCreate(t *testing.T) {
 	t.Run("persisted", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		msg, err := fx.service.CreateCustomJob(fx.Context(), &CreateCustomJobRequest{
+		msg, err := fx.Service().CreateCustomJob(fx.Context(), &CreateCustomJobRequest{
 			Parent:    parent,
 			CustomJob: fx.Create(parent),
 		})
 		assert.NilError(t, err)
-		persisted, err := fx.service.GetCustomJob(fx.Context(), &GetCustomJobRequest{
+		persisted, err := fx.Service().GetCustomJob(fx.Context(), &GetCustomJobRequest{
 			Name: msg.Name,
 		})
 		assert.NilError(t, err)
@@ -872,7 +876,7 @@ func (fx *JobServiceCustomJobTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateCustomJob(fx.Context(), &CreateCustomJobRequest{
+			_, err := fx.Service().CreateCustomJob(fx.Context(), &CreateCustomJobRequest{
 				Parent:    parent,
 				CustomJob: msg,
 			})
@@ -888,7 +892,7 @@ func (fx *JobServiceCustomJobTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("job_spec")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateCustomJob(fx.Context(), &CreateCustomJobRequest{
+			_, err := fx.Service().CreateCustomJob(fx.Context(), &CreateCustomJobRequest{
 				Parent:    parent,
 				CustomJob: msg,
 			})
@@ -904,7 +908,7 @@ func (fx *JobServiceCustomJobTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("worker_pool_specs")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateCustomJob(fx.Context(), &CreateCustomJobRequest{
+			_, err := fx.Service().CreateCustomJob(fx.Context(), &CreateCustomJobRequest{
 				Parent:    parent,
 				CustomJob: msg,
 			})
@@ -920,7 +924,7 @@ func (fx *JobServiceCustomJobTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("output_uri_prefix")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateCustomJob(fx.Context(), &CreateCustomJobRequest{
+			_, err := fx.Service().CreateCustomJob(fx.Context(), &CreateCustomJobRequest{
 				Parent:    parent,
 				CustomJob: msg,
 			})
@@ -936,7 +940,7 @@ func (fx *JobServiceCustomJobTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("kms_key_name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateCustomJob(fx.Context(), &CreateCustomJobRequest{
+			_, err := fx.Service().CreateCustomJob(fx.Context(), &CreateCustomJobRequest{
 				Parent:    parent,
 				CustomJob: msg,
 			})
@@ -957,7 +961,7 @@ func (fx *JobServiceCustomJobTestSuiteConfig) testCreate(t *testing.T) {
 				t.Skip("not reachable")
 			}
 			container.Network = "invalid resource name"
-			_, err := fx.service.CreateCustomJob(fx.Context(), &CreateCustomJobRequest{
+			_, err := fx.Service().CreateCustomJob(fx.Context(), &CreateCustomJobRequest{
 				Parent:    parent,
 				CustomJob: msg,
 			})
@@ -972,7 +976,7 @@ func (fx *JobServiceCustomJobTestSuiteConfig) testCreate(t *testing.T) {
 				t.Skip("not reachable")
 			}
 			container.Tensorboard = "invalid resource name"
-			_, err := fx.service.CreateCustomJob(fx.Context(), &CreateCustomJobRequest{
+			_, err := fx.Service().CreateCustomJob(fx.Context(), &CreateCustomJobRequest{
 				Parent:    parent,
 				CustomJob: msg,
 			})
@@ -987,7 +991,7 @@ func (fx *JobServiceCustomJobTestSuiteConfig) testCreate(t *testing.T) {
 				t.Skip("not reachable")
 			}
 			container.Experiment = "invalid resource name"
-			_, err := fx.service.CreateCustomJob(fx.Context(), &CreateCustomJobRequest{
+			_, err := fx.Service().CreateCustomJob(fx.Context(), &CreateCustomJobRequest{
 				Parent:    parent,
 				CustomJob: msg,
 			})
@@ -1002,7 +1006,7 @@ func (fx *JobServiceCustomJobTestSuiteConfig) testCreate(t *testing.T) {
 				t.Skip("not reachable")
 			}
 			container.ExperimentRun = "invalid resource name"
-			_, err := fx.service.CreateCustomJob(fx.Context(), &CreateCustomJobRequest{
+			_, err := fx.Service().CreateCustomJob(fx.Context(), &CreateCustomJobRequest{
 				Parent:    parent,
 				CustomJob: msg,
 			})
@@ -1017,7 +1021,7 @@ func (fx *JobServiceCustomJobTestSuiteConfig) testCreate(t *testing.T) {
 				t.Skip("not reachable")
 			}
 			container.Models = []string{"invalid resource name"}
-			_, err := fx.service.CreateCustomJob(fx.Context(), &CreateCustomJobRequest{
+			_, err := fx.Service().CreateCustomJob(fx.Context(), &CreateCustomJobRequest{
 				Parent:    parent,
 				CustomJob: msg,
 			})
@@ -1032,7 +1036,7 @@ func (fx *JobServiceCustomJobTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetCustomJob(fx.Context(), &GetCustomJobRequest{
+		_, err := fx.Service().GetCustomJob(fx.Context(), &GetCustomJobRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1041,7 +1045,7 @@ func (fx *JobServiceCustomJobTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetCustomJob(fx.Context(), &GetCustomJobRequest{
+		_, err := fx.Service().GetCustomJob(fx.Context(), &GetCustomJobRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1052,7 +1056,7 @@ func (fx *JobServiceCustomJobTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		msg, err := fx.service.GetCustomJob(fx.Context(), &GetCustomJobRequest{
+		msg, err := fx.Service().GetCustomJob(fx.Context(), &GetCustomJobRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -1064,7 +1068,7 @@ func (fx *JobServiceCustomJobTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.GetCustomJob(fx.Context(), &GetCustomJobRequest{
+		_, err := fx.Service().GetCustomJob(fx.Context(), &GetCustomJobRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -1073,7 +1077,7 @@ func (fx *JobServiceCustomJobTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetCustomJob(fx.Context(), &GetCustomJobRequest{
+		_, err := fx.Service().GetCustomJob(fx.Context(), &GetCustomJobRequest{
 			Name: "projects/-/locations/-/customJobs/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1086,7 +1090,7 @@ func (fx *JobServiceCustomJobTestSuiteConfig) testList(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.ListCustomJobs(fx.Context(), &ListCustomJobsRequest{
+		_, err := fx.Service().ListCustomJobs(fx.Context(), &ListCustomJobsRequest{
 			Parent: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1096,7 +1100,7 @@ func (fx *JobServiceCustomJobTestSuiteConfig) testList(t *testing.T) {
 	t.Run("invalid page token", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListCustomJobs(fx.Context(), &ListCustomJobsRequest{
+		_, err := fx.Service().ListCustomJobs(fx.Context(), &ListCustomJobsRequest{
 			Parent:    parent,
 			PageToken: "invalid page token",
 		})
@@ -1107,7 +1111,7 @@ func (fx *JobServiceCustomJobTestSuiteConfig) testList(t *testing.T) {
 	t.Run("negative page size", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListCustomJobs(fx.Context(), &ListCustomJobsRequest{
+		_, err := fx.Service().ListCustomJobs(fx.Context(), &ListCustomJobsRequest{
 			Parent:   parent,
 			PageSize: -10,
 		})
@@ -1125,7 +1129,7 @@ func (fx *JobServiceCustomJobTestSuiteConfig) testList(t *testing.T) {
 	// under that parent.
 	t.Run("isolation", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListCustomJobs(fx.Context(), &ListCustomJobsRequest{
+		response, err := fx.Service().ListCustomJobs(fx.Context(), &ListCustomJobsRequest{
 			Parent:   parent,
 			PageSize: 999,
 		})
@@ -1144,7 +1148,7 @@ func (fx *JobServiceCustomJobTestSuiteConfig) testList(t *testing.T) {
 	// If there are no more resources, next_page_token should not be set.
 	t.Run("last page", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListCustomJobs(fx.Context(), &ListCustomJobsRequest{
+		response, err := fx.Service().ListCustomJobs(fx.Context(), &ListCustomJobsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount,
 		})
@@ -1155,7 +1159,7 @@ func (fx *JobServiceCustomJobTestSuiteConfig) testList(t *testing.T) {
 	// If there are more resources, next_page_token should be set.
 	t.Run("more pages", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListCustomJobs(fx.Context(), &ListCustomJobsRequest{
+		response, err := fx.Service().ListCustomJobs(fx.Context(), &ListCustomJobsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount - 1,
 		})
@@ -1169,7 +1173,7 @@ func (fx *JobServiceCustomJobTestSuiteConfig) testList(t *testing.T) {
 		msgs := make([]*CustomJob, 0, resourcesCount)
 		var nextPageToken string
 		for {
-			response, err := fx.service.ListCustomJobs(fx.Context(), &ListCustomJobsRequest{
+			response, err := fx.Service().ListCustomJobs(fx.Context(), &ListCustomJobsRequest{
 				Parent:    parent,
 				PageSize:  1,
 				PageToken: nextPageToken,
@@ -1198,12 +1202,12 @@ func (fx *JobServiceCustomJobTestSuiteConfig) testList(t *testing.T) {
 		fx.maybeSkip(t)
 		const deleteCount = 5
 		for i := 0; i < deleteCount; i++ {
-			_, err := fx.service.DeleteCustomJob(fx.Context(), &DeleteCustomJobRequest{
+			_, err := fx.Service().DeleteCustomJob(fx.Context(), &DeleteCustomJobRequest{
 				Name: parentMsgs[i].Name,
 			})
 			assert.NilError(t, err)
 		}
-		response, err := fx.service.ListCustomJobs(fx.Context(), &ListCustomJobsRequest{
+		response, err := fx.Service().ListCustomJobs(fx.Context(), &ListCustomJobsRequest{
 			Parent:   parent,
 			PageSize: 9999,
 		})
@@ -1226,7 +1230,7 @@ func (fx *JobServiceCustomJobTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteCustomJob(fx.Context(), &DeleteCustomJobRequest{
+		_, err := fx.Service().DeleteCustomJob(fx.Context(), &DeleteCustomJobRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1235,7 +1239,7 @@ func (fx *JobServiceCustomJobTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteCustomJob(fx.Context(), &DeleteCustomJobRequest{
+		_, err := fx.Service().DeleteCustomJob(fx.Context(), &DeleteCustomJobRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1246,7 +1250,7 @@ func (fx *JobServiceCustomJobTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteCustomJob(fx.Context(), &DeleteCustomJobRequest{
+		_, err := fx.Service().DeleteCustomJob(fx.Context(), &DeleteCustomJobRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -1257,7 +1261,7 @@ func (fx *JobServiceCustomJobTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteCustomJob(fx.Context(), &DeleteCustomJobRequest{
+		_, err := fx.Service().DeleteCustomJob(fx.Context(), &DeleteCustomJobRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -1268,12 +1272,12 @@ func (fx *JobServiceCustomJobTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		deleted, err := fx.service.DeleteCustomJob(fx.Context(), &DeleteCustomJobRequest{
+		deleted, err := fx.Service().DeleteCustomJob(fx.Context(), &DeleteCustomJobRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
 		_ = deleted
-		_, err = fx.service.DeleteCustomJob(fx.Context(), &DeleteCustomJobRequest{
+		_, err = fx.Service().DeleteCustomJob(fx.Context(), &DeleteCustomJobRequest{
 			Name: created.Name,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -1282,7 +1286,7 @@ func (fx *JobServiceCustomJobTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteCustomJob(fx.Context(), &DeleteCustomJobRequest{
+		_, err := fx.Service().DeleteCustomJob(fx.Context(), &DeleteCustomJobRequest{
 			Name: "projects/-/locations/-/customJobs/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1318,7 +1322,7 @@ func (fx *JobServiceCustomJobTestSuiteConfig) maybeSkip(t *testing.T) {
 
 func (fx *JobServiceCustomJobTestSuiteConfig) create(t *testing.T, parent string) *CustomJob {
 	t.Helper()
-	created, err := fx.service.CreateCustomJob(fx.Context(), &CreateCustomJobRequest{
+	created, err := fx.Service().CreateCustomJob(fx.Context(), &CreateCustomJobRequest{
 		Parent:    parent,
 		CustomJob: fx.Create(parent),
 	})
@@ -1327,9 +1331,11 @@ func (fx *JobServiceCustomJobTestSuiteConfig) create(t *testing.T, parent string
 }
 
 type JobServiceDataLabelingJobTestSuiteConfig struct {
-	service    JobServiceServer
 	currParent int
 
+	// Service should return the service that should be tested.
+	// The service will be used for several tests.
+	Service func() JobServiceServer
 	// Context should return a new context.
 	// The context will be used for several tests.
 	Context func() context.Context
@@ -1360,7 +1366,7 @@ func (fx *JobServiceDataLabelingJobTestSuiteConfig) testCreate(t *testing.T) {
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateDataLabelingJob(fx.Context(), &CreateDataLabelingJobRequest{
+		_, err := fx.Service().CreateDataLabelingJob(fx.Context(), &CreateDataLabelingJobRequest{
 			Parent:          "",
 			DataLabelingJob: fx.Create(fx.nextParent(t, false)),
 		})
@@ -1370,7 +1376,7 @@ func (fx *JobServiceDataLabelingJobTestSuiteConfig) testCreate(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateDataLabelingJob(fx.Context(), &CreateDataLabelingJobRequest{
+		_, err := fx.Service().CreateDataLabelingJob(fx.Context(), &CreateDataLabelingJobRequest{
 			Parent:          "invalid resource name",
 			DataLabelingJob: fx.Create(fx.nextParent(t, false)),
 		})
@@ -1382,7 +1388,7 @@ func (fx *JobServiceDataLabelingJobTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		beforeCreate := time.Now()
-		msg, err := fx.service.CreateDataLabelingJob(fx.Context(), &CreateDataLabelingJobRequest{
+		msg, err := fx.Service().CreateDataLabelingJob(fx.Context(), &CreateDataLabelingJobRequest{
 			Parent:          parent,
 			DataLabelingJob: fx.Create(parent),
 		})
@@ -1396,12 +1402,12 @@ func (fx *JobServiceDataLabelingJobTestSuiteConfig) testCreate(t *testing.T) {
 	t.Run("persisted", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		msg, err := fx.service.CreateDataLabelingJob(fx.Context(), &CreateDataLabelingJobRequest{
+		msg, err := fx.Service().CreateDataLabelingJob(fx.Context(), &CreateDataLabelingJobRequest{
 			Parent:          parent,
 			DataLabelingJob: fx.Create(parent),
 		})
 		assert.NilError(t, err)
-		persisted, err := fx.service.GetDataLabelingJob(fx.Context(), &GetDataLabelingJobRequest{
+		persisted, err := fx.Service().GetDataLabelingJob(fx.Context(), &GetDataLabelingJobRequest{
 			Name: msg.Name,
 		})
 		assert.NilError(t, err)
@@ -1422,7 +1428,7 @@ func (fx *JobServiceDataLabelingJobTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateDataLabelingJob(fx.Context(), &CreateDataLabelingJobRequest{
+			_, err := fx.Service().CreateDataLabelingJob(fx.Context(), &CreateDataLabelingJobRequest{
 				Parent:          parent,
 				DataLabelingJob: msg,
 			})
@@ -1438,7 +1444,7 @@ func (fx *JobServiceDataLabelingJobTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("datasets")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateDataLabelingJob(fx.Context(), &CreateDataLabelingJobRequest{
+			_, err := fx.Service().CreateDataLabelingJob(fx.Context(), &CreateDataLabelingJobRequest{
 				Parent:          parent,
 				DataLabelingJob: msg,
 			})
@@ -1454,7 +1460,7 @@ func (fx *JobServiceDataLabelingJobTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("labeler_count")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateDataLabelingJob(fx.Context(), &CreateDataLabelingJobRequest{
+			_, err := fx.Service().CreateDataLabelingJob(fx.Context(), &CreateDataLabelingJobRequest{
 				Parent:          parent,
 				DataLabelingJob: msg,
 			})
@@ -1470,7 +1476,7 @@ func (fx *JobServiceDataLabelingJobTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("instruction_uri")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateDataLabelingJob(fx.Context(), &CreateDataLabelingJobRequest{
+			_, err := fx.Service().CreateDataLabelingJob(fx.Context(), &CreateDataLabelingJobRequest{
 				Parent:          parent,
 				DataLabelingJob: msg,
 			})
@@ -1486,7 +1492,7 @@ func (fx *JobServiceDataLabelingJobTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("inputs_schema_uri")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateDataLabelingJob(fx.Context(), &CreateDataLabelingJobRequest{
+			_, err := fx.Service().CreateDataLabelingJob(fx.Context(), &CreateDataLabelingJobRequest{
 				Parent:          parent,
 				DataLabelingJob: msg,
 			})
@@ -1502,7 +1508,7 @@ func (fx *JobServiceDataLabelingJobTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("inputs")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateDataLabelingJob(fx.Context(), &CreateDataLabelingJobRequest{
+			_, err := fx.Service().CreateDataLabelingJob(fx.Context(), &CreateDataLabelingJobRequest{
 				Parent:          parent,
 				DataLabelingJob: msg,
 			})
@@ -1518,7 +1524,7 @@ func (fx *JobServiceDataLabelingJobTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("kms_key_name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateDataLabelingJob(fx.Context(), &CreateDataLabelingJobRequest{
+			_, err := fx.Service().CreateDataLabelingJob(fx.Context(), &CreateDataLabelingJobRequest{
 				Parent:          parent,
 				DataLabelingJob: msg,
 			})
@@ -1539,7 +1545,7 @@ func (fx *JobServiceDataLabelingJobTestSuiteConfig) testCreate(t *testing.T) {
 				t.Skip("not reachable")
 			}
 			container.Datasets = []string{"invalid resource name"}
-			_, err := fx.service.CreateDataLabelingJob(fx.Context(), &CreateDataLabelingJobRequest{
+			_, err := fx.Service().CreateDataLabelingJob(fx.Context(), &CreateDataLabelingJobRequest{
 				Parent:          parent,
 				DataLabelingJob: msg,
 			})
@@ -1554,7 +1560,7 @@ func (fx *JobServiceDataLabelingJobTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetDataLabelingJob(fx.Context(), &GetDataLabelingJobRequest{
+		_, err := fx.Service().GetDataLabelingJob(fx.Context(), &GetDataLabelingJobRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1563,7 +1569,7 @@ func (fx *JobServiceDataLabelingJobTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetDataLabelingJob(fx.Context(), &GetDataLabelingJobRequest{
+		_, err := fx.Service().GetDataLabelingJob(fx.Context(), &GetDataLabelingJobRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1574,7 +1580,7 @@ func (fx *JobServiceDataLabelingJobTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		msg, err := fx.service.GetDataLabelingJob(fx.Context(), &GetDataLabelingJobRequest{
+		msg, err := fx.Service().GetDataLabelingJob(fx.Context(), &GetDataLabelingJobRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -1586,7 +1592,7 @@ func (fx *JobServiceDataLabelingJobTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.GetDataLabelingJob(fx.Context(), &GetDataLabelingJobRequest{
+		_, err := fx.Service().GetDataLabelingJob(fx.Context(), &GetDataLabelingJobRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -1595,7 +1601,7 @@ func (fx *JobServiceDataLabelingJobTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetDataLabelingJob(fx.Context(), &GetDataLabelingJobRequest{
+		_, err := fx.Service().GetDataLabelingJob(fx.Context(), &GetDataLabelingJobRequest{
 			Name: "projects/-/locations/-/dataLabelingJobs/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1608,7 +1614,7 @@ func (fx *JobServiceDataLabelingJobTestSuiteConfig) testList(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.ListDataLabelingJobs(fx.Context(), &ListDataLabelingJobsRequest{
+		_, err := fx.Service().ListDataLabelingJobs(fx.Context(), &ListDataLabelingJobsRequest{
 			Parent: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1618,7 +1624,7 @@ func (fx *JobServiceDataLabelingJobTestSuiteConfig) testList(t *testing.T) {
 	t.Run("invalid page token", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListDataLabelingJobs(fx.Context(), &ListDataLabelingJobsRequest{
+		_, err := fx.Service().ListDataLabelingJobs(fx.Context(), &ListDataLabelingJobsRequest{
 			Parent:    parent,
 			PageToken: "invalid page token",
 		})
@@ -1629,7 +1635,7 @@ func (fx *JobServiceDataLabelingJobTestSuiteConfig) testList(t *testing.T) {
 	t.Run("negative page size", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListDataLabelingJobs(fx.Context(), &ListDataLabelingJobsRequest{
+		_, err := fx.Service().ListDataLabelingJobs(fx.Context(), &ListDataLabelingJobsRequest{
 			Parent:   parent,
 			PageSize: -10,
 		})
@@ -1647,7 +1653,7 @@ func (fx *JobServiceDataLabelingJobTestSuiteConfig) testList(t *testing.T) {
 	// under that parent.
 	t.Run("isolation", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListDataLabelingJobs(fx.Context(), &ListDataLabelingJobsRequest{
+		response, err := fx.Service().ListDataLabelingJobs(fx.Context(), &ListDataLabelingJobsRequest{
 			Parent:   parent,
 			PageSize: 999,
 		})
@@ -1666,7 +1672,7 @@ func (fx *JobServiceDataLabelingJobTestSuiteConfig) testList(t *testing.T) {
 	// If there are no more resources, next_page_token should not be set.
 	t.Run("last page", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListDataLabelingJobs(fx.Context(), &ListDataLabelingJobsRequest{
+		response, err := fx.Service().ListDataLabelingJobs(fx.Context(), &ListDataLabelingJobsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount,
 		})
@@ -1677,7 +1683,7 @@ func (fx *JobServiceDataLabelingJobTestSuiteConfig) testList(t *testing.T) {
 	// If there are more resources, next_page_token should be set.
 	t.Run("more pages", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListDataLabelingJobs(fx.Context(), &ListDataLabelingJobsRequest{
+		response, err := fx.Service().ListDataLabelingJobs(fx.Context(), &ListDataLabelingJobsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount - 1,
 		})
@@ -1691,7 +1697,7 @@ func (fx *JobServiceDataLabelingJobTestSuiteConfig) testList(t *testing.T) {
 		msgs := make([]*DataLabelingJob, 0, resourcesCount)
 		var nextPageToken string
 		for {
-			response, err := fx.service.ListDataLabelingJobs(fx.Context(), &ListDataLabelingJobsRequest{
+			response, err := fx.Service().ListDataLabelingJobs(fx.Context(), &ListDataLabelingJobsRequest{
 				Parent:    parent,
 				PageSize:  1,
 				PageToken: nextPageToken,
@@ -1720,12 +1726,12 @@ func (fx *JobServiceDataLabelingJobTestSuiteConfig) testList(t *testing.T) {
 		fx.maybeSkip(t)
 		const deleteCount = 5
 		for i := 0; i < deleteCount; i++ {
-			_, err := fx.service.DeleteDataLabelingJob(fx.Context(), &DeleteDataLabelingJobRequest{
+			_, err := fx.Service().DeleteDataLabelingJob(fx.Context(), &DeleteDataLabelingJobRequest{
 				Name: parentMsgs[i].Name,
 			})
 			assert.NilError(t, err)
 		}
-		response, err := fx.service.ListDataLabelingJobs(fx.Context(), &ListDataLabelingJobsRequest{
+		response, err := fx.Service().ListDataLabelingJobs(fx.Context(), &ListDataLabelingJobsRequest{
 			Parent:   parent,
 			PageSize: 9999,
 		})
@@ -1748,7 +1754,7 @@ func (fx *JobServiceDataLabelingJobTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteDataLabelingJob(fx.Context(), &DeleteDataLabelingJobRequest{
+		_, err := fx.Service().DeleteDataLabelingJob(fx.Context(), &DeleteDataLabelingJobRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1757,7 +1763,7 @@ func (fx *JobServiceDataLabelingJobTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteDataLabelingJob(fx.Context(), &DeleteDataLabelingJobRequest{
+		_, err := fx.Service().DeleteDataLabelingJob(fx.Context(), &DeleteDataLabelingJobRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1768,7 +1774,7 @@ func (fx *JobServiceDataLabelingJobTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteDataLabelingJob(fx.Context(), &DeleteDataLabelingJobRequest{
+		_, err := fx.Service().DeleteDataLabelingJob(fx.Context(), &DeleteDataLabelingJobRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -1779,7 +1785,7 @@ func (fx *JobServiceDataLabelingJobTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteDataLabelingJob(fx.Context(), &DeleteDataLabelingJobRequest{
+		_, err := fx.Service().DeleteDataLabelingJob(fx.Context(), &DeleteDataLabelingJobRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -1790,12 +1796,12 @@ func (fx *JobServiceDataLabelingJobTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		deleted, err := fx.service.DeleteDataLabelingJob(fx.Context(), &DeleteDataLabelingJobRequest{
+		deleted, err := fx.Service().DeleteDataLabelingJob(fx.Context(), &DeleteDataLabelingJobRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
 		_ = deleted
-		_, err = fx.service.DeleteDataLabelingJob(fx.Context(), &DeleteDataLabelingJobRequest{
+		_, err = fx.Service().DeleteDataLabelingJob(fx.Context(), &DeleteDataLabelingJobRequest{
 			Name: created.Name,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -1804,7 +1810,7 @@ func (fx *JobServiceDataLabelingJobTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteDataLabelingJob(fx.Context(), &DeleteDataLabelingJobRequest{
+		_, err := fx.Service().DeleteDataLabelingJob(fx.Context(), &DeleteDataLabelingJobRequest{
 			Name: "projects/-/locations/-/dataLabelingJobs/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1840,7 +1846,7 @@ func (fx *JobServiceDataLabelingJobTestSuiteConfig) maybeSkip(t *testing.T) {
 
 func (fx *JobServiceDataLabelingJobTestSuiteConfig) create(t *testing.T, parent string) *DataLabelingJob {
 	t.Helper()
-	created, err := fx.service.CreateDataLabelingJob(fx.Context(), &CreateDataLabelingJobRequest{
+	created, err := fx.Service().CreateDataLabelingJob(fx.Context(), &CreateDataLabelingJobRequest{
 		Parent:          parent,
 		DataLabelingJob: fx.Create(parent),
 	})
@@ -1849,9 +1855,11 @@ func (fx *JobServiceDataLabelingJobTestSuiteConfig) create(t *testing.T, parent 
 }
 
 type JobServiceHyperparameterTuningJobTestSuiteConfig struct {
-	service    JobServiceServer
 	currParent int
 
+	// Service should return the service that should be tested.
+	// The service will be used for several tests.
+	Service func() JobServiceServer
 	// Context should return a new context.
 	// The context will be used for several tests.
 	Context func() context.Context
@@ -1882,7 +1890,7 @@ func (fx *JobServiceHyperparameterTuningJobTestSuiteConfig) testCreate(t *testin
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateHyperparameterTuningJob(fx.Context(), &CreateHyperparameterTuningJobRequest{
+		_, err := fx.Service().CreateHyperparameterTuningJob(fx.Context(), &CreateHyperparameterTuningJobRequest{
 			Parent:                  "",
 			HyperparameterTuningJob: fx.Create(fx.nextParent(t, false)),
 		})
@@ -1892,7 +1900,7 @@ func (fx *JobServiceHyperparameterTuningJobTestSuiteConfig) testCreate(t *testin
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateHyperparameterTuningJob(fx.Context(), &CreateHyperparameterTuningJobRequest{
+		_, err := fx.Service().CreateHyperparameterTuningJob(fx.Context(), &CreateHyperparameterTuningJobRequest{
 			Parent:                  "invalid resource name",
 			HyperparameterTuningJob: fx.Create(fx.nextParent(t, false)),
 		})
@@ -1904,7 +1912,7 @@ func (fx *JobServiceHyperparameterTuningJobTestSuiteConfig) testCreate(t *testin
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		beforeCreate := time.Now()
-		msg, err := fx.service.CreateHyperparameterTuningJob(fx.Context(), &CreateHyperparameterTuningJobRequest{
+		msg, err := fx.Service().CreateHyperparameterTuningJob(fx.Context(), &CreateHyperparameterTuningJobRequest{
 			Parent:                  parent,
 			HyperparameterTuningJob: fx.Create(parent),
 		})
@@ -1918,12 +1926,12 @@ func (fx *JobServiceHyperparameterTuningJobTestSuiteConfig) testCreate(t *testin
 	t.Run("persisted", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		msg, err := fx.service.CreateHyperparameterTuningJob(fx.Context(), &CreateHyperparameterTuningJobRequest{
+		msg, err := fx.Service().CreateHyperparameterTuningJob(fx.Context(), &CreateHyperparameterTuningJobRequest{
 			Parent:                  parent,
 			HyperparameterTuningJob: fx.Create(parent),
 		})
 		assert.NilError(t, err)
-		persisted, err := fx.service.GetHyperparameterTuningJob(fx.Context(), &GetHyperparameterTuningJobRequest{
+		persisted, err := fx.Service().GetHyperparameterTuningJob(fx.Context(), &GetHyperparameterTuningJobRequest{
 			Name: msg.Name,
 		})
 		assert.NilError(t, err)
@@ -1944,7 +1952,7 @@ func (fx *JobServiceHyperparameterTuningJobTestSuiteConfig) testCreate(t *testin
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateHyperparameterTuningJob(fx.Context(), &CreateHyperparameterTuningJobRequest{
+			_, err := fx.Service().CreateHyperparameterTuningJob(fx.Context(), &CreateHyperparameterTuningJobRequest{
 				Parent:                  parent,
 				HyperparameterTuningJob: msg,
 			})
@@ -1960,7 +1968,7 @@ func (fx *JobServiceHyperparameterTuningJobTestSuiteConfig) testCreate(t *testin
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("study_spec")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateHyperparameterTuningJob(fx.Context(), &CreateHyperparameterTuningJobRequest{
+			_, err := fx.Service().CreateHyperparameterTuningJob(fx.Context(), &CreateHyperparameterTuningJobRequest{
 				Parent:                  parent,
 				HyperparameterTuningJob: msg,
 			})
@@ -1976,7 +1984,7 @@ func (fx *JobServiceHyperparameterTuningJobTestSuiteConfig) testCreate(t *testin
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("metrics")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateHyperparameterTuningJob(fx.Context(), &CreateHyperparameterTuningJobRequest{
+			_, err := fx.Service().CreateHyperparameterTuningJob(fx.Context(), &CreateHyperparameterTuningJobRequest{
 				Parent:                  parent,
 				HyperparameterTuningJob: msg,
 			})
@@ -1992,7 +2000,7 @@ func (fx *JobServiceHyperparameterTuningJobTestSuiteConfig) testCreate(t *testin
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("parameters")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateHyperparameterTuningJob(fx.Context(), &CreateHyperparameterTuningJobRequest{
+			_, err := fx.Service().CreateHyperparameterTuningJob(fx.Context(), &CreateHyperparameterTuningJobRequest{
 				Parent:                  parent,
 				HyperparameterTuningJob: msg,
 			})
@@ -2008,7 +2016,7 @@ func (fx *JobServiceHyperparameterTuningJobTestSuiteConfig) testCreate(t *testin
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("max_trial_count")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateHyperparameterTuningJob(fx.Context(), &CreateHyperparameterTuningJobRequest{
+			_, err := fx.Service().CreateHyperparameterTuningJob(fx.Context(), &CreateHyperparameterTuningJobRequest{
 				Parent:                  parent,
 				HyperparameterTuningJob: msg,
 			})
@@ -2024,7 +2032,7 @@ func (fx *JobServiceHyperparameterTuningJobTestSuiteConfig) testCreate(t *testin
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("parallel_trial_count")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateHyperparameterTuningJob(fx.Context(), &CreateHyperparameterTuningJobRequest{
+			_, err := fx.Service().CreateHyperparameterTuningJob(fx.Context(), &CreateHyperparameterTuningJobRequest{
 				Parent:                  parent,
 				HyperparameterTuningJob: msg,
 			})
@@ -2040,7 +2048,7 @@ func (fx *JobServiceHyperparameterTuningJobTestSuiteConfig) testCreate(t *testin
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("trial_job_spec")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateHyperparameterTuningJob(fx.Context(), &CreateHyperparameterTuningJobRequest{
+			_, err := fx.Service().CreateHyperparameterTuningJob(fx.Context(), &CreateHyperparameterTuningJobRequest{
 				Parent:                  parent,
 				HyperparameterTuningJob: msg,
 			})
@@ -2056,7 +2064,7 @@ func (fx *JobServiceHyperparameterTuningJobTestSuiteConfig) testCreate(t *testin
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("worker_pool_specs")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateHyperparameterTuningJob(fx.Context(), &CreateHyperparameterTuningJobRequest{
+			_, err := fx.Service().CreateHyperparameterTuningJob(fx.Context(), &CreateHyperparameterTuningJobRequest{
 				Parent:                  parent,
 				HyperparameterTuningJob: msg,
 			})
@@ -2072,7 +2080,7 @@ func (fx *JobServiceHyperparameterTuningJobTestSuiteConfig) testCreate(t *testin
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("output_uri_prefix")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateHyperparameterTuningJob(fx.Context(), &CreateHyperparameterTuningJobRequest{
+			_, err := fx.Service().CreateHyperparameterTuningJob(fx.Context(), &CreateHyperparameterTuningJobRequest{
 				Parent:                  parent,
 				HyperparameterTuningJob: msg,
 			})
@@ -2088,7 +2096,7 @@ func (fx *JobServiceHyperparameterTuningJobTestSuiteConfig) testCreate(t *testin
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("kms_key_name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateHyperparameterTuningJob(fx.Context(), &CreateHyperparameterTuningJobRequest{
+			_, err := fx.Service().CreateHyperparameterTuningJob(fx.Context(), &CreateHyperparameterTuningJobRequest{
 				Parent:                  parent,
 				HyperparameterTuningJob: msg,
 			})
@@ -2109,7 +2117,7 @@ func (fx *JobServiceHyperparameterTuningJobTestSuiteConfig) testCreate(t *testin
 				t.Skip("not reachable")
 			}
 			container.Network = "invalid resource name"
-			_, err := fx.service.CreateHyperparameterTuningJob(fx.Context(), &CreateHyperparameterTuningJobRequest{
+			_, err := fx.Service().CreateHyperparameterTuningJob(fx.Context(), &CreateHyperparameterTuningJobRequest{
 				Parent:                  parent,
 				HyperparameterTuningJob: msg,
 			})
@@ -2124,7 +2132,7 @@ func (fx *JobServiceHyperparameterTuningJobTestSuiteConfig) testCreate(t *testin
 				t.Skip("not reachable")
 			}
 			container.Tensorboard = "invalid resource name"
-			_, err := fx.service.CreateHyperparameterTuningJob(fx.Context(), &CreateHyperparameterTuningJobRequest{
+			_, err := fx.Service().CreateHyperparameterTuningJob(fx.Context(), &CreateHyperparameterTuningJobRequest{
 				Parent:                  parent,
 				HyperparameterTuningJob: msg,
 			})
@@ -2139,7 +2147,7 @@ func (fx *JobServiceHyperparameterTuningJobTestSuiteConfig) testCreate(t *testin
 				t.Skip("not reachable")
 			}
 			container.Experiment = "invalid resource name"
-			_, err := fx.service.CreateHyperparameterTuningJob(fx.Context(), &CreateHyperparameterTuningJobRequest{
+			_, err := fx.Service().CreateHyperparameterTuningJob(fx.Context(), &CreateHyperparameterTuningJobRequest{
 				Parent:                  parent,
 				HyperparameterTuningJob: msg,
 			})
@@ -2154,7 +2162,7 @@ func (fx *JobServiceHyperparameterTuningJobTestSuiteConfig) testCreate(t *testin
 				t.Skip("not reachable")
 			}
 			container.ExperimentRun = "invalid resource name"
-			_, err := fx.service.CreateHyperparameterTuningJob(fx.Context(), &CreateHyperparameterTuningJobRequest{
+			_, err := fx.Service().CreateHyperparameterTuningJob(fx.Context(), &CreateHyperparameterTuningJobRequest{
 				Parent:                  parent,
 				HyperparameterTuningJob: msg,
 			})
@@ -2169,7 +2177,7 @@ func (fx *JobServiceHyperparameterTuningJobTestSuiteConfig) testCreate(t *testin
 				t.Skip("not reachable")
 			}
 			container.Models = []string{"invalid resource name"}
-			_, err := fx.service.CreateHyperparameterTuningJob(fx.Context(), &CreateHyperparameterTuningJobRequest{
+			_, err := fx.Service().CreateHyperparameterTuningJob(fx.Context(), &CreateHyperparameterTuningJobRequest{
 				Parent:                  parent,
 				HyperparameterTuningJob: msg,
 			})
@@ -2184,7 +2192,7 @@ func (fx *JobServiceHyperparameterTuningJobTestSuiteConfig) testGet(t *testing.T
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetHyperparameterTuningJob(fx.Context(), &GetHyperparameterTuningJobRequest{
+		_, err := fx.Service().GetHyperparameterTuningJob(fx.Context(), &GetHyperparameterTuningJobRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -2193,7 +2201,7 @@ func (fx *JobServiceHyperparameterTuningJobTestSuiteConfig) testGet(t *testing.T
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetHyperparameterTuningJob(fx.Context(), &GetHyperparameterTuningJobRequest{
+		_, err := fx.Service().GetHyperparameterTuningJob(fx.Context(), &GetHyperparameterTuningJobRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -2204,7 +2212,7 @@ func (fx *JobServiceHyperparameterTuningJobTestSuiteConfig) testGet(t *testing.T
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		msg, err := fx.service.GetHyperparameterTuningJob(fx.Context(), &GetHyperparameterTuningJobRequest{
+		msg, err := fx.Service().GetHyperparameterTuningJob(fx.Context(), &GetHyperparameterTuningJobRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -2216,7 +2224,7 @@ func (fx *JobServiceHyperparameterTuningJobTestSuiteConfig) testGet(t *testing.T
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.GetHyperparameterTuningJob(fx.Context(), &GetHyperparameterTuningJobRequest{
+		_, err := fx.Service().GetHyperparameterTuningJob(fx.Context(), &GetHyperparameterTuningJobRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -2225,7 +2233,7 @@ func (fx *JobServiceHyperparameterTuningJobTestSuiteConfig) testGet(t *testing.T
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetHyperparameterTuningJob(fx.Context(), &GetHyperparameterTuningJobRequest{
+		_, err := fx.Service().GetHyperparameterTuningJob(fx.Context(), &GetHyperparameterTuningJobRequest{
 			Name: "projects/-/locations/-/hyperparameterTuningJobs/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -2238,7 +2246,7 @@ func (fx *JobServiceHyperparameterTuningJobTestSuiteConfig) testList(t *testing.
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.ListHyperparameterTuningJobs(fx.Context(), &ListHyperparameterTuningJobsRequest{
+		_, err := fx.Service().ListHyperparameterTuningJobs(fx.Context(), &ListHyperparameterTuningJobsRequest{
 			Parent: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -2248,7 +2256,7 @@ func (fx *JobServiceHyperparameterTuningJobTestSuiteConfig) testList(t *testing.
 	t.Run("invalid page token", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListHyperparameterTuningJobs(fx.Context(), &ListHyperparameterTuningJobsRequest{
+		_, err := fx.Service().ListHyperparameterTuningJobs(fx.Context(), &ListHyperparameterTuningJobsRequest{
 			Parent:    parent,
 			PageToken: "invalid page token",
 		})
@@ -2259,7 +2267,7 @@ func (fx *JobServiceHyperparameterTuningJobTestSuiteConfig) testList(t *testing.
 	t.Run("negative page size", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListHyperparameterTuningJobs(fx.Context(), &ListHyperparameterTuningJobsRequest{
+		_, err := fx.Service().ListHyperparameterTuningJobs(fx.Context(), &ListHyperparameterTuningJobsRequest{
 			Parent:   parent,
 			PageSize: -10,
 		})
@@ -2277,7 +2285,7 @@ func (fx *JobServiceHyperparameterTuningJobTestSuiteConfig) testList(t *testing.
 	// under that parent.
 	t.Run("isolation", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListHyperparameterTuningJobs(fx.Context(), &ListHyperparameterTuningJobsRequest{
+		response, err := fx.Service().ListHyperparameterTuningJobs(fx.Context(), &ListHyperparameterTuningJobsRequest{
 			Parent:   parent,
 			PageSize: 999,
 		})
@@ -2296,7 +2304,7 @@ func (fx *JobServiceHyperparameterTuningJobTestSuiteConfig) testList(t *testing.
 	// If there are no more resources, next_page_token should not be set.
 	t.Run("last page", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListHyperparameterTuningJobs(fx.Context(), &ListHyperparameterTuningJobsRequest{
+		response, err := fx.Service().ListHyperparameterTuningJobs(fx.Context(), &ListHyperparameterTuningJobsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount,
 		})
@@ -2307,7 +2315,7 @@ func (fx *JobServiceHyperparameterTuningJobTestSuiteConfig) testList(t *testing.
 	// If there are more resources, next_page_token should be set.
 	t.Run("more pages", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListHyperparameterTuningJobs(fx.Context(), &ListHyperparameterTuningJobsRequest{
+		response, err := fx.Service().ListHyperparameterTuningJobs(fx.Context(), &ListHyperparameterTuningJobsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount - 1,
 		})
@@ -2321,7 +2329,7 @@ func (fx *JobServiceHyperparameterTuningJobTestSuiteConfig) testList(t *testing.
 		msgs := make([]*HyperparameterTuningJob, 0, resourcesCount)
 		var nextPageToken string
 		for {
-			response, err := fx.service.ListHyperparameterTuningJobs(fx.Context(), &ListHyperparameterTuningJobsRequest{
+			response, err := fx.Service().ListHyperparameterTuningJobs(fx.Context(), &ListHyperparameterTuningJobsRequest{
 				Parent:    parent,
 				PageSize:  1,
 				PageToken: nextPageToken,
@@ -2350,12 +2358,12 @@ func (fx *JobServiceHyperparameterTuningJobTestSuiteConfig) testList(t *testing.
 		fx.maybeSkip(t)
 		const deleteCount = 5
 		for i := 0; i < deleteCount; i++ {
-			_, err := fx.service.DeleteHyperparameterTuningJob(fx.Context(), &DeleteHyperparameterTuningJobRequest{
+			_, err := fx.Service().DeleteHyperparameterTuningJob(fx.Context(), &DeleteHyperparameterTuningJobRequest{
 				Name: parentMsgs[i].Name,
 			})
 			assert.NilError(t, err)
 		}
-		response, err := fx.service.ListHyperparameterTuningJobs(fx.Context(), &ListHyperparameterTuningJobsRequest{
+		response, err := fx.Service().ListHyperparameterTuningJobs(fx.Context(), &ListHyperparameterTuningJobsRequest{
 			Parent:   parent,
 			PageSize: 9999,
 		})
@@ -2378,7 +2386,7 @@ func (fx *JobServiceHyperparameterTuningJobTestSuiteConfig) testDelete(t *testin
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteHyperparameterTuningJob(fx.Context(), &DeleteHyperparameterTuningJobRequest{
+		_, err := fx.Service().DeleteHyperparameterTuningJob(fx.Context(), &DeleteHyperparameterTuningJobRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -2387,7 +2395,7 @@ func (fx *JobServiceHyperparameterTuningJobTestSuiteConfig) testDelete(t *testin
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteHyperparameterTuningJob(fx.Context(), &DeleteHyperparameterTuningJobRequest{
+		_, err := fx.Service().DeleteHyperparameterTuningJob(fx.Context(), &DeleteHyperparameterTuningJobRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -2398,7 +2406,7 @@ func (fx *JobServiceHyperparameterTuningJobTestSuiteConfig) testDelete(t *testin
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteHyperparameterTuningJob(fx.Context(), &DeleteHyperparameterTuningJobRequest{
+		_, err := fx.Service().DeleteHyperparameterTuningJob(fx.Context(), &DeleteHyperparameterTuningJobRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -2409,7 +2417,7 @@ func (fx *JobServiceHyperparameterTuningJobTestSuiteConfig) testDelete(t *testin
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteHyperparameterTuningJob(fx.Context(), &DeleteHyperparameterTuningJobRequest{
+		_, err := fx.Service().DeleteHyperparameterTuningJob(fx.Context(), &DeleteHyperparameterTuningJobRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -2420,12 +2428,12 @@ func (fx *JobServiceHyperparameterTuningJobTestSuiteConfig) testDelete(t *testin
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		deleted, err := fx.service.DeleteHyperparameterTuningJob(fx.Context(), &DeleteHyperparameterTuningJobRequest{
+		deleted, err := fx.Service().DeleteHyperparameterTuningJob(fx.Context(), &DeleteHyperparameterTuningJobRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
 		_ = deleted
-		_, err = fx.service.DeleteHyperparameterTuningJob(fx.Context(), &DeleteHyperparameterTuningJobRequest{
+		_, err = fx.Service().DeleteHyperparameterTuningJob(fx.Context(), &DeleteHyperparameterTuningJobRequest{
 			Name: created.Name,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -2434,7 +2442,7 @@ func (fx *JobServiceHyperparameterTuningJobTestSuiteConfig) testDelete(t *testin
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteHyperparameterTuningJob(fx.Context(), &DeleteHyperparameterTuningJobRequest{
+		_, err := fx.Service().DeleteHyperparameterTuningJob(fx.Context(), &DeleteHyperparameterTuningJobRequest{
 			Name: "projects/-/locations/-/hyperparameterTuningJobs/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -2470,7 +2478,7 @@ func (fx *JobServiceHyperparameterTuningJobTestSuiteConfig) maybeSkip(t *testing
 
 func (fx *JobServiceHyperparameterTuningJobTestSuiteConfig) create(t *testing.T, parent string) *HyperparameterTuningJob {
 	t.Helper()
-	created, err := fx.service.CreateHyperparameterTuningJob(fx.Context(), &CreateHyperparameterTuningJobRequest{
+	created, err := fx.Service().CreateHyperparameterTuningJob(fx.Context(), &CreateHyperparameterTuningJobRequest{
 		Parent:                  parent,
 		HyperparameterTuningJob: fx.Create(parent),
 	})
@@ -2479,9 +2487,11 @@ func (fx *JobServiceHyperparameterTuningJobTestSuiteConfig) create(t *testing.T,
 }
 
 type JobServiceModelDeploymentMonitoringJobTestSuiteConfig struct {
-	service    JobServiceServer
 	currParent int
 
+	// Service should return the service that should be tested.
+	// The service will be used for several tests.
+	Service func() JobServiceServer
 	// Context should return a new context.
 	// The context will be used for several tests.
 	Context func() context.Context
@@ -2516,7 +2526,7 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testCreate(t *t
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateModelDeploymentMonitoringJob(fx.Context(), &CreateModelDeploymentMonitoringJobRequest{
+		_, err := fx.Service().CreateModelDeploymentMonitoringJob(fx.Context(), &CreateModelDeploymentMonitoringJobRequest{
 			Parent:                       "",
 			ModelDeploymentMonitoringJob: fx.Create(fx.nextParent(t, false)),
 		})
@@ -2526,7 +2536,7 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testCreate(t *t
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateModelDeploymentMonitoringJob(fx.Context(), &CreateModelDeploymentMonitoringJobRequest{
+		_, err := fx.Service().CreateModelDeploymentMonitoringJob(fx.Context(), &CreateModelDeploymentMonitoringJobRequest{
 			Parent:                       "invalid resource name",
 			ModelDeploymentMonitoringJob: fx.Create(fx.nextParent(t, false)),
 		})
@@ -2538,7 +2548,7 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testCreate(t *t
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		beforeCreate := time.Now()
-		msg, err := fx.service.CreateModelDeploymentMonitoringJob(fx.Context(), &CreateModelDeploymentMonitoringJobRequest{
+		msg, err := fx.Service().CreateModelDeploymentMonitoringJob(fx.Context(), &CreateModelDeploymentMonitoringJobRequest{
 			Parent:                       parent,
 			ModelDeploymentMonitoringJob: fx.Create(parent),
 		})
@@ -2552,12 +2562,12 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testCreate(t *t
 	t.Run("persisted", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		msg, err := fx.service.CreateModelDeploymentMonitoringJob(fx.Context(), &CreateModelDeploymentMonitoringJobRequest{
+		msg, err := fx.Service().CreateModelDeploymentMonitoringJob(fx.Context(), &CreateModelDeploymentMonitoringJobRequest{
 			Parent:                       parent,
 			ModelDeploymentMonitoringJob: fx.Create(parent),
 		})
 		assert.NilError(t, err)
-		persisted, err := fx.service.GetModelDeploymentMonitoringJob(fx.Context(), &GetModelDeploymentMonitoringJobRequest{
+		persisted, err := fx.Service().GetModelDeploymentMonitoringJob(fx.Context(), &GetModelDeploymentMonitoringJobRequest{
 			Name: msg.Name,
 		})
 		assert.NilError(t, err)
@@ -2578,7 +2588,7 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testCreate(t *t
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateModelDeploymentMonitoringJob(fx.Context(), &CreateModelDeploymentMonitoringJobRequest{
+			_, err := fx.Service().CreateModelDeploymentMonitoringJob(fx.Context(), &CreateModelDeploymentMonitoringJobRequest{
 				Parent:                       parent,
 				ModelDeploymentMonitoringJob: msg,
 			})
@@ -2594,7 +2604,7 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testCreate(t *t
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("endpoint")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateModelDeploymentMonitoringJob(fx.Context(), &CreateModelDeploymentMonitoringJobRequest{
+			_, err := fx.Service().CreateModelDeploymentMonitoringJob(fx.Context(), &CreateModelDeploymentMonitoringJobRequest{
 				Parent:                       parent,
 				ModelDeploymentMonitoringJob: msg,
 			})
@@ -2610,7 +2620,7 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testCreate(t *t
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("model_deployment_monitoring_objective_configs")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateModelDeploymentMonitoringJob(fx.Context(), &CreateModelDeploymentMonitoringJobRequest{
+			_, err := fx.Service().CreateModelDeploymentMonitoringJob(fx.Context(), &CreateModelDeploymentMonitoringJobRequest{
 				Parent:                       parent,
 				ModelDeploymentMonitoringJob: msg,
 			})
@@ -2626,7 +2636,7 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testCreate(t *t
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("model_deployment_monitoring_schedule_config")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateModelDeploymentMonitoringJob(fx.Context(), &CreateModelDeploymentMonitoringJobRequest{
+			_, err := fx.Service().CreateModelDeploymentMonitoringJob(fx.Context(), &CreateModelDeploymentMonitoringJobRequest{
 				Parent:                       parent,
 				ModelDeploymentMonitoringJob: msg,
 			})
@@ -2642,7 +2652,7 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testCreate(t *t
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("monitor_interval")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateModelDeploymentMonitoringJob(fx.Context(), &CreateModelDeploymentMonitoringJobRequest{
+			_, err := fx.Service().CreateModelDeploymentMonitoringJob(fx.Context(), &CreateModelDeploymentMonitoringJobRequest{
 				Parent:                       parent,
 				ModelDeploymentMonitoringJob: msg,
 			})
@@ -2658,7 +2668,7 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testCreate(t *t
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("logging_sampling_strategy")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateModelDeploymentMonitoringJob(fx.Context(), &CreateModelDeploymentMonitoringJobRequest{
+			_, err := fx.Service().CreateModelDeploymentMonitoringJob(fx.Context(), &CreateModelDeploymentMonitoringJobRequest{
 				Parent:                       parent,
 				ModelDeploymentMonitoringJob: msg,
 			})
@@ -2674,7 +2684,7 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testCreate(t *t
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("output_uri_prefix")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateModelDeploymentMonitoringJob(fx.Context(), &CreateModelDeploymentMonitoringJobRequest{
+			_, err := fx.Service().CreateModelDeploymentMonitoringJob(fx.Context(), &CreateModelDeploymentMonitoringJobRequest{
 				Parent:                       parent,
 				ModelDeploymentMonitoringJob: msg,
 			})
@@ -2690,7 +2700,7 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testCreate(t *t
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("kms_key_name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateModelDeploymentMonitoringJob(fx.Context(), &CreateModelDeploymentMonitoringJobRequest{
+			_, err := fx.Service().CreateModelDeploymentMonitoringJob(fx.Context(), &CreateModelDeploymentMonitoringJobRequest{
 				Parent:                       parent,
 				ModelDeploymentMonitoringJob: msg,
 			})
@@ -2711,7 +2721,7 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testCreate(t *t
 				t.Skip("not reachable")
 			}
 			container.Endpoint = "invalid resource name"
-			_, err := fx.service.CreateModelDeploymentMonitoringJob(fx.Context(), &CreateModelDeploymentMonitoringJobRequest{
+			_, err := fx.Service().CreateModelDeploymentMonitoringJob(fx.Context(), &CreateModelDeploymentMonitoringJobRequest{
 				Parent:                       parent,
 				ModelDeploymentMonitoringJob: msg,
 			})
@@ -2726,7 +2736,7 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testCreate(t *t
 				t.Skip("not reachable")
 			}
 			container.NotificationChannels = []string{"invalid resource name"}
-			_, err := fx.service.CreateModelDeploymentMonitoringJob(fx.Context(), &CreateModelDeploymentMonitoringJobRequest{
+			_, err := fx.Service().CreateModelDeploymentMonitoringJob(fx.Context(), &CreateModelDeploymentMonitoringJobRequest{
 				Parent:                       parent,
 				ModelDeploymentMonitoringJob: msg,
 			})
@@ -2741,7 +2751,7 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testGet(t *test
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetModelDeploymentMonitoringJob(fx.Context(), &GetModelDeploymentMonitoringJobRequest{
+		_, err := fx.Service().GetModelDeploymentMonitoringJob(fx.Context(), &GetModelDeploymentMonitoringJobRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -2750,7 +2760,7 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testGet(t *test
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetModelDeploymentMonitoringJob(fx.Context(), &GetModelDeploymentMonitoringJobRequest{
+		_, err := fx.Service().GetModelDeploymentMonitoringJob(fx.Context(), &GetModelDeploymentMonitoringJobRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -2761,7 +2771,7 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testGet(t *test
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		msg, err := fx.service.GetModelDeploymentMonitoringJob(fx.Context(), &GetModelDeploymentMonitoringJobRequest{
+		msg, err := fx.Service().GetModelDeploymentMonitoringJob(fx.Context(), &GetModelDeploymentMonitoringJobRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -2773,7 +2783,7 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testGet(t *test
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.GetModelDeploymentMonitoringJob(fx.Context(), &GetModelDeploymentMonitoringJobRequest{
+		_, err := fx.Service().GetModelDeploymentMonitoringJob(fx.Context(), &GetModelDeploymentMonitoringJobRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -2782,7 +2792,7 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testGet(t *test
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetModelDeploymentMonitoringJob(fx.Context(), &GetModelDeploymentMonitoringJobRequest{
+		_, err := fx.Service().GetModelDeploymentMonitoringJob(fx.Context(), &GetModelDeploymentMonitoringJobRequest{
 			Name: "projects/-/locations/-/modelDeploymentMonitoringJobs/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -2798,7 +2808,7 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testUpdate(t *t
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
 		msg.Name = ""
-		_, err := fx.service.UpdateModelDeploymentMonitoringJob(fx.Context(), &UpdateModelDeploymentMonitoringJobRequest{
+		_, err := fx.Service().UpdateModelDeploymentMonitoringJob(fx.Context(), &UpdateModelDeploymentMonitoringJobRequest{
 			ModelDeploymentMonitoringJob: msg,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -2810,7 +2820,7 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testUpdate(t *t
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
 		msg.Name = "invalid resource name"
-		_, err := fx.service.UpdateModelDeploymentMonitoringJob(fx.Context(), &UpdateModelDeploymentMonitoringJobRequest{
+		_, err := fx.Service().UpdateModelDeploymentMonitoringJob(fx.Context(), &UpdateModelDeploymentMonitoringJobRequest{
 			ModelDeploymentMonitoringJob: msg,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -2823,7 +2833,7 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testUpdate(t *t
 		fx.maybeSkip(t)
 		msg := fx.Update(parent)
 		msg.Name = created.Name + "notfound"
-		_, err := fx.service.UpdateModelDeploymentMonitoringJob(fx.Context(), &UpdateModelDeploymentMonitoringJobRequest{
+		_, err := fx.Service().UpdateModelDeploymentMonitoringJob(fx.Context(), &UpdateModelDeploymentMonitoringJobRequest{
 			ModelDeploymentMonitoringJob: msg,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -2832,7 +2842,7 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testUpdate(t *t
 	// The method should fail with InvalidArgument if the update_mask is invalid.
 	t.Run("invalid update mask", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.UpdateModelDeploymentMonitoringJob(fx.Context(), &UpdateModelDeploymentMonitoringJobRequest{
+		_, err := fx.Service().UpdateModelDeploymentMonitoringJob(fx.Context(), &UpdateModelDeploymentMonitoringJobRequest{
 			ModelDeploymentMonitoringJob: created,
 			UpdateMask: &fieldmaskpb.FieldMask{
 				Paths: []string{
@@ -2856,7 +2866,7 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testUpdate(t *t
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateModelDeploymentMonitoringJob(fx.Context(), &UpdateModelDeploymentMonitoringJobRequest{
+			_, err := fx.Service().UpdateModelDeploymentMonitoringJob(fx.Context(), &UpdateModelDeploymentMonitoringJobRequest{
 				ModelDeploymentMonitoringJob: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
@@ -2875,7 +2885,7 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testUpdate(t *t
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("endpoint")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateModelDeploymentMonitoringJob(fx.Context(), &UpdateModelDeploymentMonitoringJobRequest{
+			_, err := fx.Service().UpdateModelDeploymentMonitoringJob(fx.Context(), &UpdateModelDeploymentMonitoringJobRequest{
 				ModelDeploymentMonitoringJob: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
@@ -2894,7 +2904,7 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testUpdate(t *t
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("model_deployment_monitoring_objective_configs")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateModelDeploymentMonitoringJob(fx.Context(), &UpdateModelDeploymentMonitoringJobRequest{
+			_, err := fx.Service().UpdateModelDeploymentMonitoringJob(fx.Context(), &UpdateModelDeploymentMonitoringJobRequest{
 				ModelDeploymentMonitoringJob: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
@@ -2913,7 +2923,7 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testUpdate(t *t
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("model_deployment_monitoring_schedule_config")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateModelDeploymentMonitoringJob(fx.Context(), &UpdateModelDeploymentMonitoringJobRequest{
+			_, err := fx.Service().UpdateModelDeploymentMonitoringJob(fx.Context(), &UpdateModelDeploymentMonitoringJobRequest{
 				ModelDeploymentMonitoringJob: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
@@ -2932,7 +2942,7 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testUpdate(t *t
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("monitor_interval")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateModelDeploymentMonitoringJob(fx.Context(), &UpdateModelDeploymentMonitoringJobRequest{
+			_, err := fx.Service().UpdateModelDeploymentMonitoringJob(fx.Context(), &UpdateModelDeploymentMonitoringJobRequest{
 				ModelDeploymentMonitoringJob: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
@@ -2951,7 +2961,7 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testUpdate(t *t
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("logging_sampling_strategy")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateModelDeploymentMonitoringJob(fx.Context(), &UpdateModelDeploymentMonitoringJobRequest{
+			_, err := fx.Service().UpdateModelDeploymentMonitoringJob(fx.Context(), &UpdateModelDeploymentMonitoringJobRequest{
 				ModelDeploymentMonitoringJob: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
@@ -2970,7 +2980,7 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testUpdate(t *t
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("output_uri_prefix")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateModelDeploymentMonitoringJob(fx.Context(), &UpdateModelDeploymentMonitoringJobRequest{
+			_, err := fx.Service().UpdateModelDeploymentMonitoringJob(fx.Context(), &UpdateModelDeploymentMonitoringJobRequest{
 				ModelDeploymentMonitoringJob: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
@@ -2989,7 +2999,7 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testUpdate(t *t
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("kms_key_name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateModelDeploymentMonitoringJob(fx.Context(), &UpdateModelDeploymentMonitoringJobRequest{
+			_, err := fx.Service().UpdateModelDeploymentMonitoringJob(fx.Context(), &UpdateModelDeploymentMonitoringJobRequest{
 				ModelDeploymentMonitoringJob: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
@@ -3008,7 +3018,7 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testList(t *tes
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.ListModelDeploymentMonitoringJobs(fx.Context(), &ListModelDeploymentMonitoringJobsRequest{
+		_, err := fx.Service().ListModelDeploymentMonitoringJobs(fx.Context(), &ListModelDeploymentMonitoringJobsRequest{
 			Parent: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -3018,7 +3028,7 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testList(t *tes
 	t.Run("invalid page token", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListModelDeploymentMonitoringJobs(fx.Context(), &ListModelDeploymentMonitoringJobsRequest{
+		_, err := fx.Service().ListModelDeploymentMonitoringJobs(fx.Context(), &ListModelDeploymentMonitoringJobsRequest{
 			Parent:    parent,
 			PageToken: "invalid page token",
 		})
@@ -3029,7 +3039,7 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testList(t *tes
 	t.Run("negative page size", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListModelDeploymentMonitoringJobs(fx.Context(), &ListModelDeploymentMonitoringJobsRequest{
+		_, err := fx.Service().ListModelDeploymentMonitoringJobs(fx.Context(), &ListModelDeploymentMonitoringJobsRequest{
 			Parent:   parent,
 			PageSize: -10,
 		})
@@ -3047,7 +3057,7 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testList(t *tes
 	// under that parent.
 	t.Run("isolation", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListModelDeploymentMonitoringJobs(fx.Context(), &ListModelDeploymentMonitoringJobsRequest{
+		response, err := fx.Service().ListModelDeploymentMonitoringJobs(fx.Context(), &ListModelDeploymentMonitoringJobsRequest{
 			Parent:   parent,
 			PageSize: 999,
 		})
@@ -3066,7 +3076,7 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testList(t *tes
 	// If there are no more resources, next_page_token should not be set.
 	t.Run("last page", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListModelDeploymentMonitoringJobs(fx.Context(), &ListModelDeploymentMonitoringJobsRequest{
+		response, err := fx.Service().ListModelDeploymentMonitoringJobs(fx.Context(), &ListModelDeploymentMonitoringJobsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount,
 		})
@@ -3077,7 +3087,7 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testList(t *tes
 	// If there are more resources, next_page_token should be set.
 	t.Run("more pages", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListModelDeploymentMonitoringJobs(fx.Context(), &ListModelDeploymentMonitoringJobsRequest{
+		response, err := fx.Service().ListModelDeploymentMonitoringJobs(fx.Context(), &ListModelDeploymentMonitoringJobsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount - 1,
 		})
@@ -3091,7 +3101,7 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testList(t *tes
 		msgs := make([]*ModelDeploymentMonitoringJob, 0, resourcesCount)
 		var nextPageToken string
 		for {
-			response, err := fx.service.ListModelDeploymentMonitoringJobs(fx.Context(), &ListModelDeploymentMonitoringJobsRequest{
+			response, err := fx.Service().ListModelDeploymentMonitoringJobs(fx.Context(), &ListModelDeploymentMonitoringJobsRequest{
 				Parent:    parent,
 				PageSize:  1,
 				PageToken: nextPageToken,
@@ -3120,12 +3130,12 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testList(t *tes
 		fx.maybeSkip(t)
 		const deleteCount = 5
 		for i := 0; i < deleteCount; i++ {
-			_, err := fx.service.DeleteModelDeploymentMonitoringJob(fx.Context(), &DeleteModelDeploymentMonitoringJobRequest{
+			_, err := fx.Service().DeleteModelDeploymentMonitoringJob(fx.Context(), &DeleteModelDeploymentMonitoringJobRequest{
 				Name: parentMsgs[i].Name,
 			})
 			assert.NilError(t, err)
 		}
-		response, err := fx.service.ListModelDeploymentMonitoringJobs(fx.Context(), &ListModelDeploymentMonitoringJobsRequest{
+		response, err := fx.Service().ListModelDeploymentMonitoringJobs(fx.Context(), &ListModelDeploymentMonitoringJobsRequest{
 			Parent:   parent,
 			PageSize: 9999,
 		})
@@ -3148,7 +3158,7 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testDelete(t *t
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteModelDeploymentMonitoringJob(fx.Context(), &DeleteModelDeploymentMonitoringJobRequest{
+		_, err := fx.Service().DeleteModelDeploymentMonitoringJob(fx.Context(), &DeleteModelDeploymentMonitoringJobRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -3157,7 +3167,7 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testDelete(t *t
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteModelDeploymentMonitoringJob(fx.Context(), &DeleteModelDeploymentMonitoringJobRequest{
+		_, err := fx.Service().DeleteModelDeploymentMonitoringJob(fx.Context(), &DeleteModelDeploymentMonitoringJobRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -3168,7 +3178,7 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testDelete(t *t
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteModelDeploymentMonitoringJob(fx.Context(), &DeleteModelDeploymentMonitoringJobRequest{
+		_, err := fx.Service().DeleteModelDeploymentMonitoringJob(fx.Context(), &DeleteModelDeploymentMonitoringJobRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -3179,7 +3189,7 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testDelete(t *t
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteModelDeploymentMonitoringJob(fx.Context(), &DeleteModelDeploymentMonitoringJobRequest{
+		_, err := fx.Service().DeleteModelDeploymentMonitoringJob(fx.Context(), &DeleteModelDeploymentMonitoringJobRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -3190,12 +3200,12 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testDelete(t *t
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		deleted, err := fx.service.DeleteModelDeploymentMonitoringJob(fx.Context(), &DeleteModelDeploymentMonitoringJobRequest{
+		deleted, err := fx.Service().DeleteModelDeploymentMonitoringJob(fx.Context(), &DeleteModelDeploymentMonitoringJobRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
 		_ = deleted
-		_, err = fx.service.DeleteModelDeploymentMonitoringJob(fx.Context(), &DeleteModelDeploymentMonitoringJobRequest{
+		_, err = fx.Service().DeleteModelDeploymentMonitoringJob(fx.Context(), &DeleteModelDeploymentMonitoringJobRequest{
 			Name: created.Name,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -3204,7 +3214,7 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testDelete(t *t
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteModelDeploymentMonitoringJob(fx.Context(), &DeleteModelDeploymentMonitoringJobRequest{
+		_, err := fx.Service().DeleteModelDeploymentMonitoringJob(fx.Context(), &DeleteModelDeploymentMonitoringJobRequest{
 			Name: "projects/-/locations/-/modelDeploymentMonitoringJobs/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -3240,7 +3250,7 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) maybeSkip(t *te
 
 func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) create(t *testing.T, parent string) *ModelDeploymentMonitoringJob {
 	t.Helper()
-	created, err := fx.service.CreateModelDeploymentMonitoringJob(fx.Context(), &CreateModelDeploymentMonitoringJobRequest{
+	created, err := fx.Service().CreateModelDeploymentMonitoringJob(fx.Context(), &CreateModelDeploymentMonitoringJobRequest{
 		Parent:                       parent,
 		ModelDeploymentMonitoringJob: fx.Create(parent),
 	})
@@ -3249,9 +3259,11 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) create(t *testi
 }
 
 type JobServiceNasJobTestSuiteConfig struct {
-	service    JobServiceServer
 	currParent int
 
+	// Service should return the service that should be tested.
+	// The service will be used for several tests.
+	Service func() JobServiceServer
 	// Context should return a new context.
 	// The context will be used for several tests.
 	Context func() context.Context
@@ -3282,7 +3294,7 @@ func (fx *JobServiceNasJobTestSuiteConfig) testCreate(t *testing.T) {
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateNasJob(fx.Context(), &CreateNasJobRequest{
+		_, err := fx.Service().CreateNasJob(fx.Context(), &CreateNasJobRequest{
 			Parent: "",
 			NasJob: fx.Create(fx.nextParent(t, false)),
 		})
@@ -3292,7 +3304,7 @@ func (fx *JobServiceNasJobTestSuiteConfig) testCreate(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateNasJob(fx.Context(), &CreateNasJobRequest{
+		_, err := fx.Service().CreateNasJob(fx.Context(), &CreateNasJobRequest{
 			Parent: "invalid resource name",
 			NasJob: fx.Create(fx.nextParent(t, false)),
 		})
@@ -3304,7 +3316,7 @@ func (fx *JobServiceNasJobTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		beforeCreate := time.Now()
-		msg, err := fx.service.CreateNasJob(fx.Context(), &CreateNasJobRequest{
+		msg, err := fx.Service().CreateNasJob(fx.Context(), &CreateNasJobRequest{
 			Parent: parent,
 			NasJob: fx.Create(parent),
 		})
@@ -3318,12 +3330,12 @@ func (fx *JobServiceNasJobTestSuiteConfig) testCreate(t *testing.T) {
 	t.Run("persisted", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		msg, err := fx.service.CreateNasJob(fx.Context(), &CreateNasJobRequest{
+		msg, err := fx.Service().CreateNasJob(fx.Context(), &CreateNasJobRequest{
 			Parent: parent,
 			NasJob: fx.Create(parent),
 		})
 		assert.NilError(t, err)
-		persisted, err := fx.service.GetNasJob(fx.Context(), &GetNasJobRequest{
+		persisted, err := fx.Service().GetNasJob(fx.Context(), &GetNasJobRequest{
 			Name: msg.Name,
 		})
 		assert.NilError(t, err)
@@ -3344,7 +3356,7 @@ func (fx *JobServiceNasJobTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateNasJob(fx.Context(), &CreateNasJobRequest{
+			_, err := fx.Service().CreateNasJob(fx.Context(), &CreateNasJobRequest{
 				Parent: parent,
 				NasJob: msg,
 			})
@@ -3360,7 +3372,7 @@ func (fx *JobServiceNasJobTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("nas_job_spec")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateNasJob(fx.Context(), &CreateNasJobRequest{
+			_, err := fx.Service().CreateNasJob(fx.Context(), &CreateNasJobRequest{
 				Parent: parent,
 				NasJob: msg,
 			})
@@ -3376,7 +3388,7 @@ func (fx *JobServiceNasJobTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("metric_id")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateNasJob(fx.Context(), &CreateNasJobRequest{
+			_, err := fx.Service().CreateNasJob(fx.Context(), &CreateNasJobRequest{
 				Parent: parent,
 				NasJob: msg,
 			})
@@ -3392,7 +3404,7 @@ func (fx *JobServiceNasJobTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("goal")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateNasJob(fx.Context(), &CreateNasJobRequest{
+			_, err := fx.Service().CreateNasJob(fx.Context(), &CreateNasJobRequest{
 				Parent: parent,
 				NasJob: msg,
 			})
@@ -3408,7 +3420,7 @@ func (fx *JobServiceNasJobTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("search_trial_spec")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateNasJob(fx.Context(), &CreateNasJobRequest{
+			_, err := fx.Service().CreateNasJob(fx.Context(), &CreateNasJobRequest{
 				Parent: parent,
 				NasJob: msg,
 			})
@@ -3424,7 +3436,7 @@ func (fx *JobServiceNasJobTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("search_trial_job_spec")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateNasJob(fx.Context(), &CreateNasJobRequest{
+			_, err := fx.Service().CreateNasJob(fx.Context(), &CreateNasJobRequest{
 				Parent: parent,
 				NasJob: msg,
 			})
@@ -3440,7 +3452,7 @@ func (fx *JobServiceNasJobTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("worker_pool_specs")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateNasJob(fx.Context(), &CreateNasJobRequest{
+			_, err := fx.Service().CreateNasJob(fx.Context(), &CreateNasJobRequest{
 				Parent: parent,
 				NasJob: msg,
 			})
@@ -3456,7 +3468,7 @@ func (fx *JobServiceNasJobTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("output_uri_prefix")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateNasJob(fx.Context(), &CreateNasJobRequest{
+			_, err := fx.Service().CreateNasJob(fx.Context(), &CreateNasJobRequest{
 				Parent: parent,
 				NasJob: msg,
 			})
@@ -3472,7 +3484,7 @@ func (fx *JobServiceNasJobTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("max_trial_count")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateNasJob(fx.Context(), &CreateNasJobRequest{
+			_, err := fx.Service().CreateNasJob(fx.Context(), &CreateNasJobRequest{
 				Parent: parent,
 				NasJob: msg,
 			})
@@ -3488,7 +3500,7 @@ func (fx *JobServiceNasJobTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("max_parallel_trial_count")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateNasJob(fx.Context(), &CreateNasJobRequest{
+			_, err := fx.Service().CreateNasJob(fx.Context(), &CreateNasJobRequest{
 				Parent: parent,
 				NasJob: msg,
 			})
@@ -3504,7 +3516,7 @@ func (fx *JobServiceNasJobTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("train_trial_job_spec")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateNasJob(fx.Context(), &CreateNasJobRequest{
+			_, err := fx.Service().CreateNasJob(fx.Context(), &CreateNasJobRequest{
 				Parent: parent,
 				NasJob: msg,
 			})
@@ -3520,7 +3532,7 @@ func (fx *JobServiceNasJobTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("max_parallel_trial_count")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateNasJob(fx.Context(), &CreateNasJobRequest{
+			_, err := fx.Service().CreateNasJob(fx.Context(), &CreateNasJobRequest{
 				Parent: parent,
 				NasJob: msg,
 			})
@@ -3536,7 +3548,7 @@ func (fx *JobServiceNasJobTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("frequency")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateNasJob(fx.Context(), &CreateNasJobRequest{
+			_, err := fx.Service().CreateNasJob(fx.Context(), &CreateNasJobRequest{
 				Parent: parent,
 				NasJob: msg,
 			})
@@ -3552,7 +3564,7 @@ func (fx *JobServiceNasJobTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("kms_key_name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateNasJob(fx.Context(), &CreateNasJobRequest{
+			_, err := fx.Service().CreateNasJob(fx.Context(), &CreateNasJobRequest{
 				Parent: parent,
 				NasJob: msg,
 			})
@@ -3573,7 +3585,7 @@ func (fx *JobServiceNasJobTestSuiteConfig) testCreate(t *testing.T) {
 				t.Skip("not reachable")
 			}
 			container.Network = "invalid resource name"
-			_, err := fx.service.CreateNasJob(fx.Context(), &CreateNasJobRequest{
+			_, err := fx.Service().CreateNasJob(fx.Context(), &CreateNasJobRequest{
 				Parent: parent,
 				NasJob: msg,
 			})
@@ -3588,7 +3600,7 @@ func (fx *JobServiceNasJobTestSuiteConfig) testCreate(t *testing.T) {
 				t.Skip("not reachable")
 			}
 			container.Tensorboard = "invalid resource name"
-			_, err := fx.service.CreateNasJob(fx.Context(), &CreateNasJobRequest{
+			_, err := fx.Service().CreateNasJob(fx.Context(), &CreateNasJobRequest{
 				Parent: parent,
 				NasJob: msg,
 			})
@@ -3603,7 +3615,7 @@ func (fx *JobServiceNasJobTestSuiteConfig) testCreate(t *testing.T) {
 				t.Skip("not reachable")
 			}
 			container.Experiment = "invalid resource name"
-			_, err := fx.service.CreateNasJob(fx.Context(), &CreateNasJobRequest{
+			_, err := fx.Service().CreateNasJob(fx.Context(), &CreateNasJobRequest{
 				Parent: parent,
 				NasJob: msg,
 			})
@@ -3618,7 +3630,7 @@ func (fx *JobServiceNasJobTestSuiteConfig) testCreate(t *testing.T) {
 				t.Skip("not reachable")
 			}
 			container.ExperimentRun = "invalid resource name"
-			_, err := fx.service.CreateNasJob(fx.Context(), &CreateNasJobRequest{
+			_, err := fx.Service().CreateNasJob(fx.Context(), &CreateNasJobRequest{
 				Parent: parent,
 				NasJob: msg,
 			})
@@ -3633,7 +3645,7 @@ func (fx *JobServiceNasJobTestSuiteConfig) testCreate(t *testing.T) {
 				t.Skip("not reachable")
 			}
 			container.Models = []string{"invalid resource name"}
-			_, err := fx.service.CreateNasJob(fx.Context(), &CreateNasJobRequest{
+			_, err := fx.Service().CreateNasJob(fx.Context(), &CreateNasJobRequest{
 				Parent: parent,
 				NasJob: msg,
 			})
@@ -3648,7 +3660,7 @@ func (fx *JobServiceNasJobTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetNasJob(fx.Context(), &GetNasJobRequest{
+		_, err := fx.Service().GetNasJob(fx.Context(), &GetNasJobRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -3657,7 +3669,7 @@ func (fx *JobServiceNasJobTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetNasJob(fx.Context(), &GetNasJobRequest{
+		_, err := fx.Service().GetNasJob(fx.Context(), &GetNasJobRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -3668,7 +3680,7 @@ func (fx *JobServiceNasJobTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		msg, err := fx.service.GetNasJob(fx.Context(), &GetNasJobRequest{
+		msg, err := fx.Service().GetNasJob(fx.Context(), &GetNasJobRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -3680,7 +3692,7 @@ func (fx *JobServiceNasJobTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.GetNasJob(fx.Context(), &GetNasJobRequest{
+		_, err := fx.Service().GetNasJob(fx.Context(), &GetNasJobRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -3689,7 +3701,7 @@ func (fx *JobServiceNasJobTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetNasJob(fx.Context(), &GetNasJobRequest{
+		_, err := fx.Service().GetNasJob(fx.Context(), &GetNasJobRequest{
 			Name: "projects/-/locations/-/nasJobs/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -3702,7 +3714,7 @@ func (fx *JobServiceNasJobTestSuiteConfig) testList(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.ListNasJobs(fx.Context(), &ListNasJobsRequest{
+		_, err := fx.Service().ListNasJobs(fx.Context(), &ListNasJobsRequest{
 			Parent: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -3712,7 +3724,7 @@ func (fx *JobServiceNasJobTestSuiteConfig) testList(t *testing.T) {
 	t.Run("invalid page token", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListNasJobs(fx.Context(), &ListNasJobsRequest{
+		_, err := fx.Service().ListNasJobs(fx.Context(), &ListNasJobsRequest{
 			Parent:    parent,
 			PageToken: "invalid page token",
 		})
@@ -3723,7 +3735,7 @@ func (fx *JobServiceNasJobTestSuiteConfig) testList(t *testing.T) {
 	t.Run("negative page size", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListNasJobs(fx.Context(), &ListNasJobsRequest{
+		_, err := fx.Service().ListNasJobs(fx.Context(), &ListNasJobsRequest{
 			Parent:   parent,
 			PageSize: -10,
 		})
@@ -3741,7 +3753,7 @@ func (fx *JobServiceNasJobTestSuiteConfig) testList(t *testing.T) {
 	// under that parent.
 	t.Run("isolation", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListNasJobs(fx.Context(), &ListNasJobsRequest{
+		response, err := fx.Service().ListNasJobs(fx.Context(), &ListNasJobsRequest{
 			Parent:   parent,
 			PageSize: 999,
 		})
@@ -3760,7 +3772,7 @@ func (fx *JobServiceNasJobTestSuiteConfig) testList(t *testing.T) {
 	// If there are no more resources, next_page_token should not be set.
 	t.Run("last page", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListNasJobs(fx.Context(), &ListNasJobsRequest{
+		response, err := fx.Service().ListNasJobs(fx.Context(), &ListNasJobsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount,
 		})
@@ -3771,7 +3783,7 @@ func (fx *JobServiceNasJobTestSuiteConfig) testList(t *testing.T) {
 	// If there are more resources, next_page_token should be set.
 	t.Run("more pages", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListNasJobs(fx.Context(), &ListNasJobsRequest{
+		response, err := fx.Service().ListNasJobs(fx.Context(), &ListNasJobsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount - 1,
 		})
@@ -3785,7 +3797,7 @@ func (fx *JobServiceNasJobTestSuiteConfig) testList(t *testing.T) {
 		msgs := make([]*NasJob, 0, resourcesCount)
 		var nextPageToken string
 		for {
-			response, err := fx.service.ListNasJobs(fx.Context(), &ListNasJobsRequest{
+			response, err := fx.Service().ListNasJobs(fx.Context(), &ListNasJobsRequest{
 				Parent:    parent,
 				PageSize:  1,
 				PageToken: nextPageToken,
@@ -3814,12 +3826,12 @@ func (fx *JobServiceNasJobTestSuiteConfig) testList(t *testing.T) {
 		fx.maybeSkip(t)
 		const deleteCount = 5
 		for i := 0; i < deleteCount; i++ {
-			_, err := fx.service.DeleteNasJob(fx.Context(), &DeleteNasJobRequest{
+			_, err := fx.Service().DeleteNasJob(fx.Context(), &DeleteNasJobRequest{
 				Name: parentMsgs[i].Name,
 			})
 			assert.NilError(t, err)
 		}
-		response, err := fx.service.ListNasJobs(fx.Context(), &ListNasJobsRequest{
+		response, err := fx.Service().ListNasJobs(fx.Context(), &ListNasJobsRequest{
 			Parent:   parent,
 			PageSize: 9999,
 		})
@@ -3842,7 +3854,7 @@ func (fx *JobServiceNasJobTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteNasJob(fx.Context(), &DeleteNasJobRequest{
+		_, err := fx.Service().DeleteNasJob(fx.Context(), &DeleteNasJobRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -3851,7 +3863,7 @@ func (fx *JobServiceNasJobTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteNasJob(fx.Context(), &DeleteNasJobRequest{
+		_, err := fx.Service().DeleteNasJob(fx.Context(), &DeleteNasJobRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -3862,7 +3874,7 @@ func (fx *JobServiceNasJobTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteNasJob(fx.Context(), &DeleteNasJobRequest{
+		_, err := fx.Service().DeleteNasJob(fx.Context(), &DeleteNasJobRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -3873,7 +3885,7 @@ func (fx *JobServiceNasJobTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteNasJob(fx.Context(), &DeleteNasJobRequest{
+		_, err := fx.Service().DeleteNasJob(fx.Context(), &DeleteNasJobRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -3884,12 +3896,12 @@ func (fx *JobServiceNasJobTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		deleted, err := fx.service.DeleteNasJob(fx.Context(), &DeleteNasJobRequest{
+		deleted, err := fx.Service().DeleteNasJob(fx.Context(), &DeleteNasJobRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
 		_ = deleted
-		_, err = fx.service.DeleteNasJob(fx.Context(), &DeleteNasJobRequest{
+		_, err = fx.Service().DeleteNasJob(fx.Context(), &DeleteNasJobRequest{
 			Name: created.Name,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -3898,7 +3910,7 @@ func (fx *JobServiceNasJobTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteNasJob(fx.Context(), &DeleteNasJobRequest{
+		_, err := fx.Service().DeleteNasJob(fx.Context(), &DeleteNasJobRequest{
 			Name: "projects/-/locations/-/nasJobs/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -3934,7 +3946,7 @@ func (fx *JobServiceNasJobTestSuiteConfig) maybeSkip(t *testing.T) {
 
 func (fx *JobServiceNasJobTestSuiteConfig) create(t *testing.T, parent string) *NasJob {
 	t.Helper()
-	created, err := fx.service.CreateNasJob(fx.Context(), &CreateNasJobRequest{
+	created, err := fx.Service().CreateNasJob(fx.Context(), &CreateNasJobRequest{
 		Parent: parent,
 		NasJob: fx.Create(parent),
 	})
@@ -3943,9 +3955,11 @@ func (fx *JobServiceNasJobTestSuiteConfig) create(t *testing.T, parent string) *
 }
 
 type JobServiceNasTrialDetailTestSuiteConfig struct {
-	service    JobServiceServer
 	currParent int
 
+	// Service should return the service that should be tested.
+	// The service will be used for several tests.
+	Service func() JobServiceServer
 	// Context should return a new context.
 	// The context will be used for several tests.
 	Context func() context.Context
@@ -3977,7 +3991,7 @@ func (fx *JobServiceNasTrialDetailTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetNasTrialDetail(fx.Context(), &GetNasTrialDetailRequest{
+		_, err := fx.Service().GetNasTrialDetail(fx.Context(), &GetNasTrialDetailRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -3986,7 +4000,7 @@ func (fx *JobServiceNasTrialDetailTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetNasTrialDetail(fx.Context(), &GetNasTrialDetailRequest{
+		_, err := fx.Service().GetNasTrialDetail(fx.Context(), &GetNasTrialDetailRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -3997,7 +4011,7 @@ func (fx *JobServiceNasTrialDetailTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		msg, err := fx.service.GetNasTrialDetail(fx.Context(), &GetNasTrialDetailRequest{
+		msg, err := fx.Service().GetNasTrialDetail(fx.Context(), &GetNasTrialDetailRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -4009,7 +4023,7 @@ func (fx *JobServiceNasTrialDetailTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.GetNasTrialDetail(fx.Context(), &GetNasTrialDetailRequest{
+		_, err := fx.Service().GetNasTrialDetail(fx.Context(), &GetNasTrialDetailRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -4018,7 +4032,7 @@ func (fx *JobServiceNasTrialDetailTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetNasTrialDetail(fx.Context(), &GetNasTrialDetailRequest{
+		_, err := fx.Service().GetNasTrialDetail(fx.Context(), &GetNasTrialDetailRequest{
 			Name: "projects/-/locations/-/nasJobs/-/nasTrialDetails/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -4031,7 +4045,7 @@ func (fx *JobServiceNasTrialDetailTestSuiteConfig) testList(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.ListNasTrialDetails(fx.Context(), &ListNasTrialDetailsRequest{
+		_, err := fx.Service().ListNasTrialDetails(fx.Context(), &ListNasTrialDetailsRequest{
 			Parent: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -4041,7 +4055,7 @@ func (fx *JobServiceNasTrialDetailTestSuiteConfig) testList(t *testing.T) {
 	t.Run("invalid page token", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListNasTrialDetails(fx.Context(), &ListNasTrialDetailsRequest{
+		_, err := fx.Service().ListNasTrialDetails(fx.Context(), &ListNasTrialDetailsRequest{
 			Parent:    parent,
 			PageToken: "invalid page token",
 		})
@@ -4052,7 +4066,7 @@ func (fx *JobServiceNasTrialDetailTestSuiteConfig) testList(t *testing.T) {
 	t.Run("negative page size", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListNasTrialDetails(fx.Context(), &ListNasTrialDetailsRequest{
+		_, err := fx.Service().ListNasTrialDetails(fx.Context(), &ListNasTrialDetailsRequest{
 			Parent:   parent,
 			PageSize: -10,
 		})
@@ -4070,7 +4084,7 @@ func (fx *JobServiceNasTrialDetailTestSuiteConfig) testList(t *testing.T) {
 	// under that parent.
 	t.Run("isolation", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListNasTrialDetails(fx.Context(), &ListNasTrialDetailsRequest{
+		response, err := fx.Service().ListNasTrialDetails(fx.Context(), &ListNasTrialDetailsRequest{
 			Parent:   parent,
 			PageSize: 999,
 		})
@@ -4089,7 +4103,7 @@ func (fx *JobServiceNasTrialDetailTestSuiteConfig) testList(t *testing.T) {
 	// If there are no more resources, next_page_token should not be set.
 	t.Run("last page", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListNasTrialDetails(fx.Context(), &ListNasTrialDetailsRequest{
+		response, err := fx.Service().ListNasTrialDetails(fx.Context(), &ListNasTrialDetailsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount,
 		})
@@ -4100,7 +4114,7 @@ func (fx *JobServiceNasTrialDetailTestSuiteConfig) testList(t *testing.T) {
 	// If there are more resources, next_page_token should be set.
 	t.Run("more pages", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListNasTrialDetails(fx.Context(), &ListNasTrialDetailsRequest{
+		response, err := fx.Service().ListNasTrialDetails(fx.Context(), &ListNasTrialDetailsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount - 1,
 		})
@@ -4114,7 +4128,7 @@ func (fx *JobServiceNasTrialDetailTestSuiteConfig) testList(t *testing.T) {
 		msgs := make([]*NasTrialDetail, 0, resourcesCount)
 		var nextPageToken string
 		for {
-			response, err := fx.service.ListNasTrialDetails(fx.Context(), &ListNasTrialDetailsRequest{
+			response, err := fx.Service().ListNasTrialDetails(fx.Context(), &ListNasTrialDetailsRequest{
 				Parent:    parent,
 				PageSize:  1,
 				PageToken: nextPageToken,
