@@ -23,7 +23,7 @@ type PipelineServiceTestSuite struct {
 func (fx PipelineServiceTestSuite) TestPipelineJob(ctx context.Context, options PipelineServicePipelineJobTestSuiteConfig) {
 	fx.T.Run("PipelineJob", func(t *testing.T) {
 		options.Context = func() context.Context { return ctx }
-		options.service = fx.Server
+		options.Service = func() PipelineServiceServer { return fx.Server }
 		options.test(t)
 	})
 }
@@ -31,15 +31,17 @@ func (fx PipelineServiceTestSuite) TestPipelineJob(ctx context.Context, options 
 func (fx PipelineServiceTestSuite) TestTrainingPipeline(ctx context.Context, options PipelineServiceTrainingPipelineTestSuiteConfig) {
 	fx.T.Run("TrainingPipeline", func(t *testing.T) {
 		options.Context = func() context.Context { return ctx }
-		options.service = fx.Server
+		options.Service = func() PipelineServiceServer { return fx.Server }
 		options.test(t)
 	})
 }
 
 type PipelineServicePipelineJobTestSuiteConfig struct {
-	service    PipelineServiceServer
 	currParent int
 
+	// Service should return the service that should be tested.
+	// The service will be used for several tests.
+	Service func() PipelineServiceServer
 	// Context should return a new context.
 	// The context will be used for several tests.
 	Context func() context.Context
@@ -70,7 +72,7 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testCreate(t *testing.T) {
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreatePipelineJob(fx.Context(), &CreatePipelineJobRequest{
+		_, err := fx.Service().CreatePipelineJob(fx.Context(), &CreatePipelineJobRequest{
 			Parent:      "",
 			PipelineJob: fx.Create(fx.nextParent(t, false)),
 		})
@@ -80,7 +82,7 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testCreate(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreatePipelineJob(fx.Context(), &CreatePipelineJobRequest{
+		_, err := fx.Service().CreatePipelineJob(fx.Context(), &CreatePipelineJobRequest{
 			Parent:      "invalid resource name",
 			PipelineJob: fx.Create(fx.nextParent(t, false)),
 		})
@@ -92,7 +94,7 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		beforeCreate := time.Now()
-		msg, err := fx.service.CreatePipelineJob(fx.Context(), &CreatePipelineJobRequest{
+		msg, err := fx.Service().CreatePipelineJob(fx.Context(), &CreatePipelineJobRequest{
 			Parent:      parent,
 			PipelineJob: fx.Create(parent),
 		})
@@ -106,12 +108,12 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testCreate(t *testing.T) {
 	t.Run("persisted", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		msg, err := fx.service.CreatePipelineJob(fx.Context(), &CreatePipelineJobRequest{
+		msg, err := fx.Service().CreatePipelineJob(fx.Context(), &CreatePipelineJobRequest{
 			Parent:      parent,
 			PipelineJob: fx.Create(parent),
 		})
 		assert.NilError(t, err)
-		persisted, err := fx.service.GetPipelineJob(fx.Context(), &GetPipelineJobRequest{
+		persisted, err := fx.Service().GetPipelineJob(fx.Context(), &GetPipelineJobRequest{
 			Name: msg.Name,
 		})
 		assert.NilError(t, err)
@@ -132,7 +134,7 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("gcs_output_directory")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreatePipelineJob(fx.Context(), &CreatePipelineJobRequest{
+			_, err := fx.Service().CreatePipelineJob(fx.Context(), &CreatePipelineJobRequest{
 				Parent:      parent,
 				PipelineJob: msg,
 			})
@@ -148,7 +150,7 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("kms_key_name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreatePipelineJob(fx.Context(), &CreatePipelineJobRequest{
+			_, err := fx.Service().CreatePipelineJob(fx.Context(), &CreatePipelineJobRequest{
 				Parent:      parent,
 				PipelineJob: msg,
 			})
@@ -169,7 +171,7 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testCreate(t *testing.T) {
 				t.Skip("not reachable")
 			}
 			container.Network = "invalid resource name"
-			_, err := fx.service.CreatePipelineJob(fx.Context(), &CreatePipelineJobRequest{
+			_, err := fx.Service().CreatePipelineJob(fx.Context(), &CreatePipelineJobRequest{
 				Parent:      parent,
 				PipelineJob: msg,
 			})
@@ -184,7 +186,7 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetPipelineJob(fx.Context(), &GetPipelineJobRequest{
+		_, err := fx.Service().GetPipelineJob(fx.Context(), &GetPipelineJobRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -193,7 +195,7 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetPipelineJob(fx.Context(), &GetPipelineJobRequest{
+		_, err := fx.Service().GetPipelineJob(fx.Context(), &GetPipelineJobRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -204,7 +206,7 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		msg, err := fx.service.GetPipelineJob(fx.Context(), &GetPipelineJobRequest{
+		msg, err := fx.Service().GetPipelineJob(fx.Context(), &GetPipelineJobRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -216,7 +218,7 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testGet(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.GetPipelineJob(fx.Context(), &GetPipelineJobRequest{
+		_, err := fx.Service().GetPipelineJob(fx.Context(), &GetPipelineJobRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -225,7 +227,7 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testGet(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetPipelineJob(fx.Context(), &GetPipelineJobRequest{
+		_, err := fx.Service().GetPipelineJob(fx.Context(), &GetPipelineJobRequest{
 			Name: "projects/-/locations/-/pipelineJobs/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -238,7 +240,7 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testList(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.ListPipelineJobs(fx.Context(), &ListPipelineJobsRequest{
+		_, err := fx.Service().ListPipelineJobs(fx.Context(), &ListPipelineJobsRequest{
 			Parent: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -248,7 +250,7 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testList(t *testing.T) {
 	t.Run("invalid page token", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListPipelineJobs(fx.Context(), &ListPipelineJobsRequest{
+		_, err := fx.Service().ListPipelineJobs(fx.Context(), &ListPipelineJobsRequest{
 			Parent:    parent,
 			PageToken: "invalid page token",
 		})
@@ -259,7 +261,7 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testList(t *testing.T) {
 	t.Run("negative page size", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListPipelineJobs(fx.Context(), &ListPipelineJobsRequest{
+		_, err := fx.Service().ListPipelineJobs(fx.Context(), &ListPipelineJobsRequest{
 			Parent:   parent,
 			PageSize: -10,
 		})
@@ -277,7 +279,7 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testList(t *testing.T) {
 	// under that parent.
 	t.Run("isolation", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListPipelineJobs(fx.Context(), &ListPipelineJobsRequest{
+		response, err := fx.Service().ListPipelineJobs(fx.Context(), &ListPipelineJobsRequest{
 			Parent:   parent,
 			PageSize: 999,
 		})
@@ -296,7 +298,7 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testList(t *testing.T) {
 	// If there are no more resources, next_page_token should not be set.
 	t.Run("last page", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListPipelineJobs(fx.Context(), &ListPipelineJobsRequest{
+		response, err := fx.Service().ListPipelineJobs(fx.Context(), &ListPipelineJobsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount,
 		})
@@ -307,7 +309,7 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testList(t *testing.T) {
 	// If there are more resources, next_page_token should be set.
 	t.Run("more pages", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListPipelineJobs(fx.Context(), &ListPipelineJobsRequest{
+		response, err := fx.Service().ListPipelineJobs(fx.Context(), &ListPipelineJobsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount - 1,
 		})
@@ -321,7 +323,7 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testList(t *testing.T) {
 		msgs := make([]*PipelineJob, 0, resourcesCount)
 		var nextPageToken string
 		for {
-			response, err := fx.service.ListPipelineJobs(fx.Context(), &ListPipelineJobsRequest{
+			response, err := fx.Service().ListPipelineJobs(fx.Context(), &ListPipelineJobsRequest{
 				Parent:    parent,
 				PageSize:  1,
 				PageToken: nextPageToken,
@@ -350,12 +352,12 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testList(t *testing.T) {
 		fx.maybeSkip(t)
 		const deleteCount = 5
 		for i := 0; i < deleteCount; i++ {
-			_, err := fx.service.DeletePipelineJob(fx.Context(), &DeletePipelineJobRequest{
+			_, err := fx.Service().DeletePipelineJob(fx.Context(), &DeletePipelineJobRequest{
 				Name: parentMsgs[i].Name,
 			})
 			assert.NilError(t, err)
 		}
-		response, err := fx.service.ListPipelineJobs(fx.Context(), &ListPipelineJobsRequest{
+		response, err := fx.Service().ListPipelineJobs(fx.Context(), &ListPipelineJobsRequest{
 			Parent:   parent,
 			PageSize: 9999,
 		})
@@ -378,7 +380,7 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeletePipelineJob(fx.Context(), &DeletePipelineJobRequest{
+		_, err := fx.Service().DeletePipelineJob(fx.Context(), &DeletePipelineJobRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -387,7 +389,7 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeletePipelineJob(fx.Context(), &DeletePipelineJobRequest{
+		_, err := fx.Service().DeletePipelineJob(fx.Context(), &DeletePipelineJobRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -398,7 +400,7 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeletePipelineJob(fx.Context(), &DeletePipelineJobRequest{
+		_, err := fx.Service().DeletePipelineJob(fx.Context(), &DeletePipelineJobRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -409,7 +411,7 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeletePipelineJob(fx.Context(), &DeletePipelineJobRequest{
+		_, err := fx.Service().DeletePipelineJob(fx.Context(), &DeletePipelineJobRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -420,12 +422,12 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testDelete(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		deleted, err := fx.service.DeletePipelineJob(fx.Context(), &DeletePipelineJobRequest{
+		deleted, err := fx.Service().DeletePipelineJob(fx.Context(), &DeletePipelineJobRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
 		_ = deleted
-		_, err = fx.service.DeletePipelineJob(fx.Context(), &DeletePipelineJobRequest{
+		_, err = fx.Service().DeletePipelineJob(fx.Context(), &DeletePipelineJobRequest{
 			Name: created.Name,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -434,7 +436,7 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testDelete(t *testing.T) {
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeletePipelineJob(fx.Context(), &DeletePipelineJobRequest{
+		_, err := fx.Service().DeletePipelineJob(fx.Context(), &DeletePipelineJobRequest{
 			Name: "projects/-/locations/-/pipelineJobs/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -470,7 +472,7 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) maybeSkip(t *testing.T) {
 
 func (fx *PipelineServicePipelineJobTestSuiteConfig) create(t *testing.T, parent string) *PipelineJob {
 	t.Helper()
-	created, err := fx.service.CreatePipelineJob(fx.Context(), &CreatePipelineJobRequest{
+	created, err := fx.Service().CreatePipelineJob(fx.Context(), &CreatePipelineJobRequest{
 		Parent:      parent,
 		PipelineJob: fx.Create(parent),
 	})
@@ -479,9 +481,11 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) create(t *testing.T, parent
 }
 
 type PipelineServiceTrainingPipelineTestSuiteConfig struct {
-	service    PipelineServiceServer
 	currParent int
 
+	// Service should return the service that should be tested.
+	// The service will be used for several tests.
+	Service func() PipelineServiceServer
 	// Context should return a new context.
 	// The context will be used for several tests.
 	Context func() context.Context
@@ -512,7 +516,7 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
+		_, err := fx.Service().CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
 			Parent:           "",
 			TrainingPipeline: fx.Create(fx.nextParent(t, false)),
 		})
@@ -522,7 +526,7 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
+		_, err := fx.Service().CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
 			Parent:           "invalid resource name",
 			TrainingPipeline: fx.Create(fx.nextParent(t, false)),
 		})
@@ -534,7 +538,7 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		beforeCreate := time.Now()
-		msg, err := fx.service.CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
+		msg, err := fx.Service().CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
 			Parent:           parent,
 			TrainingPipeline: fx.Create(parent),
 		})
@@ -548,12 +552,12 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 	t.Run("persisted", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		msg, err := fx.service.CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
+		msg, err := fx.Service().CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
 			Parent:           parent,
 			TrainingPipeline: fx.Create(parent),
 		})
 		assert.NilError(t, err)
-		persisted, err := fx.service.GetTrainingPipeline(fx.Context(), &GetTrainingPipelineRequest{
+		persisted, err := fx.Service().GetTrainingPipeline(fx.Context(), &GetTrainingPipelineRequest{
 			Name: msg.Name,
 		})
 		assert.NilError(t, err)
@@ -574,7 +578,7 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
+			_, err := fx.Service().CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
 				Parent:           parent,
 				TrainingPipeline: msg,
 			})
@@ -590,7 +594,7 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("training_filter")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
+			_, err := fx.Service().CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
 				Parent:           parent,
 				TrainingPipeline: msg,
 			})
@@ -606,7 +610,7 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("validation_filter")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
+			_, err := fx.Service().CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
 				Parent:           parent,
 				TrainingPipeline: msg,
 			})
@@ -622,7 +626,7 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("test_filter")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
+			_, err := fx.Service().CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
 				Parent:           parent,
 				TrainingPipeline: msg,
 			})
@@ -638,7 +642,7 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("key")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
+			_, err := fx.Service().CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
 				Parent:           parent,
 				TrainingPipeline: msg,
 			})
@@ -654,7 +658,7 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("key")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
+			_, err := fx.Service().CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
 				Parent:           parent,
 				TrainingPipeline: msg,
 			})
@@ -670,7 +674,7 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("key")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
+			_, err := fx.Service().CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
 				Parent:           parent,
 				TrainingPipeline: msg,
 			})
@@ -686,7 +690,7 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("output_uri_prefix")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
+			_, err := fx.Service().CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
 				Parent:           parent,
 				TrainingPipeline: msg,
 			})
@@ -702,7 +706,7 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("output_uri")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
+			_, err := fx.Service().CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
 				Parent:           parent,
 				TrainingPipeline: msg,
 			})
@@ -718,7 +722,7 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("dataset_id")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
+			_, err := fx.Service().CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
 				Parent:           parent,
 				TrainingPipeline: msg,
 			})
@@ -734,7 +738,7 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("training_task_definition")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
+			_, err := fx.Service().CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
 				Parent:           parent,
 				TrainingPipeline: msg,
 			})
@@ -750,7 +754,7 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("training_task_inputs")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
+			_, err := fx.Service().CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
 				Parent:           parent,
 				TrainingPipeline: msg,
 			})
@@ -766,7 +770,7 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
+			_, err := fx.Service().CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
 				Parent:           parent,
 				TrainingPipeline: msg,
 			})
@@ -782,7 +786,7 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("image_uri")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
+			_, err := fx.Service().CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
 				Parent:           parent,
 				TrainingPipeline: msg,
 			})
@@ -798,7 +802,7 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("parameters")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
+			_, err := fx.Service().CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
 				Parent:           parent,
 				TrainingPipeline: msg,
 			})
@@ -814,7 +818,7 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("path_count")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
+			_, err := fx.Service().CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
 				Parent:           parent,
 				TrainingPipeline: msg,
 			})
@@ -830,7 +834,7 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("step_count")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
+			_, err := fx.Service().CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
 				Parent:           parent,
 				TrainingPipeline: msg,
 			})
@@ -846,7 +850,7 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("step_count")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
+			_, err := fx.Service().CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
 				Parent:           parent,
 				TrainingPipeline: msg,
 			})
@@ -862,7 +866,7 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("uris")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
+			_, err := fx.Service().CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
 				Parent:           parent,
 				TrainingPipeline: msg,
 			})
@@ -878,7 +882,7 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("inputs")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
+			_, err := fx.Service().CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
 				Parent:           parent,
 				TrainingPipeline: msg,
 			})
@@ -894,7 +898,7 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("outputs")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
+			_, err := fx.Service().CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
 				Parent:           parent,
 				TrainingPipeline: msg,
 			})
@@ -910,7 +914,7 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("kms_key_name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
+			_, err := fx.Service().CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
 				Parent:           parent,
 				TrainingPipeline: msg,
 			})
@@ -931,7 +935,7 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 				t.Skip("not reachable")
 			}
 			container.PipelineJob = "invalid resource name"
-			_, err := fx.service.CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
+			_, err := fx.Service().CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
 				Parent:           parent,
 				TrainingPipeline: msg,
 			})
@@ -946,7 +950,7 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testGet(t *testing.T) 
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetTrainingPipeline(fx.Context(), &GetTrainingPipelineRequest{
+		_, err := fx.Service().GetTrainingPipeline(fx.Context(), &GetTrainingPipelineRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -955,7 +959,7 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testGet(t *testing.T) 
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetTrainingPipeline(fx.Context(), &GetTrainingPipelineRequest{
+		_, err := fx.Service().GetTrainingPipeline(fx.Context(), &GetTrainingPipelineRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -966,7 +970,7 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testGet(t *testing.T) 
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		msg, err := fx.service.GetTrainingPipeline(fx.Context(), &GetTrainingPipelineRequest{
+		msg, err := fx.Service().GetTrainingPipeline(fx.Context(), &GetTrainingPipelineRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -978,7 +982,7 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testGet(t *testing.T) 
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.GetTrainingPipeline(fx.Context(), &GetTrainingPipelineRequest{
+		_, err := fx.Service().GetTrainingPipeline(fx.Context(), &GetTrainingPipelineRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -987,7 +991,7 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testGet(t *testing.T) 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetTrainingPipeline(fx.Context(), &GetTrainingPipelineRequest{
+		_, err := fx.Service().GetTrainingPipeline(fx.Context(), &GetTrainingPipelineRequest{
 			Name: "projects/-/locations/-/trainingPipelines/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1000,7 +1004,7 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testList(t *testing.T)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.ListTrainingPipelines(fx.Context(), &ListTrainingPipelinesRequest{
+		_, err := fx.Service().ListTrainingPipelines(fx.Context(), &ListTrainingPipelinesRequest{
 			Parent: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1010,7 +1014,7 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testList(t *testing.T)
 	t.Run("invalid page token", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListTrainingPipelines(fx.Context(), &ListTrainingPipelinesRequest{
+		_, err := fx.Service().ListTrainingPipelines(fx.Context(), &ListTrainingPipelinesRequest{
 			Parent:    parent,
 			PageToken: "invalid page token",
 		})
@@ -1021,7 +1025,7 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testList(t *testing.T)
 	t.Run("negative page size", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListTrainingPipelines(fx.Context(), &ListTrainingPipelinesRequest{
+		_, err := fx.Service().ListTrainingPipelines(fx.Context(), &ListTrainingPipelinesRequest{
 			Parent:   parent,
 			PageSize: -10,
 		})
@@ -1039,7 +1043,7 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testList(t *testing.T)
 	// under that parent.
 	t.Run("isolation", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListTrainingPipelines(fx.Context(), &ListTrainingPipelinesRequest{
+		response, err := fx.Service().ListTrainingPipelines(fx.Context(), &ListTrainingPipelinesRequest{
 			Parent:   parent,
 			PageSize: 999,
 		})
@@ -1058,7 +1062,7 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testList(t *testing.T)
 	// If there are no more resources, next_page_token should not be set.
 	t.Run("last page", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListTrainingPipelines(fx.Context(), &ListTrainingPipelinesRequest{
+		response, err := fx.Service().ListTrainingPipelines(fx.Context(), &ListTrainingPipelinesRequest{
 			Parent:   parent,
 			PageSize: resourcesCount,
 		})
@@ -1069,7 +1073,7 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testList(t *testing.T)
 	// If there are more resources, next_page_token should be set.
 	t.Run("more pages", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListTrainingPipelines(fx.Context(), &ListTrainingPipelinesRequest{
+		response, err := fx.Service().ListTrainingPipelines(fx.Context(), &ListTrainingPipelinesRequest{
 			Parent:   parent,
 			PageSize: resourcesCount - 1,
 		})
@@ -1083,7 +1087,7 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testList(t *testing.T)
 		msgs := make([]*TrainingPipeline, 0, resourcesCount)
 		var nextPageToken string
 		for {
-			response, err := fx.service.ListTrainingPipelines(fx.Context(), &ListTrainingPipelinesRequest{
+			response, err := fx.Service().ListTrainingPipelines(fx.Context(), &ListTrainingPipelinesRequest{
 				Parent:    parent,
 				PageSize:  1,
 				PageToken: nextPageToken,
@@ -1112,12 +1116,12 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testList(t *testing.T)
 		fx.maybeSkip(t)
 		const deleteCount = 5
 		for i := 0; i < deleteCount; i++ {
-			_, err := fx.service.DeleteTrainingPipeline(fx.Context(), &DeleteTrainingPipelineRequest{
+			_, err := fx.Service().DeleteTrainingPipeline(fx.Context(), &DeleteTrainingPipelineRequest{
 				Name: parentMsgs[i].Name,
 			})
 			assert.NilError(t, err)
 		}
-		response, err := fx.service.ListTrainingPipelines(fx.Context(), &ListTrainingPipelinesRequest{
+		response, err := fx.Service().ListTrainingPipelines(fx.Context(), &ListTrainingPipelinesRequest{
 			Parent:   parent,
 			PageSize: 9999,
 		})
@@ -1140,7 +1144,7 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testDelete(t *testing.
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteTrainingPipeline(fx.Context(), &DeleteTrainingPipelineRequest{
+		_, err := fx.Service().DeleteTrainingPipeline(fx.Context(), &DeleteTrainingPipelineRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1149,7 +1153,7 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testDelete(t *testing.
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteTrainingPipeline(fx.Context(), &DeleteTrainingPipelineRequest{
+		_, err := fx.Service().DeleteTrainingPipeline(fx.Context(), &DeleteTrainingPipelineRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1160,7 +1164,7 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testDelete(t *testing.
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteTrainingPipeline(fx.Context(), &DeleteTrainingPipelineRequest{
+		_, err := fx.Service().DeleteTrainingPipeline(fx.Context(), &DeleteTrainingPipelineRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -1171,7 +1175,7 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testDelete(t *testing.
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteTrainingPipeline(fx.Context(), &DeleteTrainingPipelineRequest{
+		_, err := fx.Service().DeleteTrainingPipeline(fx.Context(), &DeleteTrainingPipelineRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -1182,12 +1186,12 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testDelete(t *testing.
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		deleted, err := fx.service.DeleteTrainingPipeline(fx.Context(), &DeleteTrainingPipelineRequest{
+		deleted, err := fx.Service().DeleteTrainingPipeline(fx.Context(), &DeleteTrainingPipelineRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
 		_ = deleted
-		_, err = fx.service.DeleteTrainingPipeline(fx.Context(), &DeleteTrainingPipelineRequest{
+		_, err = fx.Service().DeleteTrainingPipeline(fx.Context(), &DeleteTrainingPipelineRequest{
 			Name: created.Name,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -1196,7 +1200,7 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testDelete(t *testing.
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteTrainingPipeline(fx.Context(), &DeleteTrainingPipelineRequest{
+		_, err := fx.Service().DeleteTrainingPipeline(fx.Context(), &DeleteTrainingPipelineRequest{
 			Name: "projects/-/locations/-/trainingPipelines/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -1232,7 +1236,7 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) maybeSkip(t *testing.T
 
 func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) create(t *testing.T, parent string) *TrainingPipeline {
 	t.Helper()
-	created, err := fx.service.CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
+	created, err := fx.Service().CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
 		Parent:           parent,
 		TrainingPipeline: fx.Create(parent),
 	})

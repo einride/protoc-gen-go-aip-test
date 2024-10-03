@@ -41,10 +41,12 @@ func (r *resourceGenerator) generateFixture(f *protogen.GeneratedFile) {
 	})
 
 	f.P("type ", resourceTestSuiteConfigName(r.service.Desc, r.resource), " struct {")
-	f.P("service ", service)
 	f.P("currParent int")
 	f.P()
 
+	f.P("// Service should return the service that should be tested.")
+	f.P("// The service will be used for several tests.")
+	f.P("Service", " func() ", service)
 	f.P("// Context should return a new context.")
 	f.P("// The context will be used for several tests.")
 	f.P("Context", " func() ", context)

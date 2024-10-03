@@ -22,15 +22,17 @@ type PublisherTestSuite struct {
 func (fx PublisherTestSuite) TestTopic(ctx context.Context, options PublisherTopicTestSuiteConfig) {
 	fx.T.Run("Topic", func(t *testing.T) {
 		options.Context = func() context.Context { return ctx }
-		options.service = fx.Server
+		options.Service = func() PublisherServer { return fx.Server }
 		options.test(t)
 	})
 }
 
 type PublisherTopicTestSuiteConfig struct {
-	service    PublisherServer
 	currParent int
 
+	// Service should return the service that should be tested.
+	// The service will be used for several tests.
+	Service func() PublisherServer
 	// Context should return a new context.
 	// The context will be used for several tests.
 	Context func() context.Context
@@ -67,7 +69,7 @@ func (fx *PublisherTopicTestSuiteConfig) testUpdate(t *testing.T) {
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
 		msg.Name = ""
-		_, err := fx.service.UpdateTopic(fx.Context(), &UpdateTopicRequest{
+		_, err := fx.Service().UpdateTopic(fx.Context(), &UpdateTopicRequest{
 			Topic: msg,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -79,7 +81,7 @@ func (fx *PublisherTopicTestSuiteConfig) testUpdate(t *testing.T) {
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
 		msg.Name = "invalid resource name"
-		_, err := fx.service.UpdateTopic(fx.Context(), &UpdateTopicRequest{
+		_, err := fx.Service().UpdateTopic(fx.Context(), &UpdateTopicRequest{
 			Topic: msg,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -92,7 +94,7 @@ func (fx *PublisherTopicTestSuiteConfig) testUpdate(t *testing.T) {
 		fx.maybeSkip(t)
 		msg := fx.Update(parent)
 		msg.Name = created.Name + "notfound"
-		_, err := fx.service.UpdateTopic(fx.Context(), &UpdateTopicRequest{
+		_, err := fx.Service().UpdateTopic(fx.Context(), &UpdateTopicRequest{
 			Topic: msg,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -101,7 +103,7 @@ func (fx *PublisherTopicTestSuiteConfig) testUpdate(t *testing.T) {
 	// The method should fail with InvalidArgument if the update_mask is invalid.
 	t.Run("invalid update mask", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.UpdateTopic(fx.Context(), &UpdateTopicRequest{
+		_, err := fx.Service().UpdateTopic(fx.Context(), &UpdateTopicRequest{
 			Topic: created,
 			UpdateMask: &fieldmaskpb.FieldMask{
 				Paths: []string{
@@ -125,7 +127,7 @@ func (fx *PublisherTopicTestSuiteConfig) testUpdate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateTopic(fx.Context(), &UpdateTopicRequest{
+			_, err := fx.Service().UpdateTopic(fx.Context(), &UpdateTopicRequest{
 				Topic: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
@@ -144,7 +146,7 @@ func (fx *PublisherTopicTestSuiteConfig) testUpdate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("schema")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateTopic(fx.Context(), &UpdateTopicRequest{
+			_, err := fx.Service().UpdateTopic(fx.Context(), &UpdateTopicRequest{
 				Topic: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
@@ -163,7 +165,7 @@ func (fx *PublisherTopicTestSuiteConfig) testUpdate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("stream_arn")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateTopic(fx.Context(), &UpdateTopicRequest{
+			_, err := fx.Service().UpdateTopic(fx.Context(), &UpdateTopicRequest{
 				Topic: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
@@ -182,7 +184,7 @@ func (fx *PublisherTopicTestSuiteConfig) testUpdate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("consumer_arn")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateTopic(fx.Context(), &UpdateTopicRequest{
+			_, err := fx.Service().UpdateTopic(fx.Context(), &UpdateTopicRequest{
 				Topic: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
@@ -201,7 +203,7 @@ func (fx *PublisherTopicTestSuiteConfig) testUpdate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("aws_role_arn")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateTopic(fx.Context(), &UpdateTopicRequest{
+			_, err := fx.Service().UpdateTopic(fx.Context(), &UpdateTopicRequest{
 				Topic: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
@@ -220,7 +222,7 @@ func (fx *PublisherTopicTestSuiteConfig) testUpdate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("gcp_service_account")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateTopic(fx.Context(), &UpdateTopicRequest{
+			_, err := fx.Service().UpdateTopic(fx.Context(), &UpdateTopicRequest{
 				Topic: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
@@ -279,7 +281,7 @@ type SubscriberTestSuite struct {
 func (fx SubscriberTestSuite) TestSnapshot(ctx context.Context, options SubscriberSnapshotTestSuiteConfig) {
 	fx.T.Run("Snapshot", func(t *testing.T) {
 		options.Context = func() context.Context { return ctx }
-		options.service = fx.Server
+		options.Service = func() SubscriberServer { return fx.Server }
 		options.test(t)
 	})
 }
@@ -287,15 +289,17 @@ func (fx SubscriberTestSuite) TestSnapshot(ctx context.Context, options Subscrib
 func (fx SubscriberTestSuite) TestSubscription(ctx context.Context, options SubscriberSubscriptionTestSuiteConfig) {
 	fx.T.Run("Subscription", func(t *testing.T) {
 		options.Context = func() context.Context { return ctx }
-		options.service = fx.Server
+		options.Service = func() SubscriberServer { return fx.Server }
 		options.test(t)
 	})
 }
 
 type SubscriberSnapshotTestSuiteConfig struct {
-	service    SubscriberServer
 	currParent int
 
+	// Service should return the service that should be tested.
+	// The service will be used for several tests.
+	Service func() SubscriberServer
 	// Context should return a new context.
 	// The context will be used for several tests.
 	Context func() context.Context
@@ -332,7 +336,7 @@ func (fx *SubscriberSnapshotTestSuiteConfig) testUpdate(t *testing.T) {
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
 		msg.Name = ""
-		_, err := fx.service.UpdateSnapshot(fx.Context(), &UpdateSnapshotRequest{
+		_, err := fx.Service().UpdateSnapshot(fx.Context(), &UpdateSnapshotRequest{
 			Snapshot: msg,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -344,7 +348,7 @@ func (fx *SubscriberSnapshotTestSuiteConfig) testUpdate(t *testing.T) {
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
 		msg.Name = "invalid resource name"
-		_, err := fx.service.UpdateSnapshot(fx.Context(), &UpdateSnapshotRequest{
+		_, err := fx.Service().UpdateSnapshot(fx.Context(), &UpdateSnapshotRequest{
 			Snapshot: msg,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -357,7 +361,7 @@ func (fx *SubscriberSnapshotTestSuiteConfig) testUpdate(t *testing.T) {
 		fx.maybeSkip(t)
 		msg := fx.Update(parent)
 		msg.Name = created.Name + "notfound"
-		_, err := fx.service.UpdateSnapshot(fx.Context(), &UpdateSnapshotRequest{
+		_, err := fx.Service().UpdateSnapshot(fx.Context(), &UpdateSnapshotRequest{
 			Snapshot: msg,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -366,7 +370,7 @@ func (fx *SubscriberSnapshotTestSuiteConfig) testUpdate(t *testing.T) {
 	// The method should fail with InvalidArgument if the update_mask is invalid.
 	t.Run("invalid update mask", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.UpdateSnapshot(fx.Context(), &UpdateSnapshotRequest{
+		_, err := fx.Service().UpdateSnapshot(fx.Context(), &UpdateSnapshotRequest{
 			Snapshot: created,
 			UpdateMask: &fieldmaskpb.FieldMask{
 				Paths: []string{
@@ -416,9 +420,11 @@ func (fx *SubscriberSnapshotTestSuiteConfig) create(t *testing.T, parent string)
 }
 
 type SubscriberSubscriptionTestSuiteConfig struct {
-	service    SubscriberServer
 	currParent int
 
+	// Service should return the service that should be tested.
+	// The service will be used for several tests.
+	Service func() SubscriberServer
 	// Context should return a new context.
 	// The context will be used for several tests.
 	Context func() context.Context
@@ -455,7 +461,7 @@ func (fx *SubscriberSubscriptionTestSuiteConfig) testUpdate(t *testing.T) {
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
 		msg.Name = ""
-		_, err := fx.service.UpdateSubscription(fx.Context(), &UpdateSubscriptionRequest{
+		_, err := fx.Service().UpdateSubscription(fx.Context(), &UpdateSubscriptionRequest{
 			Subscription: msg,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -467,7 +473,7 @@ func (fx *SubscriberSubscriptionTestSuiteConfig) testUpdate(t *testing.T) {
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
 		msg.Name = "invalid resource name"
-		_, err := fx.service.UpdateSubscription(fx.Context(), &UpdateSubscriptionRequest{
+		_, err := fx.Service().UpdateSubscription(fx.Context(), &UpdateSubscriptionRequest{
 			Subscription: msg,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -480,7 +486,7 @@ func (fx *SubscriberSubscriptionTestSuiteConfig) testUpdate(t *testing.T) {
 		fx.maybeSkip(t)
 		msg := fx.Update(parent)
 		msg.Name = created.Name + "notfound"
-		_, err := fx.service.UpdateSubscription(fx.Context(), &UpdateSubscriptionRequest{
+		_, err := fx.Service().UpdateSubscription(fx.Context(), &UpdateSubscriptionRequest{
 			Subscription: msg,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -489,7 +495,7 @@ func (fx *SubscriberSubscriptionTestSuiteConfig) testUpdate(t *testing.T) {
 	// The method should fail with InvalidArgument if the update_mask is invalid.
 	t.Run("invalid update mask", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.UpdateSubscription(fx.Context(), &UpdateSubscriptionRequest{
+		_, err := fx.Service().UpdateSubscription(fx.Context(), &UpdateSubscriptionRequest{
 			Subscription: created,
 			UpdateMask: &fieldmaskpb.FieldMask{
 				Paths: []string{
@@ -513,7 +519,7 @@ func (fx *SubscriberSubscriptionTestSuiteConfig) testUpdate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("name")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateSubscription(fx.Context(), &UpdateSubscriptionRequest{
+			_, err := fx.Service().UpdateSubscription(fx.Context(), &UpdateSubscriptionRequest{
 				Subscription: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
@@ -532,7 +538,7 @@ func (fx *SubscriberSubscriptionTestSuiteConfig) testUpdate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("topic")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateSubscription(fx.Context(), &UpdateSubscriptionRequest{
+			_, err := fx.Service().UpdateSubscription(fx.Context(), &UpdateSubscriptionRequest{
 				Subscription: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
@@ -551,7 +557,7 @@ func (fx *SubscriberSubscriptionTestSuiteConfig) testUpdate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("bucket")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.UpdateSubscription(fx.Context(), &UpdateSubscriptionRequest{
+			_, err := fx.Service().UpdateSubscription(fx.Context(), &UpdateSubscriptionRequest{
 				Subscription: msg,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{

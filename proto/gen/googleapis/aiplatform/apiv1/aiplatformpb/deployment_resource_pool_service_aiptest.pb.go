@@ -22,15 +22,17 @@ type DeploymentResourcePoolServiceTestSuite struct {
 func (fx DeploymentResourcePoolServiceTestSuite) TestDeploymentResourcePool(ctx context.Context, options DeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig) {
 	fx.T.Run("DeploymentResourcePool", func(t *testing.T) {
 		options.Context = func() context.Context { return ctx }
-		options.service = fx.Server
+		options.Service = func() DeploymentResourcePoolServiceServer { return fx.Server }
 		options.test(t)
 	})
 }
 
 type DeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig struct {
-	service    DeploymentResourcePoolServiceServer
 	currParent int
 
+	// Service should return the service that should be tested.
+	// The service will be used for several tests.
+	Service func() DeploymentResourcePoolServiceServer
 	// Context should return a new context.
 	// The context will be used for several tests.
 	Context func() context.Context
@@ -61,7 +63,7 @@ func (fx *DeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig) te
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateDeploymentResourcePool(fx.Context(), &CreateDeploymentResourcePoolRequest{
+		_, err := fx.Service().CreateDeploymentResourcePool(fx.Context(), &CreateDeploymentResourcePoolRequest{
 			Parent:                 "",
 			DeploymentResourcePool: fx.Create(fx.nextParent(t, false)),
 		})
@@ -71,7 +73,7 @@ func (fx *DeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig) te
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.CreateDeploymentResourcePool(fx.Context(), &CreateDeploymentResourcePoolRequest{
+		_, err := fx.Service().CreateDeploymentResourcePool(fx.Context(), &CreateDeploymentResourcePoolRequest{
 			Parent:                 "invalid resource name",
 			DeploymentResourcePool: fx.Create(fx.nextParent(t, false)),
 		})
@@ -92,7 +94,7 @@ func (fx *DeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig) te
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("dedicated_resources")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateDeploymentResourcePool(fx.Context(), &CreateDeploymentResourcePoolRequest{
+			_, err := fx.Service().CreateDeploymentResourcePool(fx.Context(), &CreateDeploymentResourcePoolRequest{
 				Parent:                 parent,
 				DeploymentResourcePool: msg,
 			})
@@ -108,7 +110,7 @@ func (fx *DeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig) te
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("machine_spec")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateDeploymentResourcePool(fx.Context(), &CreateDeploymentResourcePoolRequest{
+			_, err := fx.Service().CreateDeploymentResourcePool(fx.Context(), &CreateDeploymentResourcePoolRequest{
 				Parent:                 parent,
 				DeploymentResourcePool: msg,
 			})
@@ -124,7 +126,7 @@ func (fx *DeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig) te
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("min_replica_count")
 			container.ProtoReflect().Clear(fd)
-			_, err := fx.service.CreateDeploymentResourcePool(fx.Context(), &CreateDeploymentResourcePoolRequest{
+			_, err := fx.Service().CreateDeploymentResourcePool(fx.Context(), &CreateDeploymentResourcePoolRequest{
 				Parent:                 parent,
 				DeploymentResourcePool: msg,
 			})
@@ -139,7 +141,7 @@ func (fx *DeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig) te
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetDeploymentResourcePool(fx.Context(), &GetDeploymentResourcePoolRequest{
+		_, err := fx.Service().GetDeploymentResourcePool(fx.Context(), &GetDeploymentResourcePoolRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -148,7 +150,7 @@ func (fx *DeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig) te
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetDeploymentResourcePool(fx.Context(), &GetDeploymentResourcePoolRequest{
+		_, err := fx.Service().GetDeploymentResourcePool(fx.Context(), &GetDeploymentResourcePoolRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -159,7 +161,7 @@ func (fx *DeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig) te
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		msg, err := fx.service.GetDeploymentResourcePool(fx.Context(), &GetDeploymentResourcePoolRequest{
+		msg, err := fx.Service().GetDeploymentResourcePool(fx.Context(), &GetDeploymentResourcePoolRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -171,7 +173,7 @@ func (fx *DeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig) te
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.GetDeploymentResourcePool(fx.Context(), &GetDeploymentResourcePoolRequest{
+		_, err := fx.Service().GetDeploymentResourcePool(fx.Context(), &GetDeploymentResourcePoolRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -180,7 +182,7 @@ func (fx *DeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig) te
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.GetDeploymentResourcePool(fx.Context(), &GetDeploymentResourcePoolRequest{
+		_, err := fx.Service().GetDeploymentResourcePool(fx.Context(), &GetDeploymentResourcePoolRequest{
 			Name: "projects/-/locations/-/deploymentResourcePools/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -193,7 +195,7 @@ func (fx *DeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig) te
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.ListDeploymentResourcePools(fx.Context(), &ListDeploymentResourcePoolsRequest{
+		_, err := fx.Service().ListDeploymentResourcePools(fx.Context(), &ListDeploymentResourcePoolsRequest{
 			Parent: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -203,7 +205,7 @@ func (fx *DeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig) te
 	t.Run("invalid page token", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListDeploymentResourcePools(fx.Context(), &ListDeploymentResourcePoolsRequest{
+		_, err := fx.Service().ListDeploymentResourcePools(fx.Context(), &ListDeploymentResourcePoolsRequest{
 			Parent:    parent,
 			PageToken: "invalid page token",
 		})
@@ -214,7 +216,7 @@ func (fx *DeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig) te
 	t.Run("negative page size", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		_, err := fx.service.ListDeploymentResourcePools(fx.Context(), &ListDeploymentResourcePoolsRequest{
+		_, err := fx.Service().ListDeploymentResourcePools(fx.Context(), &ListDeploymentResourcePoolsRequest{
 			Parent:   parent,
 			PageSize: -10,
 		})
@@ -232,7 +234,7 @@ func (fx *DeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig) te
 	// under that parent.
 	t.Run("isolation", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListDeploymentResourcePools(fx.Context(), &ListDeploymentResourcePoolsRequest{
+		response, err := fx.Service().ListDeploymentResourcePools(fx.Context(), &ListDeploymentResourcePoolsRequest{
 			Parent:   parent,
 			PageSize: 999,
 		})
@@ -251,7 +253,7 @@ func (fx *DeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig) te
 	// If there are no more resources, next_page_token should not be set.
 	t.Run("last page", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListDeploymentResourcePools(fx.Context(), &ListDeploymentResourcePoolsRequest{
+		response, err := fx.Service().ListDeploymentResourcePools(fx.Context(), &ListDeploymentResourcePoolsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount,
 		})
@@ -262,7 +264,7 @@ func (fx *DeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig) te
 	// If there are more resources, next_page_token should be set.
 	t.Run("more pages", func(t *testing.T) {
 		fx.maybeSkip(t)
-		response, err := fx.service.ListDeploymentResourcePools(fx.Context(), &ListDeploymentResourcePoolsRequest{
+		response, err := fx.Service().ListDeploymentResourcePools(fx.Context(), &ListDeploymentResourcePoolsRequest{
 			Parent:   parent,
 			PageSize: resourcesCount - 1,
 		})
@@ -276,7 +278,7 @@ func (fx *DeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig) te
 		msgs := make([]*DeploymentResourcePool, 0, resourcesCount)
 		var nextPageToken string
 		for {
-			response, err := fx.service.ListDeploymentResourcePools(fx.Context(), &ListDeploymentResourcePoolsRequest{
+			response, err := fx.Service().ListDeploymentResourcePools(fx.Context(), &ListDeploymentResourcePoolsRequest{
 				Parent:    parent,
 				PageSize:  1,
 				PageToken: nextPageToken,
@@ -305,12 +307,12 @@ func (fx *DeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig) te
 		fx.maybeSkip(t)
 		const deleteCount = 5
 		for i := 0; i < deleteCount; i++ {
-			_, err := fx.service.DeleteDeploymentResourcePool(fx.Context(), &DeleteDeploymentResourcePoolRequest{
+			_, err := fx.Service().DeleteDeploymentResourcePool(fx.Context(), &DeleteDeploymentResourcePoolRequest{
 				Name: parentMsgs[i].Name,
 			})
 			assert.NilError(t, err)
 		}
-		response, err := fx.service.ListDeploymentResourcePools(fx.Context(), &ListDeploymentResourcePoolsRequest{
+		response, err := fx.Service().ListDeploymentResourcePools(fx.Context(), &ListDeploymentResourcePoolsRequest{
 			Parent:   parent,
 			PageSize: 9999,
 		})
@@ -333,7 +335,7 @@ func (fx *DeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig) te
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteDeploymentResourcePool(fx.Context(), &DeleteDeploymentResourcePoolRequest{
+		_, err := fx.Service().DeleteDeploymentResourcePool(fx.Context(), &DeleteDeploymentResourcePoolRequest{
 			Name: "",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -342,7 +344,7 @@ func (fx *DeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig) te
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteDeploymentResourcePool(fx.Context(), &DeleteDeploymentResourcePoolRequest{
+		_, err := fx.Service().DeleteDeploymentResourcePool(fx.Context(), &DeleteDeploymentResourcePoolRequest{
 			Name: "invalid resource name",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
@@ -353,7 +355,7 @@ func (fx *DeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig) te
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteDeploymentResourcePool(fx.Context(), &DeleteDeploymentResourcePoolRequest{
+		_, err := fx.Service().DeleteDeploymentResourcePool(fx.Context(), &DeleteDeploymentResourcePoolRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
@@ -364,7 +366,7 @@ func (fx *DeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig) te
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		_, err := fx.service.DeleteDeploymentResourcePool(fx.Context(), &DeleteDeploymentResourcePoolRequest{
+		_, err := fx.Service().DeleteDeploymentResourcePool(fx.Context(), &DeleteDeploymentResourcePoolRequest{
 			Name: created.Name + "notfound",
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -375,12 +377,12 @@ func (fx *DeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig) te
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
-		deleted, err := fx.service.DeleteDeploymentResourcePool(fx.Context(), &DeleteDeploymentResourcePoolRequest{
+		deleted, err := fx.Service().DeleteDeploymentResourcePool(fx.Context(), &DeleteDeploymentResourcePoolRequest{
 			Name: created.Name,
 		})
 		assert.NilError(t, err)
 		_ = deleted
-		_, err = fx.service.DeleteDeploymentResourcePool(fx.Context(), &DeleteDeploymentResourcePoolRequest{
+		_, err = fx.Service().DeleteDeploymentResourcePool(fx.Context(), &DeleteDeploymentResourcePoolRequest{
 			Name: created.Name,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
@@ -389,7 +391,7 @@ func (fx *DeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig) te
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
-		_, err := fx.service.DeleteDeploymentResourcePool(fx.Context(), &DeleteDeploymentResourcePoolRequest{
+		_, err := fx.Service().DeleteDeploymentResourcePool(fx.Context(), &DeleteDeploymentResourcePoolRequest{
 			Name: "projects/-/locations/-/deploymentResourcePools/-",
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
