@@ -108,7 +108,6 @@ func findResourcesPerPackage(plugin *protogen.Plugin) map[protoreflect.FullName]
 	}
 	// sort resources to ensure deterministic ordering
 	for pkg, resources := range result {
-		resources := resources
 		sort.Slice(resources, func(i, j int) bool {
 			return resources[i].descriptor.GetType() < resources[j].descriptor.GetType()
 		})
