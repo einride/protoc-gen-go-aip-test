@@ -38,7 +38,7 @@ func (s *serviceGenerator) generateConfigProvider(f *protogen.GeneratedFile) {
 		GoName:       "T",
 		GoImportPath: "testing",
 	})
-	name := serviceTestConfigSupplierName(s.service.Desc)
+	name := serviceTestConfigProviderName(s.service.Desc)
 	f.P("// ", name, " is the interface to implement to decide which resources")
 	f.P("// that should be tested and how it's configured.")
 	f.P("type ", name, " interface {")
@@ -58,7 +58,7 @@ func (s *serviceGenerator) generateMainTestFunction(f *protogen.GeneratedFile) {
 	})
 	funcName := "Test" + string(s.service.Desc.Name())
 	f.P("// ", funcName, " is the main entrypoint for starting the AIP tests.")
-	f.P("func ", funcName, "(t *", t, ",s ", serviceTestConfigSupplierName(s.service.Desc), ") {")
+	f.P("func ", funcName, "(t *", t, ",s ", serviceTestConfigProviderName(s.service.Desc), ") {")
 	for _, resource := range s.resources {
 		name := resourceTestSuiteConfigName(s.service.Desc, resource)
 		f.P("test", name, "(t, s)")
@@ -82,7 +82,7 @@ func (s *serviceGenerator) generateTestFunctions(f *protogen.GeneratedFile) {
 	})
 	for _, resource := range s.resources {
 		name := resourceTestSuiteConfigName(s.service.Desc, resource)
-		f.P("func test", name, "(t *", t, ",s ", serviceTestConfigSupplierName(s.service.Desc), ") {")
+		f.P("func test", name, "(t *", t, ",s ", serviceTestConfigProviderName(s.service.Desc), ") {")
 		f.P("t.Run(", strconv.Quote(resourceType(resource)), ", func(t *", t, ") {")
 		f.P("config := s.", resourceType(resource), "TestSuiteConfig(t)")
 		f.P("if (config == nil) {")
