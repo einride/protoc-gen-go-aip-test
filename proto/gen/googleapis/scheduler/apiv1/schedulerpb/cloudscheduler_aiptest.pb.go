@@ -17,23 +17,23 @@ import (
 // CloudSchedulerTestSuiteConfigProvider is the interface to implement to decide which resources
 // that should be tested and how it's configured.
 type CloudSchedulerTestSuiteConfigProvider interface {
-	// CloudSchedulerJobTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	JobTestSuiteConfig(t *testing.T) *CloudSchedulerJobTestSuiteConfig
+	// CloudSchedulerJob should return a config, or nil, which means that the tests will be skipped.
+	CloudSchedulerJob(t *testing.T) *CloudSchedulerJobTestSuiteConfig
 }
 
 // TestCloudScheduler is the main entrypoint for starting the AIP tests.
 func TestCloudScheduler(t *testing.T, s CloudSchedulerTestSuiteConfigProvider) {
-	testCloudSchedulerJobTestSuiteConfig(t, s)
+	testCloudSchedulerJob(t, s)
 }
 
-func testCloudSchedulerJobTestSuiteConfig(t *testing.T, s CloudSchedulerTestSuiteConfigProvider) {
+func testCloudSchedulerJob(t *testing.T, s CloudSchedulerTestSuiteConfigProvider) {
 	t.Run("Job", func(t *testing.T) {
-		config := s.JobTestSuiteConfig(t)
+		config := s.CloudSchedulerJob(t)
 		if config == nil {
-			t.Skip("Method JobTestSuiteConfig not implemented")
+			t.Skip("Method CloudSchedulerJob not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method CloudSchedulerJobTestSuiteConfig.Service() not implemented")
+			t.Skip("Method CloudSchedulerJob.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }

@@ -17,26 +17,26 @@ import (
 // VizierServiceTestSuiteConfigProvider is the interface to implement to decide which resources
 // that should be tested and how it's configured.
 type VizierServiceTestSuiteConfigProvider interface {
-	// VizierServiceStudyTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	StudyTestSuiteConfig(t *testing.T) *VizierServiceStudyTestSuiteConfig
-	// VizierServiceTrialTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	TrialTestSuiteConfig(t *testing.T) *VizierServiceTrialTestSuiteConfig
+	// VizierServiceStudy should return a config, or nil, which means that the tests will be skipped.
+	VizierServiceStudy(t *testing.T) *VizierServiceStudyTestSuiteConfig
+	// VizierServiceTrial should return a config, or nil, which means that the tests will be skipped.
+	VizierServiceTrial(t *testing.T) *VizierServiceTrialTestSuiteConfig
 }
 
 // TestVizierService is the main entrypoint for starting the AIP tests.
 func TestVizierService(t *testing.T, s VizierServiceTestSuiteConfigProvider) {
-	testVizierServiceStudyTestSuiteConfig(t, s)
-	testVizierServiceTrialTestSuiteConfig(t, s)
+	testVizierServiceStudy(t, s)
+	testVizierServiceTrial(t, s)
 }
 
-func testVizierServiceStudyTestSuiteConfig(t *testing.T, s VizierServiceTestSuiteConfigProvider) {
+func testVizierServiceStudy(t *testing.T, s VizierServiceTestSuiteConfigProvider) {
 	t.Run("Study", func(t *testing.T) {
-		config := s.StudyTestSuiteConfig(t)
+		config := s.VizierServiceStudy(t)
 		if config == nil {
-			t.Skip("Method StudyTestSuiteConfig not implemented")
+			t.Skip("Method VizierServiceStudy not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method VizierServiceStudyTestSuiteConfig.Service() not implemented")
+			t.Skip("Method VizierServiceStudy.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }
@@ -45,14 +45,14 @@ func testVizierServiceStudyTestSuiteConfig(t *testing.T, s VizierServiceTestSuit
 	})
 }
 
-func testVizierServiceTrialTestSuiteConfig(t *testing.T, s VizierServiceTestSuiteConfigProvider) {
+func testVizierServiceTrial(t *testing.T, s VizierServiceTestSuiteConfigProvider) {
 	t.Run("Trial", func(t *testing.T) {
-		config := s.TrialTestSuiteConfig(t)
+		config := s.VizierServiceTrial(t)
 		if config == nil {
-			t.Skip("Method TrialTestSuiteConfig not implemented")
+			t.Skip("Method VizierServiceTrial not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method VizierServiceTrialTestSuiteConfig.Service() not implemented")
+			t.Skip("Method VizierServiceTrial.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }

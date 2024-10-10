@@ -18,38 +18,38 @@ import (
 // DatasetServiceTestSuiteConfigProvider is the interface to implement to decide which resources
 // that should be tested and how it's configured.
 type DatasetServiceTestSuiteConfigProvider interface {
-	// DatasetServiceAnnotationTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	AnnotationTestSuiteConfig(t *testing.T) *DatasetServiceAnnotationTestSuiteConfig
-	// DatasetServiceAnnotationSpecTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	AnnotationSpecTestSuiteConfig(t *testing.T) *DatasetServiceAnnotationSpecTestSuiteConfig
-	// DatasetServiceDataItemTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	DataItemTestSuiteConfig(t *testing.T) *DatasetServiceDataItemTestSuiteConfig
-	// DatasetServiceDatasetTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	DatasetTestSuiteConfig(t *testing.T) *DatasetServiceDatasetTestSuiteConfig
-	// DatasetServiceDatasetVersionTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	DatasetVersionTestSuiteConfig(t *testing.T) *DatasetServiceDatasetVersionTestSuiteConfig
-	// DatasetServiceSavedQueryTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	SavedQueryTestSuiteConfig(t *testing.T) *DatasetServiceSavedQueryTestSuiteConfig
+	// DatasetServiceAnnotation should return a config, or nil, which means that the tests will be skipped.
+	DatasetServiceAnnotation(t *testing.T) *DatasetServiceAnnotationTestSuiteConfig
+	// DatasetServiceAnnotationSpec should return a config, or nil, which means that the tests will be skipped.
+	DatasetServiceAnnotationSpec(t *testing.T) *DatasetServiceAnnotationSpecTestSuiteConfig
+	// DatasetServiceDataItem should return a config, or nil, which means that the tests will be skipped.
+	DatasetServiceDataItem(t *testing.T) *DatasetServiceDataItemTestSuiteConfig
+	// DatasetServiceDataset should return a config, or nil, which means that the tests will be skipped.
+	DatasetServiceDataset(t *testing.T) *DatasetServiceDatasetTestSuiteConfig
+	// DatasetServiceDatasetVersion should return a config, or nil, which means that the tests will be skipped.
+	DatasetServiceDatasetVersion(t *testing.T) *DatasetServiceDatasetVersionTestSuiteConfig
+	// DatasetServiceSavedQuery should return a config, or nil, which means that the tests will be skipped.
+	DatasetServiceSavedQuery(t *testing.T) *DatasetServiceSavedQueryTestSuiteConfig
 }
 
 // TestDatasetService is the main entrypoint for starting the AIP tests.
 func TestDatasetService(t *testing.T, s DatasetServiceTestSuiteConfigProvider) {
-	testDatasetServiceAnnotationTestSuiteConfig(t, s)
-	testDatasetServiceAnnotationSpecTestSuiteConfig(t, s)
-	testDatasetServiceDataItemTestSuiteConfig(t, s)
-	testDatasetServiceDatasetTestSuiteConfig(t, s)
-	testDatasetServiceDatasetVersionTestSuiteConfig(t, s)
-	testDatasetServiceSavedQueryTestSuiteConfig(t, s)
+	testDatasetServiceAnnotation(t, s)
+	testDatasetServiceAnnotationSpec(t, s)
+	testDatasetServiceDataItem(t, s)
+	testDatasetServiceDataset(t, s)
+	testDatasetServiceDatasetVersion(t, s)
+	testDatasetServiceSavedQuery(t, s)
 }
 
-func testDatasetServiceAnnotationTestSuiteConfig(t *testing.T, s DatasetServiceTestSuiteConfigProvider) {
+func testDatasetServiceAnnotation(t *testing.T, s DatasetServiceTestSuiteConfigProvider) {
 	t.Run("Annotation", func(t *testing.T) {
-		config := s.AnnotationTestSuiteConfig(t)
+		config := s.DatasetServiceAnnotation(t)
 		if config == nil {
-			t.Skip("Method AnnotationTestSuiteConfig not implemented")
+			t.Skip("Method DatasetServiceAnnotation not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method DatasetServiceAnnotationTestSuiteConfig.Service() not implemented")
+			t.Skip("Method DatasetServiceAnnotation.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }
@@ -58,14 +58,14 @@ func testDatasetServiceAnnotationTestSuiteConfig(t *testing.T, s DatasetServiceT
 	})
 }
 
-func testDatasetServiceAnnotationSpecTestSuiteConfig(t *testing.T, s DatasetServiceTestSuiteConfigProvider) {
+func testDatasetServiceAnnotationSpec(t *testing.T, s DatasetServiceTestSuiteConfigProvider) {
 	t.Run("AnnotationSpec", func(t *testing.T) {
-		config := s.AnnotationSpecTestSuiteConfig(t)
+		config := s.DatasetServiceAnnotationSpec(t)
 		if config == nil {
-			t.Skip("Method AnnotationSpecTestSuiteConfig not implemented")
+			t.Skip("Method DatasetServiceAnnotationSpec not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method DatasetServiceAnnotationSpecTestSuiteConfig.Service() not implemented")
+			t.Skip("Method DatasetServiceAnnotationSpec.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }
@@ -74,14 +74,14 @@ func testDatasetServiceAnnotationSpecTestSuiteConfig(t *testing.T, s DatasetServ
 	})
 }
 
-func testDatasetServiceDataItemTestSuiteConfig(t *testing.T, s DatasetServiceTestSuiteConfigProvider) {
+func testDatasetServiceDataItem(t *testing.T, s DatasetServiceTestSuiteConfigProvider) {
 	t.Run("DataItem", func(t *testing.T) {
-		config := s.DataItemTestSuiteConfig(t)
+		config := s.DatasetServiceDataItem(t)
 		if config == nil {
-			t.Skip("Method DataItemTestSuiteConfig not implemented")
+			t.Skip("Method DatasetServiceDataItem not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method DatasetServiceDataItemTestSuiteConfig.Service() not implemented")
+			t.Skip("Method DatasetServiceDataItem.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }
@@ -90,14 +90,14 @@ func testDatasetServiceDataItemTestSuiteConfig(t *testing.T, s DatasetServiceTes
 	})
 }
 
-func testDatasetServiceDatasetTestSuiteConfig(t *testing.T, s DatasetServiceTestSuiteConfigProvider) {
+func testDatasetServiceDataset(t *testing.T, s DatasetServiceTestSuiteConfigProvider) {
 	t.Run("Dataset", func(t *testing.T) {
-		config := s.DatasetTestSuiteConfig(t)
+		config := s.DatasetServiceDataset(t)
 		if config == nil {
-			t.Skip("Method DatasetTestSuiteConfig not implemented")
+			t.Skip("Method DatasetServiceDataset not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method DatasetServiceDatasetTestSuiteConfig.Service() not implemented")
+			t.Skip("Method DatasetServiceDataset.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }
@@ -106,14 +106,14 @@ func testDatasetServiceDatasetTestSuiteConfig(t *testing.T, s DatasetServiceTest
 	})
 }
 
-func testDatasetServiceDatasetVersionTestSuiteConfig(t *testing.T, s DatasetServiceTestSuiteConfigProvider) {
+func testDatasetServiceDatasetVersion(t *testing.T, s DatasetServiceTestSuiteConfigProvider) {
 	t.Run("DatasetVersion", func(t *testing.T) {
-		config := s.DatasetVersionTestSuiteConfig(t)
+		config := s.DatasetServiceDatasetVersion(t)
 		if config == nil {
-			t.Skip("Method DatasetVersionTestSuiteConfig not implemented")
+			t.Skip("Method DatasetServiceDatasetVersion not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method DatasetServiceDatasetVersionTestSuiteConfig.Service() not implemented")
+			t.Skip("Method DatasetServiceDatasetVersion.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }
@@ -122,14 +122,14 @@ func testDatasetServiceDatasetVersionTestSuiteConfig(t *testing.T, s DatasetServ
 	})
 }
 
-func testDatasetServiceSavedQueryTestSuiteConfig(t *testing.T, s DatasetServiceTestSuiteConfigProvider) {
+func testDatasetServiceSavedQuery(t *testing.T, s DatasetServiceTestSuiteConfigProvider) {
 	t.Run("SavedQuery", func(t *testing.T) {
-		config := s.SavedQueryTestSuiteConfig(t)
+		config := s.DatasetServiceSavedQuery(t)
 		if config == nil {
-			t.Skip("Method SavedQueryTestSuiteConfig not implemented")
+			t.Skip("Method DatasetServiceSavedQuery not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method DatasetServiceSavedQueryTestSuiteConfig.Service() not implemented")
+			t.Skip("Method DatasetServiceSavedQuery.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }

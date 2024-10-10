@@ -43,9 +43,9 @@ func (s *serviceGenerator) generateConfigProvider(f *protogen.GeneratedFile) {
 	f.P("// that should be tested and how it's configured.")
 	f.P("type ", name, " interface {")
 	for _, resource := range s.resources {
-		resourceFx := resourceTestSuiteConfigName(s.service.Desc, resource)
+		resourceFx := serviceResourceName(s.service.Desc, resource)
 		f.P("// ", resourceFx, " should return a config, or nil, which means that the tests will be skipped.")
-		f.P(resourceType(resource), "TestSuiteConfig(t *", t, ") *", resourceFx, "")
+		f.P(resourceFx, "(t *", t, ") *", resourceTestSuiteConfigName(s.service.Desc, resource), "")
 	}
 	f.P("}")
 	f.P()
@@ -60,7 +60,7 @@ func (s *serviceGenerator) generateMainTestFunction(f *protogen.GeneratedFile) {
 	f.P("// ", funcName, " is the main entrypoint for starting the AIP tests.")
 	f.P("func ", funcName, "(t *", t, ",s ", serviceTestConfigProviderName(s.service.Desc), ") {")
 	for _, resource := range s.resources {
-		name := resourceTestSuiteConfigName(s.service.Desc, resource)
+		name := serviceResourceName(s.service.Desc, resource)
 		f.P("test", name, "(t, s)")
 	}
 	f.P("}")
@@ -81,12 +81,12 @@ func (s *serviceGenerator) generateTestFunctions(f *protogen.GeneratedFile) {
 		GoImportPath: "context",
 	})
 	for _, resource := range s.resources {
-		name := resourceTestSuiteConfigName(s.service.Desc, resource)
+		name := serviceResourceName(s.service.Desc, resource)
 		f.P("func test", name, "(t *", t, ",s ", serviceTestConfigProviderName(s.service.Desc), ") {")
 		f.P("t.Run(", strconv.Quote(resourceType(resource)), ", func(t *", t, ") {")
-		f.P("config := s.", resourceType(resource), "TestSuiteConfig(t)")
+		f.P("config := s.", serviceResourceName(s.service.Desc, resource), "(t)")
 		f.P("if (config == nil) {")
-		f.P("t.Skip(\"Method ", resourceType(resource), "TestSuiteConfig not implemented\")")
+		f.P("t.Skip(\"Method ", name, " not implemented\")")
 		f.P("}")
 		f.P("if (config.Service == nil) {")
 		f.P("t.Skip(\"Method ", name, ".Service() not implemented\")")

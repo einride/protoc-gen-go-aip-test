@@ -16,23 +16,23 @@ import (
 // SchemaServiceTestSuiteConfigProvider is the interface to implement to decide which resources
 // that should be tested and how it's configured.
 type SchemaServiceTestSuiteConfigProvider interface {
-	// SchemaServiceSchemaTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	SchemaTestSuiteConfig(t *testing.T) *SchemaServiceSchemaTestSuiteConfig
+	// SchemaServiceSchema should return a config, or nil, which means that the tests will be skipped.
+	SchemaServiceSchema(t *testing.T) *SchemaServiceSchemaTestSuiteConfig
 }
 
 // TestSchemaService is the main entrypoint for starting the AIP tests.
 func TestSchemaService(t *testing.T, s SchemaServiceTestSuiteConfigProvider) {
-	testSchemaServiceSchemaTestSuiteConfig(t, s)
+	testSchemaServiceSchema(t, s)
 }
 
-func testSchemaServiceSchemaTestSuiteConfig(t *testing.T, s SchemaServiceTestSuiteConfigProvider) {
+func testSchemaServiceSchema(t *testing.T, s SchemaServiceTestSuiteConfigProvider) {
 	t.Run("Schema", func(t *testing.T) {
-		config := s.SchemaTestSuiteConfig(t)
+		config := s.SchemaServiceSchema(t)
 		if config == nil {
-			t.Skip("Method SchemaTestSuiteConfig not implemented")
+			t.Skip("Method SchemaServiceSchema not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method SchemaServiceSchemaTestSuiteConfig.Service() not implemented")
+			t.Skip("Method SchemaServiceSchema.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }

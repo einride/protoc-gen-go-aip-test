@@ -19,32 +19,32 @@ import (
 // TensorboardServiceTestSuiteConfigProvider is the interface to implement to decide which resources
 // that should be tested and how it's configured.
 type TensorboardServiceTestSuiteConfigProvider interface {
-	// TensorboardServiceTensorboardTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	TensorboardTestSuiteConfig(t *testing.T) *TensorboardServiceTensorboardTestSuiteConfig
-	// TensorboardServiceTensorboardExperimentTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	TensorboardExperimentTestSuiteConfig(t *testing.T) *TensorboardServiceTensorboardExperimentTestSuiteConfig
-	// TensorboardServiceTensorboardRunTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	TensorboardRunTestSuiteConfig(t *testing.T) *TensorboardServiceTensorboardRunTestSuiteConfig
-	// TensorboardServiceTensorboardTimeSeriesTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	TensorboardTimeSeriesTestSuiteConfig(t *testing.T) *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig
+	// TensorboardServiceTensorboard should return a config, or nil, which means that the tests will be skipped.
+	TensorboardServiceTensorboard(t *testing.T) *TensorboardServiceTensorboardTestSuiteConfig
+	// TensorboardServiceTensorboardExperiment should return a config, or nil, which means that the tests will be skipped.
+	TensorboardServiceTensorboardExperiment(t *testing.T) *TensorboardServiceTensorboardExperimentTestSuiteConfig
+	// TensorboardServiceTensorboardRun should return a config, or nil, which means that the tests will be skipped.
+	TensorboardServiceTensorboardRun(t *testing.T) *TensorboardServiceTensorboardRunTestSuiteConfig
+	// TensorboardServiceTensorboardTimeSeries should return a config, or nil, which means that the tests will be skipped.
+	TensorboardServiceTensorboardTimeSeries(t *testing.T) *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig
 }
 
 // TestTensorboardService is the main entrypoint for starting the AIP tests.
 func TestTensorboardService(t *testing.T, s TensorboardServiceTestSuiteConfigProvider) {
-	testTensorboardServiceTensorboardTestSuiteConfig(t, s)
-	testTensorboardServiceTensorboardExperimentTestSuiteConfig(t, s)
-	testTensorboardServiceTensorboardRunTestSuiteConfig(t, s)
-	testTensorboardServiceTensorboardTimeSeriesTestSuiteConfig(t, s)
+	testTensorboardServiceTensorboard(t, s)
+	testTensorboardServiceTensorboardExperiment(t, s)
+	testTensorboardServiceTensorboardRun(t, s)
+	testTensorboardServiceTensorboardTimeSeries(t, s)
 }
 
-func testTensorboardServiceTensorboardTestSuiteConfig(t *testing.T, s TensorboardServiceTestSuiteConfigProvider) {
+func testTensorboardServiceTensorboard(t *testing.T, s TensorboardServiceTestSuiteConfigProvider) {
 	t.Run("Tensorboard", func(t *testing.T) {
-		config := s.TensorboardTestSuiteConfig(t)
+		config := s.TensorboardServiceTensorboard(t)
 		if config == nil {
-			t.Skip("Method TensorboardTestSuiteConfig not implemented")
+			t.Skip("Method TensorboardServiceTensorboard not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method TensorboardServiceTensorboardTestSuiteConfig.Service() not implemented")
+			t.Skip("Method TensorboardServiceTensorboard.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }
@@ -53,14 +53,14 @@ func testTensorboardServiceTensorboardTestSuiteConfig(t *testing.T, s Tensorboar
 	})
 }
 
-func testTensorboardServiceTensorboardExperimentTestSuiteConfig(t *testing.T, s TensorboardServiceTestSuiteConfigProvider) {
+func testTensorboardServiceTensorboardExperiment(t *testing.T, s TensorboardServiceTestSuiteConfigProvider) {
 	t.Run("TensorboardExperiment", func(t *testing.T) {
-		config := s.TensorboardExperimentTestSuiteConfig(t)
+		config := s.TensorboardServiceTensorboardExperiment(t)
 		if config == nil {
-			t.Skip("Method TensorboardExperimentTestSuiteConfig not implemented")
+			t.Skip("Method TensorboardServiceTensorboardExperiment not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method TensorboardServiceTensorboardExperimentTestSuiteConfig.Service() not implemented")
+			t.Skip("Method TensorboardServiceTensorboardExperiment.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }
@@ -69,14 +69,14 @@ func testTensorboardServiceTensorboardExperimentTestSuiteConfig(t *testing.T, s 
 	})
 }
 
-func testTensorboardServiceTensorboardRunTestSuiteConfig(t *testing.T, s TensorboardServiceTestSuiteConfigProvider) {
+func testTensorboardServiceTensorboardRun(t *testing.T, s TensorboardServiceTestSuiteConfigProvider) {
 	t.Run("TensorboardRun", func(t *testing.T) {
-		config := s.TensorboardRunTestSuiteConfig(t)
+		config := s.TensorboardServiceTensorboardRun(t)
 		if config == nil {
-			t.Skip("Method TensorboardRunTestSuiteConfig not implemented")
+			t.Skip("Method TensorboardServiceTensorboardRun not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method TensorboardServiceTensorboardRunTestSuiteConfig.Service() not implemented")
+			t.Skip("Method TensorboardServiceTensorboardRun.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }
@@ -85,14 +85,14 @@ func testTensorboardServiceTensorboardRunTestSuiteConfig(t *testing.T, s Tensorb
 	})
 }
 
-func testTensorboardServiceTensorboardTimeSeriesTestSuiteConfig(t *testing.T, s TensorboardServiceTestSuiteConfigProvider) {
+func testTensorboardServiceTensorboardTimeSeries(t *testing.T, s TensorboardServiceTestSuiteConfigProvider) {
 	t.Run("TensorboardTimeSeries", func(t *testing.T) {
-		config := s.TensorboardTimeSeriesTestSuiteConfig(t)
+		config := s.TensorboardServiceTensorboardTimeSeries(t)
 		if config == nil {
-			t.Skip("Method TensorboardTimeSeriesTestSuiteConfig not implemented")
+			t.Skip("Method TensorboardServiceTensorboardTimeSeries not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method TensorboardServiceTensorboardTimeSeriesTestSuiteConfig.Service() not implemented")
+			t.Skip("Method TensorboardServiceTensorboardTimeSeries.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }

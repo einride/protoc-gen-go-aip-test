@@ -17,29 +17,29 @@ import (
 // TablesServiceTestSuiteConfigProvider is the interface to implement to decide which resources
 // that should be tested and how it's configured.
 type TablesServiceTestSuiteConfigProvider interface {
-	// TablesServiceRowTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	RowTestSuiteConfig(t *testing.T) *TablesServiceRowTestSuiteConfig
-	// TablesServiceTableTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	TableTestSuiteConfig(t *testing.T) *TablesServiceTableTestSuiteConfig
-	// TablesServiceWorkspaceTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	WorkspaceTestSuiteConfig(t *testing.T) *TablesServiceWorkspaceTestSuiteConfig
+	// TablesServiceRow should return a config, or nil, which means that the tests will be skipped.
+	TablesServiceRow(t *testing.T) *TablesServiceRowTestSuiteConfig
+	// TablesServiceTable should return a config, or nil, which means that the tests will be skipped.
+	TablesServiceTable(t *testing.T) *TablesServiceTableTestSuiteConfig
+	// TablesServiceWorkspace should return a config, or nil, which means that the tests will be skipped.
+	TablesServiceWorkspace(t *testing.T) *TablesServiceWorkspaceTestSuiteConfig
 }
 
 // TestTablesService is the main entrypoint for starting the AIP tests.
 func TestTablesService(t *testing.T, s TablesServiceTestSuiteConfigProvider) {
-	testTablesServiceRowTestSuiteConfig(t, s)
-	testTablesServiceTableTestSuiteConfig(t, s)
-	testTablesServiceWorkspaceTestSuiteConfig(t, s)
+	testTablesServiceRow(t, s)
+	testTablesServiceTable(t, s)
+	testTablesServiceWorkspace(t, s)
 }
 
-func testTablesServiceRowTestSuiteConfig(t *testing.T, s TablesServiceTestSuiteConfigProvider) {
+func testTablesServiceRow(t *testing.T, s TablesServiceTestSuiteConfigProvider) {
 	t.Run("Row", func(t *testing.T) {
-		config := s.RowTestSuiteConfig(t)
+		config := s.TablesServiceRow(t)
 		if config == nil {
-			t.Skip("Method RowTestSuiteConfig not implemented")
+			t.Skip("Method TablesServiceRow not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method TablesServiceRowTestSuiteConfig.Service() not implemented")
+			t.Skip("Method TablesServiceRow.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }
@@ -48,14 +48,14 @@ func testTablesServiceRowTestSuiteConfig(t *testing.T, s TablesServiceTestSuiteC
 	})
 }
 
-func testTablesServiceTableTestSuiteConfig(t *testing.T, s TablesServiceTestSuiteConfigProvider) {
+func testTablesServiceTable(t *testing.T, s TablesServiceTestSuiteConfigProvider) {
 	t.Run("Table", func(t *testing.T) {
-		config := s.TableTestSuiteConfig(t)
+		config := s.TablesServiceTable(t)
 		if config == nil {
-			t.Skip("Method TableTestSuiteConfig not implemented")
+			t.Skip("Method TablesServiceTable not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method TablesServiceTableTestSuiteConfig.Service() not implemented")
+			t.Skip("Method TablesServiceTable.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }
@@ -64,14 +64,14 @@ func testTablesServiceTableTestSuiteConfig(t *testing.T, s TablesServiceTestSuit
 	})
 }
 
-func testTablesServiceWorkspaceTestSuiteConfig(t *testing.T, s TablesServiceTestSuiteConfigProvider) {
+func testTablesServiceWorkspace(t *testing.T, s TablesServiceTestSuiteConfigProvider) {
 	t.Run("Workspace", func(t *testing.T) {
-		config := s.WorkspaceTestSuiteConfig(t)
+		config := s.TablesServiceWorkspace(t)
 		if config == nil {
-			t.Skip("Method WorkspaceTestSuiteConfig not implemented")
+			t.Skip("Method TablesServiceWorkspace not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method TablesServiceWorkspaceTestSuiteConfig.Service() not implemented")
+			t.Skip("Method TablesServiceWorkspace.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }

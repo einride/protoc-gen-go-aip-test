@@ -19,41 +19,41 @@ import (
 // JobServiceTestSuiteConfigProvider is the interface to implement to decide which resources
 // that should be tested and how it's configured.
 type JobServiceTestSuiteConfigProvider interface {
-	// JobServiceBatchPredictionJobTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	BatchPredictionJobTestSuiteConfig(t *testing.T) *JobServiceBatchPredictionJobTestSuiteConfig
-	// JobServiceCustomJobTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	CustomJobTestSuiteConfig(t *testing.T) *JobServiceCustomJobTestSuiteConfig
-	// JobServiceDataLabelingJobTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	DataLabelingJobTestSuiteConfig(t *testing.T) *JobServiceDataLabelingJobTestSuiteConfig
-	// JobServiceHyperparameterTuningJobTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	HyperparameterTuningJobTestSuiteConfig(t *testing.T) *JobServiceHyperparameterTuningJobTestSuiteConfig
-	// JobServiceModelDeploymentMonitoringJobTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	ModelDeploymentMonitoringJobTestSuiteConfig(t *testing.T) *JobServiceModelDeploymentMonitoringJobTestSuiteConfig
-	// JobServiceNasJobTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	NasJobTestSuiteConfig(t *testing.T) *JobServiceNasJobTestSuiteConfig
-	// JobServiceNasTrialDetailTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	NasTrialDetailTestSuiteConfig(t *testing.T) *JobServiceNasTrialDetailTestSuiteConfig
+	// JobServiceBatchPredictionJob should return a config, or nil, which means that the tests will be skipped.
+	JobServiceBatchPredictionJob(t *testing.T) *JobServiceBatchPredictionJobTestSuiteConfig
+	// JobServiceCustomJob should return a config, or nil, which means that the tests will be skipped.
+	JobServiceCustomJob(t *testing.T) *JobServiceCustomJobTestSuiteConfig
+	// JobServiceDataLabelingJob should return a config, or nil, which means that the tests will be skipped.
+	JobServiceDataLabelingJob(t *testing.T) *JobServiceDataLabelingJobTestSuiteConfig
+	// JobServiceHyperparameterTuningJob should return a config, or nil, which means that the tests will be skipped.
+	JobServiceHyperparameterTuningJob(t *testing.T) *JobServiceHyperparameterTuningJobTestSuiteConfig
+	// JobServiceModelDeploymentMonitoringJob should return a config, or nil, which means that the tests will be skipped.
+	JobServiceModelDeploymentMonitoringJob(t *testing.T) *JobServiceModelDeploymentMonitoringJobTestSuiteConfig
+	// JobServiceNasJob should return a config, or nil, which means that the tests will be skipped.
+	JobServiceNasJob(t *testing.T) *JobServiceNasJobTestSuiteConfig
+	// JobServiceNasTrialDetail should return a config, or nil, which means that the tests will be skipped.
+	JobServiceNasTrialDetail(t *testing.T) *JobServiceNasTrialDetailTestSuiteConfig
 }
 
 // TestJobService is the main entrypoint for starting the AIP tests.
 func TestJobService(t *testing.T, s JobServiceTestSuiteConfigProvider) {
-	testJobServiceBatchPredictionJobTestSuiteConfig(t, s)
-	testJobServiceCustomJobTestSuiteConfig(t, s)
-	testJobServiceDataLabelingJobTestSuiteConfig(t, s)
-	testJobServiceHyperparameterTuningJobTestSuiteConfig(t, s)
-	testJobServiceModelDeploymentMonitoringJobTestSuiteConfig(t, s)
-	testJobServiceNasJobTestSuiteConfig(t, s)
-	testJobServiceNasTrialDetailTestSuiteConfig(t, s)
+	testJobServiceBatchPredictionJob(t, s)
+	testJobServiceCustomJob(t, s)
+	testJobServiceDataLabelingJob(t, s)
+	testJobServiceHyperparameterTuningJob(t, s)
+	testJobServiceModelDeploymentMonitoringJob(t, s)
+	testJobServiceNasJob(t, s)
+	testJobServiceNasTrialDetail(t, s)
 }
 
-func testJobServiceBatchPredictionJobTestSuiteConfig(t *testing.T, s JobServiceTestSuiteConfigProvider) {
+func testJobServiceBatchPredictionJob(t *testing.T, s JobServiceTestSuiteConfigProvider) {
 	t.Run("BatchPredictionJob", func(t *testing.T) {
-		config := s.BatchPredictionJobTestSuiteConfig(t)
+		config := s.JobServiceBatchPredictionJob(t)
 		if config == nil {
-			t.Skip("Method BatchPredictionJobTestSuiteConfig not implemented")
+			t.Skip("Method JobServiceBatchPredictionJob not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method JobServiceBatchPredictionJobTestSuiteConfig.Service() not implemented")
+			t.Skip("Method JobServiceBatchPredictionJob.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }
@@ -62,14 +62,14 @@ func testJobServiceBatchPredictionJobTestSuiteConfig(t *testing.T, s JobServiceT
 	})
 }
 
-func testJobServiceCustomJobTestSuiteConfig(t *testing.T, s JobServiceTestSuiteConfigProvider) {
+func testJobServiceCustomJob(t *testing.T, s JobServiceTestSuiteConfigProvider) {
 	t.Run("CustomJob", func(t *testing.T) {
-		config := s.CustomJobTestSuiteConfig(t)
+		config := s.JobServiceCustomJob(t)
 		if config == nil {
-			t.Skip("Method CustomJobTestSuiteConfig not implemented")
+			t.Skip("Method JobServiceCustomJob not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method JobServiceCustomJobTestSuiteConfig.Service() not implemented")
+			t.Skip("Method JobServiceCustomJob.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }
@@ -78,14 +78,14 @@ func testJobServiceCustomJobTestSuiteConfig(t *testing.T, s JobServiceTestSuiteC
 	})
 }
 
-func testJobServiceDataLabelingJobTestSuiteConfig(t *testing.T, s JobServiceTestSuiteConfigProvider) {
+func testJobServiceDataLabelingJob(t *testing.T, s JobServiceTestSuiteConfigProvider) {
 	t.Run("DataLabelingJob", func(t *testing.T) {
-		config := s.DataLabelingJobTestSuiteConfig(t)
+		config := s.JobServiceDataLabelingJob(t)
 		if config == nil {
-			t.Skip("Method DataLabelingJobTestSuiteConfig not implemented")
+			t.Skip("Method JobServiceDataLabelingJob not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method JobServiceDataLabelingJobTestSuiteConfig.Service() not implemented")
+			t.Skip("Method JobServiceDataLabelingJob.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }
@@ -94,14 +94,14 @@ func testJobServiceDataLabelingJobTestSuiteConfig(t *testing.T, s JobServiceTest
 	})
 }
 
-func testJobServiceHyperparameterTuningJobTestSuiteConfig(t *testing.T, s JobServiceTestSuiteConfigProvider) {
+func testJobServiceHyperparameterTuningJob(t *testing.T, s JobServiceTestSuiteConfigProvider) {
 	t.Run("HyperparameterTuningJob", func(t *testing.T) {
-		config := s.HyperparameterTuningJobTestSuiteConfig(t)
+		config := s.JobServiceHyperparameterTuningJob(t)
 		if config == nil {
-			t.Skip("Method HyperparameterTuningJobTestSuiteConfig not implemented")
+			t.Skip("Method JobServiceHyperparameterTuningJob not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method JobServiceHyperparameterTuningJobTestSuiteConfig.Service() not implemented")
+			t.Skip("Method JobServiceHyperparameterTuningJob.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }
@@ -110,14 +110,14 @@ func testJobServiceHyperparameterTuningJobTestSuiteConfig(t *testing.T, s JobSer
 	})
 }
 
-func testJobServiceModelDeploymentMonitoringJobTestSuiteConfig(t *testing.T, s JobServiceTestSuiteConfigProvider) {
+func testJobServiceModelDeploymentMonitoringJob(t *testing.T, s JobServiceTestSuiteConfigProvider) {
 	t.Run("ModelDeploymentMonitoringJob", func(t *testing.T) {
-		config := s.ModelDeploymentMonitoringJobTestSuiteConfig(t)
+		config := s.JobServiceModelDeploymentMonitoringJob(t)
 		if config == nil {
-			t.Skip("Method ModelDeploymentMonitoringJobTestSuiteConfig not implemented")
+			t.Skip("Method JobServiceModelDeploymentMonitoringJob not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method JobServiceModelDeploymentMonitoringJobTestSuiteConfig.Service() not implemented")
+			t.Skip("Method JobServiceModelDeploymentMonitoringJob.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }
@@ -126,14 +126,14 @@ func testJobServiceModelDeploymentMonitoringJobTestSuiteConfig(t *testing.T, s J
 	})
 }
 
-func testJobServiceNasJobTestSuiteConfig(t *testing.T, s JobServiceTestSuiteConfigProvider) {
+func testJobServiceNasJob(t *testing.T, s JobServiceTestSuiteConfigProvider) {
 	t.Run("NasJob", func(t *testing.T) {
-		config := s.NasJobTestSuiteConfig(t)
+		config := s.JobServiceNasJob(t)
 		if config == nil {
-			t.Skip("Method NasJobTestSuiteConfig not implemented")
+			t.Skip("Method JobServiceNasJob not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method JobServiceNasJobTestSuiteConfig.Service() not implemented")
+			t.Skip("Method JobServiceNasJob.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }
@@ -142,14 +142,14 @@ func testJobServiceNasJobTestSuiteConfig(t *testing.T, s JobServiceTestSuiteConf
 	})
 }
 
-func testJobServiceNasTrialDetailTestSuiteConfig(t *testing.T, s JobServiceTestSuiteConfigProvider) {
+func testJobServiceNasTrialDetail(t *testing.T, s JobServiceTestSuiteConfigProvider) {
 	t.Run("NasTrialDetail", func(t *testing.T) {
-		config := s.NasTrialDetailTestSuiteConfig(t)
+		config := s.JobServiceNasTrialDetail(t)
 		if config == nil {
-			t.Skip("Method NasTrialDetailTestSuiteConfig not implemented")
+			t.Skip("Method JobServiceNasTrialDetail not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method JobServiceNasTrialDetailTestSuiteConfig.Service() not implemented")
+			t.Skip("Method JobServiceNasTrialDetail.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }

@@ -19,23 +19,23 @@ import (
 // ScheduleServiceTestSuiteConfigProvider is the interface to implement to decide which resources
 // that should be tested and how it's configured.
 type ScheduleServiceTestSuiteConfigProvider interface {
-	// ScheduleServiceScheduleTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	ScheduleTestSuiteConfig(t *testing.T) *ScheduleServiceScheduleTestSuiteConfig
+	// ScheduleServiceSchedule should return a config, or nil, which means that the tests will be skipped.
+	ScheduleServiceSchedule(t *testing.T) *ScheduleServiceScheduleTestSuiteConfig
 }
 
 // TestScheduleService is the main entrypoint for starting the AIP tests.
 func TestScheduleService(t *testing.T, s ScheduleServiceTestSuiteConfigProvider) {
-	testScheduleServiceScheduleTestSuiteConfig(t, s)
+	testScheduleServiceSchedule(t, s)
 }
 
-func testScheduleServiceScheduleTestSuiteConfig(t *testing.T, s ScheduleServiceTestSuiteConfigProvider) {
+func testScheduleServiceSchedule(t *testing.T, s ScheduleServiceTestSuiteConfigProvider) {
 	t.Run("Schedule", func(t *testing.T) {
-		config := s.ScheduleTestSuiteConfig(t)
+		config := s.ScheduleServiceSchedule(t)
 		if config == nil {
-			t.Skip("Method ScheduleTestSuiteConfig not implemented")
+			t.Skip("Method ScheduleServiceSchedule not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method ScheduleServiceScheduleTestSuiteConfig.Service() not implemented")
+			t.Skip("Method ScheduleServiceSchedule.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }

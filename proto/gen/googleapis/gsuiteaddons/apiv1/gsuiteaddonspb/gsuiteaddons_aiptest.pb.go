@@ -16,29 +16,29 @@ import (
 // GSuiteAddOnsTestSuiteConfigProvider is the interface to implement to decide which resources
 // that should be tested and how it's configured.
 type GSuiteAddOnsTestSuiteConfigProvider interface {
-	// GSuiteAddOnsAuthorizationTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	AuthorizationTestSuiteConfig(t *testing.T) *GSuiteAddOnsAuthorizationTestSuiteConfig
-	// GSuiteAddOnsDeploymentTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	DeploymentTestSuiteConfig(t *testing.T) *GSuiteAddOnsDeploymentTestSuiteConfig
-	// GSuiteAddOnsInstallStatusTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	InstallStatusTestSuiteConfig(t *testing.T) *GSuiteAddOnsInstallStatusTestSuiteConfig
+	// GSuiteAddOnsAuthorization should return a config, or nil, which means that the tests will be skipped.
+	GSuiteAddOnsAuthorization(t *testing.T) *GSuiteAddOnsAuthorizationTestSuiteConfig
+	// GSuiteAddOnsDeployment should return a config, or nil, which means that the tests will be skipped.
+	GSuiteAddOnsDeployment(t *testing.T) *GSuiteAddOnsDeploymentTestSuiteConfig
+	// GSuiteAddOnsInstallStatus should return a config, or nil, which means that the tests will be skipped.
+	GSuiteAddOnsInstallStatus(t *testing.T) *GSuiteAddOnsInstallStatusTestSuiteConfig
 }
 
 // TestGSuiteAddOns is the main entrypoint for starting the AIP tests.
 func TestGSuiteAddOns(t *testing.T, s GSuiteAddOnsTestSuiteConfigProvider) {
-	testGSuiteAddOnsAuthorizationTestSuiteConfig(t, s)
-	testGSuiteAddOnsDeploymentTestSuiteConfig(t, s)
-	testGSuiteAddOnsInstallStatusTestSuiteConfig(t, s)
+	testGSuiteAddOnsAuthorization(t, s)
+	testGSuiteAddOnsDeployment(t, s)
+	testGSuiteAddOnsInstallStatus(t, s)
 }
 
-func testGSuiteAddOnsAuthorizationTestSuiteConfig(t *testing.T, s GSuiteAddOnsTestSuiteConfigProvider) {
+func testGSuiteAddOnsAuthorization(t *testing.T, s GSuiteAddOnsTestSuiteConfigProvider) {
 	t.Run("Authorization", func(t *testing.T) {
-		config := s.AuthorizationTestSuiteConfig(t)
+		config := s.GSuiteAddOnsAuthorization(t)
 		if config == nil {
-			t.Skip("Method AuthorizationTestSuiteConfig not implemented")
+			t.Skip("Method GSuiteAddOnsAuthorization not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method GSuiteAddOnsAuthorizationTestSuiteConfig.Service() not implemented")
+			t.Skip("Method GSuiteAddOnsAuthorization.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }
@@ -47,14 +47,14 @@ func testGSuiteAddOnsAuthorizationTestSuiteConfig(t *testing.T, s GSuiteAddOnsTe
 	})
 }
 
-func testGSuiteAddOnsDeploymentTestSuiteConfig(t *testing.T, s GSuiteAddOnsTestSuiteConfigProvider) {
+func testGSuiteAddOnsDeployment(t *testing.T, s GSuiteAddOnsTestSuiteConfigProvider) {
 	t.Run("Deployment", func(t *testing.T) {
-		config := s.DeploymentTestSuiteConfig(t)
+		config := s.GSuiteAddOnsDeployment(t)
 		if config == nil {
-			t.Skip("Method DeploymentTestSuiteConfig not implemented")
+			t.Skip("Method GSuiteAddOnsDeployment not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method GSuiteAddOnsDeploymentTestSuiteConfig.Service() not implemented")
+			t.Skip("Method GSuiteAddOnsDeployment.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }
@@ -63,14 +63,14 @@ func testGSuiteAddOnsDeploymentTestSuiteConfig(t *testing.T, s GSuiteAddOnsTestS
 	})
 }
 
-func testGSuiteAddOnsInstallStatusTestSuiteConfig(t *testing.T, s GSuiteAddOnsTestSuiteConfigProvider) {
+func testGSuiteAddOnsInstallStatus(t *testing.T, s GSuiteAddOnsTestSuiteConfigProvider) {
 	t.Run("InstallStatus", func(t *testing.T) {
-		config := s.InstallStatusTestSuiteConfig(t)
+		config := s.GSuiteAddOnsInstallStatus(t)
 		if config == nil {
-			t.Skip("Method InstallStatusTestSuiteConfig not implemented")
+			t.Skip("Method GSuiteAddOnsInstallStatus not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method GSuiteAddOnsInstallStatusTestSuiteConfig.Service() not implemented")
+			t.Skip("Method GSuiteAddOnsInstallStatus.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }

@@ -18,23 +18,23 @@ import (
 // EndpointServiceTestSuiteConfigProvider is the interface to implement to decide which resources
 // that should be tested and how it's configured.
 type EndpointServiceTestSuiteConfigProvider interface {
-	// EndpointServiceEndpointTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	EndpointTestSuiteConfig(t *testing.T) *EndpointServiceEndpointTestSuiteConfig
+	// EndpointServiceEndpoint should return a config, or nil, which means that the tests will be skipped.
+	EndpointServiceEndpoint(t *testing.T) *EndpointServiceEndpointTestSuiteConfig
 }
 
 // TestEndpointService is the main entrypoint for starting the AIP tests.
 func TestEndpointService(t *testing.T, s EndpointServiceTestSuiteConfigProvider) {
-	testEndpointServiceEndpointTestSuiteConfig(t, s)
+	testEndpointServiceEndpoint(t, s)
 }
 
-func testEndpointServiceEndpointTestSuiteConfig(t *testing.T, s EndpointServiceTestSuiteConfigProvider) {
+func testEndpointServiceEndpoint(t *testing.T, s EndpointServiceTestSuiteConfigProvider) {
 	t.Run("Endpoint", func(t *testing.T) {
-		config := s.EndpointTestSuiteConfig(t)
+		config := s.EndpointServiceEndpoint(t)
 		if config == nil {
-			t.Skip("Method EndpointTestSuiteConfig not implemented")
+			t.Skip("Method EndpointServiceEndpoint not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method EndpointServiceEndpointTestSuiteConfig.Service() not implemented")
+			t.Skip("Method EndpointServiceEndpoint.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }

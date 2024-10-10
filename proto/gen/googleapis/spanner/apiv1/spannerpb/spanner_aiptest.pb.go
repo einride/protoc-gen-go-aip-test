@@ -15,23 +15,23 @@ import (
 // SpannerTestSuiteConfigProvider is the interface to implement to decide which resources
 // that should be tested and how it's configured.
 type SpannerTestSuiteConfigProvider interface {
-	// SpannerSessionTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	SessionTestSuiteConfig(t *testing.T) *SpannerSessionTestSuiteConfig
+	// SpannerSession should return a config, or nil, which means that the tests will be skipped.
+	SpannerSession(t *testing.T) *SpannerSessionTestSuiteConfig
 }
 
 // TestSpanner is the main entrypoint for starting the AIP tests.
 func TestSpanner(t *testing.T, s SpannerTestSuiteConfigProvider) {
-	testSpannerSessionTestSuiteConfig(t, s)
+	testSpannerSession(t, s)
 }
 
-func testSpannerSessionTestSuiteConfig(t *testing.T, s SpannerTestSuiteConfigProvider) {
+func testSpannerSession(t *testing.T, s SpannerTestSuiteConfigProvider) {
 	t.Run("Session", func(t *testing.T) {
-		config := s.SessionTestSuiteConfig(t)
+		config := s.SpannerSession(t)
 		if config == nil {
-			t.Skip("Method SessionTestSuiteConfig not implemented")
+			t.Skip("Method SpannerSession not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method SpannerSessionTestSuiteConfig.Service() not implemented")
+			t.Skip("Method SpannerSession.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }

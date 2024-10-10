@@ -18,29 +18,29 @@ import (
 // ModelServiceTestSuiteConfigProvider is the interface to implement to decide which resources
 // that should be tested and how it's configured.
 type ModelServiceTestSuiteConfigProvider interface {
-	// ModelServiceModelTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	ModelTestSuiteConfig(t *testing.T) *ModelServiceModelTestSuiteConfig
-	// ModelServiceModelEvaluationTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	ModelEvaluationTestSuiteConfig(t *testing.T) *ModelServiceModelEvaluationTestSuiteConfig
-	// ModelServiceModelEvaluationSliceTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	ModelEvaluationSliceTestSuiteConfig(t *testing.T) *ModelServiceModelEvaluationSliceTestSuiteConfig
+	// ModelServiceModel should return a config, or nil, which means that the tests will be skipped.
+	ModelServiceModel(t *testing.T) *ModelServiceModelTestSuiteConfig
+	// ModelServiceModelEvaluation should return a config, or nil, which means that the tests will be skipped.
+	ModelServiceModelEvaluation(t *testing.T) *ModelServiceModelEvaluationTestSuiteConfig
+	// ModelServiceModelEvaluationSlice should return a config, or nil, which means that the tests will be skipped.
+	ModelServiceModelEvaluationSlice(t *testing.T) *ModelServiceModelEvaluationSliceTestSuiteConfig
 }
 
 // TestModelService is the main entrypoint for starting the AIP tests.
 func TestModelService(t *testing.T, s ModelServiceTestSuiteConfigProvider) {
-	testModelServiceModelTestSuiteConfig(t, s)
-	testModelServiceModelEvaluationTestSuiteConfig(t, s)
-	testModelServiceModelEvaluationSliceTestSuiteConfig(t, s)
+	testModelServiceModel(t, s)
+	testModelServiceModelEvaluation(t, s)
+	testModelServiceModelEvaluationSlice(t, s)
 }
 
-func testModelServiceModelTestSuiteConfig(t *testing.T, s ModelServiceTestSuiteConfigProvider) {
+func testModelServiceModel(t *testing.T, s ModelServiceTestSuiteConfigProvider) {
 	t.Run("Model", func(t *testing.T) {
-		config := s.ModelTestSuiteConfig(t)
+		config := s.ModelServiceModel(t)
 		if config == nil {
-			t.Skip("Method ModelTestSuiteConfig not implemented")
+			t.Skip("Method ModelServiceModel not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method ModelServiceModelTestSuiteConfig.Service() not implemented")
+			t.Skip("Method ModelServiceModel.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }
@@ -49,14 +49,14 @@ func testModelServiceModelTestSuiteConfig(t *testing.T, s ModelServiceTestSuiteC
 	})
 }
 
-func testModelServiceModelEvaluationTestSuiteConfig(t *testing.T, s ModelServiceTestSuiteConfigProvider) {
+func testModelServiceModelEvaluation(t *testing.T, s ModelServiceTestSuiteConfigProvider) {
 	t.Run("ModelEvaluation", func(t *testing.T) {
-		config := s.ModelEvaluationTestSuiteConfig(t)
+		config := s.ModelServiceModelEvaluation(t)
 		if config == nil {
-			t.Skip("Method ModelEvaluationTestSuiteConfig not implemented")
+			t.Skip("Method ModelServiceModelEvaluation not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method ModelServiceModelEvaluationTestSuiteConfig.Service() not implemented")
+			t.Skip("Method ModelServiceModelEvaluation.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }
@@ -65,14 +65,14 @@ func testModelServiceModelEvaluationTestSuiteConfig(t *testing.T, s ModelService
 	})
 }
 
-func testModelServiceModelEvaluationSliceTestSuiteConfig(t *testing.T, s ModelServiceTestSuiteConfigProvider) {
+func testModelServiceModelEvaluationSlice(t *testing.T, s ModelServiceTestSuiteConfigProvider) {
 	t.Run("ModelEvaluationSlice", func(t *testing.T) {
-		config := s.ModelEvaluationSliceTestSuiteConfig(t)
+		config := s.ModelServiceModelEvaluationSlice(t)
 		if config == nil {
-			t.Skip("Method ModelEvaluationSliceTestSuiteConfig not implemented")
+			t.Skip("Method ModelServiceModelEvaluationSlice not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method ModelServiceModelEvaluationSliceTestSuiteConfig.Service() not implemented")
+			t.Skip("Method ModelServiceModelEvaluationSlice.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }

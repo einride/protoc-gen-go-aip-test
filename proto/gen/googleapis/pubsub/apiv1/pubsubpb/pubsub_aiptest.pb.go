@@ -16,23 +16,23 @@ import (
 // PublisherTestSuiteConfigProvider is the interface to implement to decide which resources
 // that should be tested and how it's configured.
 type PublisherTestSuiteConfigProvider interface {
-	// PublisherTopicTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	TopicTestSuiteConfig(t *testing.T) *PublisherTopicTestSuiteConfig
+	// PublisherTopic should return a config, or nil, which means that the tests will be skipped.
+	PublisherTopic(t *testing.T) *PublisherTopicTestSuiteConfig
 }
 
 // TestPublisher is the main entrypoint for starting the AIP tests.
 func TestPublisher(t *testing.T, s PublisherTestSuiteConfigProvider) {
-	testPublisherTopicTestSuiteConfig(t, s)
+	testPublisherTopic(t, s)
 }
 
-func testPublisherTopicTestSuiteConfig(t *testing.T, s PublisherTestSuiteConfigProvider) {
+func testPublisherTopic(t *testing.T, s PublisherTestSuiteConfigProvider) {
 	t.Run("Topic", func(t *testing.T) {
-		config := s.TopicTestSuiteConfig(t)
+		config := s.PublisherTopic(t)
 		if config == nil {
-			t.Skip("Method TopicTestSuiteConfig not implemented")
+			t.Skip("Method PublisherTopic not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method PublisherTopicTestSuiteConfig.Service() not implemented")
+			t.Skip("Method PublisherTopic.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }
@@ -303,26 +303,26 @@ func (fx *PublisherTopicTestSuiteConfig) create(t *testing.T, parent string) *To
 // SubscriberTestSuiteConfigProvider is the interface to implement to decide which resources
 // that should be tested and how it's configured.
 type SubscriberTestSuiteConfigProvider interface {
-	// SubscriberSnapshotTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	SnapshotTestSuiteConfig(t *testing.T) *SubscriberSnapshotTestSuiteConfig
-	// SubscriberSubscriptionTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	SubscriptionTestSuiteConfig(t *testing.T) *SubscriberSubscriptionTestSuiteConfig
+	// SubscriberSnapshot should return a config, or nil, which means that the tests will be skipped.
+	SubscriberSnapshot(t *testing.T) *SubscriberSnapshotTestSuiteConfig
+	// SubscriberSubscription should return a config, or nil, which means that the tests will be skipped.
+	SubscriberSubscription(t *testing.T) *SubscriberSubscriptionTestSuiteConfig
 }
 
 // TestSubscriber is the main entrypoint for starting the AIP tests.
 func TestSubscriber(t *testing.T, s SubscriberTestSuiteConfigProvider) {
-	testSubscriberSnapshotTestSuiteConfig(t, s)
-	testSubscriberSubscriptionTestSuiteConfig(t, s)
+	testSubscriberSnapshot(t, s)
+	testSubscriberSubscription(t, s)
 }
 
-func testSubscriberSnapshotTestSuiteConfig(t *testing.T, s SubscriberTestSuiteConfigProvider) {
+func testSubscriberSnapshot(t *testing.T, s SubscriberTestSuiteConfigProvider) {
 	t.Run("Snapshot", func(t *testing.T) {
-		config := s.SnapshotTestSuiteConfig(t)
+		config := s.SubscriberSnapshot(t)
 		if config == nil {
-			t.Skip("Method SnapshotTestSuiteConfig not implemented")
+			t.Skip("Method SubscriberSnapshot not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method SubscriberSnapshotTestSuiteConfig.Service() not implemented")
+			t.Skip("Method SubscriberSnapshot.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }
@@ -331,14 +331,14 @@ func testSubscriberSnapshotTestSuiteConfig(t *testing.T, s SubscriberTestSuiteCo
 	})
 }
 
-func testSubscriberSubscriptionTestSuiteConfig(t *testing.T, s SubscriberTestSuiteConfigProvider) {
+func testSubscriberSubscription(t *testing.T, s SubscriberTestSuiteConfigProvider) {
 	t.Run("Subscription", func(t *testing.T) {
-		config := s.SubscriptionTestSuiteConfig(t)
+		config := s.SubscriberSubscription(t)
 		if config == nil {
-			t.Skip("Method SubscriptionTestSuiteConfig not implemented")
+			t.Skip("Method SubscriberSubscription not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method SubscriberSubscriptionTestSuiteConfig.Service() not implemented")
+			t.Skip("Method SubscriberSubscription.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }
