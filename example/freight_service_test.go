@@ -54,7 +54,7 @@ func Test_FreightService(t *testing.T) {
 
 func Test_FreightService_AlternativeSetup(t *testing.T) {
 	// Even though no implementation exists, the tests will pass but be skipped.
-	examplefreightv1.TestFreightService(t, &aipTests{})
+	examplefreightv1.TestServices(t, &aipTests{})
 }
 
 type aipTests struct{}

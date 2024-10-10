@@ -2,6 +2,7 @@ package plugin
 
 import (
 	"fmt"
+	"path/filepath"
 	"sort"
 
 	"github.com/einride/protoc-gen-go-aip-test/internal/util"
@@ -17,11 +18,11 @@ const (
 
 func Generate(plugin *protogen.Plugin) error {
 	plugin.SupportedFeatures |= 1 // proto3 optional
-	files, err := collectServices(plugin)
+	filesPerPackage, err := collectServices(plugin)
 	if err != nil {
 		return err
 	}
-	return generate(plugin, files)
+	return generate(plugin, filesPerPackage)
 }
 
 type File struct {
@@ -32,9 +33,9 @@ type File struct {
 // collectServices collects valid services to generate AIP test code for.
 func collectServices(
 	plugin *protogen.Plugin,
-) ([]File, error) {
+) (map[protoreflect.FullName][]File, error) {
 	pkgResources := findResourcesPerPackage(plugin)
-	result := make([]File, 0, 10)
+	result := make(map[protoreflect.FullName][]File, 10)
 	for _, file := range plugin.Files {
 		if len(file.Services) == 0 || !file.Generate {
 			continue
@@ -75,23 +76,66 @@ func collectServices(
 			}
 			f.services = append(f.services, generator)
 		}
-		result = append(result, f)
+		result[file.Desc.Package()] = append(result[file.Desc.Package()], f)
 	}
 	return result, nil
 }
 
-func generate(plugin *protogen.Plugin, files []File) error {
-	for _, file := range files {
-		f := createServiceTestFile(plugin, file)
-		f.Skip()
-		for _, generator := range file.services {
-			if err := generator.Generate(f); err != nil {
-				return err
+func generate(plugin *protogen.Plugin, filesPerPackage map[protoreflect.FullName][]File) error {
+	for _, files := range filesPerPackage {
+		generateForPackage(plugin, files)
+		for _, file := range files {
+			f := createServiceTestFile(plugin, file)
+			f.Skip()
+			for _, generator := range file.services {
+				if err := generator.Generate(f); err != nil {
+					return err
+				}
+				f.Unskip()
 			}
-			f.Unskip()
 		}
 	}
 	return nil
+}
+
+func generateForPackage(plugin *protogen.Plugin, files []File) {
+	filename := filepath.Join(filepath.Dir(files[0].GeneratedFilenamePrefix), fileSuffix)
+	f := plugin.NewGeneratedFile(filename, files[0].GoImportPath)
+	writeHeader(files[0].File, f)
+	generateServicesConfigProvidersInterface(f, files)
+	generateTestAllServices(f, files)
+}
+
+func generateServicesConfigProvidersInterface(f *protogen.GeneratedFile, files []File) {
+	name := servicesTestSuiteConfigProvidersName()
+	f.P("// ", name, " embeds providers for all services.")
+	f.P("type ", name, " interface {")
+	for _, file := range files {
+		for _, service := range file.services {
+			f.P(serviceTestConfigProviderName(service.service.Desc))
+		}
+	}
+	f.P("}")
+	f.P()
+}
+
+func generateTestAllServices(f *protogen.GeneratedFile, files []File) {
+	t := f.QualifiedGoIdent(protogen.GoIdent{
+		GoName:       "T",
+		GoImportPath: "testing",
+	})
+	name := servicesTestSuiteConfigProvidersName()
+	funcName := "TestServices"
+	f.P("// ", funcName, " is the main entrypoint for starting the AIP tests for all services.")
+	f.P("func ", funcName, "(t *", t, ",s ", name, ") {")
+	for _, file := range files {
+		for _, service := range file.services {
+			name := "Test" + string(service.service.Desc.Name())
+			f.P(name, "(t, s)")
+		}
+	}
+	f.P("}")
+	f.P()
 }
 
 func createServiceTestFile(plugin *protogen.Plugin, file File) *protogen.GeneratedFile {
