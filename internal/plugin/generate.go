@@ -17,16 +17,32 @@ const (
 
 func Generate(plugin *protogen.Plugin) error {
 	plugin.SupportedFeatures |= 1 // proto3 optional
+	files, err := collectServices(plugin)
+	if err != nil {
+		return err
+	}
+	return generate(plugin, files)
+}
+
+type File struct {
+	*protogen.File
+	services []serviceGenerator
+}
+
+// collectServices collects valid services to generate AIP test code for.
+func collectServices(
+	plugin *protogen.Plugin,
+) ([]File, error) {
 	pkgResources := findResourcesPerPackage(plugin)
+	result := make([]File, 0, 10)
 	for _, file := range plugin.Files {
 		if len(file.Services) == 0 || !file.Generate {
 			continue
 		}
-		filename := fmt.Sprintf("%s_%s", file.GeneratedFilenamePrefix, fileSuffix)
-		f := plugin.NewGeneratedFile(filename, file.GoImportPath)
-		writeHeader(file, f)
-		f.Skip()
-
+		f := File{
+			File:     file,
+			services: make([]serviceGenerator, 0, 10),
+		}
 		for _, service := range file.Services {
 			resources := pkgResources[file.Desc.Package()]
 			if len(resources) == 0 {
@@ -48,7 +64,7 @@ func Generate(plugin *protogen.Plugin) error {
 				rs = append(rs, serviceResource.descriptor)
 				m, err := protogenMessage(plugin, serviceResource.message.FullName())
 				if err != nil {
-					return err
+					return nil, err
 				}
 				ms = append(ms, m)
 			}
@@ -57,6 +73,18 @@ func Generate(plugin *protogen.Plugin) error {
 				resources: rs,
 				messages:  ms,
 			}
+			f.services = append(f.services, generator)
+		}
+		result = append(result, f)
+	}
+	return result, nil
+}
+
+func generate(plugin *protogen.Plugin, files []File) error {
+	for _, file := range files {
+		f := createServiceTestFile(plugin, file)
+		f.Skip()
+		for _, generator := range file.services {
 			if err := generator.Generate(f); err != nil {
 				return err
 			}
@@ -64,6 +92,13 @@ func Generate(plugin *protogen.Plugin) error {
 		}
 	}
 	return nil
+}
+
+func createServiceTestFile(plugin *protogen.Plugin, file File) *protogen.GeneratedFile {
+	filename := fmt.Sprintf("%s_%s", file.GeneratedFilenamePrefix, fileSuffix)
+	f := plugin.NewGeneratedFile(filename, file.GoImportPath)
+	writeHeader(file.File, f)
+	return f
 }
 
 func writeHeader(file *protogen.File, f *protogen.GeneratedFile) {
