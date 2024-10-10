@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	fileSuffix = "_aiptest.pb.go"
+	fileSuffix = "aiptest.pb.go"
 )
 
 func Generate(plugin *protogen.Plugin) error {
@@ -22,7 +22,8 @@ func Generate(plugin *protogen.Plugin) error {
 		if len(file.Services) == 0 || !file.Generate {
 			continue
 		}
-		f := plugin.NewGeneratedFile(file.GeneratedFilenamePrefix+fileSuffix, file.GoImportPath)
+		filename := fmt.Sprintf("%s_%s", file.GeneratedFilenamePrefix, fileSuffix)
+		f := plugin.NewGeneratedFile(filename, file.GoImportPath)
 		writeHeader(file, f)
 		f.Skip()
 
