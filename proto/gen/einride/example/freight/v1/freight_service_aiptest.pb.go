@@ -19,26 +19,26 @@ import (
 // FreightServiceTestSuiteConfigProvider is the interface to implement to decide which resources
 // that should be tested and how it's configured.
 type FreightServiceTestSuiteConfigProvider interface {
-	// FreightServiceShipperTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	ShipperTestSuiteConfig(t *testing.T) *FreightServiceShipperTestSuiteConfig
-	// FreightServiceSiteTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	SiteTestSuiteConfig(t *testing.T) *FreightServiceSiteTestSuiteConfig
+	// FreightServiceShipper should return a config, or nil, which means that the tests will be skipped.
+	FreightServiceShipper(t *testing.T) *FreightServiceShipperTestSuiteConfig
+	// FreightServiceSite should return a config, or nil, which means that the tests will be skipped.
+	FreightServiceSite(t *testing.T) *FreightServiceSiteTestSuiteConfig
 }
 
 // TestFreightService is the main entrypoint for starting the AIP tests.
 func TestFreightService(t *testing.T, s FreightServiceTestSuiteConfigProvider) {
-	testFreightServiceShipperTestSuiteConfig(t, s)
-	testFreightServiceSiteTestSuiteConfig(t, s)
+	testFreightServiceShipper(t, s)
+	testFreightServiceSite(t, s)
 }
 
-func testFreightServiceShipperTestSuiteConfig(t *testing.T, s FreightServiceTestSuiteConfigProvider) {
+func testFreightServiceShipper(t *testing.T, s FreightServiceTestSuiteConfigProvider) {
 	t.Run("Shipper", func(t *testing.T) {
-		config := s.ShipperTestSuiteConfig(t)
+		config := s.FreightServiceShipper(t)
 		if config == nil {
-			t.Skip("Method ShipperTestSuiteConfig not implemented")
+			t.Skip("Method FreightServiceShipper not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method FreightServiceShipperTestSuiteConfig.Service() not implemented")
+			t.Skip("Method FreightServiceShipper.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }
@@ -47,14 +47,14 @@ func testFreightServiceShipperTestSuiteConfig(t *testing.T, s FreightServiceTest
 	})
 }
 
-func testFreightServiceSiteTestSuiteConfig(t *testing.T, s FreightServiceTestSuiteConfigProvider) {
+func testFreightServiceSite(t *testing.T, s FreightServiceTestSuiteConfigProvider) {
 	t.Run("Site", func(t *testing.T) {
-		config := s.SiteTestSuiteConfig(t)
+		config := s.FreightServiceSite(t)
 		if config == nil {
-			t.Skip("Method SiteTestSuiteConfig not implemented")
+			t.Skip("Method FreightServiceSite not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method FreightServiceSiteTestSuiteConfig.Service() not implemented")
+			t.Skip("Method FreightServiceSite.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }

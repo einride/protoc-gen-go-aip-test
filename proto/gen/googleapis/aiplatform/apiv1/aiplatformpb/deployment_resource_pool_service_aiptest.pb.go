@@ -16,23 +16,23 @@ import (
 // DeploymentResourcePoolServiceTestSuiteConfigProvider is the interface to implement to decide which resources
 // that should be tested and how it's configured.
 type DeploymentResourcePoolServiceTestSuiteConfigProvider interface {
-	// DeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	DeploymentResourcePoolTestSuiteConfig(t *testing.T) *DeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig
+	// DeploymentResourcePoolServiceDeploymentResourcePool should return a config, or nil, which means that the tests will be skipped.
+	DeploymentResourcePoolServiceDeploymentResourcePool(t *testing.T) *DeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig
 }
 
 // TestDeploymentResourcePoolService is the main entrypoint for starting the AIP tests.
 func TestDeploymentResourcePoolService(t *testing.T, s DeploymentResourcePoolServiceTestSuiteConfigProvider) {
-	testDeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig(t, s)
+	testDeploymentResourcePoolServiceDeploymentResourcePool(t, s)
 }
 
-func testDeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig(t *testing.T, s DeploymentResourcePoolServiceTestSuiteConfigProvider) {
+func testDeploymentResourcePoolServiceDeploymentResourcePool(t *testing.T, s DeploymentResourcePoolServiceTestSuiteConfigProvider) {
 	t.Run("DeploymentResourcePool", func(t *testing.T) {
-		config := s.DeploymentResourcePoolTestSuiteConfig(t)
+		config := s.DeploymentResourcePoolServiceDeploymentResourcePool(t)
 		if config == nil {
-			t.Skip("Method DeploymentResourcePoolTestSuiteConfig not implemented")
+			t.Skip("Method DeploymentResourcePoolServiceDeploymentResourcePool not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method DeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig.Service() not implemented")
+			t.Skip("Method DeploymentResourcePoolServiceDeploymentResourcePool.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }

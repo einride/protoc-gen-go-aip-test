@@ -18,26 +18,26 @@ import (
 // FeatureRegistryServiceTestSuiteConfigProvider is the interface to implement to decide which resources
 // that should be tested and how it's configured.
 type FeatureRegistryServiceTestSuiteConfigProvider interface {
-	// FeatureRegistryServiceFeatureTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	FeatureTestSuiteConfig(t *testing.T) *FeatureRegistryServiceFeatureTestSuiteConfig
-	// FeatureRegistryServiceFeatureGroupTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	FeatureGroupTestSuiteConfig(t *testing.T) *FeatureRegistryServiceFeatureGroupTestSuiteConfig
+	// FeatureRegistryServiceFeature should return a config, or nil, which means that the tests will be skipped.
+	FeatureRegistryServiceFeature(t *testing.T) *FeatureRegistryServiceFeatureTestSuiteConfig
+	// FeatureRegistryServiceFeatureGroup should return a config, or nil, which means that the tests will be skipped.
+	FeatureRegistryServiceFeatureGroup(t *testing.T) *FeatureRegistryServiceFeatureGroupTestSuiteConfig
 }
 
 // TestFeatureRegistryService is the main entrypoint for starting the AIP tests.
 func TestFeatureRegistryService(t *testing.T, s FeatureRegistryServiceTestSuiteConfigProvider) {
-	testFeatureRegistryServiceFeatureTestSuiteConfig(t, s)
-	testFeatureRegistryServiceFeatureGroupTestSuiteConfig(t, s)
+	testFeatureRegistryServiceFeature(t, s)
+	testFeatureRegistryServiceFeatureGroup(t, s)
 }
 
-func testFeatureRegistryServiceFeatureTestSuiteConfig(t *testing.T, s FeatureRegistryServiceTestSuiteConfigProvider) {
+func testFeatureRegistryServiceFeature(t *testing.T, s FeatureRegistryServiceTestSuiteConfigProvider) {
 	t.Run("Feature", func(t *testing.T) {
-		config := s.FeatureTestSuiteConfig(t)
+		config := s.FeatureRegistryServiceFeature(t)
 		if config == nil {
-			t.Skip("Method FeatureTestSuiteConfig not implemented")
+			t.Skip("Method FeatureRegistryServiceFeature not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method FeatureRegistryServiceFeatureTestSuiteConfig.Service() not implemented")
+			t.Skip("Method FeatureRegistryServiceFeature.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }
@@ -46,14 +46,14 @@ func testFeatureRegistryServiceFeatureTestSuiteConfig(t *testing.T, s FeatureReg
 	})
 }
 
-func testFeatureRegistryServiceFeatureGroupTestSuiteConfig(t *testing.T, s FeatureRegistryServiceTestSuiteConfigProvider) {
+func testFeatureRegistryServiceFeatureGroup(t *testing.T, s FeatureRegistryServiceTestSuiteConfigProvider) {
 	t.Run("FeatureGroup", func(t *testing.T) {
-		config := s.FeatureGroupTestSuiteConfig(t)
+		config := s.FeatureRegistryServiceFeatureGroup(t)
 		if config == nil {
-			t.Skip("Method FeatureGroupTestSuiteConfig not implemented")
+			t.Skip("Method FeatureRegistryServiceFeatureGroup not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method FeatureRegistryServiceFeatureGroupTestSuiteConfig.Service() not implemented")
+			t.Skip("Method FeatureRegistryServiceFeatureGroup.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }

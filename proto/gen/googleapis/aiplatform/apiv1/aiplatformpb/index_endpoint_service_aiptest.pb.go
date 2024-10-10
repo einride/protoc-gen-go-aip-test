@@ -18,23 +18,23 @@ import (
 // IndexEndpointServiceTestSuiteConfigProvider is the interface to implement to decide which resources
 // that should be tested and how it's configured.
 type IndexEndpointServiceTestSuiteConfigProvider interface {
-	// IndexEndpointServiceIndexEndpointTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	IndexEndpointTestSuiteConfig(t *testing.T) *IndexEndpointServiceIndexEndpointTestSuiteConfig
+	// IndexEndpointServiceIndexEndpoint should return a config, or nil, which means that the tests will be skipped.
+	IndexEndpointServiceIndexEndpoint(t *testing.T) *IndexEndpointServiceIndexEndpointTestSuiteConfig
 }
 
 // TestIndexEndpointService is the main entrypoint for starting the AIP tests.
 func TestIndexEndpointService(t *testing.T, s IndexEndpointServiceTestSuiteConfigProvider) {
-	testIndexEndpointServiceIndexEndpointTestSuiteConfig(t, s)
+	testIndexEndpointServiceIndexEndpoint(t, s)
 }
 
-func testIndexEndpointServiceIndexEndpointTestSuiteConfig(t *testing.T, s IndexEndpointServiceTestSuiteConfigProvider) {
+func testIndexEndpointServiceIndexEndpoint(t *testing.T, s IndexEndpointServiceTestSuiteConfigProvider) {
 	t.Run("IndexEndpoint", func(t *testing.T) {
-		config := s.IndexEndpointTestSuiteConfig(t)
+		config := s.IndexEndpointServiceIndexEndpoint(t)
 		if config == nil {
-			t.Skip("Method IndexEndpointTestSuiteConfig not implemented")
+			t.Skip("Method IndexEndpointServiceIndexEndpoint not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method IndexEndpointServiceIndexEndpointTestSuiteConfig.Service() not implemented")
+			t.Skip("Method IndexEndpointServiceIndexEndpoint.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }

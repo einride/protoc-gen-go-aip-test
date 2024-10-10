@@ -15,23 +15,23 @@ import (
 // ModelGardenServiceTestSuiteConfigProvider is the interface to implement to decide which resources
 // that should be tested and how it's configured.
 type ModelGardenServiceTestSuiteConfigProvider interface {
-	// ModelGardenServicePublisherModelTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	PublisherModelTestSuiteConfig(t *testing.T) *ModelGardenServicePublisherModelTestSuiteConfig
+	// ModelGardenServicePublisherModel should return a config, or nil, which means that the tests will be skipped.
+	ModelGardenServicePublisherModel(t *testing.T) *ModelGardenServicePublisherModelTestSuiteConfig
 }
 
 // TestModelGardenService is the main entrypoint for starting the AIP tests.
 func TestModelGardenService(t *testing.T, s ModelGardenServiceTestSuiteConfigProvider) {
-	testModelGardenServicePublisherModelTestSuiteConfig(t, s)
+	testModelGardenServicePublisherModel(t, s)
 }
 
-func testModelGardenServicePublisherModelTestSuiteConfig(t *testing.T, s ModelGardenServiceTestSuiteConfigProvider) {
+func testModelGardenServicePublisherModel(t *testing.T, s ModelGardenServiceTestSuiteConfigProvider) {
 	t.Run("PublisherModel", func(t *testing.T) {
-		config := s.PublisherModelTestSuiteConfig(t)
+		config := s.ModelGardenServicePublisherModel(t)
 		if config == nil {
-			t.Skip("Method PublisherModelTestSuiteConfig not implemented")
+			t.Skip("Method ModelGardenServicePublisherModel not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method ModelGardenServicePublisherModelTestSuiteConfig.Service() not implemented")
+			t.Skip("Method ModelGardenServicePublisherModel.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }
