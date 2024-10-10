@@ -18,29 +18,29 @@ import (
 // InstanceAdminTestSuiteConfigProvider is the interface to implement to decide which resources
 // that should be tested and how it's configured.
 type InstanceAdminTestSuiteConfigProvider interface {
-	// InstanceAdminInstanceTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	InstanceTestSuiteConfig(t *testing.T) *InstanceAdminInstanceTestSuiteConfig
-	// InstanceAdminInstanceConfigTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	InstanceConfigTestSuiteConfig(t *testing.T) *InstanceAdminInstanceConfigTestSuiteConfig
-	// InstanceAdminInstancePartitionTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	InstancePartitionTestSuiteConfig(t *testing.T) *InstanceAdminInstancePartitionTestSuiteConfig
+	// InstanceAdminInstance should return a config, or nil, which means that the tests will be skipped.
+	InstanceAdminInstance(t *testing.T) *InstanceAdminInstanceTestSuiteConfig
+	// InstanceAdminInstanceConfig should return a config, or nil, which means that the tests will be skipped.
+	InstanceAdminInstanceConfig(t *testing.T) *InstanceAdminInstanceConfigTestSuiteConfig
+	// InstanceAdminInstancePartition should return a config, or nil, which means that the tests will be skipped.
+	InstanceAdminInstancePartition(t *testing.T) *InstanceAdminInstancePartitionTestSuiteConfig
 }
 
 // TestInstanceAdmin is the main entrypoint for starting the AIP tests.
 func TestInstanceAdmin(t *testing.T, s InstanceAdminTestSuiteConfigProvider) {
-	testInstanceAdminInstanceTestSuiteConfig(t, s)
-	testInstanceAdminInstanceConfigTestSuiteConfig(t, s)
-	testInstanceAdminInstancePartitionTestSuiteConfig(t, s)
+	testInstanceAdminInstance(t, s)
+	testInstanceAdminInstanceConfig(t, s)
+	testInstanceAdminInstancePartition(t, s)
 }
 
-func testInstanceAdminInstanceTestSuiteConfig(t *testing.T, s InstanceAdminTestSuiteConfigProvider) {
+func testInstanceAdminInstance(t *testing.T, s InstanceAdminTestSuiteConfigProvider) {
 	t.Run("Instance", func(t *testing.T) {
-		config := s.InstanceTestSuiteConfig(t)
+		config := s.InstanceAdminInstance(t)
 		if config == nil {
-			t.Skip("Method InstanceTestSuiteConfig not implemented")
+			t.Skip("Method InstanceAdminInstance not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method InstanceAdminInstanceTestSuiteConfig.Service() not implemented")
+			t.Skip("Method InstanceAdminInstance.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }
@@ -49,14 +49,14 @@ func testInstanceAdminInstanceTestSuiteConfig(t *testing.T, s InstanceAdminTestS
 	})
 }
 
-func testInstanceAdminInstanceConfigTestSuiteConfig(t *testing.T, s InstanceAdminTestSuiteConfigProvider) {
+func testInstanceAdminInstanceConfig(t *testing.T, s InstanceAdminTestSuiteConfigProvider) {
 	t.Run("InstanceConfig", func(t *testing.T) {
-		config := s.InstanceConfigTestSuiteConfig(t)
+		config := s.InstanceAdminInstanceConfig(t)
 		if config == nil {
-			t.Skip("Method InstanceConfigTestSuiteConfig not implemented")
+			t.Skip("Method InstanceAdminInstanceConfig not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method InstanceAdminInstanceConfigTestSuiteConfig.Service() not implemented")
+			t.Skip("Method InstanceAdminInstanceConfig.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }
@@ -65,14 +65,14 @@ func testInstanceAdminInstanceConfigTestSuiteConfig(t *testing.T, s InstanceAdmi
 	})
 }
 
-func testInstanceAdminInstancePartitionTestSuiteConfig(t *testing.T, s InstanceAdminTestSuiteConfigProvider) {
+func testInstanceAdminInstancePartition(t *testing.T, s InstanceAdminTestSuiteConfigProvider) {
 	t.Run("InstancePartition", func(t *testing.T) {
-		config := s.InstancePartitionTestSuiteConfig(t)
+		config := s.InstanceAdminInstancePartition(t)
 		if config == nil {
-			t.Skip("Method InstancePartitionTestSuiteConfig not implemented")
+			t.Skip("Method InstanceAdminInstancePartition not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method InstanceAdminInstancePartitionTestSuiteConfig.Service() not implemented")
+			t.Skip("Method InstanceAdminInstancePartition.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }

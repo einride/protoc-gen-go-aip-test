@@ -61,12 +61,12 @@ type aipTests struct{}
 
 var _ examplefreightv1.FreightServiceTestSuiteConfigProvider = &aipTests{}
 
-func (a aipTests) ShipperTestSuiteConfig(_ *testing.T) *examplefreightv1.FreightServiceShipperTestSuiteConfig {
+func (a aipTests) FreightServiceShipper(_ *testing.T) *examplefreightv1.FreightServiceShipperTestSuiteConfig {
 	// Returns nil to indicate that it's not ready to be tested.
 	return nil
 }
 
-func (a aipTests) SiteTestSuiteConfig(_ *testing.T) *examplefreightv1.FreightServiceSiteTestSuiteConfig {
+func (a aipTests) FreightServiceSite(_ *testing.T) *examplefreightv1.FreightServiceSiteTestSuiteConfig {
 	// Returns nil to indicate that it's not ready to be tested.
 	return nil
 }

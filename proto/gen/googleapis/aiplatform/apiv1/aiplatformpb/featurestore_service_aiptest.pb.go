@@ -18,29 +18,29 @@ import (
 // FeaturestoreServiceTestSuiteConfigProvider is the interface to implement to decide which resources
 // that should be tested and how it's configured.
 type FeaturestoreServiceTestSuiteConfigProvider interface {
-	// FeaturestoreServiceEntityTypeTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	EntityTypeTestSuiteConfig(t *testing.T) *FeaturestoreServiceEntityTypeTestSuiteConfig
-	// FeaturestoreServiceFeatureTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	FeatureTestSuiteConfig(t *testing.T) *FeaturestoreServiceFeatureTestSuiteConfig
-	// FeaturestoreServiceFeaturestoreTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	FeaturestoreTestSuiteConfig(t *testing.T) *FeaturestoreServiceFeaturestoreTestSuiteConfig
+	// FeaturestoreServiceEntityType should return a config, or nil, which means that the tests will be skipped.
+	FeaturestoreServiceEntityType(t *testing.T) *FeaturestoreServiceEntityTypeTestSuiteConfig
+	// FeaturestoreServiceFeature should return a config, or nil, which means that the tests will be skipped.
+	FeaturestoreServiceFeature(t *testing.T) *FeaturestoreServiceFeatureTestSuiteConfig
+	// FeaturestoreServiceFeaturestore should return a config, or nil, which means that the tests will be skipped.
+	FeaturestoreServiceFeaturestore(t *testing.T) *FeaturestoreServiceFeaturestoreTestSuiteConfig
 }
 
 // TestFeaturestoreService is the main entrypoint for starting the AIP tests.
 func TestFeaturestoreService(t *testing.T, s FeaturestoreServiceTestSuiteConfigProvider) {
-	testFeaturestoreServiceEntityTypeTestSuiteConfig(t, s)
-	testFeaturestoreServiceFeatureTestSuiteConfig(t, s)
-	testFeaturestoreServiceFeaturestoreTestSuiteConfig(t, s)
+	testFeaturestoreServiceEntityType(t, s)
+	testFeaturestoreServiceFeature(t, s)
+	testFeaturestoreServiceFeaturestore(t, s)
 }
 
-func testFeaturestoreServiceEntityTypeTestSuiteConfig(t *testing.T, s FeaturestoreServiceTestSuiteConfigProvider) {
+func testFeaturestoreServiceEntityType(t *testing.T, s FeaturestoreServiceTestSuiteConfigProvider) {
 	t.Run("EntityType", func(t *testing.T) {
-		config := s.EntityTypeTestSuiteConfig(t)
+		config := s.FeaturestoreServiceEntityType(t)
 		if config == nil {
-			t.Skip("Method EntityTypeTestSuiteConfig not implemented")
+			t.Skip("Method FeaturestoreServiceEntityType not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method FeaturestoreServiceEntityTypeTestSuiteConfig.Service() not implemented")
+			t.Skip("Method FeaturestoreServiceEntityType.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }
@@ -49,14 +49,14 @@ func testFeaturestoreServiceEntityTypeTestSuiteConfig(t *testing.T, s Featuresto
 	})
 }
 
-func testFeaturestoreServiceFeatureTestSuiteConfig(t *testing.T, s FeaturestoreServiceTestSuiteConfigProvider) {
+func testFeaturestoreServiceFeature(t *testing.T, s FeaturestoreServiceTestSuiteConfigProvider) {
 	t.Run("Feature", func(t *testing.T) {
-		config := s.FeatureTestSuiteConfig(t)
+		config := s.FeaturestoreServiceFeature(t)
 		if config == nil {
-			t.Skip("Method FeatureTestSuiteConfig not implemented")
+			t.Skip("Method FeaturestoreServiceFeature not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method FeaturestoreServiceFeatureTestSuiteConfig.Service() not implemented")
+			t.Skip("Method FeaturestoreServiceFeature.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }
@@ -65,14 +65,14 @@ func testFeaturestoreServiceFeatureTestSuiteConfig(t *testing.T, s FeaturestoreS
 	})
 }
 
-func testFeaturestoreServiceFeaturestoreTestSuiteConfig(t *testing.T, s FeaturestoreServiceTestSuiteConfigProvider) {
+func testFeaturestoreServiceFeaturestore(t *testing.T, s FeaturestoreServiceTestSuiteConfigProvider) {
 	t.Run("Featurestore", func(t *testing.T) {
-		config := s.FeaturestoreTestSuiteConfig(t)
+		config := s.FeaturestoreServiceFeaturestore(t)
 		if config == nil {
-			t.Skip("Method FeaturestoreTestSuiteConfig not implemented")
+			t.Skip("Method FeaturestoreServiceFeaturestore not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method FeaturestoreServiceFeaturestoreTestSuiteConfig.Service() not implemented")
+			t.Skip("Method FeaturestoreServiceFeaturestore.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }

@@ -17,26 +17,26 @@ import (
 // PipelineServiceTestSuiteConfigProvider is the interface to implement to decide which resources
 // that should be tested and how it's configured.
 type PipelineServiceTestSuiteConfigProvider interface {
-	// PipelineServicePipelineJobTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	PipelineJobTestSuiteConfig(t *testing.T) *PipelineServicePipelineJobTestSuiteConfig
-	// PipelineServiceTrainingPipelineTestSuiteConfig should return a config, or nil, which means that the tests will be skipped.
-	TrainingPipelineTestSuiteConfig(t *testing.T) *PipelineServiceTrainingPipelineTestSuiteConfig
+	// PipelineServicePipelineJob should return a config, or nil, which means that the tests will be skipped.
+	PipelineServicePipelineJob(t *testing.T) *PipelineServicePipelineJobTestSuiteConfig
+	// PipelineServiceTrainingPipeline should return a config, or nil, which means that the tests will be skipped.
+	PipelineServiceTrainingPipeline(t *testing.T) *PipelineServiceTrainingPipelineTestSuiteConfig
 }
 
 // TestPipelineService is the main entrypoint for starting the AIP tests.
 func TestPipelineService(t *testing.T, s PipelineServiceTestSuiteConfigProvider) {
-	testPipelineServicePipelineJobTestSuiteConfig(t, s)
-	testPipelineServiceTrainingPipelineTestSuiteConfig(t, s)
+	testPipelineServicePipelineJob(t, s)
+	testPipelineServiceTrainingPipeline(t, s)
 }
 
-func testPipelineServicePipelineJobTestSuiteConfig(t *testing.T, s PipelineServiceTestSuiteConfigProvider) {
+func testPipelineServicePipelineJob(t *testing.T, s PipelineServiceTestSuiteConfigProvider) {
 	t.Run("PipelineJob", func(t *testing.T) {
-		config := s.PipelineJobTestSuiteConfig(t)
+		config := s.PipelineServicePipelineJob(t)
 		if config == nil {
-			t.Skip("Method PipelineJobTestSuiteConfig not implemented")
+			t.Skip("Method PipelineServicePipelineJob not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method PipelineServicePipelineJobTestSuiteConfig.Service() not implemented")
+			t.Skip("Method PipelineServicePipelineJob.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }
@@ -45,14 +45,14 @@ func testPipelineServicePipelineJobTestSuiteConfig(t *testing.T, s PipelineServi
 	})
 }
 
-func testPipelineServiceTrainingPipelineTestSuiteConfig(t *testing.T, s PipelineServiceTestSuiteConfigProvider) {
+func testPipelineServiceTrainingPipeline(t *testing.T, s PipelineServiceTestSuiteConfigProvider) {
 	t.Run("TrainingPipeline", func(t *testing.T) {
-		config := s.TrainingPipelineTestSuiteConfig(t)
+		config := s.PipelineServiceTrainingPipeline(t)
 		if config == nil {
-			t.Skip("Method TrainingPipelineTestSuiteConfig not implemented")
+			t.Skip("Method PipelineServiceTrainingPipeline not implemented")
 		}
 		if config.Service == nil {
-			t.Skip("Method PipelineServiceTrainingPipelineTestSuiteConfig.Service() not implemented")
+			t.Skip("Method PipelineServiceTrainingPipeline.Service() not implemented")
 		}
 		if config.Context == nil {
 			config.Context = func() context.Context { return context.Background() }
