@@ -29,8 +29,8 @@ type TensorboardServiceTestSuiteConfigProvider interface {
 	TensorboardServiceTensorboardTimeSeries(t *testing.T) *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig
 }
 
-// TestTensorboardService is the main entrypoint for starting the AIP tests.
-func TestTensorboardService(t *testing.T, s TensorboardServiceTestSuiteConfigProvider) {
+// testTensorboardService is the main entrypoint for starting the AIP tests.
+func testTensorboardService(t *testing.T, s TensorboardServiceTestSuiteConfigProvider) {
 	testTensorboardServiceTensorboard(t, s)
 	testTensorboardServiceTensorboardExperiment(t, s)
 	testTensorboardServiceTensorboardRun(t, s)

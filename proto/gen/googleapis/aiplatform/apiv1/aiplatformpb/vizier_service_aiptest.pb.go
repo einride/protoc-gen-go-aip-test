@@ -23,8 +23,8 @@ type VizierServiceTestSuiteConfigProvider interface {
 	VizierServiceTrial(t *testing.T) *VizierServiceTrialTestSuiteConfig
 }
 
-// TestVizierService is the main entrypoint for starting the AIP tests.
-func TestVizierService(t *testing.T, s VizierServiceTestSuiteConfigProvider) {
+// testVizierService is the main entrypoint for starting the AIP tests.
+func testVizierService(t *testing.T, s VizierServiceTestSuiteConfigProvider) {
 	testVizierServiceStudy(t, s)
 	testVizierServiceTrial(t, s)
 }

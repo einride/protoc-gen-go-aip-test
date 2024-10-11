@@ -130,7 +130,7 @@ func generateTestAllServices(f *protogen.GeneratedFile, files []File) {
 	f.P("func ", funcName, "(t *", t, ",s ", name, ") {")
 	for _, file := range files {
 		for _, service := range file.services {
-			name := "Test" + string(service.service.Desc.Name())
+			name := "test" + string(service.service.Desc.Name())
 			f.P(name, "(t, s)")
 		}
 	}

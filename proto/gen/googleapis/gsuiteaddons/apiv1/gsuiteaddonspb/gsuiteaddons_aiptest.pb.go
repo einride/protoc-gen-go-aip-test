@@ -24,8 +24,8 @@ type GSuiteAddOnsTestSuiteConfigProvider interface {
 	GSuiteAddOnsInstallStatus(t *testing.T) *GSuiteAddOnsInstallStatusTestSuiteConfig
 }
 
-// TestGSuiteAddOns is the main entrypoint for starting the AIP tests.
-func TestGSuiteAddOns(t *testing.T, s GSuiteAddOnsTestSuiteConfigProvider) {
+// testGSuiteAddOns is the main entrypoint for starting the AIP tests.
+func testGSuiteAddOns(t *testing.T, s GSuiteAddOnsTestSuiteConfigProvider) {
 	testGSuiteAddOnsAuthorization(t, s)
 	testGSuiteAddOnsDeployment(t, s)
 	testGSuiteAddOnsInstallStatus(t, s)

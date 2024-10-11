@@ -35,8 +35,8 @@ type JobServiceTestSuiteConfigProvider interface {
 	JobServiceNasTrialDetail(t *testing.T) *JobServiceNasTrialDetailTestSuiteConfig
 }
 
-// TestJobService is the main entrypoint for starting the AIP tests.
-func TestJobService(t *testing.T, s JobServiceTestSuiteConfigProvider) {
+// testJobService is the main entrypoint for starting the AIP tests.
+func testJobService(t *testing.T, s JobServiceTestSuiteConfigProvider) {
 	testJobServiceBatchPredictionJob(t, s)
 	testJobServiceCustomJob(t, s)
 	testJobServiceDataLabelingJob(t, s)

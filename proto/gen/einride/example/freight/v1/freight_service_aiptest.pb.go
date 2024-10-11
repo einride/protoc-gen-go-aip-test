@@ -25,8 +25,8 @@ type FreightServiceTestSuiteConfigProvider interface {
 	FreightServiceSite(t *testing.T) *FreightServiceSiteTestSuiteConfig
 }
 
-// TestFreightService is the main entrypoint for starting the AIP tests.
-func TestFreightService(t *testing.T, s FreightServiceTestSuiteConfigProvider) {
+// testFreightService is the main entrypoint for starting the AIP tests.
+func testFreightService(t *testing.T, s FreightServiceTestSuiteConfigProvider) {
 	testFreightServiceShipper(t, s)
 	testFreightServiceSite(t, s)
 }

@@ -22,8 +22,8 @@ type EndpointServiceTestSuiteConfigProvider interface {
 	EndpointServiceEndpoint(t *testing.T) *EndpointServiceEndpointTestSuiteConfig
 }
 
-// TestEndpointService is the main entrypoint for starting the AIP tests.
-func TestEndpointService(t *testing.T, s EndpointServiceTestSuiteConfigProvider) {
+// testEndpointService is the main entrypoint for starting the AIP tests.
+func testEndpointService(t *testing.T, s EndpointServiceTestSuiteConfigProvider) {
 	testEndpointServiceEndpoint(t, s)
 }
 

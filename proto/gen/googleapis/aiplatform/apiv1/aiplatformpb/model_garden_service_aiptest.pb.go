@@ -19,8 +19,8 @@ type ModelGardenServiceTestSuiteConfigProvider interface {
 	ModelGardenServicePublisherModel(t *testing.T) *ModelGardenServicePublisherModelTestSuiteConfig
 }
 
-// TestModelGardenService is the main entrypoint for starting the AIP tests.
-func TestModelGardenService(t *testing.T, s ModelGardenServiceTestSuiteConfigProvider) {
+// testModelGardenService is the main entrypoint for starting the AIP tests.
+func testModelGardenService(t *testing.T, s ModelGardenServiceTestSuiteConfigProvider) {
 	testModelGardenServicePublisherModel(t, s)
 }
 

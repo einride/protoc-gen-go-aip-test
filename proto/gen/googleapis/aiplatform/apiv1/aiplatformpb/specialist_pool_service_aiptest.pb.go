@@ -22,8 +22,8 @@ type SpecialistPoolServiceTestSuiteConfigProvider interface {
 	SpecialistPoolServiceSpecialistPool(t *testing.T) *SpecialistPoolServiceSpecialistPoolTestSuiteConfig
 }
 
-// TestSpecialistPoolService is the main entrypoint for starting the AIP tests.
-func TestSpecialistPoolService(t *testing.T, s SpecialistPoolServiceTestSuiteConfigProvider) {
+// testSpecialistPoolService is the main entrypoint for starting the AIP tests.
+func testSpecialistPoolService(t *testing.T, s SpecialistPoolServiceTestSuiteConfigProvider) {
 	testSpecialistPoolServiceSpecialistPool(t, s)
 }
 

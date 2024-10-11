@@ -19,8 +19,8 @@ type SpannerTestSuiteConfigProvider interface {
 	SpannerSession(t *testing.T) *SpannerSessionTestSuiteConfig
 }
 
-// TestSpanner is the main entrypoint for starting the AIP tests.
-func TestSpanner(t *testing.T, s SpannerTestSuiteConfigProvider) {
+// testSpanner is the main entrypoint for starting the AIP tests.
+func testSpanner(t *testing.T, s SpannerTestSuiteConfigProvider) {
 	testSpannerSession(t, s)
 }
 

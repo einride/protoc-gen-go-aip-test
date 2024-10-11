@@ -32,8 +32,8 @@ type DatasetServiceTestSuiteConfigProvider interface {
 	DatasetServiceSavedQuery(t *testing.T) *DatasetServiceSavedQueryTestSuiteConfig
 }
 
-// TestDatasetService is the main entrypoint for starting the AIP tests.
-func TestDatasetService(t *testing.T, s DatasetServiceTestSuiteConfigProvider) {
+// testDatasetService is the main entrypoint for starting the AIP tests.
+func testDatasetService(t *testing.T, s DatasetServiceTestSuiteConfigProvider) {
 	testDatasetServiceAnnotation(t, s)
 	testDatasetServiceAnnotationSpec(t, s)
 	testDatasetServiceDataItem(t, s)

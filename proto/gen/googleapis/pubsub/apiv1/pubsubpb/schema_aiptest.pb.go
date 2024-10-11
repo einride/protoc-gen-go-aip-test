@@ -20,8 +20,8 @@ type SchemaServiceTestSuiteConfigProvider interface {
 	SchemaServiceSchema(t *testing.T) *SchemaServiceSchemaTestSuiteConfig
 }
 
-// TestSchemaService is the main entrypoint for starting the AIP tests.
-func TestSchemaService(t *testing.T, s SchemaServiceTestSuiteConfigProvider) {
+// testSchemaService is the main entrypoint for starting the AIP tests.
+func testSchemaService(t *testing.T, s SchemaServiceTestSuiteConfigProvider) {
 	testSchemaServiceSchema(t, s)
 }
 

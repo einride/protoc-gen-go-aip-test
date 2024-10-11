@@ -26,8 +26,8 @@ type InstanceAdminTestSuiteConfigProvider interface {
 	InstanceAdminInstancePartition(t *testing.T) *InstanceAdminInstancePartitionTestSuiteConfig
 }
 
-// TestInstanceAdmin is the main entrypoint for starting the AIP tests.
-func TestInstanceAdmin(t *testing.T, s InstanceAdminTestSuiteConfigProvider) {
+// testInstanceAdmin is the main entrypoint for starting the AIP tests.
+func testInstanceAdmin(t *testing.T, s InstanceAdminTestSuiteConfigProvider) {
 	testInstanceAdminInstance(t, s)
 	testInstanceAdminInstanceConfig(t, s)
 	testInstanceAdminInstancePartition(t, s)

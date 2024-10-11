@@ -26,8 +26,8 @@ type FeaturestoreServiceTestSuiteConfigProvider interface {
 	FeaturestoreServiceFeaturestore(t *testing.T) *FeaturestoreServiceFeaturestoreTestSuiteConfig
 }
 
-// TestFeaturestoreService is the main entrypoint for starting the AIP tests.
-func TestFeaturestoreService(t *testing.T, s FeaturestoreServiceTestSuiteConfigProvider) {
+// testFeaturestoreService is the main entrypoint for starting the AIP tests.
+func testFeaturestoreService(t *testing.T, s FeaturestoreServiceTestSuiteConfigProvider) {
 	testFeaturestoreServiceEntityType(t, s)
 	testFeaturestoreServiceFeature(t, s)
 	testFeaturestoreServiceFeaturestore(t, s)

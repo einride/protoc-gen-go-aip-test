@@ -20,8 +20,8 @@ type DeploymentResourcePoolServiceTestSuiteConfigProvider interface {
 	DeploymentResourcePoolServiceDeploymentResourcePool(t *testing.T) *DeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig
 }
 
-// TestDeploymentResourcePoolService is the main entrypoint for starting the AIP tests.
-func TestDeploymentResourcePoolService(t *testing.T, s DeploymentResourcePoolServiceTestSuiteConfigProvider) {
+// testDeploymentResourcePoolService is the main entrypoint for starting the AIP tests.
+func testDeploymentResourcePoolService(t *testing.T, s DeploymentResourcePoolServiceTestSuiteConfigProvider) {
 	testDeploymentResourcePoolServiceDeploymentResourcePool(t, s)
 }
 
