@@ -22,8 +22,8 @@ type IndexServiceTestSuiteConfigProvider interface {
 	IndexServiceIndex(t *testing.T) *IndexServiceIndexTestSuiteConfig
 }
 
-// TestIndexService is the main entrypoint for starting the AIP tests.
-func TestIndexService(t *testing.T, s IndexServiceTestSuiteConfigProvider) {
+// testIndexService is the main entrypoint for starting the AIP tests.
+func testIndexService(t *testing.T, s IndexServiceTestSuiteConfigProvider) {
 	testIndexServiceIndex(t, s)
 }
 

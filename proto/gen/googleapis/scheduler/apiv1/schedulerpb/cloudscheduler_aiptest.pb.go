@@ -21,8 +21,8 @@ type CloudSchedulerTestSuiteConfigProvider interface {
 	CloudSchedulerJob(t *testing.T) *CloudSchedulerJobTestSuiteConfig
 }
 
-// TestCloudScheduler is the main entrypoint for starting the AIP tests.
-func TestCloudScheduler(t *testing.T, s CloudSchedulerTestSuiteConfigProvider) {
+// testCloudScheduler is the main entrypoint for starting the AIP tests.
+func testCloudScheduler(t *testing.T, s CloudSchedulerTestSuiteConfigProvider) {
 	testCloudSchedulerJob(t, s)
 }
 

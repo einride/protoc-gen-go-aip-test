@@ -20,8 +20,8 @@ type PublisherTestSuiteConfigProvider interface {
 	PublisherTopic(t *testing.T) *PublisherTopicTestSuiteConfig
 }
 
-// TestPublisher is the main entrypoint for starting the AIP tests.
-func TestPublisher(t *testing.T, s PublisherTestSuiteConfigProvider) {
+// testPublisher is the main entrypoint for starting the AIP tests.
+func testPublisher(t *testing.T, s PublisherTestSuiteConfigProvider) {
 	testPublisherTopic(t, s)
 }
 
@@ -309,8 +309,8 @@ type SubscriberTestSuiteConfigProvider interface {
 	SubscriberSubscription(t *testing.T) *SubscriberSubscriptionTestSuiteConfig
 }
 
-// TestSubscriber is the main entrypoint for starting the AIP tests.
-func TestSubscriber(t *testing.T, s SubscriberTestSuiteConfigProvider) {
+// testSubscriber is the main entrypoint for starting the AIP tests.
+func testSubscriber(t *testing.T, s SubscriberTestSuiteConfigProvider) {
 	testSubscriberSnapshot(t, s)
 	testSubscriberSubscription(t, s)
 }

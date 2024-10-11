@@ -26,8 +26,8 @@ type DatabaseAdminTestSuiteConfigProvider interface {
 	DatabaseAdminDatabaseRole(t *testing.T) *DatabaseAdminDatabaseRoleTestSuiteConfig
 }
 
-// TestDatabaseAdmin is the main entrypoint for starting the AIP tests.
-func TestDatabaseAdmin(t *testing.T, s DatabaseAdminTestSuiteConfigProvider) {
+// testDatabaseAdmin is the main entrypoint for starting the AIP tests.
+func testDatabaseAdmin(t *testing.T, s DatabaseAdminTestSuiteConfigProvider) {
 	testDatabaseAdminBackup(t, s)
 	testDatabaseAdminDatabase(t, s)
 	testDatabaseAdminDatabaseRole(t, s)

@@ -23,8 +23,8 @@ type PipelineServiceTestSuiteConfigProvider interface {
 	PipelineServiceTrainingPipeline(t *testing.T) *PipelineServiceTrainingPipelineTestSuiteConfig
 }
 
-// TestPipelineService is the main entrypoint for starting the AIP tests.
-func TestPipelineService(t *testing.T, s PipelineServiceTestSuiteConfigProvider) {
+// testPipelineService is the main entrypoint for starting the AIP tests.
+func testPipelineService(t *testing.T, s PipelineServiceTestSuiteConfigProvider) {
 	testPipelineServicePipelineJob(t, s)
 	testPipelineServiceTrainingPipeline(t, s)
 }

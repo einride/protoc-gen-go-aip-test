@@ -25,8 +25,8 @@ type TablesServiceTestSuiteConfigProvider interface {
 	TablesServiceWorkspace(t *testing.T) *TablesServiceWorkspaceTestSuiteConfig
 }
 
-// TestTablesService is the main entrypoint for starting the AIP tests.
-func TestTablesService(t *testing.T, s TablesServiceTestSuiteConfigProvider) {
+// testTablesService is the main entrypoint for starting the AIP tests.
+func testTablesService(t *testing.T, s TablesServiceTestSuiteConfigProvider) {
 	testTablesServiceRow(t, s)
 	testTablesServiceTable(t, s)
 	testTablesServiceWorkspace(t, s)

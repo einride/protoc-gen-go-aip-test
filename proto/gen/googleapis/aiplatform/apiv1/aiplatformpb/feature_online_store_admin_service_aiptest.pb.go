@@ -26,8 +26,8 @@ type FeatureOnlineStoreAdminServiceTestSuiteConfigProvider interface {
 	FeatureOnlineStoreAdminServiceFeatureViewSync(t *testing.T) *FeatureOnlineStoreAdminServiceFeatureViewSyncTestSuiteConfig
 }
 
-// TestFeatureOnlineStoreAdminService is the main entrypoint for starting the AIP tests.
-func TestFeatureOnlineStoreAdminService(t *testing.T, s FeatureOnlineStoreAdminServiceTestSuiteConfigProvider) {
+// testFeatureOnlineStoreAdminService is the main entrypoint for starting the AIP tests.
+func testFeatureOnlineStoreAdminService(t *testing.T, s FeatureOnlineStoreAdminServiceTestSuiteConfigProvider) {
 	testFeatureOnlineStoreAdminServiceFeatureOnlineStore(t, s)
 	testFeatureOnlineStoreAdminServiceFeatureView(t, s)
 	testFeatureOnlineStoreAdminServiceFeatureViewSync(t, s)

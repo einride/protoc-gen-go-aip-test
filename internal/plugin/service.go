@@ -56,7 +56,7 @@ func (s *serviceGenerator) generateMainTestFunction(f *protogen.GeneratedFile) {
 		GoName:       "T",
 		GoImportPath: "testing",
 	})
-	funcName := "Test" + string(s.service.Desc.Name())
+	funcName := "test" + string(s.service.Desc.Name())
 	f.P("// ", funcName, " is the main entrypoint for starting the AIP tests.")
 	f.P("func ", funcName, "(t *", t, ",s ", serviceTestConfigProviderName(s.service.Desc), ") {")
 	for _, resource := range s.resources {

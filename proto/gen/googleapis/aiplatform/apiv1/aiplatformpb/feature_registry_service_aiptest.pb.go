@@ -24,8 +24,8 @@ type FeatureRegistryServiceTestSuiteConfigProvider interface {
 	FeatureRegistryServiceFeatureGroup(t *testing.T) *FeatureRegistryServiceFeatureGroupTestSuiteConfig
 }
 
-// TestFeatureRegistryService is the main entrypoint for starting the AIP tests.
-func TestFeatureRegistryService(t *testing.T, s FeatureRegistryServiceTestSuiteConfigProvider) {
+// testFeatureRegistryService is the main entrypoint for starting the AIP tests.
+func testFeatureRegistryService(t *testing.T, s FeatureRegistryServiceTestSuiteConfigProvider) {
 	testFeatureRegistryServiceFeature(t, s)
 	testFeatureRegistryServiceFeatureGroup(t, s)
 }

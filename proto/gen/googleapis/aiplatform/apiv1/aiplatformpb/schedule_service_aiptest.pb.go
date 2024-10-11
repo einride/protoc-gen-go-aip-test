@@ -23,8 +23,8 @@ type ScheduleServiceTestSuiteConfigProvider interface {
 	ScheduleServiceSchedule(t *testing.T) *ScheduleServiceScheduleTestSuiteConfig
 }
 
-// TestScheduleService is the main entrypoint for starting the AIP tests.
-func TestScheduleService(t *testing.T, s ScheduleServiceTestSuiteConfigProvider) {
+// testScheduleService is the main entrypoint for starting the AIP tests.
+func testScheduleService(t *testing.T, s ScheduleServiceTestSuiteConfigProvider) {
 	testScheduleServiceSchedule(t, s)
 }
 

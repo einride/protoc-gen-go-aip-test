@@ -26,8 +26,8 @@ type ModelServiceTestSuiteConfigProvider interface {
 	ModelServiceModelEvaluationSlice(t *testing.T) *ModelServiceModelEvaluationSliceTestSuiteConfig
 }
 
-// TestModelService is the main entrypoint for starting the AIP tests.
-func TestModelService(t *testing.T, s ModelServiceTestSuiteConfigProvider) {
+// testModelService is the main entrypoint for starting the AIP tests.
+func testModelService(t *testing.T, s ModelServiceTestSuiteConfigProvider) {
 	testModelServiceModel(t, s)
 	testModelServiceModelEvaluation(t, s)
 	testModelServiceModelEvaluationSlice(t, s)

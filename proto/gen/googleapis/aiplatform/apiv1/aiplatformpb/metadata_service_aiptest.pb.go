@@ -30,8 +30,8 @@ type MetadataServiceTestSuiteConfigProvider interface {
 	MetadataServiceMetadataStore(t *testing.T) *MetadataServiceMetadataStoreTestSuiteConfig
 }
 
-// TestMetadataService is the main entrypoint for starting the AIP tests.
-func TestMetadataService(t *testing.T, s MetadataServiceTestSuiteConfigProvider) {
+// testMetadataService is the main entrypoint for starting the AIP tests.
+func testMetadataService(t *testing.T, s MetadataServiceTestSuiteConfigProvider) {
 	testMetadataServiceArtifact(t, s)
 	testMetadataServiceContext(t, s)
 	testMetadataServiceExecution(t, s)

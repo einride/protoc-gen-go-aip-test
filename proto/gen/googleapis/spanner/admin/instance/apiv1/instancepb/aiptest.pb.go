@@ -13,5 +13,5 @@ type ServiceConfigProviders interface {
 
 // TestServices is the main entrypoint for starting the AIP tests for all services.
 func TestServices(t *testing.T, s ServiceConfigProviders) {
-	TestInstanceAdmin(t, s)
+	testInstanceAdmin(t, s)
 }
