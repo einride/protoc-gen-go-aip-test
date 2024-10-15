@@ -43,6 +43,10 @@ update-sage: $(go)
 clean-sage:
 	@git clean -fdx ../.sage/tools ../.sage/bin ../.sage/build
 
+.PHONY: api-linter-lint
+api-linter-lint: $(sagefile)
+	@$(sagefile) Proto:APILinterLint
+
 .PHONY: all
 all: $(sagefile)
 	@$(sagefile) Proto:All
