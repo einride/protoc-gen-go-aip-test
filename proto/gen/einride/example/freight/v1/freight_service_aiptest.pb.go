@@ -404,31 +404,6 @@ func (fx *FreightServiceShipperTestSuiteConfig) testUpdate(t *testing.T) {
 		assert.DeepEqual(t, originalCreateTime, updated.CreateTime, protocmp.Transform())
 	})
 
-	// Method should fail with Aborted if the supplied etag doesnt match the current etag value.
-	t.Run("etag mismatch", func(t *testing.T) {
-		fx.maybeSkip(t)
-		created := fx.create(t)
-		_, err := fx.Service().UpdateShipper(fx.Context(), &UpdateShipperRequest{
-			Shipper: created,
-			Etag:    `"99999"`,
-		})
-		assert.Equal(t, codes.Aborted, status.Code(err), err)
-	})
-
-	// Field etag should have a new value when the resource is successfully updated.
-	t.Run("etag updated", func(t *testing.T) {
-		fx.maybeSkip(t)
-		created := fx.create(t)
-		msg := fx.Update()
-		msg.Name = created.Name
-		updated, err := fx.Service().UpdateShipper(fx.Context(), &UpdateShipperRequest{
-			Shipper: msg,
-			Etag:    created.Etag,
-		})
-		assert.NilError(t, err)
-		assert.Check(t, updated.Etag != created.Etag)
-	})
-
 	created := fx.create(t)
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
@@ -639,6 +614,10 @@ type FreightServiceSiteTestSuiteConfig struct {
 	// Create should return a resource which is valid to create, i.e.
 	// all required fields set.
 	Create func(parent string) *Site
+	// IDGenerator should return a valid and unique ID to use in the Create call.
+	// If non-nil, this function will be called to set the ID on all Create calls.
+	// If the ID field is required, tests will fail if this is nil.
+	IDGenerator func() string
 	// Update should return a resource which is valid to update, i.e.
 	// all required fields set.
 	Update func(parent string) *Site
@@ -663,9 +642,14 @@ func (fx *FreightServiceSiteTestSuiteConfig) testCreate(t *testing.T) {
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
 		fx.maybeSkip(t)
+		userSetID := ""
+		if fx.IDGenerator != nil {
+			userSetID = fx.IDGenerator()
+		}
 		_, err := fx.Service().CreateSite(fx.Context(), &CreateSiteRequest{
 			Parent: "",
 			Site:   fx.Create(fx.nextParent(t, false)),
+			SiteId: userSetID,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -673,9 +657,14 @@ func (fx *FreightServiceSiteTestSuiteConfig) testCreate(t *testing.T) {
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
+		userSetID := ""
+		if fx.IDGenerator != nil {
+			userSetID = fx.IDGenerator()
+		}
 		_, err := fx.Service().CreateSite(fx.Context(), &CreateSiteRequest{
 			Parent: "invalid resource name",
 			Site:   fx.Create(fx.nextParent(t, false)),
+			SiteId: userSetID,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -685,9 +674,14 @@ func (fx *FreightServiceSiteTestSuiteConfig) testCreate(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		beforeCreate := time.Now()
+		userSetID := ""
+		if fx.IDGenerator != nil {
+			userSetID = fx.IDGenerator()
+		}
 		msg, err := fx.Service().CreateSite(fx.Context(), &CreateSiteRequest{
 			Parent: parent,
 			Site:   fx.Create(parent),
+			SiteId: userSetID,
 		})
 		assert.NilError(t, err)
 		assert.Check(t, msg.CreateTime != nil)
@@ -699,9 +693,14 @@ func (fx *FreightServiceSiteTestSuiteConfig) testCreate(t *testing.T) {
 	t.Run("persisted", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
+		userSetID := ""
+		if fx.IDGenerator != nil {
+			userSetID = fx.IDGenerator()
+		}
 		msg, err := fx.Service().CreateSite(fx.Context(), &CreateSiteRequest{
 			Parent: parent,
 			Site:   fx.Create(parent),
+			SiteId: userSetID,
 		})
 		assert.NilError(t, err)
 		persisted, err := fx.Service().GetSite(fx.Context(), &GetSiteRequest{
@@ -709,6 +708,39 @@ func (fx *FreightServiceSiteTestSuiteConfig) testCreate(t *testing.T) {
 		})
 		assert.NilError(t, err)
 		assert.DeepEqual(t, msg, persisted, protocmp.Transform())
+	})
+
+	// If method support user settable IDs, when set the resource should
+	// be returned with the provided ID.
+	t.Run("user settable id", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		msg, err := fx.Service().CreateSite(fx.Context(), &CreateSiteRequest{
+			Parent: parent,
+			Site:   fx.Create(parent),
+			SiteId: "usersetid",
+		})
+		assert.NilError(t, err)
+		assert.Check(t, strings.HasSuffix(msg.GetName(), "usersetid"))
+	})
+
+	// If method support user settable IDs and the same ID is reused
+	// the method should return AlreadyExists.
+	t.Run("already exists", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		_, err := fx.Service().CreateSite(fx.Context(), &CreateSiteRequest{
+			Parent: parent,
+			Site:   fx.Create(parent),
+			SiteId: "alreadyexists",
+		})
+		assert.NilError(t, err)
+		_, err = fx.Service().CreateSite(fx.Context(), &CreateSiteRequest{
+			Parent: parent,
+			Site:   fx.Create(parent),
+			SiteId: "alreadyexists",
+		})
+		assert.Equal(t, codes.AlreadyExists, status.Code(err), err)
 	})
 
 	// The method should fail with InvalidArgument if the resource has any
@@ -725,9 +757,35 @@ func (fx *FreightServiceSiteTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
 			container.ProtoReflect().Clear(fd)
+			userSetID := ""
+			if fx.IDGenerator != nil {
+				userSetID = fx.IDGenerator()
+			}
 			_, err := fx.Service().CreateSite(fx.Context(), &CreateSiteRequest{
 				Parent: parent,
 				Site:   msg,
+				SiteId: userSetID,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+		t.Run(".billing.billing_account", func(t *testing.T) {
+			fx.maybeSkip(t)
+			parent := fx.nextParent(t, false)
+			msg := fx.Create(parent)
+			container := msg.GetBilling()
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("billing_account")
+			container.ProtoReflect().Clear(fd)
+			userSetID := ""
+			if fx.IDGenerator != nil {
+				userSetID = fx.IDGenerator()
+			}
+			_, err := fx.Service().CreateSite(fx.Context(), &CreateSiteRequest{
+				Parent: parent,
+				Site:   msg,
+				SiteId: userSetID,
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
@@ -741,9 +799,14 @@ func (fx *FreightServiceSiteTestSuiteConfig) testCreate(t *testing.T) {
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("region")
 			container.ProtoReflect().Clear(fd)
+			userSetID := ""
+			if fx.IDGenerator != nil {
+				userSetID = fx.IDGenerator()
+			}
 			_, err := fx.Service().CreateSite(fx.Context(), &CreateSiteRequest{
 				Parent: parent,
 				Site:   msg,
+				SiteId: userSetID,
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
@@ -762,9 +825,14 @@ func (fx *FreightServiceSiteTestSuiteConfig) testCreate(t *testing.T) {
 				t.Skip("not reachable")
 			}
 			container.BillingAccount = "invalid resource name"
+			userSetID := ""
+			if fx.IDGenerator != nil {
+				userSetID = fx.IDGenerator()
+			}
 			_, err := fx.Service().CreateSite(fx.Context(), &CreateSiteRequest{
 				Parent: parent,
 				Site:   msg,
+				SiteId: userSetID,
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
@@ -774,9 +842,14 @@ func (fx *FreightServiceSiteTestSuiteConfig) testCreate(t *testing.T) {
 	t.Run("etag populated", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
+		userSetID := ""
+		if fx.IDGenerator != nil {
+			userSetID = fx.IDGenerator()
+		}
 		created, _ := fx.Service().CreateSite(fx.Context(), &CreateSiteRequest{
 			Parent: parent,
 			Site:   fx.Create(parent),
+			SiteId: userSetID,
 		})
 		assert.Check(t, created.Etag != "")
 	})
@@ -1015,7 +1088,6 @@ func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
 		msg.Name = ""
 		_, err := fx.Service().UpdateSite(fx.Context(), &UpdateSiteRequest{
 			Site: msg,
-			Etag: msg.Etag,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -1028,7 +1100,6 @@ func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
 		msg.Name = "invalid resource name"
 		_, err := fx.Service().UpdateSite(fx.Context(), &UpdateSiteRequest{
 			Site: msg,
-			Etag: msg.Etag,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -1040,7 +1111,6 @@ func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
 		created := fx.create(t, parent)
 		updated, err := fx.Service().UpdateSite(fx.Context(), &UpdateSiteRequest{
 			Site: created,
-			Etag: created.Etag,
 		})
 		assert.NilError(t, err)
 		assert.Check(t, updated.UpdateTime.AsTime().After(created.UpdateTime.AsTime()))
@@ -1053,7 +1123,6 @@ func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
 		created := fx.create(t, parent)
 		updated, err := fx.Service().UpdateSite(fx.Context(), &UpdateSiteRequest{
 			Site: created,
-			Etag: created.Etag,
 		})
 		assert.NilError(t, err)
 		persisted, err := fx.Service().GetSite(fx.Context(), &GetSiteRequest{
@@ -1076,37 +1145,9 @@ func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
 					"*",
 				},
 			},
-			Etag: created.Etag,
 		})
 		assert.NilError(t, err)
 		assert.DeepEqual(t, originalCreateTime, updated.CreateTime, protocmp.Transform())
-	})
-
-	// Method should fail with Aborted if the supplied etag doesnt match the current etag value.
-	t.Run("etag mismatch", func(t *testing.T) {
-		fx.maybeSkip(t)
-		parent := fx.nextParent(t, false)
-		created := fx.create(t, parent)
-		_, err := fx.Service().UpdateSite(fx.Context(), &UpdateSiteRequest{
-			Site: created,
-			Etag: `"99999"`,
-		})
-		assert.Equal(t, codes.Aborted, status.Code(err), err)
-	})
-
-	// Field etag should have a new value when the resource is successfully updated.
-	t.Run("etag updated", func(t *testing.T) {
-		fx.maybeSkip(t)
-		parent := fx.nextParent(t, false)
-		created := fx.create(t, parent)
-		msg := fx.Update(parent)
-		msg.Name = created.Name
-		updated, err := fx.Service().UpdateSite(fx.Context(), &UpdateSiteRequest{
-			Site: msg,
-			Etag: created.Etag,
-		})
-		assert.NilError(t, err)
-		assert.Check(t, updated.Etag != created.Etag)
 	})
 
 	parent := fx.nextParent(t, false)
@@ -1118,7 +1159,6 @@ func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
 		msg.Name = created.Name + "notfound"
 		_, err := fx.Service().UpdateSite(fx.Context(), &UpdateSiteRequest{
 			Site: msg,
-			Etag: msg.Etag,
 		})
 		assert.Equal(t, codes.NotFound, status.Code(err), err)
 	})
@@ -1133,7 +1173,6 @@ func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
 					"invalid_field_xyz",
 				},
 			},
-			Etag: created.Etag,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -1158,7 +1197,25 @@ func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
 						"*",
 					},
 				},
-				Etag: msg.Etag,
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+		t.Run(".billing.billing_account", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msg := proto.Clone(created).(*Site)
+			container := msg.GetBilling()
+			if container == nil {
+				t.Skip("not reachable")
+			}
+			fd := container.ProtoReflect().Descriptor().Fields().ByName("billing_account")
+			container.ProtoReflect().Clear(fd)
+			_, err := fx.Service().UpdateSite(fx.Context(), &UpdateSiteRequest{
+				Site: msg,
+				UpdateMask: &fieldmaskpb.FieldMask{
+					Paths: []string{
+						"*",
+					},
+				},
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
@@ -1423,9 +1480,14 @@ func (fx *FreightServiceSiteTestSuiteConfig) maybeSkip(t *testing.T) {
 
 func (fx *FreightServiceSiteTestSuiteConfig) create(t *testing.T, parent string) *Site {
 	t.Helper()
+	userSetID := ""
+	if fx.IDGenerator != nil {
+		userSetID = fx.IDGenerator()
+	}
 	created, err := fx.Service().CreateSite(fx.Context(), &CreateSiteRequest{
 		Parent: parent,
 		Site:   fx.Create(parent),
+		SiteId: userSetID,
 	})
 	assert.NilError(t, err)
 	return created

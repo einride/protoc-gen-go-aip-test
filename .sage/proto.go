@@ -5,6 +5,7 @@ import (
 
 	"go.einride.tech/sage/sg"
 	"go.einride.tech/sage/sgtool"
+	"go.einride.tech/sage/tools/sgapilinter"
 	"go.einride.tech/sage/tools/sgbuf"
 )
 
@@ -19,7 +20,7 @@ const (
 )
 
 func (Proto) All(ctx context.Context) error {
-	sg.SerialDeps(ctx, Proto.BufFormat, Proto.BufLint)
+	sg.SerialDeps(ctx, Proto.BufFormat, Proto.BufLint, Proto.APILinterLint)
 	sg.SerialDeps(ctx, Proto.BufGenerate, Proto.BufGenerateGoogleapis)
 	return nil
 }
@@ -29,6 +30,11 @@ func (Proto) BufLint(ctx context.Context) error {
 	cmd := sgbuf.Command(ctx, "lint")
 	cmd.Dir = sg.FromGitRoot("proto")
 	return cmd.Run()
+}
+
+func (Proto) APILinterLint(ctx context.Context) error {
+	sg.Logger(ctx).Println("linting gRPC APIs...")
+	return sgapilinter.Run(ctx)
 }
 
 func (Proto) BufFormat(ctx context.Context) error {

@@ -22,7 +22,7 @@ message Site {
     plural: "sites"
   };
   // The resource name of the site.
-  string name = 1;
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
   // The creation timestamp of the site.
   google.protobuf.Timestamp create_time = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
   // The last update timestamp of the site.
@@ -34,9 +34,9 @@ message Site {
   // The display name of the site.
   string display_name = 5 [(google.api.field_behavior) = REQUIRED];
   // The geographic location of the site.
-  google.type.LatLng lat_lng = 6;
+  google.type.LatLng lat_lng = 6 [(google.api.field_behavior) = OPTIONAL];
   // Billing information on the site.
-  Billing billing = 7;
+  Billing billing = 7 [(google.api.field_behavior) = OPTIONAL];
   // Region of this site.
   //
   // Must be provided during creation, but cannot be changed later.
@@ -48,14 +48,22 @@ message Site {
   string etag = 9;
 }
 
+// Billing.
 message Billing {
   // The billing account used by this site.
   // If not specified the shippers billing accout is used.
-  string billing_account = 1 [(google.api.resource_reference).type = "freight-example.einride.tech/BillingAccount"];
+  string billing_account = 1 [
+    (google.api.resource_reference).type = "freight-example.einride.tech/BillingAccount",
+    (google.api.field_behavior) = REQUIRED
+  ];
 }
 
+// Available regions.
 enum Region {
+  // Unspecified region.
   REGION_UNSPECIFIED = 0;
+  // Europe region.
   EU_WEST_1 = 1;
+  // US region.
   US_EAST_1 = 2;
 }
