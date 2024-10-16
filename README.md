@@ -52,7 +52,11 @@ This can also be done via a
 
 ### Step 4: Run tests
 
-The generated test suites must be provided with some input data.
+There are two alternative ways of bootstrapping the tests.
+
+#### Alternative 1:
+
+Instantiate the generated test suites and call the methods you want to test.
 
 ```go
 package example
@@ -87,6 +91,42 @@ func Test_FreightService(t *testing.T) {
 			}
 		},
 	})
+}
+```
+
+#### Alternative 2:
+
+Implement the generated configure provider interface
+(`FreightServiceTestSuiteConfigProvider`) and pass the implementation to
+`TestServices` to start the tests.
+
+A benefit of using `TestServices` (over alternative 1) is that as new services
+or resources are added to the API the test code won't compile until the required
+inputs are also added (or explicitly ignored). This makes it harder to forget to
+add the test implementations for new services/resources.
+
+```go
+package example
+
+import "testing"
+
+func Test_FreightService(t *testing.T) {
+	// Even though no implementation exists, the tests will pass but be skipped.
+	examplefreightv1.TestServices(t, &aipTests{})
+}
+
+type aipTests struct{}
+
+var _ examplefreightv1.FreightServiceTestSuiteConfigProvider = &aipTests{}
+
+func (a aipTests) FreightServiceShipper(_ *testing.T) *examplefreightv1.FreightServiceShipperTestSuiteConfig {
+	// Returns nil to indicate that it's not ready to be tested.
+	return nil
+}
+
+func (a aipTests) FreightServiceSite(_ *testing.T) *examplefreightv1.FreightServiceSiteTestSuiteConfig {
+	// Returns nil to indicate that it's not ready to be tested.
+	return nil
 }
 ```
 
