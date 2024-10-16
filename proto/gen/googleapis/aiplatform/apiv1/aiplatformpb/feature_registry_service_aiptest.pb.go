@@ -524,6 +524,10 @@ type FeatureRegistryServiceFeatureGroupTestSuiteConfig struct {
 	// Create should return a resource which is valid to create, i.e.
 	// all required fields set.
 	Create func(parent string) *FeatureGroup
+	// IDGenerator should return a valid and unique ID to use in the Create call.
+	// If non-nil, this function will be called to set the ID on all Create calls.
+	// If the ID field is required, tests will fail if this is nil.
+	IDGenerator func() string
 	// Update should return a resource which is valid to update, i.e.
 	// all required fields set.
 	Update func(parent string) *FeatureGroup
@@ -547,9 +551,14 @@ func (fx *FeatureRegistryServiceFeatureGroupTestSuiteConfig) testCreate(t *testi
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
 		fx.maybeSkip(t)
+		userSetID := ""
+		if fx.IDGenerator != nil {
+			userSetID = fx.IDGenerator()
+		}
 		_, err := fx.Service().CreateFeatureGroup(fx.Context(), &CreateFeatureGroupRequest{
-			Parent:       "",
-			FeatureGroup: fx.Create(fx.nextParent(t, false)),
+			Parent:         "",
+			FeatureGroup:   fx.Create(fx.nextParent(t, false)),
+			FeatureGroupId: userSetID,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -557,9 +566,14 @@ func (fx *FeatureRegistryServiceFeatureGroupTestSuiteConfig) testCreate(t *testi
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
 		fx.maybeSkip(t)
+		userSetID := ""
+		if fx.IDGenerator != nil {
+			userSetID = fx.IDGenerator()
+		}
 		_, err := fx.Service().CreateFeatureGroup(fx.Context(), &CreateFeatureGroupRequest{
-			Parent:       "invalid resource name",
-			FeatureGroup: fx.Create(fx.nextParent(t, false)),
+			Parent:         "invalid resource name",
+			FeatureGroup:   fx.Create(fx.nextParent(t, false)),
+			FeatureGroupId: userSetID,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
@@ -578,9 +592,14 @@ func (fx *FeatureRegistryServiceFeatureGroupTestSuiteConfig) testCreate(t *testi
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("big_query_source")
 			container.ProtoReflect().Clear(fd)
+			userSetID := ""
+			if fx.IDGenerator != nil {
+				userSetID = fx.IDGenerator()
+			}
 			_, err := fx.Service().CreateFeatureGroup(fx.Context(), &CreateFeatureGroupRequest{
-				Parent:       parent,
-				FeatureGroup: msg,
+				Parent:         parent,
+				FeatureGroup:   msg,
+				FeatureGroupId: userSetID,
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
@@ -594,9 +613,14 @@ func (fx *FeatureRegistryServiceFeatureGroupTestSuiteConfig) testCreate(t *testi
 			}
 			fd := container.ProtoReflect().Descriptor().Fields().ByName("input_uri")
 			container.ProtoReflect().Clear(fd)
+			userSetID := ""
+			if fx.IDGenerator != nil {
+				userSetID = fx.IDGenerator()
+			}
 			_, err := fx.Service().CreateFeatureGroup(fx.Context(), &CreateFeatureGroupRequest{
-				Parent:       parent,
-				FeatureGroup: msg,
+				Parent:         parent,
+				FeatureGroup:   msg,
+				FeatureGroupId: userSetID,
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})

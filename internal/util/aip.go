@@ -15,7 +15,7 @@ import (
 )
 
 func HasUserSettableIDField(r *annotations.ResourceDescriptor, m protoreflect.MessageDescriptor) bool {
-	idField := strcase.LowerCamelCase(r.GetSingular()) + "_id"
+	idField := strcase.SnakeCase(r.GetSingular()) + "_id"
 	return m.Fields().ByName(protoreflect.Name(idField)) != nil
 }
 
