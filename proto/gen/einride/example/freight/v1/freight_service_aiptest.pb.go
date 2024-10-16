@@ -170,6 +170,62 @@ func (fx *FreightServiceShipperTestSuiteConfig) testCreate(t *testing.T) {
 		assert.Check(t, strings.HasSuffix(msg.GetName(), "usersetid"))
 	})
 
+	// Method should fail with InvalidArgument if the user settable id doesn't
+	// conform to RFC-1034, see [doc](https://google.aip.dev/122#resource-id-segments).
+	t.Run("invalid user settable id", func(t *testing.T) {
+		fx.maybeSkip(t)
+		for _, tt := range []struct {
+			name string
+			id   string
+		}{
+			{
+				name: "start with digit",
+				id:   "0foo",
+			},
+			{
+				name: "start with hyphen",
+				id:   "-foo",
+			},
+			{
+				name: "start with non ascii letter",
+				id:   "öfoo",
+			},
+			{
+				name: "contains non ascii letter",
+				id:   "fooöbar",
+			},
+			{
+				name: "contains upper case ascii letter",
+				id:   "fooBar",
+			},
+			{
+				name: "ends with hyphen",
+				id:   "foo-",
+			},
+			{
+				name: "ends with non ascii",
+				id:   "fooö",
+			},
+			{
+				name: "too short",
+				id:   "foo",
+			},
+			{
+				name: "too long",
+				id:   "fooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
+			},
+		} {
+			t.Run(tt.name, func(t *testing.T) {
+				fx.maybeSkip(t)
+				_, err := fx.Service().CreateShipper(fx.Context(), &CreateShipperRequest{
+					Shipper:   fx.Create(),
+					ShipperId: tt.id,
+				})
+				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+			})
+		}
+	})
+
 	// If method support user settable IDs and the same ID is reused
 	// the method should return AlreadyExists.
 	t.Run("already exists", func(t *testing.T) {
@@ -722,6 +778,64 @@ func (fx *FreightServiceSiteTestSuiteConfig) testCreate(t *testing.T) {
 		})
 		assert.NilError(t, err)
 		assert.Check(t, strings.HasSuffix(msg.GetName(), "usersetid"))
+	})
+
+	// Method should fail with InvalidArgument if the user settable id doesn't
+	// conform to RFC-1034, see [doc](https://google.aip.dev/122#resource-id-segments).
+	t.Run("invalid user settable id", func(t *testing.T) {
+		fx.maybeSkip(t)
+		for _, tt := range []struct {
+			name string
+			id   string
+		}{
+			{
+				name: "start with digit",
+				id:   "0foo",
+			},
+			{
+				name: "start with hyphen",
+				id:   "-foo",
+			},
+			{
+				name: "start with non ascii letter",
+				id:   "öfoo",
+			},
+			{
+				name: "contains non ascii letter",
+				id:   "fooöbar",
+			},
+			{
+				name: "contains upper case ascii letter",
+				id:   "fooBar",
+			},
+			{
+				name: "ends with hyphen",
+				id:   "foo-",
+			},
+			{
+				name: "ends with non ascii",
+				id:   "fooö",
+			},
+			{
+				name: "too short",
+				id:   "foo",
+			},
+			{
+				name: "too long",
+				id:   "fooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
+			},
+		} {
+			t.Run(tt.name, func(t *testing.T) {
+				fx.maybeSkip(t)
+				parent := fx.nextParent(t, false)
+				_, err := fx.Service().CreateSite(fx.Context(), &CreateSiteRequest{
+					Parent: parent,
+					Site:   fx.Create(parent),
+					SiteId: tt.id,
+				})
+				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+			})
+		}
 	})
 
 	// If method support user settable IDs and the same ID is reused
