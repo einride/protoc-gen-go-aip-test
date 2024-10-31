@@ -95,6 +95,7 @@ type MethodUpdate struct {
 	Msg        string
 	UpdateMask []string
 	Etag       string
+	EtagTest   bool
 }
 
 func (m MethodUpdate) Generate(f *protogen.GeneratedFile, response, err, assign string) {
@@ -110,6 +111,14 @@ func (m MethodUpdate) Generate(f *protogen.GeneratedFile, response, err, assign 
 			f.P("msg := fx.Update()")
 		}
 		f.P("msg.Name = ", m.Name)
+	}
+	if m.EtagTest && !HasEtagField(m.Method.Input.Desc) && HasEtagField(m.Method.Output.Desc) {
+		// Request object does not have an etag field, but the resource has.
+		if m.Etag != "" {
+			f.P("msg.Etag = ", m.Etag)
+		} else {
+			f.P(`msg.Etag = created.Etag // assign etag from the created resource`)
+		}
 	}
 	f.P(response, ", ", err, " ", assign, " fx.Service().", m.Method.GoName, "(fx.Context(), &", m.Method.Input.GoIdent, "{") //nolint:lll
 	if m.Msg != "" {

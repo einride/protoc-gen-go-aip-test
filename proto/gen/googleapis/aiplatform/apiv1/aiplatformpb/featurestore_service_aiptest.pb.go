@@ -266,6 +266,35 @@ func (fx *FeaturestoreServiceEntityTypeTestSuiteConfig) testUpdate(t *testing.T)
 		assert.DeepEqual(t, updated, persisted, protocmp.Transform())
 	})
 
+	// Method should fail with Aborted if the supplied etag doesnt match the current etag value.
+	t.Run("etag mismatch", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		msg := fx.Update(parent)
+		msg.Name = created.Name
+		msg.Etag = `"99999"`
+		_, err := fx.Service().UpdateEntityType(fx.Context(), &UpdateEntityTypeRequest{
+			EntityType: msg,
+		})
+		assert.Equal(t, codes.Aborted, status.Code(err), err)
+	})
+
+	// Field etag should have a new value when the resource is successfully updated.
+	t.Run("etag updated", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		msg := fx.Update(parent)
+		msg.Name = created.Name
+		msg.Etag = created.Etag
+		updated, err := fx.Service().UpdateEntityType(fx.Context(), &UpdateEntityTypeRequest{
+			EntityType: msg,
+		})
+		assert.NilError(t, err)
+		assert.Check(t, updated.Etag != created.Etag)
+	})
+
 	parent := fx.nextParent(t, false)
 	created := fx.create(t, parent)
 	// Method should fail with NotFound if the resource does not exist.
@@ -703,6 +732,35 @@ func (fx *FeaturestoreServiceFeatureTestSuiteConfig) testUpdate(t *testing.T) {
 		})
 		assert.NilError(t, err)
 		assert.DeepEqual(t, updated, persisted, protocmp.Transform())
+	})
+
+	// Method should fail with Aborted if the supplied etag doesnt match the current etag value.
+	t.Run("etag mismatch", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		msg := fx.Update(parent)
+		msg.Name = created.Name
+		msg.Etag = `"99999"`
+		_, err := fx.Service().UpdateFeature(fx.Context(), &UpdateFeatureRequest{
+			Feature: msg,
+		})
+		assert.Equal(t, codes.Aborted, status.Code(err), err)
+	})
+
+	// Field etag should have a new value when the resource is successfully updated.
+	t.Run("etag updated", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		msg := fx.Update(parent)
+		msg.Name = created.Name
+		msg.Etag = created.Etag
+		updated, err := fx.Service().UpdateFeature(fx.Context(), &UpdateFeatureRequest{
+			Feature: msg,
+		})
+		assert.NilError(t, err)
+		assert.Check(t, updated.Etag != created.Etag)
 	})
 
 	parent := fx.nextParent(t, false)
@@ -1150,6 +1208,33 @@ func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) testUpdate(t *testing.
 			Featurestore: msg,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with Aborted if the supplied etag doesnt match the current etag value.
+	t.Run("etag mismatch", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		msg := fx.Update(parent)
+		msg.Name = created.Name
+		_, err := fx.Service().UpdateFeaturestore(fx.Context(), &UpdateFeaturestoreRequest{
+			Featurestore: msg,
+		})
+		assert.Equal(t, codes.Aborted, status.Code(err), err)
+	})
+
+	// Field etag should have a new value when the resource is successfully updated.
+	t.Run("etag updated", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		msg := fx.Update(parent)
+		msg.Name = created.Name
+		updated, err := fx.Service().UpdateFeaturestore(fx.Context(), &UpdateFeaturestoreRequest{
+			Featurestore: msg,
+		})
+		assert.NilError(t, err)
+		_ = updated
 	})
 
 	parent := fx.nextParent(t, false)

@@ -316,6 +316,33 @@ func (fx *TensorboardServiceTensorboardTestSuiteConfig) testUpdate(t *testing.T)
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
+	// Method should fail with Aborted if the supplied etag doesnt match the current etag value.
+	t.Run("etag mismatch", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		msg := fx.Update(parent)
+		msg.Name = created.Name
+		_, err := fx.Service().UpdateTensorboard(fx.Context(), &UpdateTensorboardRequest{
+			Tensorboard: msg,
+		})
+		assert.Equal(t, codes.Aborted, status.Code(err), err)
+	})
+
+	// Field etag should have a new value when the resource is successfully updated.
+	t.Run("etag updated", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		msg := fx.Update(parent)
+		msg.Name = created.Name
+		updated, err := fx.Service().UpdateTensorboard(fx.Context(), &UpdateTensorboardRequest{
+			Tensorboard: msg,
+		})
+		assert.NilError(t, err)
+		_ = updated
+	})
+
 	parent := fx.nextParent(t, false)
 	created := fx.create(t, parent)
 	// Method should fail with NotFound if the resource does not exist.
@@ -839,6 +866,35 @@ func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testUpdate(t *
 		assert.DeepEqual(t, updated, persisted, protocmp.Transform())
 	})
 
+	// Method should fail with Aborted if the supplied etag doesnt match the current etag value.
+	t.Run("etag mismatch", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		msg := fx.Update(parent)
+		msg.Name = created.Name
+		msg.Etag = `"99999"`
+		_, err := fx.Service().UpdateTensorboardExperiment(fx.Context(), &UpdateTensorboardExperimentRequest{
+			TensorboardExperiment: msg,
+		})
+		assert.Equal(t, codes.Aborted, status.Code(err), err)
+	})
+
+	// Field etag should have a new value when the resource is successfully updated.
+	t.Run("etag updated", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		msg := fx.Update(parent)
+		msg.Name = created.Name
+		msg.Etag = created.Etag
+		updated, err := fx.Service().UpdateTensorboardExperiment(fx.Context(), &UpdateTensorboardExperimentRequest{
+			TensorboardExperiment: msg,
+		})
+		assert.NilError(t, err)
+		assert.Check(t, updated.Etag != created.Etag)
+	})
+
 	parent := fx.nextParent(t, false)
 	created := fx.create(t, parent)
 	// Method should fail with NotFound if the resource does not exist.
@@ -1360,6 +1416,35 @@ func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testUpdate(t *testing
 		})
 		assert.NilError(t, err)
 		assert.DeepEqual(t, originalCreateTime, updated.CreateTime, protocmp.Transform())
+	})
+
+	// Method should fail with Aborted if the supplied etag doesnt match the current etag value.
+	t.Run("etag mismatch", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		msg := fx.Update(parent)
+		msg.Name = created.Name
+		msg.Etag = `"99999"`
+		_, err := fx.Service().UpdateTensorboardRun(fx.Context(), &UpdateTensorboardRunRequest{
+			TensorboardRun: msg,
+		})
+		assert.Equal(t, codes.Aborted, status.Code(err), err)
+	})
+
+	// Field etag should have a new value when the resource is successfully updated.
+	t.Run("etag updated", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		msg := fx.Update(parent)
+		msg.Name = created.Name
+		msg.Etag = created.Etag
+		updated, err := fx.Service().UpdateTensorboardRun(fx.Context(), &UpdateTensorboardRunRequest{
+			TensorboardRun: msg,
+		})
+		assert.NilError(t, err)
+		assert.Check(t, updated.Etag != created.Etag)
 	})
 
 	parent := fx.nextParent(t, false)
@@ -1924,6 +2009,35 @@ func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testUpdate(t *
 		})
 		assert.NilError(t, err)
 		assert.DeepEqual(t, originalCreateTime, updated.CreateTime, protocmp.Transform())
+	})
+
+	// Method should fail with Aborted if the supplied etag doesnt match the current etag value.
+	t.Run("etag mismatch", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		msg := fx.Update(parent)
+		msg.Name = created.Name
+		msg.Etag = `"99999"`
+		_, err := fx.Service().UpdateTensorboardTimeSeries(fx.Context(), &UpdateTensorboardTimeSeriesRequest{
+			TensorboardTimeSeries: msg,
+		})
+		assert.Equal(t, codes.Aborted, status.Code(err), err)
+	})
+
+	// Field etag should have a new value when the resource is successfully updated.
+	t.Run("etag updated", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		msg := fx.Update(parent)
+		msg.Name = created.Name
+		msg.Etag = created.Etag
+		updated, err := fx.Service().UpdateTensorboardTimeSeries(fx.Context(), &UpdateTensorboardTimeSeriesRequest{
+			TensorboardTimeSeries: msg,
+		})
+		assert.NilError(t, err)
+		assert.Check(t, updated.Etag != created.Etag)
 	})
 
 	parent := fx.nextParent(t, false)
