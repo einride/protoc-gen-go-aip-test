@@ -234,6 +234,33 @@ func (fx *IndexServiceIndexTestSuiteConfig) testUpdate(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
+	// Method should fail with Aborted if the supplied etag doesnt match the current etag value.
+	t.Run("etag mismatch", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		msg := fx.Update(parent)
+		msg.Name = created.Name
+		_, err := fx.Service().UpdateIndex(fx.Context(), &UpdateIndexRequest{
+			Index: msg,
+		})
+		assert.Equal(t, codes.Aborted, status.Code(err), err)
+	})
+
+	// Field etag should have a new value when the resource is successfully updated.
+	t.Run("etag updated", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		msg := fx.Update(parent)
+		msg.Name = created.Name
+		updated, err := fx.Service().UpdateIndex(fx.Context(), &UpdateIndexRequest{
+			Index: msg,
+		})
+		assert.NilError(t, err)
+		_ = updated
+	})
+
 	parent := fx.nextParent(t, false)
 	created := fx.create(t, parent)
 	// Method should fail with NotFound if the resource does not exist.

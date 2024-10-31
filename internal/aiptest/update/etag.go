@@ -18,7 +18,6 @@ var etagMismatch = suite.Test{
 	},
 	OnlyIf: suite.OnlyIfs(
 		onlyif.HasMethod(aipreflect.MethodTypeUpdate),
-		onlyif.HasRequestEtag(aipreflect.MethodTypeUpdate),
 		onlyif.HasField("etag"),
 	),
 	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
@@ -32,8 +31,10 @@ var etagMismatch = suite.Test{
 		util.MethodUpdate{
 			Resource: scope.Resource,
 			Method:   updateMethod,
-			Msg:      "created",
+			Parent:   "parent",
+			Name:     "created.Name",
 			Etag:     util.EtagLiteral("99999"),
+			EtagTest: true,
 		}.Generate(f, "_", "err", ":=")
 		f.P(ident.AssertEqual, "(t, ", ident.Codes(codes.Aborted), ",", ident.StatusCode, "(err), err)")
 		return nil
@@ -48,7 +49,6 @@ var etagUpdated = suite.Test{
 	},
 	OnlyIf: suite.OnlyIfs(
 		onlyif.HasMethod(aipreflect.MethodTypeUpdate),
-		onlyif.HasRequestEtag(aipreflect.MethodTypeUpdate),
 		onlyif.HasField("etag"),
 	),
 	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
@@ -65,9 +65,16 @@ var etagUpdated = suite.Test{
 			Parent:   "parent",
 			Name:     "created.Name",
 			Etag:     "created.Etag",
+			EtagTest: true,
 		}.Generate(f, "updated", "err", ":=")
 		f.P(ident.AssertNilError, "(t, err)")
-		f.P(ident.AssertCheck, "(t, updated.Etag != created.Etag)")
+
+		if !util.ReturnsLRO(updateMethod.Desc) {
+			// only assert etag is different if the resource is returned.
+			f.P(ident.AssertCheck, "(t, updated.Etag != created.Etag)")
+		} else {
+			f.P("_ = updated") // prevent unused error.
+		}
 		return nil
 	},
 }

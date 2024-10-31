@@ -471,6 +471,33 @@ func (fx *FreightServiceShipperTestSuiteConfig) testUpdate(t *testing.T) {
 		assert.DeepEqual(t, originalCreateTime, updated.CreateTime, protocmp.Transform())
 	})
 
+	// Method should fail with Aborted if the supplied etag doesnt match the current etag value.
+	t.Run("etag mismatch", func(t *testing.T) {
+		fx.maybeSkip(t)
+		created := fx.create(t)
+		msg := fx.Update()
+		msg.Name = created.Name
+		msg.Etag = `"99999"`
+		_, err := fx.Service().UpdateShipper(fx.Context(), &UpdateShipperRequest{
+			Shipper: msg,
+		})
+		assert.Equal(t, codes.Aborted, status.Code(err), err)
+	})
+
+	// Field etag should have a new value when the resource is successfully updated.
+	t.Run("etag updated", func(t *testing.T) {
+		fx.maybeSkip(t)
+		created := fx.create(t)
+		msg := fx.Update()
+		msg.Name = created.Name
+		msg.Etag = created.Etag
+		updated, err := fx.Service().UpdateShipper(fx.Context(), &UpdateShipperRequest{
+			Shipper: msg,
+		})
+		assert.NilError(t, err)
+		assert.Check(t, updated.Etag != created.Etag)
+	})
+
 	created := fx.create(t)
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
@@ -1286,6 +1313,35 @@ func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
 		})
 		assert.NilError(t, err)
 		assert.DeepEqual(t, originalCreateTime, updated.CreateTime, protocmp.Transform())
+	})
+
+	// Method should fail with Aborted if the supplied etag doesnt match the current etag value.
+	t.Run("etag mismatch", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		msg := fx.Update(parent)
+		msg.Name = created.Name
+		msg.Etag = `"99999"`
+		_, err := fx.Service().UpdateSite(fx.Context(), &UpdateSiteRequest{
+			Site: msg,
+		})
+		assert.Equal(t, codes.Aborted, status.Code(err), err)
+	})
+
+	// Field etag should have a new value when the resource is successfully updated.
+	t.Run("etag updated", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		msg := fx.Update(parent)
+		msg.Name = created.Name
+		msg.Etag = created.Etag
+		updated, err := fx.Service().UpdateSite(fx.Context(), &UpdateSiteRequest{
+			Site: msg,
+		})
+		assert.NilError(t, err)
+		assert.Check(t, updated.Etag != created.Etag)
 	})
 
 	parent := fx.nextParent(t, false)

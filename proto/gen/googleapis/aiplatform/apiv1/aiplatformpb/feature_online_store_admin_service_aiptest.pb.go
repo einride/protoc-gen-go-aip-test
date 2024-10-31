@@ -304,6 +304,33 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testU
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
+	// Method should fail with Aborted if the supplied etag doesnt match the current etag value.
+	t.Run("etag mismatch", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		msg := fx.Update(parent)
+		msg.Name = created.Name
+		_, err := fx.Service().UpdateFeatureOnlineStore(fx.Context(), &UpdateFeatureOnlineStoreRequest{
+			FeatureOnlineStore: msg,
+		})
+		assert.Equal(t, codes.Aborted, status.Code(err), err)
+	})
+
+	// Field etag should have a new value when the resource is successfully updated.
+	t.Run("etag updated", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		msg := fx.Update(parent)
+		msg.Name = created.Name
+		updated, err := fx.Service().UpdateFeatureOnlineStore(fx.Context(), &UpdateFeatureOnlineStoreRequest{
+			FeatureOnlineStore: msg,
+		})
+		assert.NilError(t, err)
+		_ = updated
+	})
+
 	parent := fx.nextParent(t, false)
 	created := fx.create(t, parent)
 	// Method should fail with NotFound if the resource does not exist.
@@ -828,6 +855,33 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testUpdate(t
 			FeatureView: msg,
 		})
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+	})
+
+	// Method should fail with Aborted if the supplied etag doesnt match the current etag value.
+	t.Run("etag mismatch", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		msg := fx.Update(parent)
+		msg.Name = created.Name
+		_, err := fx.Service().UpdateFeatureView(fx.Context(), &UpdateFeatureViewRequest{
+			FeatureView: msg,
+		})
+		assert.Equal(t, codes.Aborted, status.Code(err), err)
+	})
+
+	// Field etag should have a new value when the resource is successfully updated.
+	t.Run("etag updated", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		msg := fx.Update(parent)
+		msg.Name = created.Name
+		updated, err := fx.Service().UpdateFeatureView(fx.Context(), &UpdateFeatureViewRequest{
+			FeatureView: msg,
+		})
+		assert.NilError(t, err)
+		_ = updated
 	})
 
 	parent := fx.nextParent(t, false)
