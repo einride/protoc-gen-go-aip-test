@@ -31,7 +31,14 @@ service FreightService {
 
 ### Step 2: Install the generator
 
-Download a prebuilt binary from [releases](./releases) and put it in your PATH.
+Either install using `go install`:
+
+```bash
+go install github.com/einride/aip-go/cmd/protoc-gen-go-aip-test@latest
+```
+
+Or download a prebuilt binary from [releases](./releases) and put it in your
+PATH.
 
 The generator can also be built from source using Go.
 

@@ -52,7 +52,14 @@ func (Proto) ProtocGenGoGRPC(ctx context.Context) error {
 
 func (Proto) ProtocGenGoAIPTest(ctx context.Context) error {
 	sg.Logger(ctx).Println("building binary...")
-	return sg.Command(ctx, "go", "build", "-o", sg.FromBinDir("protoc-gen-go-aip-test"), ".").Run()
+	return sg.Command(
+		ctx,
+		"go",
+		"build",
+		"-o",
+		sg.FromBinDir("protoc-gen-go-aip-test"),
+		"./cmd/protoc-gen-go-aip-test",
+	).Run()
 }
 
 func (Proto) BufGenerate(ctx context.Context) error {
