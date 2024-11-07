@@ -48,7 +48,7 @@ protoc
 
 This can also be done via a
 [buf generate](https://docs.buf.build/generate/usage) template. See
-[buf.gen.yaml](./buf.gen.yaml) for an example.
+[buf.gen.yaml](./proto/buf.gen.yaml) for an example.
 
 ### Step 4: Run tests
 
