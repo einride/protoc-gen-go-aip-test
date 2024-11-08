@@ -37,8 +37,9 @@ Either install using `go install`:
 go install github.com/einride/protoc-gen-go-aip-test@latest
 ```
 
-Or download a prebuilt binary from [releases](./releases) and put it in your
-PATH.
+Or download a prebuilt binary from
+[releases](https://github.com/einride/protoc-gen-go-aip-test/releases) and put
+it in your PATH.
 
 The generator can also be built from source using Go.
 
