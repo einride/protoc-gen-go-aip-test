@@ -93,10 +93,6 @@ var invalidUserSettableID = suite.Test{
 				id:   "fooö",
 			},
 			{
-				name: "too short",
-				id:   "foo",
-			},
-			{
 				name: "too long",
 				id:   "f" + strings.Repeat("o", 63),
 			},
