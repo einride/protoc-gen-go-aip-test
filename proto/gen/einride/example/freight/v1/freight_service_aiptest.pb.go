@@ -207,10 +207,6 @@ func (fx *FreightServiceShipperTestSuiteConfig) testCreate(t *testing.T) {
 				id:   "fooö",
 			},
 			{
-				name: "too short",
-				id:   "foo",
-			},
-			{
 				name: "too long",
 				id:   "fooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
 			},
@@ -853,10 +849,6 @@ func (fx *FreightServiceSiteTestSuiteConfig) testCreate(t *testing.T) {
 			{
 				name: "ends with non ascii",
 				id:   "fooö",
-			},
-			{
-				name: "too short",
-				id:   "foo",
 			},
 			{
 				name: "too long",
