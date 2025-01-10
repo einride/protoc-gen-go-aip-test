@@ -29,7 +29,8 @@ var etagPopulated = suite.Test{
 			Resource: scope.Resource,
 			Method:   createMethod,
 			Parent:   "parent",
-		}.Generate(f, "created", "_", ":=")
+		}.Generate(f, "created", "err", ":=")
+		f.P(ident.AssertNilError, "(t, err)")
 		f.P(ident.AssertCheck, "(t, created.Etag != \"\")")
 		return nil
 	},

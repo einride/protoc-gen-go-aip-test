@@ -324,10 +324,11 @@ func (fx *FreightServiceShipperTestSuiteConfig) testCreate(t *testing.T) {
 		if fx.IDGenerator != nil {
 			userSetID = fx.IDGenerator()
 		}
-		created, _ := fx.Service().CreateShipper(fx.Context(), &CreateShipperRequest{
+		created, err := fx.Service().CreateShipper(fx.Context(), &CreateShipperRequest{
 			Shipper:   fx.Create(),
 			ShipperId: userSetID,
 		})
+		assert.NilError(t, err)
 		assert.Check(t, created.Etag != "")
 	})
 
@@ -1003,11 +1004,12 @@ func (fx *FreightServiceSiteTestSuiteConfig) testCreate(t *testing.T) {
 		if fx.IDGenerator != nil {
 			userSetID = fx.IDGenerator()
 		}
-		created, _ := fx.Service().CreateSite(fx.Context(), &CreateSiteRequest{
+		created, err := fx.Service().CreateSite(fx.Context(), &CreateSiteRequest{
 			Parent: parent,
 			Site:   fx.Create(parent),
 			SiteId: userSetID,
 		})
+		assert.NilError(t, err)
 		assert.Check(t, created.Etag != "")
 	})
 
