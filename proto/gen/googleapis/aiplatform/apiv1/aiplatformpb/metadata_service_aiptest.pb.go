@@ -257,10 +257,11 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testCreate(t *testing.T) {
 	t.Run("etag populated", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		created, _ := fx.Service().CreateArtifact(fx.Context(), &CreateArtifactRequest{
+		created, err := fx.Service().CreateArtifact(fx.Context(), &CreateArtifactRequest{
 			Parent:   parent,
 			Artifact: fx.Create(parent),
 		})
+		assert.NilError(t, err)
 		assert.Check(t, created.Etag != "")
 	})
 
@@ -781,10 +782,11 @@ func (fx *MetadataServiceContextTestSuiteConfig) testCreate(t *testing.T) {
 	t.Run("etag populated", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		created, _ := fx.Service().CreateContext(fx.Context(), &CreateContextRequest{
+		created, err := fx.Service().CreateContext(fx.Context(), &CreateContextRequest{
 			Parent:  parent,
 			Context: fx.Create(parent),
 		})
+		assert.NilError(t, err)
 		assert.Check(t, created.Etag != "")
 	})
 
@@ -1305,10 +1307,11 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testCreate(t *testing.T) {
 	t.Run("etag populated", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		created, _ := fx.Service().CreateExecution(fx.Context(), &CreateExecutionRequest{
+		created, err := fx.Service().CreateExecution(fx.Context(), &CreateExecutionRequest{
 			Parent:    parent,
 			Execution: fx.Create(parent),
 		})
+		assert.NilError(t, err)
 		assert.Check(t, created.Etag != "")
 	})
 

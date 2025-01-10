@@ -749,10 +749,11 @@ func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testCreate(t *
 	t.Run("etag populated", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		created, _ := fx.Service().CreateTensorboardExperiment(fx.Context(), &CreateTensorboardExperimentRequest{
+		created, err := fx.Service().CreateTensorboardExperiment(fx.Context(), &CreateTensorboardExperimentRequest{
 			Parent:                parent,
 			TensorboardExperiment: fx.Create(parent),
 		})
+		assert.NilError(t, err)
 		assert.Check(t, created.Etag != "")
 	})
 
@@ -1283,10 +1284,11 @@ func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testCreate(t *testing
 	t.Run("etag populated", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		created, _ := fx.Service().CreateTensorboardRun(fx.Context(), &CreateTensorboardRunRequest{
+		created, err := fx.Service().CreateTensorboardRun(fx.Context(), &CreateTensorboardRunRequest{
 			Parent:         parent,
 			TensorboardRun: fx.Create(parent),
 		})
+		assert.NilError(t, err)
 		assert.Check(t, created.Etag != "")
 	})
 
@@ -1876,10 +1878,11 @@ func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testCreate(t *
 	t.Run("etag populated", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		created, _ := fx.Service().CreateTensorboardTimeSeries(fx.Context(), &CreateTensorboardTimeSeriesRequest{
+		created, err := fx.Service().CreateTensorboardTimeSeries(fx.Context(), &CreateTensorboardTimeSeriesRequest{
 			Parent:                parent,
 			TensorboardTimeSeries: fx.Create(parent),
 		})
+		assert.NilError(t, err)
 		assert.Check(t, created.Etag != "")
 	})
 

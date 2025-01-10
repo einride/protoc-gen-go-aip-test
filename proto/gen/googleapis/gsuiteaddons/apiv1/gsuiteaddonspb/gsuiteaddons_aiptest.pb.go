@@ -348,10 +348,11 @@ func (fx *GSuiteAddOnsDeploymentTestSuiteConfig) testCreate(t *testing.T) {
 	t.Run("etag populated", func(t *testing.T) {
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
-		created, _ := fx.Service().CreateDeployment(fx.Context(), &CreateDeploymentRequest{
+		created, err := fx.Service().CreateDeployment(fx.Context(), &CreateDeploymentRequest{
 			Parent:     parent,
 			Deployment: fx.Create(parent),
 		})
+		assert.NilError(t, err)
 		assert.Check(t, created.Etag != "")
 	})
 
