@@ -291,210 +291,212 @@ func (fx *ModelServiceModelTestSuiteConfig) testUpdate(t *testing.T) {
 		assert.Check(t, updated.Etag != created.Etag)
 	})
 
-	parent := fx.nextParent(t, false)
-	created := fx.create(t, parent)
-	// Method should fail with NotFound if the resource does not exist.
-	t.Run("not found", func(t *testing.T) {
-		fx.maybeSkip(t)
-		msg := fx.Update(parent)
-		msg.Name = created.Name + "notfound"
-		_, err := fx.Service().UpdateModel(fx.Context(), &UpdateModelRequest{
-			Model: msg,
+	{
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		// Method should fail with NotFound if the resource does not exist.
+		t.Run("not found", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msg := fx.Update(parent)
+			msg.Name = created.Name + "notfound"
+			_, err := fx.Service().UpdateModel(fx.Context(), &UpdateModelRequest{
+				Model: msg,
+			})
+			assert.Equal(t, codes.NotFound, status.Code(err), err)
 		})
-		assert.Equal(t, codes.NotFound, status.Code(err), err)
-	})
 
-	// The method should fail with InvalidArgument if the update_mask is invalid.
-	t.Run("invalid update mask", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.Service().UpdateModel(fx.Context(), &UpdateModelRequest{
-			Model: created,
-			UpdateMask: &fieldmaskpb.FieldMask{
-				Paths: []string{
-					"invalid_field_xyz",
+		// The method should fail with InvalidArgument if the update_mask is invalid.
+		t.Run("invalid update mask", func(t *testing.T) {
+			fx.maybeSkip(t)
+			_, err := fx.Service().UpdateModel(fx.Context(), &UpdateModelRequest{
+				Model: created,
+				UpdateMask: &fieldmaskpb.FieldMask{
+					Paths: []string{
+						"invalid_field_xyz",
+					},
 				},
-			},
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
 
-	// Method should fail with InvalidArgument if any required field is missing
-	// when called with '*' update_mask.
-	t.Run("required fields", func(t *testing.T) {
-		fx.maybeSkip(t)
-		t.Run(".display_name", func(t *testing.T) {
+		// Method should fail with InvalidArgument if any required field is missing
+		// when called with '*' update_mask.
+		t.Run("required fields", func(t *testing.T) {
 			fx.maybeSkip(t)
-			msg := proto.Clone(created).(*Model)
-			container := msg
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.Service().UpdateModel(fx.Context(), &UpdateModelRequest{
-				Model: msg,
-				UpdateMask: &fieldmaskpb.FieldMask{
-					Paths: []string{
-						"*",
+			t.Run(".display_name", func(t *testing.T) {
+				fx.maybeSkip(t)
+				msg := proto.Clone(created).(*Model)
+				container := msg
+				if container == nil {
+					t.Skip("not reachable")
+				}
+				fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
+				container.ProtoReflect().Clear(fd)
+				_, err := fx.Service().UpdateModel(fx.Context(), &UpdateModelRequest{
+					Model: msg,
+					UpdateMask: &fieldmaskpb.FieldMask{
+						Paths: []string{
+							"*",
+						},
 					},
-				},
+				})
+				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
-		t.Run(".explanation_spec.parameters", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msg := proto.Clone(created).(*Model)
-			container := msg.GetExplanationSpec()
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("parameters")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.Service().UpdateModel(fx.Context(), &UpdateModelRequest{
-				Model: msg,
-				UpdateMask: &fieldmaskpb.FieldMask{
-					Paths: []string{
-						"*",
+			t.Run(".explanation_spec.parameters", func(t *testing.T) {
+				fx.maybeSkip(t)
+				msg := proto.Clone(created).(*Model)
+				container := msg.GetExplanationSpec()
+				if container == nil {
+					t.Skip("not reachable")
+				}
+				fd := container.ProtoReflect().Descriptor().Fields().ByName("parameters")
+				container.ProtoReflect().Clear(fd)
+				_, err := fx.Service().UpdateModel(fx.Context(), &UpdateModelRequest{
+					Model: msg,
+					UpdateMask: &fieldmaskpb.FieldMask{
+						Paths: []string{
+							"*",
+						},
 					},
-				},
+				})
+				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
-		t.Run(".explanation_spec.parameters.sampled_shapley_attribution.path_count", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msg := proto.Clone(created).(*Model)
-			container := msg.GetExplanationSpec().GetParameters().GetSampledShapleyAttribution()
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("path_count")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.Service().UpdateModel(fx.Context(), &UpdateModelRequest{
-				Model: msg,
-				UpdateMask: &fieldmaskpb.FieldMask{
-					Paths: []string{
-						"*",
+			t.Run(".explanation_spec.parameters.sampled_shapley_attribution.path_count", func(t *testing.T) {
+				fx.maybeSkip(t)
+				msg := proto.Clone(created).(*Model)
+				container := msg.GetExplanationSpec().GetParameters().GetSampledShapleyAttribution()
+				if container == nil {
+					t.Skip("not reachable")
+				}
+				fd := container.ProtoReflect().Descriptor().Fields().ByName("path_count")
+				container.ProtoReflect().Clear(fd)
+				_, err := fx.Service().UpdateModel(fx.Context(), &UpdateModelRequest{
+					Model: msg,
+					UpdateMask: &fieldmaskpb.FieldMask{
+						Paths: []string{
+							"*",
+						},
 					},
-				},
+				})
+				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
-		t.Run(".explanation_spec.parameters.integrated_gradients_attribution.step_count", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msg := proto.Clone(created).(*Model)
-			container := msg.GetExplanationSpec().GetParameters().GetIntegratedGradientsAttribution()
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("step_count")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.Service().UpdateModel(fx.Context(), &UpdateModelRequest{
-				Model: msg,
-				UpdateMask: &fieldmaskpb.FieldMask{
-					Paths: []string{
-						"*",
+			t.Run(".explanation_spec.parameters.integrated_gradients_attribution.step_count", func(t *testing.T) {
+				fx.maybeSkip(t)
+				msg := proto.Clone(created).(*Model)
+				container := msg.GetExplanationSpec().GetParameters().GetIntegratedGradientsAttribution()
+				if container == nil {
+					t.Skip("not reachable")
+				}
+				fd := container.ProtoReflect().Descriptor().Fields().ByName("step_count")
+				container.ProtoReflect().Clear(fd)
+				_, err := fx.Service().UpdateModel(fx.Context(), &UpdateModelRequest{
+					Model: msg,
+					UpdateMask: &fieldmaskpb.FieldMask{
+						Paths: []string{
+							"*",
+						},
 					},
-				},
+				})
+				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
-		t.Run(".explanation_spec.parameters.xrai_attribution.step_count", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msg := proto.Clone(created).(*Model)
-			container := msg.GetExplanationSpec().GetParameters().GetXraiAttribution()
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("step_count")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.Service().UpdateModel(fx.Context(), &UpdateModelRequest{
-				Model: msg,
-				UpdateMask: &fieldmaskpb.FieldMask{
-					Paths: []string{
-						"*",
+			t.Run(".explanation_spec.parameters.xrai_attribution.step_count", func(t *testing.T) {
+				fx.maybeSkip(t)
+				msg := proto.Clone(created).(*Model)
+				container := msg.GetExplanationSpec().GetParameters().GetXraiAttribution()
+				if container == nil {
+					t.Skip("not reachable")
+				}
+				fd := container.ProtoReflect().Descriptor().Fields().ByName("step_count")
+				container.ProtoReflect().Clear(fd)
+				_, err := fx.Service().UpdateModel(fx.Context(), &UpdateModelRequest{
+					Model: msg,
+					UpdateMask: &fieldmaskpb.FieldMask{
+						Paths: []string{
+							"*",
+						},
 					},
-				},
+				})
+				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
-		t.Run(".explanation_spec.parameters.examples.example_gcs_source.gcs_source.uris", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msg := proto.Clone(created).(*Model)
-			container := msg.GetExplanationSpec().GetParameters().GetExamples().GetExampleGcsSource().GetGcsSource()
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("uris")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.Service().UpdateModel(fx.Context(), &UpdateModelRequest{
-				Model: msg,
-				UpdateMask: &fieldmaskpb.FieldMask{
-					Paths: []string{
-						"*",
+			t.Run(".explanation_spec.parameters.examples.example_gcs_source.gcs_source.uris", func(t *testing.T) {
+				fx.maybeSkip(t)
+				msg := proto.Clone(created).(*Model)
+				container := msg.GetExplanationSpec().GetParameters().GetExamples().GetExampleGcsSource().GetGcsSource()
+				if container == nil {
+					t.Skip("not reachable")
+				}
+				fd := container.ProtoReflect().Descriptor().Fields().ByName("uris")
+				container.ProtoReflect().Clear(fd)
+				_, err := fx.Service().UpdateModel(fx.Context(), &UpdateModelRequest{
+					Model: msg,
+					UpdateMask: &fieldmaskpb.FieldMask{
+						Paths: []string{
+							"*",
+						},
 					},
-				},
+				})
+				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
-		t.Run(".explanation_spec.metadata.inputs", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msg := proto.Clone(created).(*Model)
-			container := msg.GetExplanationSpec().GetMetadata()
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("inputs")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.Service().UpdateModel(fx.Context(), &UpdateModelRequest{
-				Model: msg,
-				UpdateMask: &fieldmaskpb.FieldMask{
-					Paths: []string{
-						"*",
+			t.Run(".explanation_spec.metadata.inputs", func(t *testing.T) {
+				fx.maybeSkip(t)
+				msg := proto.Clone(created).(*Model)
+				container := msg.GetExplanationSpec().GetMetadata()
+				if container == nil {
+					t.Skip("not reachable")
+				}
+				fd := container.ProtoReflect().Descriptor().Fields().ByName("inputs")
+				container.ProtoReflect().Clear(fd)
+				_, err := fx.Service().UpdateModel(fx.Context(), &UpdateModelRequest{
+					Model: msg,
+					UpdateMask: &fieldmaskpb.FieldMask{
+						Paths: []string{
+							"*",
+						},
 					},
-				},
+				})
+				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
-		t.Run(".explanation_spec.metadata.outputs", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msg := proto.Clone(created).(*Model)
-			container := msg.GetExplanationSpec().GetMetadata()
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("outputs")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.Service().UpdateModel(fx.Context(), &UpdateModelRequest{
-				Model: msg,
-				UpdateMask: &fieldmaskpb.FieldMask{
-					Paths: []string{
-						"*",
+			t.Run(".explanation_spec.metadata.outputs", func(t *testing.T) {
+				fx.maybeSkip(t)
+				msg := proto.Clone(created).(*Model)
+				container := msg.GetExplanationSpec().GetMetadata()
+				if container == nil {
+					t.Skip("not reachable")
+				}
+				fd := container.ProtoReflect().Descriptor().Fields().ByName("outputs")
+				container.ProtoReflect().Clear(fd)
+				_, err := fx.Service().UpdateModel(fx.Context(), &UpdateModelRequest{
+					Model: msg,
+					UpdateMask: &fieldmaskpb.FieldMask{
+						Paths: []string{
+							"*",
+						},
 					},
-				},
+				})
+				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
-		t.Run(".encryption_spec.kms_key_name", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msg := proto.Clone(created).(*Model)
-			container := msg.GetEncryptionSpec()
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("kms_key_name")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.Service().UpdateModel(fx.Context(), &UpdateModelRequest{
-				Model: msg,
-				UpdateMask: &fieldmaskpb.FieldMask{
-					Paths: []string{
-						"*",
+			t.Run(".encryption_spec.kms_key_name", func(t *testing.T) {
+				fx.maybeSkip(t)
+				msg := proto.Clone(created).(*Model)
+				container := msg.GetEncryptionSpec()
+				if container == nil {
+					t.Skip("not reachable")
+				}
+				fd := container.ProtoReflect().Descriptor().Fields().ByName("kms_key_name")
+				container.ProtoReflect().Clear(fd)
+				_, err := fx.Service().UpdateModel(fx.Context(), &UpdateModelRequest{
+					Model: msg,
+					UpdateMask: &fieldmaskpb.FieldMask{
+						Paths: []string{
+							"*",
+						},
 					},
-				},
+				})
+				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
-	})
 
+	}
 }
 
 func (fx *ModelServiceModelTestSuiteConfig) testList(t *testing.T) {
@@ -530,111 +532,113 @@ func (fx *ModelServiceModelTestSuiteConfig) testList(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
-	const resourcesCount = 15
-	parent := fx.nextParent(t, true)
-	parentMsgs := make([]*Model, resourcesCount)
-	for i := 0; i < resourcesCount; i++ {
-		parentMsgs[i] = fx.create(t, parent)
-	}
+	{
+		const resourcesCount = 15
+		parent := fx.nextParent(t, true)
+		parentMsgs := make([]*Model, resourcesCount)
+		for i := 0; i < resourcesCount; i++ {
+			parentMsgs[i] = fx.create(t, parent)
+		}
 
-	// If parent is provided the method must only return resources
-	// under that parent.
-	t.Run("isolation", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListModels(fx.Context(), &ListModelsRequest{
-			Parent:   parent,
-			PageSize: 999,
-		})
-		assert.NilError(t, err)
-		assert.DeepEqual(
-			t,
-			parentMsgs,
-			response.Models,
-			cmpopts.SortSlices(func(a, b *Model) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
-
-	// If there are no more resources, next_page_token should not be set.
-	t.Run("last page", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListModels(fx.Context(), &ListModelsRequest{
-			Parent:   parent,
-			PageSize: resourcesCount,
-		})
-		assert.NilError(t, err)
-		assert.Equal(t, "", response.NextPageToken)
-	})
-
-	// If there are more resources, next_page_token should be set.
-	t.Run("more pages", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListModels(fx.Context(), &ListModelsRequest{
-			Parent:   parent,
-			PageSize: resourcesCount - 1,
-		})
-		assert.NilError(t, err)
-		assert.Check(t, response.NextPageToken != "")
-	})
-
-	// Listing resource one by one should eventually return all resources.
-	t.Run("one by one", func(t *testing.T) {
-		fx.maybeSkip(t)
-		msgs := make([]*Model, 0, resourcesCount)
-		var nextPageToken string
-		for {
+		// If parent is provided the method must only return resources
+		// under that parent.
+		t.Run("isolation", func(t *testing.T) {
+			fx.maybeSkip(t)
 			response, err := fx.Service().ListModels(fx.Context(), &ListModelsRequest{
-				Parent:    parent,
-				PageSize:  1,
-				PageToken: nextPageToken,
+				Parent:   parent,
+				PageSize: 999,
 			})
 			assert.NilError(t, err)
-			assert.Equal(t, 1, len(response.Models))
-			msgs = append(msgs, response.Models...)
-			nextPageToken = response.NextPageToken
-			if nextPageToken == "" {
-				break
-			}
-		}
-		assert.DeepEqual(
-			t,
-			parentMsgs,
-			msgs,
-			cmpopts.SortSlices(func(a, b *Model) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
-
-	// Method should not return deleted resources.
-	t.Run("deleted", func(t *testing.T) {
-		fx.maybeSkip(t)
-		const deleteCount = 5
-		for i := 0; i < deleteCount; i++ {
-			_, err := fx.Service().DeleteModel(fx.Context(), &DeleteModelRequest{
-				Name: parentMsgs[i].Name,
-			})
-			assert.NilError(t, err)
-		}
-		response, err := fx.Service().ListModels(fx.Context(), &ListModelsRequest{
-			Parent:   parent,
-			PageSize: 9999,
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				response.Models,
+				cmpopts.SortSlices(func(a, b *Model) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
 		})
-		assert.NilError(t, err)
-		assert.DeepEqual(
-			t,
-			parentMsgs[deleteCount:],
-			response.Models,
-			cmpopts.SortSlices(func(a, b *Model) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
 
+		// If there are no more resources, next_page_token should not be set.
+		t.Run("last page", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListModels(fx.Context(), &ListModelsRequest{
+				Parent:   parent,
+				PageSize: resourcesCount,
+			})
+			assert.NilError(t, err)
+			assert.Equal(t, "", response.NextPageToken)
+		})
+
+		// If there are more resources, next_page_token should be set.
+		t.Run("more pages", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListModels(fx.Context(), &ListModelsRequest{
+				Parent:   parent,
+				PageSize: resourcesCount - 1,
+			})
+			assert.NilError(t, err)
+			assert.Check(t, response.NextPageToken != "")
+		})
+
+		// Listing resource one by one should eventually return all resources.
+		t.Run("one by one", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msgs := make([]*Model, 0, resourcesCount)
+			var nextPageToken string
+			for {
+				response, err := fx.Service().ListModels(fx.Context(), &ListModelsRequest{
+					Parent:    parent,
+					PageSize:  1,
+					PageToken: nextPageToken,
+				})
+				assert.NilError(t, err)
+				assert.Equal(t, 1, len(response.Models))
+				msgs = append(msgs, response.Models...)
+				nextPageToken = response.NextPageToken
+				if nextPageToken == "" {
+					break
+				}
+			}
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				msgs,
+				cmpopts.SortSlices(func(a, b *Model) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
+
+		// Method should not return deleted resources.
+		t.Run("deleted", func(t *testing.T) {
+			fx.maybeSkip(t)
+			const deleteCount = 5
+			for i := 0; i < deleteCount; i++ {
+				_, err := fx.Service().DeleteModel(fx.Context(), &DeleteModelRequest{
+					Name: parentMsgs[i].Name,
+				})
+				assert.NilError(t, err)
+			}
+			response, err := fx.Service().ListModels(fx.Context(), &ListModelsRequest{
+				Parent:   parent,
+				PageSize: 9999,
+			})
+			assert.NilError(t, err)
+			assert.DeepEqual(
+				t,
+				parentMsgs[deleteCount:],
+				response.Models,
+				cmpopts.SortSlices(func(a, b *Model) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
+
+	}
 }
 
 func (fx *ModelServiceModelTestSuiteConfig) testDelete(t *testing.T) {
@@ -861,85 +865,87 @@ func (fx *ModelServiceModelEvaluationTestSuiteConfig) testList(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
-	const resourcesCount = 15
-	parent := fx.nextParent(t, true)
-	parentMsgs := make([]*ModelEvaluation, resourcesCount)
-	for i := 0; i < resourcesCount; i++ {
-		parentMsgs[i] = fx.create(t, parent)
-	}
+	{
+		const resourcesCount = 15
+		parent := fx.nextParent(t, true)
+		parentMsgs := make([]*ModelEvaluation, resourcesCount)
+		for i := 0; i < resourcesCount; i++ {
+			parentMsgs[i] = fx.create(t, parent)
+		}
 
-	// If parent is provided the method must only return resources
-	// under that parent.
-	t.Run("isolation", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListModelEvaluations(fx.Context(), &ListModelEvaluationsRequest{
-			Parent:   parent,
-			PageSize: 999,
-		})
-		assert.NilError(t, err)
-		assert.DeepEqual(
-			t,
-			parentMsgs,
-			response.ModelEvaluations,
-			cmpopts.SortSlices(func(a, b *ModelEvaluation) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
-
-	// If there are no more resources, next_page_token should not be set.
-	t.Run("last page", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListModelEvaluations(fx.Context(), &ListModelEvaluationsRequest{
-			Parent:   parent,
-			PageSize: resourcesCount,
-		})
-		assert.NilError(t, err)
-		assert.Equal(t, "", response.NextPageToken)
-	})
-
-	// If there are more resources, next_page_token should be set.
-	t.Run("more pages", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListModelEvaluations(fx.Context(), &ListModelEvaluationsRequest{
-			Parent:   parent,
-			PageSize: resourcesCount - 1,
-		})
-		assert.NilError(t, err)
-		assert.Check(t, response.NextPageToken != "")
-	})
-
-	// Listing resource one by one should eventually return all resources.
-	t.Run("one by one", func(t *testing.T) {
-		fx.maybeSkip(t)
-		msgs := make([]*ModelEvaluation, 0, resourcesCount)
-		var nextPageToken string
-		for {
+		// If parent is provided the method must only return resources
+		// under that parent.
+		t.Run("isolation", func(t *testing.T) {
+			fx.maybeSkip(t)
 			response, err := fx.Service().ListModelEvaluations(fx.Context(), &ListModelEvaluationsRequest{
-				Parent:    parent,
-				PageSize:  1,
-				PageToken: nextPageToken,
+				Parent:   parent,
+				PageSize: 999,
 			})
 			assert.NilError(t, err)
-			assert.Equal(t, 1, len(response.ModelEvaluations))
-			msgs = append(msgs, response.ModelEvaluations...)
-			nextPageToken = response.NextPageToken
-			if nextPageToken == "" {
-				break
-			}
-		}
-		assert.DeepEqual(
-			t,
-			parentMsgs,
-			msgs,
-			cmpopts.SortSlices(func(a, b *ModelEvaluation) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				response.ModelEvaluations,
+				cmpopts.SortSlices(func(a, b *ModelEvaluation) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
 
+		// If there are no more resources, next_page_token should not be set.
+		t.Run("last page", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListModelEvaluations(fx.Context(), &ListModelEvaluationsRequest{
+				Parent:   parent,
+				PageSize: resourcesCount,
+			})
+			assert.NilError(t, err)
+			assert.Equal(t, "", response.NextPageToken)
+		})
+
+		// If there are more resources, next_page_token should be set.
+		t.Run("more pages", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListModelEvaluations(fx.Context(), &ListModelEvaluationsRequest{
+				Parent:   parent,
+				PageSize: resourcesCount - 1,
+			})
+			assert.NilError(t, err)
+			assert.Check(t, response.NextPageToken != "")
+		})
+
+		// Listing resource one by one should eventually return all resources.
+		t.Run("one by one", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msgs := make([]*ModelEvaluation, 0, resourcesCount)
+			var nextPageToken string
+			for {
+				response, err := fx.Service().ListModelEvaluations(fx.Context(), &ListModelEvaluationsRequest{
+					Parent:    parent,
+					PageSize:  1,
+					PageToken: nextPageToken,
+				})
+				assert.NilError(t, err)
+				assert.Equal(t, 1, len(response.ModelEvaluations))
+				msgs = append(msgs, response.ModelEvaluations...)
+				nextPageToken = response.NextPageToken
+				if nextPageToken == "" {
+					break
+				}
+			}
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				msgs,
+				cmpopts.SortSlices(func(a, b *ModelEvaluation) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
+
+	}
 }
 
 func (fx *ModelServiceModelEvaluationTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
@@ -1097,85 +1103,87 @@ func (fx *ModelServiceModelEvaluationSliceTestSuiteConfig) testList(t *testing.T
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
-	const resourcesCount = 15
-	parent := fx.nextParent(t, true)
-	parentMsgs := make([]*ModelEvaluationSlice, resourcesCount)
-	for i := 0; i < resourcesCount; i++ {
-		parentMsgs[i] = fx.create(t, parent)
-	}
+	{
+		const resourcesCount = 15
+		parent := fx.nextParent(t, true)
+		parentMsgs := make([]*ModelEvaluationSlice, resourcesCount)
+		for i := 0; i < resourcesCount; i++ {
+			parentMsgs[i] = fx.create(t, parent)
+		}
 
-	// If parent is provided the method must only return resources
-	// under that parent.
-	t.Run("isolation", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListModelEvaluationSlices(fx.Context(), &ListModelEvaluationSlicesRequest{
-			Parent:   parent,
-			PageSize: 999,
-		})
-		assert.NilError(t, err)
-		assert.DeepEqual(
-			t,
-			parentMsgs,
-			response.ModelEvaluationSlices,
-			cmpopts.SortSlices(func(a, b *ModelEvaluationSlice) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
-
-	// If there are no more resources, next_page_token should not be set.
-	t.Run("last page", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListModelEvaluationSlices(fx.Context(), &ListModelEvaluationSlicesRequest{
-			Parent:   parent,
-			PageSize: resourcesCount,
-		})
-		assert.NilError(t, err)
-		assert.Equal(t, "", response.NextPageToken)
-	})
-
-	// If there are more resources, next_page_token should be set.
-	t.Run("more pages", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListModelEvaluationSlices(fx.Context(), &ListModelEvaluationSlicesRequest{
-			Parent:   parent,
-			PageSize: resourcesCount - 1,
-		})
-		assert.NilError(t, err)
-		assert.Check(t, response.NextPageToken != "")
-	})
-
-	// Listing resource one by one should eventually return all resources.
-	t.Run("one by one", func(t *testing.T) {
-		fx.maybeSkip(t)
-		msgs := make([]*ModelEvaluationSlice, 0, resourcesCount)
-		var nextPageToken string
-		for {
+		// If parent is provided the method must only return resources
+		// under that parent.
+		t.Run("isolation", func(t *testing.T) {
+			fx.maybeSkip(t)
 			response, err := fx.Service().ListModelEvaluationSlices(fx.Context(), &ListModelEvaluationSlicesRequest{
-				Parent:    parent,
-				PageSize:  1,
-				PageToken: nextPageToken,
+				Parent:   parent,
+				PageSize: 999,
 			})
 			assert.NilError(t, err)
-			assert.Equal(t, 1, len(response.ModelEvaluationSlices))
-			msgs = append(msgs, response.ModelEvaluationSlices...)
-			nextPageToken = response.NextPageToken
-			if nextPageToken == "" {
-				break
-			}
-		}
-		assert.DeepEqual(
-			t,
-			parentMsgs,
-			msgs,
-			cmpopts.SortSlices(func(a, b *ModelEvaluationSlice) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				response.ModelEvaluationSlices,
+				cmpopts.SortSlices(func(a, b *ModelEvaluationSlice) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
 
+		// If there are no more resources, next_page_token should not be set.
+		t.Run("last page", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListModelEvaluationSlices(fx.Context(), &ListModelEvaluationSlicesRequest{
+				Parent:   parent,
+				PageSize: resourcesCount,
+			})
+			assert.NilError(t, err)
+			assert.Equal(t, "", response.NextPageToken)
+		})
+
+		// If there are more resources, next_page_token should be set.
+		t.Run("more pages", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListModelEvaluationSlices(fx.Context(), &ListModelEvaluationSlicesRequest{
+				Parent:   parent,
+				PageSize: resourcesCount - 1,
+			})
+			assert.NilError(t, err)
+			assert.Check(t, response.NextPageToken != "")
+		})
+
+		// Listing resource one by one should eventually return all resources.
+		t.Run("one by one", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msgs := make([]*ModelEvaluationSlice, 0, resourcesCount)
+			var nextPageToken string
+			for {
+				response, err := fx.Service().ListModelEvaluationSlices(fx.Context(), &ListModelEvaluationSlicesRequest{
+					Parent:    parent,
+					PageSize:  1,
+					PageToken: nextPageToken,
+				})
+				assert.NilError(t, err)
+				assert.Equal(t, 1, len(response.ModelEvaluationSlices))
+				msgs = append(msgs, response.ModelEvaluationSlices...)
+				nextPageToken = response.NextPageToken
+				if nextPageToken == "" {
+					break
+				}
+			}
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				msgs,
+				cmpopts.SortSlices(func(a, b *ModelEvaluationSlice) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
+
+	}
 }
 
 func (fx *ModelServiceModelEvaluationSliceTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {

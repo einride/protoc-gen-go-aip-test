@@ -155,6 +155,8 @@ func (r *resourceGenerator) generateTestCases(f *protogen.GeneratedFile) error {
 			if !group.Enabled(scope) {
 				continue
 			}
+			// Create a new block for each group to not conflict with each other.
+			f.P("{")
 			if err := group.GenerateBefore(f, scope); err != nil {
 				return err
 			}
@@ -167,6 +169,7 @@ func (r *resourceGenerator) generateTestCases(f *protogen.GeneratedFile) error {
 				}
 				f.P()
 			}
+			f.P("}")
 		}
 		f.P("}")
 		f.P()

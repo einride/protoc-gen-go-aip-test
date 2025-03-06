@@ -331,96 +331,98 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testU
 		_ = updated
 	})
 
-	parent := fx.nextParent(t, false)
-	created := fx.create(t, parent)
-	// Method should fail with NotFound if the resource does not exist.
-	t.Run("not found", func(t *testing.T) {
-		fx.maybeSkip(t)
-		msg := fx.Update(parent)
-		msg.Name = created.Name + "notfound"
-		_, err := fx.Service().UpdateFeatureOnlineStore(fx.Context(), &UpdateFeatureOnlineStoreRequest{
-			FeatureOnlineStore: msg,
-		})
-		assert.Equal(t, codes.NotFound, status.Code(err), err)
-	})
-
-	// The method should fail with InvalidArgument if the update_mask is invalid.
-	t.Run("invalid update mask", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.Service().UpdateFeatureOnlineStore(fx.Context(), &UpdateFeatureOnlineStoreRequest{
-			FeatureOnlineStore: created,
-			UpdateMask: &fieldmaskpb.FieldMask{
-				Paths: []string{
-					"invalid_field_xyz",
-				},
-			},
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-	// Method should fail with InvalidArgument if any required field is missing
-	// when called with '*' update_mask.
-	t.Run("required fields", func(t *testing.T) {
-		fx.maybeSkip(t)
-		t.Run(".bigtable.auto_scaling", func(t *testing.T) {
+	{
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		// Method should fail with NotFound if the resource does not exist.
+		t.Run("not found", func(t *testing.T) {
 			fx.maybeSkip(t)
-			msg := proto.Clone(created).(*FeatureOnlineStore)
-			container := msg.GetBigtable()
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("auto_scaling")
-			container.ProtoReflect().Clear(fd)
+			msg := fx.Update(parent)
+			msg.Name = created.Name + "notfound"
 			_, err := fx.Service().UpdateFeatureOnlineStore(fx.Context(), &UpdateFeatureOnlineStoreRequest{
 				FeatureOnlineStore: msg,
+			})
+			assert.Equal(t, codes.NotFound, status.Code(err), err)
+		})
+
+		// The method should fail with InvalidArgument if the update_mask is invalid.
+		t.Run("invalid update mask", func(t *testing.T) {
+			fx.maybeSkip(t)
+			_, err := fx.Service().UpdateFeatureOnlineStore(fx.Context(), &UpdateFeatureOnlineStoreRequest{
+				FeatureOnlineStore: created,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
-						"*",
+						"invalid_field_xyz",
 					},
 				},
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
-		t.Run(".bigtable.auto_scaling.min_node_count", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msg := proto.Clone(created).(*FeatureOnlineStore)
-			container := msg.GetBigtable().GetAutoScaling()
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("min_node_count")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.Service().UpdateFeatureOnlineStore(fx.Context(), &UpdateFeatureOnlineStoreRequest{
-				FeatureOnlineStore: msg,
-				UpdateMask: &fieldmaskpb.FieldMask{
-					Paths: []string{
-						"*",
-					},
-				},
-			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
-		t.Run(".bigtable.auto_scaling.max_node_count", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msg := proto.Clone(created).(*FeatureOnlineStore)
-			container := msg.GetBigtable().GetAutoScaling()
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("max_node_count")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.Service().UpdateFeatureOnlineStore(fx.Context(), &UpdateFeatureOnlineStoreRequest{
-				FeatureOnlineStore: msg,
-				UpdateMask: &fieldmaskpb.FieldMask{
-					Paths: []string{
-						"*",
-					},
-				},
-			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
-	})
 
+		// Method should fail with InvalidArgument if any required field is missing
+		// when called with '*' update_mask.
+		t.Run("required fields", func(t *testing.T) {
+			fx.maybeSkip(t)
+			t.Run(".bigtable.auto_scaling", func(t *testing.T) {
+				fx.maybeSkip(t)
+				msg := proto.Clone(created).(*FeatureOnlineStore)
+				container := msg.GetBigtable()
+				if container == nil {
+					t.Skip("not reachable")
+				}
+				fd := container.ProtoReflect().Descriptor().Fields().ByName("auto_scaling")
+				container.ProtoReflect().Clear(fd)
+				_, err := fx.Service().UpdateFeatureOnlineStore(fx.Context(), &UpdateFeatureOnlineStoreRequest{
+					FeatureOnlineStore: msg,
+					UpdateMask: &fieldmaskpb.FieldMask{
+						Paths: []string{
+							"*",
+						},
+					},
+				})
+				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+			})
+			t.Run(".bigtable.auto_scaling.min_node_count", func(t *testing.T) {
+				fx.maybeSkip(t)
+				msg := proto.Clone(created).(*FeatureOnlineStore)
+				container := msg.GetBigtable().GetAutoScaling()
+				if container == nil {
+					t.Skip("not reachable")
+				}
+				fd := container.ProtoReflect().Descriptor().Fields().ByName("min_node_count")
+				container.ProtoReflect().Clear(fd)
+				_, err := fx.Service().UpdateFeatureOnlineStore(fx.Context(), &UpdateFeatureOnlineStoreRequest{
+					FeatureOnlineStore: msg,
+					UpdateMask: &fieldmaskpb.FieldMask{
+						Paths: []string{
+							"*",
+						},
+					},
+				})
+				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+			})
+			t.Run(".bigtable.auto_scaling.max_node_count", func(t *testing.T) {
+				fx.maybeSkip(t)
+				msg := proto.Clone(created).(*FeatureOnlineStore)
+				container := msg.GetBigtable().GetAutoScaling()
+				if container == nil {
+					t.Skip("not reachable")
+				}
+				fd := container.ProtoReflect().Descriptor().Fields().ByName("max_node_count")
+				container.ProtoReflect().Clear(fd)
+				_, err := fx.Service().UpdateFeatureOnlineStore(fx.Context(), &UpdateFeatureOnlineStoreRequest{
+					FeatureOnlineStore: msg,
+					UpdateMask: &fieldmaskpb.FieldMask{
+						Paths: []string{
+							"*",
+						},
+					},
+				})
+				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+			})
+		})
+
+	}
 }
 
 func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testList(t *testing.T) {
@@ -456,111 +458,113 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testL
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
-	const resourcesCount = 15
-	parent := fx.nextParent(t, true)
-	parentMsgs := make([]*FeatureOnlineStore, resourcesCount)
-	for i := 0; i < resourcesCount; i++ {
-		parentMsgs[i] = fx.create(t, parent)
-	}
+	{
+		const resourcesCount = 15
+		parent := fx.nextParent(t, true)
+		parentMsgs := make([]*FeatureOnlineStore, resourcesCount)
+		for i := 0; i < resourcesCount; i++ {
+			parentMsgs[i] = fx.create(t, parent)
+		}
 
-	// If parent is provided the method must only return resources
-	// under that parent.
-	t.Run("isolation", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListFeatureOnlineStores(fx.Context(), &ListFeatureOnlineStoresRequest{
-			Parent:   parent,
-			PageSize: 999,
-		})
-		assert.NilError(t, err)
-		assert.DeepEqual(
-			t,
-			parentMsgs,
-			response.FeatureOnlineStores,
-			cmpopts.SortSlices(func(a, b *FeatureOnlineStore) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
-
-	// If there are no more resources, next_page_token should not be set.
-	t.Run("last page", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListFeatureOnlineStores(fx.Context(), &ListFeatureOnlineStoresRequest{
-			Parent:   parent,
-			PageSize: resourcesCount,
-		})
-		assert.NilError(t, err)
-		assert.Equal(t, "", response.NextPageToken)
-	})
-
-	// If there are more resources, next_page_token should be set.
-	t.Run("more pages", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListFeatureOnlineStores(fx.Context(), &ListFeatureOnlineStoresRequest{
-			Parent:   parent,
-			PageSize: resourcesCount - 1,
-		})
-		assert.NilError(t, err)
-		assert.Check(t, response.NextPageToken != "")
-	})
-
-	// Listing resource one by one should eventually return all resources.
-	t.Run("one by one", func(t *testing.T) {
-		fx.maybeSkip(t)
-		msgs := make([]*FeatureOnlineStore, 0, resourcesCount)
-		var nextPageToken string
-		for {
+		// If parent is provided the method must only return resources
+		// under that parent.
+		t.Run("isolation", func(t *testing.T) {
+			fx.maybeSkip(t)
 			response, err := fx.Service().ListFeatureOnlineStores(fx.Context(), &ListFeatureOnlineStoresRequest{
-				Parent:    parent,
-				PageSize:  1,
-				PageToken: nextPageToken,
+				Parent:   parent,
+				PageSize: 999,
 			})
 			assert.NilError(t, err)
-			assert.Equal(t, 1, len(response.FeatureOnlineStores))
-			msgs = append(msgs, response.FeatureOnlineStores...)
-			nextPageToken = response.NextPageToken
-			if nextPageToken == "" {
-				break
-			}
-		}
-		assert.DeepEqual(
-			t,
-			parentMsgs,
-			msgs,
-			cmpopts.SortSlices(func(a, b *FeatureOnlineStore) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
-
-	// Method should not return deleted resources.
-	t.Run("deleted", func(t *testing.T) {
-		fx.maybeSkip(t)
-		const deleteCount = 5
-		for i := 0; i < deleteCount; i++ {
-			_, err := fx.Service().DeleteFeatureOnlineStore(fx.Context(), &DeleteFeatureOnlineStoreRequest{
-				Name: parentMsgs[i].Name,
-			})
-			assert.NilError(t, err)
-		}
-		response, err := fx.Service().ListFeatureOnlineStores(fx.Context(), &ListFeatureOnlineStoresRequest{
-			Parent:   parent,
-			PageSize: 9999,
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				response.FeatureOnlineStores,
+				cmpopts.SortSlices(func(a, b *FeatureOnlineStore) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
 		})
-		assert.NilError(t, err)
-		assert.DeepEqual(
-			t,
-			parentMsgs[deleteCount:],
-			response.FeatureOnlineStores,
-			cmpopts.SortSlices(func(a, b *FeatureOnlineStore) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
 
+		// If there are no more resources, next_page_token should not be set.
+		t.Run("last page", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListFeatureOnlineStores(fx.Context(), &ListFeatureOnlineStoresRequest{
+				Parent:   parent,
+				PageSize: resourcesCount,
+			})
+			assert.NilError(t, err)
+			assert.Equal(t, "", response.NextPageToken)
+		})
+
+		// If there are more resources, next_page_token should be set.
+		t.Run("more pages", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListFeatureOnlineStores(fx.Context(), &ListFeatureOnlineStoresRequest{
+				Parent:   parent,
+				PageSize: resourcesCount - 1,
+			})
+			assert.NilError(t, err)
+			assert.Check(t, response.NextPageToken != "")
+		})
+
+		// Listing resource one by one should eventually return all resources.
+		t.Run("one by one", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msgs := make([]*FeatureOnlineStore, 0, resourcesCount)
+			var nextPageToken string
+			for {
+				response, err := fx.Service().ListFeatureOnlineStores(fx.Context(), &ListFeatureOnlineStoresRequest{
+					Parent:    parent,
+					PageSize:  1,
+					PageToken: nextPageToken,
+				})
+				assert.NilError(t, err)
+				assert.Equal(t, 1, len(response.FeatureOnlineStores))
+				msgs = append(msgs, response.FeatureOnlineStores...)
+				nextPageToken = response.NextPageToken
+				if nextPageToken == "" {
+					break
+				}
+			}
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				msgs,
+				cmpopts.SortSlices(func(a, b *FeatureOnlineStore) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
+
+		// Method should not return deleted resources.
+		t.Run("deleted", func(t *testing.T) {
+			fx.maybeSkip(t)
+			const deleteCount = 5
+			for i := 0; i < deleteCount; i++ {
+				_, err := fx.Service().DeleteFeatureOnlineStore(fx.Context(), &DeleteFeatureOnlineStoreRequest{
+					Name: parentMsgs[i].Name,
+				})
+				assert.NilError(t, err)
+			}
+			response, err := fx.Service().ListFeatureOnlineStores(fx.Context(), &ListFeatureOnlineStoresRequest{
+				Parent:   parent,
+				PageSize: 9999,
+			})
+			assert.NilError(t, err)
+			assert.DeepEqual(
+				t,
+				parentMsgs[deleteCount:],
+				response.FeatureOnlineStores,
+				cmpopts.SortSlices(func(a, b *FeatureOnlineStore) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
+
+	}
 }
 
 func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testDelete(t *testing.T) {
@@ -884,96 +888,98 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testUpdate(t
 		_ = updated
 	})
 
-	parent := fx.nextParent(t, false)
-	created := fx.create(t, parent)
-	// Method should fail with NotFound if the resource does not exist.
-	t.Run("not found", func(t *testing.T) {
-		fx.maybeSkip(t)
-		msg := fx.Update(parent)
-		msg.Name = created.Name + "notfound"
-		_, err := fx.Service().UpdateFeatureView(fx.Context(), &UpdateFeatureViewRequest{
-			FeatureView: msg,
-		})
-		assert.Equal(t, codes.NotFound, status.Code(err), err)
-	})
-
-	// The method should fail with InvalidArgument if the update_mask is invalid.
-	t.Run("invalid update mask", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.Service().UpdateFeatureView(fx.Context(), &UpdateFeatureViewRequest{
-			FeatureView: created,
-			UpdateMask: &fieldmaskpb.FieldMask{
-				Paths: []string{
-					"invalid_field_xyz",
-				},
-			},
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-	// Method should fail with InvalidArgument if any required field is missing
-	// when called with '*' update_mask.
-	t.Run("required fields", func(t *testing.T) {
-		fx.maybeSkip(t)
-		t.Run(".big_query_source.uri", func(t *testing.T) {
+	{
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		// Method should fail with NotFound if the resource does not exist.
+		t.Run("not found", func(t *testing.T) {
 			fx.maybeSkip(t)
-			msg := proto.Clone(created).(*FeatureView)
-			container := msg.GetBigQuerySource()
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("uri")
-			container.ProtoReflect().Clear(fd)
+			msg := fx.Update(parent)
+			msg.Name = created.Name + "notfound"
 			_, err := fx.Service().UpdateFeatureView(fx.Context(), &UpdateFeatureViewRequest{
 				FeatureView: msg,
+			})
+			assert.Equal(t, codes.NotFound, status.Code(err), err)
+		})
+
+		// The method should fail with InvalidArgument if the update_mask is invalid.
+		t.Run("invalid update mask", func(t *testing.T) {
+			fx.maybeSkip(t)
+			_, err := fx.Service().UpdateFeatureView(fx.Context(), &UpdateFeatureViewRequest{
+				FeatureView: created,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
-						"*",
+						"invalid_field_xyz",
 					},
 				},
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
-		t.Run(".big_query_source.entity_id_columns", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msg := proto.Clone(created).(*FeatureView)
-			container := msg.GetBigQuerySource()
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("entity_id_columns")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.Service().UpdateFeatureView(fx.Context(), &UpdateFeatureViewRequest{
-				FeatureView: msg,
-				UpdateMask: &fieldmaskpb.FieldMask{
-					Paths: []string{
-						"*",
-					},
-				},
-			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
-		t.Run(".feature_registry_source.feature_groups", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msg := proto.Clone(created).(*FeatureView)
-			container := msg.GetFeatureRegistrySource()
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("feature_groups")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.Service().UpdateFeatureView(fx.Context(), &UpdateFeatureViewRequest{
-				FeatureView: msg,
-				UpdateMask: &fieldmaskpb.FieldMask{
-					Paths: []string{
-						"*",
-					},
-				},
-			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
-	})
 
+		// Method should fail with InvalidArgument if any required field is missing
+		// when called with '*' update_mask.
+		t.Run("required fields", func(t *testing.T) {
+			fx.maybeSkip(t)
+			t.Run(".big_query_source.uri", func(t *testing.T) {
+				fx.maybeSkip(t)
+				msg := proto.Clone(created).(*FeatureView)
+				container := msg.GetBigQuerySource()
+				if container == nil {
+					t.Skip("not reachable")
+				}
+				fd := container.ProtoReflect().Descriptor().Fields().ByName("uri")
+				container.ProtoReflect().Clear(fd)
+				_, err := fx.Service().UpdateFeatureView(fx.Context(), &UpdateFeatureViewRequest{
+					FeatureView: msg,
+					UpdateMask: &fieldmaskpb.FieldMask{
+						Paths: []string{
+							"*",
+						},
+					},
+				})
+				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+			})
+			t.Run(".big_query_source.entity_id_columns", func(t *testing.T) {
+				fx.maybeSkip(t)
+				msg := proto.Clone(created).(*FeatureView)
+				container := msg.GetBigQuerySource()
+				if container == nil {
+					t.Skip("not reachable")
+				}
+				fd := container.ProtoReflect().Descriptor().Fields().ByName("entity_id_columns")
+				container.ProtoReflect().Clear(fd)
+				_, err := fx.Service().UpdateFeatureView(fx.Context(), &UpdateFeatureViewRequest{
+					FeatureView: msg,
+					UpdateMask: &fieldmaskpb.FieldMask{
+						Paths: []string{
+							"*",
+						},
+					},
+				})
+				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+			})
+			t.Run(".feature_registry_source.feature_groups", func(t *testing.T) {
+				fx.maybeSkip(t)
+				msg := proto.Clone(created).(*FeatureView)
+				container := msg.GetFeatureRegistrySource()
+				if container == nil {
+					t.Skip("not reachable")
+				}
+				fd := container.ProtoReflect().Descriptor().Fields().ByName("feature_groups")
+				container.ProtoReflect().Clear(fd)
+				_, err := fx.Service().UpdateFeatureView(fx.Context(), &UpdateFeatureViewRequest{
+					FeatureView: msg,
+					UpdateMask: &fieldmaskpb.FieldMask{
+						Paths: []string{
+							"*",
+						},
+					},
+				})
+				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+			})
+		})
+
+	}
 }
 
 func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testList(t *testing.T) {
@@ -1009,111 +1015,113 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testList(t *
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
-	const resourcesCount = 15
-	parent := fx.nextParent(t, true)
-	parentMsgs := make([]*FeatureView, resourcesCount)
-	for i := 0; i < resourcesCount; i++ {
-		parentMsgs[i] = fx.create(t, parent)
-	}
+	{
+		const resourcesCount = 15
+		parent := fx.nextParent(t, true)
+		parentMsgs := make([]*FeatureView, resourcesCount)
+		for i := 0; i < resourcesCount; i++ {
+			parentMsgs[i] = fx.create(t, parent)
+		}
 
-	// If parent is provided the method must only return resources
-	// under that parent.
-	t.Run("isolation", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListFeatureViews(fx.Context(), &ListFeatureViewsRequest{
-			Parent:   parent,
-			PageSize: 999,
-		})
-		assert.NilError(t, err)
-		assert.DeepEqual(
-			t,
-			parentMsgs,
-			response.FeatureViews,
-			cmpopts.SortSlices(func(a, b *FeatureView) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
-
-	// If there are no more resources, next_page_token should not be set.
-	t.Run("last page", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListFeatureViews(fx.Context(), &ListFeatureViewsRequest{
-			Parent:   parent,
-			PageSize: resourcesCount,
-		})
-		assert.NilError(t, err)
-		assert.Equal(t, "", response.NextPageToken)
-	})
-
-	// If there are more resources, next_page_token should be set.
-	t.Run("more pages", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListFeatureViews(fx.Context(), &ListFeatureViewsRequest{
-			Parent:   parent,
-			PageSize: resourcesCount - 1,
-		})
-		assert.NilError(t, err)
-		assert.Check(t, response.NextPageToken != "")
-	})
-
-	// Listing resource one by one should eventually return all resources.
-	t.Run("one by one", func(t *testing.T) {
-		fx.maybeSkip(t)
-		msgs := make([]*FeatureView, 0, resourcesCount)
-		var nextPageToken string
-		for {
+		// If parent is provided the method must only return resources
+		// under that parent.
+		t.Run("isolation", func(t *testing.T) {
+			fx.maybeSkip(t)
 			response, err := fx.Service().ListFeatureViews(fx.Context(), &ListFeatureViewsRequest{
-				Parent:    parent,
-				PageSize:  1,
-				PageToken: nextPageToken,
+				Parent:   parent,
+				PageSize: 999,
 			})
 			assert.NilError(t, err)
-			assert.Equal(t, 1, len(response.FeatureViews))
-			msgs = append(msgs, response.FeatureViews...)
-			nextPageToken = response.NextPageToken
-			if nextPageToken == "" {
-				break
-			}
-		}
-		assert.DeepEqual(
-			t,
-			parentMsgs,
-			msgs,
-			cmpopts.SortSlices(func(a, b *FeatureView) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
-
-	// Method should not return deleted resources.
-	t.Run("deleted", func(t *testing.T) {
-		fx.maybeSkip(t)
-		const deleteCount = 5
-		for i := 0; i < deleteCount; i++ {
-			_, err := fx.Service().DeleteFeatureView(fx.Context(), &DeleteFeatureViewRequest{
-				Name: parentMsgs[i].Name,
-			})
-			assert.NilError(t, err)
-		}
-		response, err := fx.Service().ListFeatureViews(fx.Context(), &ListFeatureViewsRequest{
-			Parent:   parent,
-			PageSize: 9999,
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				response.FeatureViews,
+				cmpopts.SortSlices(func(a, b *FeatureView) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
 		})
-		assert.NilError(t, err)
-		assert.DeepEqual(
-			t,
-			parentMsgs[deleteCount:],
-			response.FeatureViews,
-			cmpopts.SortSlices(func(a, b *FeatureView) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
 
+		// If there are no more resources, next_page_token should not be set.
+		t.Run("last page", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListFeatureViews(fx.Context(), &ListFeatureViewsRequest{
+				Parent:   parent,
+				PageSize: resourcesCount,
+			})
+			assert.NilError(t, err)
+			assert.Equal(t, "", response.NextPageToken)
+		})
+
+		// If there are more resources, next_page_token should be set.
+		t.Run("more pages", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListFeatureViews(fx.Context(), &ListFeatureViewsRequest{
+				Parent:   parent,
+				PageSize: resourcesCount - 1,
+			})
+			assert.NilError(t, err)
+			assert.Check(t, response.NextPageToken != "")
+		})
+
+		// Listing resource one by one should eventually return all resources.
+		t.Run("one by one", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msgs := make([]*FeatureView, 0, resourcesCount)
+			var nextPageToken string
+			for {
+				response, err := fx.Service().ListFeatureViews(fx.Context(), &ListFeatureViewsRequest{
+					Parent:    parent,
+					PageSize:  1,
+					PageToken: nextPageToken,
+				})
+				assert.NilError(t, err)
+				assert.Equal(t, 1, len(response.FeatureViews))
+				msgs = append(msgs, response.FeatureViews...)
+				nextPageToken = response.NextPageToken
+				if nextPageToken == "" {
+					break
+				}
+			}
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				msgs,
+				cmpopts.SortSlices(func(a, b *FeatureView) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
+
+		// Method should not return deleted resources.
+		t.Run("deleted", func(t *testing.T) {
+			fx.maybeSkip(t)
+			const deleteCount = 5
+			for i := 0; i < deleteCount; i++ {
+				_, err := fx.Service().DeleteFeatureView(fx.Context(), &DeleteFeatureViewRequest{
+					Name: parentMsgs[i].Name,
+				})
+				assert.NilError(t, err)
+			}
+			response, err := fx.Service().ListFeatureViews(fx.Context(), &ListFeatureViewsRequest{
+				Parent:   parent,
+				PageSize: 9999,
+			})
+			assert.NilError(t, err)
+			assert.DeepEqual(
+				t,
+				parentMsgs[deleteCount:],
+				response.FeatureViews,
+				cmpopts.SortSlices(func(a, b *FeatureView) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
+
+	}
 }
 
 func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testDelete(t *testing.T) {
@@ -1336,85 +1344,87 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewSyncTestSuiteConfig) testList
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
-	const resourcesCount = 15
-	parent := fx.nextParent(t, true)
-	parentMsgs := make([]*FeatureViewSync, resourcesCount)
-	for i := 0; i < resourcesCount; i++ {
-		parentMsgs[i] = fx.create(t, parent)
-	}
+	{
+		const resourcesCount = 15
+		parent := fx.nextParent(t, true)
+		parentMsgs := make([]*FeatureViewSync, resourcesCount)
+		for i := 0; i < resourcesCount; i++ {
+			parentMsgs[i] = fx.create(t, parent)
+		}
 
-	// If parent is provided the method must only return resources
-	// under that parent.
-	t.Run("isolation", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListFeatureViewSyncs(fx.Context(), &ListFeatureViewSyncsRequest{
-			Parent:   parent,
-			PageSize: 999,
-		})
-		assert.NilError(t, err)
-		assert.DeepEqual(
-			t,
-			parentMsgs,
-			response.FeatureViewSyncs,
-			cmpopts.SortSlices(func(a, b *FeatureViewSync) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
-
-	// If there are no more resources, next_page_token should not be set.
-	t.Run("last page", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListFeatureViewSyncs(fx.Context(), &ListFeatureViewSyncsRequest{
-			Parent:   parent,
-			PageSize: resourcesCount,
-		})
-		assert.NilError(t, err)
-		assert.Equal(t, "", response.NextPageToken)
-	})
-
-	// If there are more resources, next_page_token should be set.
-	t.Run("more pages", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListFeatureViewSyncs(fx.Context(), &ListFeatureViewSyncsRequest{
-			Parent:   parent,
-			PageSize: resourcesCount - 1,
-		})
-		assert.NilError(t, err)
-		assert.Check(t, response.NextPageToken != "")
-	})
-
-	// Listing resource one by one should eventually return all resources.
-	t.Run("one by one", func(t *testing.T) {
-		fx.maybeSkip(t)
-		msgs := make([]*FeatureViewSync, 0, resourcesCount)
-		var nextPageToken string
-		for {
+		// If parent is provided the method must only return resources
+		// under that parent.
+		t.Run("isolation", func(t *testing.T) {
+			fx.maybeSkip(t)
 			response, err := fx.Service().ListFeatureViewSyncs(fx.Context(), &ListFeatureViewSyncsRequest{
-				Parent:    parent,
-				PageSize:  1,
-				PageToken: nextPageToken,
+				Parent:   parent,
+				PageSize: 999,
 			})
 			assert.NilError(t, err)
-			assert.Equal(t, 1, len(response.FeatureViewSyncs))
-			msgs = append(msgs, response.FeatureViewSyncs...)
-			nextPageToken = response.NextPageToken
-			if nextPageToken == "" {
-				break
-			}
-		}
-		assert.DeepEqual(
-			t,
-			parentMsgs,
-			msgs,
-			cmpopts.SortSlices(func(a, b *FeatureViewSync) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				response.FeatureViewSyncs,
+				cmpopts.SortSlices(func(a, b *FeatureViewSync) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
 
+		// If there are no more resources, next_page_token should not be set.
+		t.Run("last page", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListFeatureViewSyncs(fx.Context(), &ListFeatureViewSyncsRequest{
+				Parent:   parent,
+				PageSize: resourcesCount,
+			})
+			assert.NilError(t, err)
+			assert.Equal(t, "", response.NextPageToken)
+		})
+
+		// If there are more resources, next_page_token should be set.
+		t.Run("more pages", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListFeatureViewSyncs(fx.Context(), &ListFeatureViewSyncsRequest{
+				Parent:   parent,
+				PageSize: resourcesCount - 1,
+			})
+			assert.NilError(t, err)
+			assert.Check(t, response.NextPageToken != "")
+		})
+
+		// Listing resource one by one should eventually return all resources.
+		t.Run("one by one", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msgs := make([]*FeatureViewSync, 0, resourcesCount)
+			var nextPageToken string
+			for {
+				response, err := fx.Service().ListFeatureViewSyncs(fx.Context(), &ListFeatureViewSyncsRequest{
+					Parent:    parent,
+					PageSize:  1,
+					PageToken: nextPageToken,
+				})
+				assert.NilError(t, err)
+				assert.Equal(t, 1, len(response.FeatureViewSyncs))
+				msgs = append(msgs, response.FeatureViewSyncs...)
+				nextPageToken = response.NextPageToken
+				if nextPageToken == "" {
+					break
+				}
+			}
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				msgs,
+				cmpopts.SortSlices(func(a, b *FeatureViewSync) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
+
+	}
 }
 
 func (fx *FeatureOnlineStoreAdminServiceFeatureViewSyncTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {

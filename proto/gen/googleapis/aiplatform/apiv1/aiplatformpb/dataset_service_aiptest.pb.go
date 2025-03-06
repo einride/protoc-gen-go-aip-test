@@ -256,85 +256,87 @@ func (fx *DatasetServiceAnnotationTestSuiteConfig) testList(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
-	const resourcesCount = 15
-	parent := fx.nextParent(t, true)
-	parentMsgs := make([]*Annotation, resourcesCount)
-	for i := 0; i < resourcesCount; i++ {
-		parentMsgs[i] = fx.create(t, parent)
-	}
+	{
+		const resourcesCount = 15
+		parent := fx.nextParent(t, true)
+		parentMsgs := make([]*Annotation, resourcesCount)
+		for i := 0; i < resourcesCount; i++ {
+			parentMsgs[i] = fx.create(t, parent)
+		}
 
-	// If parent is provided the method must only return resources
-	// under that parent.
-	t.Run("isolation", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListAnnotations(fx.Context(), &ListAnnotationsRequest{
-			Parent:   parent,
-			PageSize: 999,
-		})
-		assert.NilError(t, err)
-		assert.DeepEqual(
-			t,
-			parentMsgs,
-			response.Annotations,
-			cmpopts.SortSlices(func(a, b *Annotation) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
-
-	// If there are no more resources, next_page_token should not be set.
-	t.Run("last page", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListAnnotations(fx.Context(), &ListAnnotationsRequest{
-			Parent:   parent,
-			PageSize: resourcesCount,
-		})
-		assert.NilError(t, err)
-		assert.Equal(t, "", response.NextPageToken)
-	})
-
-	// If there are more resources, next_page_token should be set.
-	t.Run("more pages", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListAnnotations(fx.Context(), &ListAnnotationsRequest{
-			Parent:   parent,
-			PageSize: resourcesCount - 1,
-		})
-		assert.NilError(t, err)
-		assert.Check(t, response.NextPageToken != "")
-	})
-
-	// Listing resource one by one should eventually return all resources.
-	t.Run("one by one", func(t *testing.T) {
-		fx.maybeSkip(t)
-		msgs := make([]*Annotation, 0, resourcesCount)
-		var nextPageToken string
-		for {
+		// If parent is provided the method must only return resources
+		// under that parent.
+		t.Run("isolation", func(t *testing.T) {
+			fx.maybeSkip(t)
 			response, err := fx.Service().ListAnnotations(fx.Context(), &ListAnnotationsRequest{
-				Parent:    parent,
-				PageSize:  1,
-				PageToken: nextPageToken,
+				Parent:   parent,
+				PageSize: 999,
 			})
 			assert.NilError(t, err)
-			assert.Equal(t, 1, len(response.Annotations))
-			msgs = append(msgs, response.Annotations...)
-			nextPageToken = response.NextPageToken
-			if nextPageToken == "" {
-				break
-			}
-		}
-		assert.DeepEqual(
-			t,
-			parentMsgs,
-			msgs,
-			cmpopts.SortSlices(func(a, b *Annotation) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				response.Annotations,
+				cmpopts.SortSlices(func(a, b *Annotation) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
 
+		// If there are no more resources, next_page_token should not be set.
+		t.Run("last page", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListAnnotations(fx.Context(), &ListAnnotationsRequest{
+				Parent:   parent,
+				PageSize: resourcesCount,
+			})
+			assert.NilError(t, err)
+			assert.Equal(t, "", response.NextPageToken)
+		})
+
+		// If there are more resources, next_page_token should be set.
+		t.Run("more pages", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListAnnotations(fx.Context(), &ListAnnotationsRequest{
+				Parent:   parent,
+				PageSize: resourcesCount - 1,
+			})
+			assert.NilError(t, err)
+			assert.Check(t, response.NextPageToken != "")
+		})
+
+		// Listing resource one by one should eventually return all resources.
+		t.Run("one by one", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msgs := make([]*Annotation, 0, resourcesCount)
+			var nextPageToken string
+			for {
+				response, err := fx.Service().ListAnnotations(fx.Context(), &ListAnnotationsRequest{
+					Parent:    parent,
+					PageSize:  1,
+					PageToken: nextPageToken,
+				})
+				assert.NilError(t, err)
+				assert.Equal(t, 1, len(response.Annotations))
+				msgs = append(msgs, response.Annotations...)
+				nextPageToken = response.NextPageToken
+				if nextPageToken == "" {
+					break
+				}
+			}
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				msgs,
+				cmpopts.SortSlices(func(a, b *Annotation) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
+
+	}
 }
 
 func (fx *DatasetServiceAnnotationTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
@@ -558,85 +560,87 @@ func (fx *DatasetServiceDataItemTestSuiteConfig) testList(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
-	const resourcesCount = 15
-	parent := fx.nextParent(t, true)
-	parentMsgs := make([]*DataItem, resourcesCount)
-	for i := 0; i < resourcesCount; i++ {
-		parentMsgs[i] = fx.create(t, parent)
-	}
+	{
+		const resourcesCount = 15
+		parent := fx.nextParent(t, true)
+		parentMsgs := make([]*DataItem, resourcesCount)
+		for i := 0; i < resourcesCount; i++ {
+			parentMsgs[i] = fx.create(t, parent)
+		}
 
-	// If parent is provided the method must only return resources
-	// under that parent.
-	t.Run("isolation", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListDataItems(fx.Context(), &ListDataItemsRequest{
-			Parent:   parent,
-			PageSize: 999,
-		})
-		assert.NilError(t, err)
-		assert.DeepEqual(
-			t,
-			parentMsgs,
-			response.DataItems,
-			cmpopts.SortSlices(func(a, b *DataItem) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
-
-	// If there are no more resources, next_page_token should not be set.
-	t.Run("last page", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListDataItems(fx.Context(), &ListDataItemsRequest{
-			Parent:   parent,
-			PageSize: resourcesCount,
-		})
-		assert.NilError(t, err)
-		assert.Equal(t, "", response.NextPageToken)
-	})
-
-	// If there are more resources, next_page_token should be set.
-	t.Run("more pages", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListDataItems(fx.Context(), &ListDataItemsRequest{
-			Parent:   parent,
-			PageSize: resourcesCount - 1,
-		})
-		assert.NilError(t, err)
-		assert.Check(t, response.NextPageToken != "")
-	})
-
-	// Listing resource one by one should eventually return all resources.
-	t.Run("one by one", func(t *testing.T) {
-		fx.maybeSkip(t)
-		msgs := make([]*DataItem, 0, resourcesCount)
-		var nextPageToken string
-		for {
+		// If parent is provided the method must only return resources
+		// under that parent.
+		t.Run("isolation", func(t *testing.T) {
+			fx.maybeSkip(t)
 			response, err := fx.Service().ListDataItems(fx.Context(), &ListDataItemsRequest{
-				Parent:    parent,
-				PageSize:  1,
-				PageToken: nextPageToken,
+				Parent:   parent,
+				PageSize: 999,
 			})
 			assert.NilError(t, err)
-			assert.Equal(t, 1, len(response.DataItems))
-			msgs = append(msgs, response.DataItems...)
-			nextPageToken = response.NextPageToken
-			if nextPageToken == "" {
-				break
-			}
-		}
-		assert.DeepEqual(
-			t,
-			parentMsgs,
-			msgs,
-			cmpopts.SortSlices(func(a, b *DataItem) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				response.DataItems,
+				cmpopts.SortSlices(func(a, b *DataItem) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
 
+		// If there are no more resources, next_page_token should not be set.
+		t.Run("last page", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListDataItems(fx.Context(), &ListDataItemsRequest{
+				Parent:   parent,
+				PageSize: resourcesCount,
+			})
+			assert.NilError(t, err)
+			assert.Equal(t, "", response.NextPageToken)
+		})
+
+		// If there are more resources, next_page_token should be set.
+		t.Run("more pages", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListDataItems(fx.Context(), &ListDataItemsRequest{
+				Parent:   parent,
+				PageSize: resourcesCount - 1,
+			})
+			assert.NilError(t, err)
+			assert.Check(t, response.NextPageToken != "")
+		})
+
+		// Listing resource one by one should eventually return all resources.
+		t.Run("one by one", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msgs := make([]*DataItem, 0, resourcesCount)
+			var nextPageToken string
+			for {
+				response, err := fx.Service().ListDataItems(fx.Context(), &ListDataItemsRequest{
+					Parent:    parent,
+					PageSize:  1,
+					PageToken: nextPageToken,
+				})
+				assert.NilError(t, err)
+				assert.Equal(t, 1, len(response.DataItems))
+				msgs = append(msgs, response.DataItems...)
+				nextPageToken = response.NextPageToken
+				if nextPageToken == "" {
+					break
+				}
+			}
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				msgs,
+				cmpopts.SortSlices(func(a, b *DataItem) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
+
+	}
 }
 
 func (fx *DatasetServiceDataItemTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
@@ -947,115 +951,117 @@ func (fx *DatasetServiceDatasetTestSuiteConfig) testUpdate(t *testing.T) {
 		assert.Check(t, updated.Etag != created.Etag)
 	})
 
-	parent := fx.nextParent(t, false)
-	created := fx.create(t, parent)
-	// Method should fail with NotFound if the resource does not exist.
-	t.Run("not found", func(t *testing.T) {
-		fx.maybeSkip(t)
-		msg := fx.Update(parent)
-		msg.Name = created.Name + "notfound"
-		_, err := fx.Service().UpdateDataset(fx.Context(), &UpdateDatasetRequest{
-			Dataset: msg,
+	{
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		// Method should fail with NotFound if the resource does not exist.
+		t.Run("not found", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msg := fx.Update(parent)
+			msg.Name = created.Name + "notfound"
+			_, err := fx.Service().UpdateDataset(fx.Context(), &UpdateDatasetRequest{
+				Dataset: msg,
+			})
+			assert.Equal(t, codes.NotFound, status.Code(err), err)
 		})
-		assert.Equal(t, codes.NotFound, status.Code(err), err)
-	})
 
-	// The method should fail with InvalidArgument if the update_mask is invalid.
-	t.Run("invalid update mask", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.Service().UpdateDataset(fx.Context(), &UpdateDatasetRequest{
-			Dataset: created,
-			UpdateMask: &fieldmaskpb.FieldMask{
-				Paths: []string{
-					"invalid_field_xyz",
+		// The method should fail with InvalidArgument if the update_mask is invalid.
+		t.Run("invalid update mask", func(t *testing.T) {
+			fx.maybeSkip(t)
+			_, err := fx.Service().UpdateDataset(fx.Context(), &UpdateDatasetRequest{
+				Dataset: created,
+				UpdateMask: &fieldmaskpb.FieldMask{
+					Paths: []string{
+						"invalid_field_xyz",
+					},
 				},
-			},
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
 
-	// Method should fail with InvalidArgument if any required field is missing
-	// when called with '*' update_mask.
-	t.Run("required fields", func(t *testing.T) {
-		fx.maybeSkip(t)
-		t.Run(".display_name", func(t *testing.T) {
+		// Method should fail with InvalidArgument if any required field is missing
+		// when called with '*' update_mask.
+		t.Run("required fields", func(t *testing.T) {
 			fx.maybeSkip(t)
-			msg := proto.Clone(created).(*Dataset)
-			container := msg
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.Service().UpdateDataset(fx.Context(), &UpdateDatasetRequest{
-				Dataset: msg,
-				UpdateMask: &fieldmaskpb.FieldMask{
-					Paths: []string{
-						"*",
+			t.Run(".display_name", func(t *testing.T) {
+				fx.maybeSkip(t)
+				msg := proto.Clone(created).(*Dataset)
+				container := msg
+				if container == nil {
+					t.Skip("not reachable")
+				}
+				fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
+				container.ProtoReflect().Clear(fd)
+				_, err := fx.Service().UpdateDataset(fx.Context(), &UpdateDatasetRequest{
+					Dataset: msg,
+					UpdateMask: &fieldmaskpb.FieldMask{
+						Paths: []string{
+							"*",
+						},
 					},
-				},
+				})
+				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
-		t.Run(".metadata_schema_uri", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msg := proto.Clone(created).(*Dataset)
-			container := msg
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("metadata_schema_uri")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.Service().UpdateDataset(fx.Context(), &UpdateDatasetRequest{
-				Dataset: msg,
-				UpdateMask: &fieldmaskpb.FieldMask{
-					Paths: []string{
-						"*",
+			t.Run(".metadata_schema_uri", func(t *testing.T) {
+				fx.maybeSkip(t)
+				msg := proto.Clone(created).(*Dataset)
+				container := msg
+				if container == nil {
+					t.Skip("not reachable")
+				}
+				fd := container.ProtoReflect().Descriptor().Fields().ByName("metadata_schema_uri")
+				container.ProtoReflect().Clear(fd)
+				_, err := fx.Service().UpdateDataset(fx.Context(), &UpdateDatasetRequest{
+					Dataset: msg,
+					UpdateMask: &fieldmaskpb.FieldMask{
+						Paths: []string{
+							"*",
+						},
 					},
-				},
+				})
+				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
-		t.Run(".metadata", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msg := proto.Clone(created).(*Dataset)
-			container := msg
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("metadata")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.Service().UpdateDataset(fx.Context(), &UpdateDatasetRequest{
-				Dataset: msg,
-				UpdateMask: &fieldmaskpb.FieldMask{
-					Paths: []string{
-						"*",
+			t.Run(".metadata", func(t *testing.T) {
+				fx.maybeSkip(t)
+				msg := proto.Clone(created).(*Dataset)
+				container := msg
+				if container == nil {
+					t.Skip("not reachable")
+				}
+				fd := container.ProtoReflect().Descriptor().Fields().ByName("metadata")
+				container.ProtoReflect().Clear(fd)
+				_, err := fx.Service().UpdateDataset(fx.Context(), &UpdateDatasetRequest{
+					Dataset: msg,
+					UpdateMask: &fieldmaskpb.FieldMask{
+						Paths: []string{
+							"*",
+						},
 					},
-				},
+				})
+				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
-		t.Run(".encryption_spec.kms_key_name", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msg := proto.Clone(created).(*Dataset)
-			container := msg.GetEncryptionSpec()
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("kms_key_name")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.Service().UpdateDataset(fx.Context(), &UpdateDatasetRequest{
-				Dataset: msg,
-				UpdateMask: &fieldmaskpb.FieldMask{
-					Paths: []string{
-						"*",
+			t.Run(".encryption_spec.kms_key_name", func(t *testing.T) {
+				fx.maybeSkip(t)
+				msg := proto.Clone(created).(*Dataset)
+				container := msg.GetEncryptionSpec()
+				if container == nil {
+					t.Skip("not reachable")
+				}
+				fd := container.ProtoReflect().Descriptor().Fields().ByName("kms_key_name")
+				container.ProtoReflect().Clear(fd)
+				_, err := fx.Service().UpdateDataset(fx.Context(), &UpdateDatasetRequest{
+					Dataset: msg,
+					UpdateMask: &fieldmaskpb.FieldMask{
+						Paths: []string{
+							"*",
+						},
 					},
-				},
+				})
+				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
-	})
 
+	}
 }
 
 func (fx *DatasetServiceDatasetTestSuiteConfig) testList(t *testing.T) {
@@ -1091,111 +1097,113 @@ func (fx *DatasetServiceDatasetTestSuiteConfig) testList(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
-	const resourcesCount = 15
-	parent := fx.nextParent(t, true)
-	parentMsgs := make([]*Dataset, resourcesCount)
-	for i := 0; i < resourcesCount; i++ {
-		parentMsgs[i] = fx.create(t, parent)
-	}
+	{
+		const resourcesCount = 15
+		parent := fx.nextParent(t, true)
+		parentMsgs := make([]*Dataset, resourcesCount)
+		for i := 0; i < resourcesCount; i++ {
+			parentMsgs[i] = fx.create(t, parent)
+		}
 
-	// If parent is provided the method must only return resources
-	// under that parent.
-	t.Run("isolation", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListDatasets(fx.Context(), &ListDatasetsRequest{
-			Parent:   parent,
-			PageSize: 999,
-		})
-		assert.NilError(t, err)
-		assert.DeepEqual(
-			t,
-			parentMsgs,
-			response.Datasets,
-			cmpopts.SortSlices(func(a, b *Dataset) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
-
-	// If there are no more resources, next_page_token should not be set.
-	t.Run("last page", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListDatasets(fx.Context(), &ListDatasetsRequest{
-			Parent:   parent,
-			PageSize: resourcesCount,
-		})
-		assert.NilError(t, err)
-		assert.Equal(t, "", response.NextPageToken)
-	})
-
-	// If there are more resources, next_page_token should be set.
-	t.Run("more pages", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListDatasets(fx.Context(), &ListDatasetsRequest{
-			Parent:   parent,
-			PageSize: resourcesCount - 1,
-		})
-		assert.NilError(t, err)
-		assert.Check(t, response.NextPageToken != "")
-	})
-
-	// Listing resource one by one should eventually return all resources.
-	t.Run("one by one", func(t *testing.T) {
-		fx.maybeSkip(t)
-		msgs := make([]*Dataset, 0, resourcesCount)
-		var nextPageToken string
-		for {
+		// If parent is provided the method must only return resources
+		// under that parent.
+		t.Run("isolation", func(t *testing.T) {
+			fx.maybeSkip(t)
 			response, err := fx.Service().ListDatasets(fx.Context(), &ListDatasetsRequest{
-				Parent:    parent,
-				PageSize:  1,
-				PageToken: nextPageToken,
+				Parent:   parent,
+				PageSize: 999,
 			})
 			assert.NilError(t, err)
-			assert.Equal(t, 1, len(response.Datasets))
-			msgs = append(msgs, response.Datasets...)
-			nextPageToken = response.NextPageToken
-			if nextPageToken == "" {
-				break
-			}
-		}
-		assert.DeepEqual(
-			t,
-			parentMsgs,
-			msgs,
-			cmpopts.SortSlices(func(a, b *Dataset) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
-
-	// Method should not return deleted resources.
-	t.Run("deleted", func(t *testing.T) {
-		fx.maybeSkip(t)
-		const deleteCount = 5
-		for i := 0; i < deleteCount; i++ {
-			_, err := fx.Service().DeleteDataset(fx.Context(), &DeleteDatasetRequest{
-				Name: parentMsgs[i].Name,
-			})
-			assert.NilError(t, err)
-		}
-		response, err := fx.Service().ListDatasets(fx.Context(), &ListDatasetsRequest{
-			Parent:   parent,
-			PageSize: 9999,
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				response.Datasets,
+				cmpopts.SortSlices(func(a, b *Dataset) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
 		})
-		assert.NilError(t, err)
-		assert.DeepEqual(
-			t,
-			parentMsgs[deleteCount:],
-			response.Datasets,
-			cmpopts.SortSlices(func(a, b *Dataset) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
 
+		// If there are no more resources, next_page_token should not be set.
+		t.Run("last page", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListDatasets(fx.Context(), &ListDatasetsRequest{
+				Parent:   parent,
+				PageSize: resourcesCount,
+			})
+			assert.NilError(t, err)
+			assert.Equal(t, "", response.NextPageToken)
+		})
+
+		// If there are more resources, next_page_token should be set.
+		t.Run("more pages", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListDatasets(fx.Context(), &ListDatasetsRequest{
+				Parent:   parent,
+				PageSize: resourcesCount - 1,
+			})
+			assert.NilError(t, err)
+			assert.Check(t, response.NextPageToken != "")
+		})
+
+		// Listing resource one by one should eventually return all resources.
+		t.Run("one by one", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msgs := make([]*Dataset, 0, resourcesCount)
+			var nextPageToken string
+			for {
+				response, err := fx.Service().ListDatasets(fx.Context(), &ListDatasetsRequest{
+					Parent:    parent,
+					PageSize:  1,
+					PageToken: nextPageToken,
+				})
+				assert.NilError(t, err)
+				assert.Equal(t, 1, len(response.Datasets))
+				msgs = append(msgs, response.Datasets...)
+				nextPageToken = response.NextPageToken
+				if nextPageToken == "" {
+					break
+				}
+			}
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				msgs,
+				cmpopts.SortSlices(func(a, b *Dataset) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
+
+		// Method should not return deleted resources.
+		t.Run("deleted", func(t *testing.T) {
+			fx.maybeSkip(t)
+			const deleteCount = 5
+			for i := 0; i < deleteCount; i++ {
+				_, err := fx.Service().DeleteDataset(fx.Context(), &DeleteDatasetRequest{
+					Name: parentMsgs[i].Name,
+				})
+				assert.NilError(t, err)
+			}
+			response, err := fx.Service().ListDatasets(fx.Context(), &ListDatasetsRequest{
+				Parent:   parent,
+				PageSize: 9999,
+			})
+			assert.NilError(t, err)
+			assert.DeepEqual(
+				t,
+				parentMsgs[deleteCount:],
+				response.Datasets,
+				cmpopts.SortSlices(func(a, b *Dataset) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
+
+	}
 }
 
 func (fx *DatasetServiceDatasetTestSuiteConfig) testDelete(t *testing.T) {
@@ -1441,111 +1449,113 @@ func (fx *DatasetServiceDatasetVersionTestSuiteConfig) testList(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
-	const resourcesCount = 15
-	parent := fx.nextParent(t, true)
-	parentMsgs := make([]*DatasetVersion, resourcesCount)
-	for i := 0; i < resourcesCount; i++ {
-		parentMsgs[i] = fx.create(t, parent)
-	}
+	{
+		const resourcesCount = 15
+		parent := fx.nextParent(t, true)
+		parentMsgs := make([]*DatasetVersion, resourcesCount)
+		for i := 0; i < resourcesCount; i++ {
+			parentMsgs[i] = fx.create(t, parent)
+		}
 
-	// If parent is provided the method must only return resources
-	// under that parent.
-	t.Run("isolation", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListDatasetVersions(fx.Context(), &ListDatasetVersionsRequest{
-			Parent:   parent,
-			PageSize: 999,
-		})
-		assert.NilError(t, err)
-		assert.DeepEqual(
-			t,
-			parentMsgs,
-			response.DatasetVersions,
-			cmpopts.SortSlices(func(a, b *DatasetVersion) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
-
-	// If there are no more resources, next_page_token should not be set.
-	t.Run("last page", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListDatasetVersions(fx.Context(), &ListDatasetVersionsRequest{
-			Parent:   parent,
-			PageSize: resourcesCount,
-		})
-		assert.NilError(t, err)
-		assert.Equal(t, "", response.NextPageToken)
-	})
-
-	// If there are more resources, next_page_token should be set.
-	t.Run("more pages", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListDatasetVersions(fx.Context(), &ListDatasetVersionsRequest{
-			Parent:   parent,
-			PageSize: resourcesCount - 1,
-		})
-		assert.NilError(t, err)
-		assert.Check(t, response.NextPageToken != "")
-	})
-
-	// Listing resource one by one should eventually return all resources.
-	t.Run("one by one", func(t *testing.T) {
-		fx.maybeSkip(t)
-		msgs := make([]*DatasetVersion, 0, resourcesCount)
-		var nextPageToken string
-		for {
+		// If parent is provided the method must only return resources
+		// under that parent.
+		t.Run("isolation", func(t *testing.T) {
+			fx.maybeSkip(t)
 			response, err := fx.Service().ListDatasetVersions(fx.Context(), &ListDatasetVersionsRequest{
-				Parent:    parent,
-				PageSize:  1,
-				PageToken: nextPageToken,
+				Parent:   parent,
+				PageSize: 999,
 			})
 			assert.NilError(t, err)
-			assert.Equal(t, 1, len(response.DatasetVersions))
-			msgs = append(msgs, response.DatasetVersions...)
-			nextPageToken = response.NextPageToken
-			if nextPageToken == "" {
-				break
-			}
-		}
-		assert.DeepEqual(
-			t,
-			parentMsgs,
-			msgs,
-			cmpopts.SortSlices(func(a, b *DatasetVersion) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
-
-	// Method should not return deleted resources.
-	t.Run("deleted", func(t *testing.T) {
-		fx.maybeSkip(t)
-		const deleteCount = 5
-		for i := 0; i < deleteCount; i++ {
-			_, err := fx.Service().DeleteDatasetVersion(fx.Context(), &DeleteDatasetVersionRequest{
-				Name: parentMsgs[i].Name,
-			})
-			assert.NilError(t, err)
-		}
-		response, err := fx.Service().ListDatasetVersions(fx.Context(), &ListDatasetVersionsRequest{
-			Parent:   parent,
-			PageSize: 9999,
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				response.DatasetVersions,
+				cmpopts.SortSlices(func(a, b *DatasetVersion) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
 		})
-		assert.NilError(t, err)
-		assert.DeepEqual(
-			t,
-			parentMsgs[deleteCount:],
-			response.DatasetVersions,
-			cmpopts.SortSlices(func(a, b *DatasetVersion) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
 
+		// If there are no more resources, next_page_token should not be set.
+		t.Run("last page", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListDatasetVersions(fx.Context(), &ListDatasetVersionsRequest{
+				Parent:   parent,
+				PageSize: resourcesCount,
+			})
+			assert.NilError(t, err)
+			assert.Equal(t, "", response.NextPageToken)
+		})
+
+		// If there are more resources, next_page_token should be set.
+		t.Run("more pages", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListDatasetVersions(fx.Context(), &ListDatasetVersionsRequest{
+				Parent:   parent,
+				PageSize: resourcesCount - 1,
+			})
+			assert.NilError(t, err)
+			assert.Check(t, response.NextPageToken != "")
+		})
+
+		// Listing resource one by one should eventually return all resources.
+		t.Run("one by one", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msgs := make([]*DatasetVersion, 0, resourcesCount)
+			var nextPageToken string
+			for {
+				response, err := fx.Service().ListDatasetVersions(fx.Context(), &ListDatasetVersionsRequest{
+					Parent:    parent,
+					PageSize:  1,
+					PageToken: nextPageToken,
+				})
+				assert.NilError(t, err)
+				assert.Equal(t, 1, len(response.DatasetVersions))
+				msgs = append(msgs, response.DatasetVersions...)
+				nextPageToken = response.NextPageToken
+				if nextPageToken == "" {
+					break
+				}
+			}
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				msgs,
+				cmpopts.SortSlices(func(a, b *DatasetVersion) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
+
+		// Method should not return deleted resources.
+		t.Run("deleted", func(t *testing.T) {
+			fx.maybeSkip(t)
+			const deleteCount = 5
+			for i := 0; i < deleteCount; i++ {
+				_, err := fx.Service().DeleteDatasetVersion(fx.Context(), &DeleteDatasetVersionRequest{
+					Name: parentMsgs[i].Name,
+				})
+				assert.NilError(t, err)
+			}
+			response, err := fx.Service().ListDatasetVersions(fx.Context(), &ListDatasetVersionsRequest{
+				Parent:   parent,
+				PageSize: 9999,
+			})
+			assert.NilError(t, err)
+			assert.DeepEqual(
+				t,
+				parentMsgs[deleteCount:],
+				response.DatasetVersions,
+				cmpopts.SortSlices(func(a, b *DatasetVersion) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
+
+	}
 }
 
 func (fx *DatasetServiceDatasetVersionTestSuiteConfig) testDelete(t *testing.T) {
@@ -1714,111 +1724,113 @@ func (fx *DatasetServiceSavedQueryTestSuiteConfig) testList(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
-	const resourcesCount = 15
-	parent := fx.nextParent(t, true)
-	parentMsgs := make([]*SavedQuery, resourcesCount)
-	for i := 0; i < resourcesCount; i++ {
-		parentMsgs[i] = fx.create(t, parent)
-	}
+	{
+		const resourcesCount = 15
+		parent := fx.nextParent(t, true)
+		parentMsgs := make([]*SavedQuery, resourcesCount)
+		for i := 0; i < resourcesCount; i++ {
+			parentMsgs[i] = fx.create(t, parent)
+		}
 
-	// If parent is provided the method must only return resources
-	// under that parent.
-	t.Run("isolation", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListSavedQueries(fx.Context(), &ListSavedQueriesRequest{
-			Parent:   parent,
-			PageSize: 999,
-		})
-		assert.NilError(t, err)
-		assert.DeepEqual(
-			t,
-			parentMsgs,
-			response.SavedQueries,
-			cmpopts.SortSlices(func(a, b *SavedQuery) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
-
-	// If there are no more resources, next_page_token should not be set.
-	t.Run("last page", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListSavedQueries(fx.Context(), &ListSavedQueriesRequest{
-			Parent:   parent,
-			PageSize: resourcesCount,
-		})
-		assert.NilError(t, err)
-		assert.Equal(t, "", response.NextPageToken)
-	})
-
-	// If there are more resources, next_page_token should be set.
-	t.Run("more pages", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListSavedQueries(fx.Context(), &ListSavedQueriesRequest{
-			Parent:   parent,
-			PageSize: resourcesCount - 1,
-		})
-		assert.NilError(t, err)
-		assert.Check(t, response.NextPageToken != "")
-	})
-
-	// Listing resource one by one should eventually return all resources.
-	t.Run("one by one", func(t *testing.T) {
-		fx.maybeSkip(t)
-		msgs := make([]*SavedQuery, 0, resourcesCount)
-		var nextPageToken string
-		for {
+		// If parent is provided the method must only return resources
+		// under that parent.
+		t.Run("isolation", func(t *testing.T) {
+			fx.maybeSkip(t)
 			response, err := fx.Service().ListSavedQueries(fx.Context(), &ListSavedQueriesRequest{
-				Parent:    parent,
-				PageSize:  1,
-				PageToken: nextPageToken,
+				Parent:   parent,
+				PageSize: 999,
 			})
 			assert.NilError(t, err)
-			assert.Equal(t, 1, len(response.SavedQueries))
-			msgs = append(msgs, response.SavedQueries...)
-			nextPageToken = response.NextPageToken
-			if nextPageToken == "" {
-				break
-			}
-		}
-		assert.DeepEqual(
-			t,
-			parentMsgs,
-			msgs,
-			cmpopts.SortSlices(func(a, b *SavedQuery) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
-
-	// Method should not return deleted resources.
-	t.Run("deleted", func(t *testing.T) {
-		fx.maybeSkip(t)
-		const deleteCount = 5
-		for i := 0; i < deleteCount; i++ {
-			_, err := fx.Service().DeleteSavedQuery(fx.Context(), &DeleteSavedQueryRequest{
-				Name: parentMsgs[i].Name,
-			})
-			assert.NilError(t, err)
-		}
-		response, err := fx.Service().ListSavedQueries(fx.Context(), &ListSavedQueriesRequest{
-			Parent:   parent,
-			PageSize: 9999,
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				response.SavedQueries,
+				cmpopts.SortSlices(func(a, b *SavedQuery) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
 		})
-		assert.NilError(t, err)
-		assert.DeepEqual(
-			t,
-			parentMsgs[deleteCount:],
-			response.SavedQueries,
-			cmpopts.SortSlices(func(a, b *SavedQuery) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
 
+		// If there are no more resources, next_page_token should not be set.
+		t.Run("last page", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListSavedQueries(fx.Context(), &ListSavedQueriesRequest{
+				Parent:   parent,
+				PageSize: resourcesCount,
+			})
+			assert.NilError(t, err)
+			assert.Equal(t, "", response.NextPageToken)
+		})
+
+		// If there are more resources, next_page_token should be set.
+		t.Run("more pages", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListSavedQueries(fx.Context(), &ListSavedQueriesRequest{
+				Parent:   parent,
+				PageSize: resourcesCount - 1,
+			})
+			assert.NilError(t, err)
+			assert.Check(t, response.NextPageToken != "")
+		})
+
+		// Listing resource one by one should eventually return all resources.
+		t.Run("one by one", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msgs := make([]*SavedQuery, 0, resourcesCount)
+			var nextPageToken string
+			for {
+				response, err := fx.Service().ListSavedQueries(fx.Context(), &ListSavedQueriesRequest{
+					Parent:    parent,
+					PageSize:  1,
+					PageToken: nextPageToken,
+				})
+				assert.NilError(t, err)
+				assert.Equal(t, 1, len(response.SavedQueries))
+				msgs = append(msgs, response.SavedQueries...)
+				nextPageToken = response.NextPageToken
+				if nextPageToken == "" {
+					break
+				}
+			}
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				msgs,
+				cmpopts.SortSlices(func(a, b *SavedQuery) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
+
+		// Method should not return deleted resources.
+		t.Run("deleted", func(t *testing.T) {
+			fx.maybeSkip(t)
+			const deleteCount = 5
+			for i := 0; i < deleteCount; i++ {
+				_, err := fx.Service().DeleteSavedQuery(fx.Context(), &DeleteSavedQueryRequest{
+					Name: parentMsgs[i].Name,
+				})
+				assert.NilError(t, err)
+			}
+			response, err := fx.Service().ListSavedQueries(fx.Context(), &ListSavedQueriesRequest{
+				Parent:   parent,
+				PageSize: 9999,
+			})
+			assert.NilError(t, err)
+			assert.DeepEqual(
+				t,
+				parentMsgs[deleteCount:],
+				response.SavedQueries,
+				cmpopts.SortSlices(func(a, b *SavedQuery) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
+
+	}
 }
 
 func (fx *DatasetServiceSavedQueryTestSuiteConfig) testDelete(t *testing.T) {

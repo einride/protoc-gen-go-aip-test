@@ -281,33 +281,35 @@ func (fx *TablesServiceRowTestSuiteConfig) testUpdate(t *testing.T) {
 		assert.DeepEqual(t, updated, persisted, protocmp.Transform())
 	})
 
-	parent := fx.nextParent(t, false)
-	created := fx.create(t, parent)
-	// Method should fail with NotFound if the resource does not exist.
-	t.Run("not found", func(t *testing.T) {
-		fx.maybeSkip(t)
-		msg := fx.Update(parent)
-		msg.Name = created.Name + "notfound"
-		_, err := fx.Service().UpdateRow(fx.Context(), &UpdateRowRequest{
-			Row: msg,
+	{
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		// Method should fail with NotFound if the resource does not exist.
+		t.Run("not found", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msg := fx.Update(parent)
+			msg.Name = created.Name + "notfound"
+			_, err := fx.Service().UpdateRow(fx.Context(), &UpdateRowRequest{
+				Row: msg,
+			})
+			assert.Equal(t, codes.NotFound, status.Code(err), err)
 		})
-		assert.Equal(t, codes.NotFound, status.Code(err), err)
-	})
 
-	// The method should fail with InvalidArgument if the update_mask is invalid.
-	t.Run("invalid update mask", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.Service().UpdateRow(fx.Context(), &UpdateRowRequest{
-			Row: created,
-			UpdateMask: &fieldmaskpb.FieldMask{
-				Paths: []string{
-					"invalid_field_xyz",
+		// The method should fail with InvalidArgument if the update_mask is invalid.
+		t.Run("invalid update mask", func(t *testing.T) {
+			fx.maybeSkip(t)
+			_, err := fx.Service().UpdateRow(fx.Context(), &UpdateRowRequest{
+				Row: created,
+				UpdateMask: &fieldmaskpb.FieldMask{
+					Paths: []string{
+						"invalid_field_xyz",
+					},
 				},
-			},
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
 
+	}
 }
 
 func (fx *TablesServiceRowTestSuiteConfig) testList(t *testing.T) {
@@ -343,111 +345,113 @@ func (fx *TablesServiceRowTestSuiteConfig) testList(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
-	const resourcesCount = 15
-	parent := fx.nextParent(t, true)
-	parentMsgs := make([]*Row, resourcesCount)
-	for i := 0; i < resourcesCount; i++ {
-		parentMsgs[i] = fx.create(t, parent)
-	}
+	{
+		const resourcesCount = 15
+		parent := fx.nextParent(t, true)
+		parentMsgs := make([]*Row, resourcesCount)
+		for i := 0; i < resourcesCount; i++ {
+			parentMsgs[i] = fx.create(t, parent)
+		}
 
-	// If parent is provided the method must only return resources
-	// under that parent.
-	t.Run("isolation", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListRows(fx.Context(), &ListRowsRequest{
-			Parent:   parent,
-			PageSize: 999,
-		})
-		assert.NilError(t, err)
-		assert.DeepEqual(
-			t,
-			parentMsgs,
-			response.Rows,
-			cmpopts.SortSlices(func(a, b *Row) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
-
-	// If there are no more resources, next_page_token should not be set.
-	t.Run("last page", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListRows(fx.Context(), &ListRowsRequest{
-			Parent:   parent,
-			PageSize: resourcesCount,
-		})
-		assert.NilError(t, err)
-		assert.Equal(t, "", response.NextPageToken)
-	})
-
-	// If there are more resources, next_page_token should be set.
-	t.Run("more pages", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListRows(fx.Context(), &ListRowsRequest{
-			Parent:   parent,
-			PageSize: resourcesCount - 1,
-		})
-		assert.NilError(t, err)
-		assert.Check(t, response.NextPageToken != "")
-	})
-
-	// Listing resource one by one should eventually return all resources.
-	t.Run("one by one", func(t *testing.T) {
-		fx.maybeSkip(t)
-		msgs := make([]*Row, 0, resourcesCount)
-		var nextPageToken string
-		for {
+		// If parent is provided the method must only return resources
+		// under that parent.
+		t.Run("isolation", func(t *testing.T) {
+			fx.maybeSkip(t)
 			response, err := fx.Service().ListRows(fx.Context(), &ListRowsRequest{
-				Parent:    parent,
-				PageSize:  1,
-				PageToken: nextPageToken,
+				Parent:   parent,
+				PageSize: 999,
 			})
 			assert.NilError(t, err)
-			assert.Equal(t, 1, len(response.Rows))
-			msgs = append(msgs, response.Rows...)
-			nextPageToken = response.NextPageToken
-			if nextPageToken == "" {
-				break
-			}
-		}
-		assert.DeepEqual(
-			t,
-			parentMsgs,
-			msgs,
-			cmpopts.SortSlices(func(a, b *Row) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
-
-	// Method should not return deleted resources.
-	t.Run("deleted", func(t *testing.T) {
-		fx.maybeSkip(t)
-		const deleteCount = 5
-		for i := 0; i < deleteCount; i++ {
-			_, err := fx.Service().DeleteRow(fx.Context(), &DeleteRowRequest{
-				Name: parentMsgs[i].Name,
-			})
-			assert.NilError(t, err)
-		}
-		response, err := fx.Service().ListRows(fx.Context(), &ListRowsRequest{
-			Parent:   parent,
-			PageSize: 9999,
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				response.Rows,
+				cmpopts.SortSlices(func(a, b *Row) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
 		})
-		assert.NilError(t, err)
-		assert.DeepEqual(
-			t,
-			parentMsgs[deleteCount:],
-			response.Rows,
-			cmpopts.SortSlices(func(a, b *Row) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
 
+		// If there are no more resources, next_page_token should not be set.
+		t.Run("last page", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListRows(fx.Context(), &ListRowsRequest{
+				Parent:   parent,
+				PageSize: resourcesCount,
+			})
+			assert.NilError(t, err)
+			assert.Equal(t, "", response.NextPageToken)
+		})
+
+		// If there are more resources, next_page_token should be set.
+		t.Run("more pages", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListRows(fx.Context(), &ListRowsRequest{
+				Parent:   parent,
+				PageSize: resourcesCount - 1,
+			})
+			assert.NilError(t, err)
+			assert.Check(t, response.NextPageToken != "")
+		})
+
+		// Listing resource one by one should eventually return all resources.
+		t.Run("one by one", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msgs := make([]*Row, 0, resourcesCount)
+			var nextPageToken string
+			for {
+				response, err := fx.Service().ListRows(fx.Context(), &ListRowsRequest{
+					Parent:    parent,
+					PageSize:  1,
+					PageToken: nextPageToken,
+				})
+				assert.NilError(t, err)
+				assert.Equal(t, 1, len(response.Rows))
+				msgs = append(msgs, response.Rows...)
+				nextPageToken = response.NextPageToken
+				if nextPageToken == "" {
+					break
+				}
+			}
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				msgs,
+				cmpopts.SortSlices(func(a, b *Row) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
+
+		// Method should not return deleted resources.
+		t.Run("deleted", func(t *testing.T) {
+			fx.maybeSkip(t)
+			const deleteCount = 5
+			for i := 0; i < deleteCount; i++ {
+				_, err := fx.Service().DeleteRow(fx.Context(), &DeleteRowRequest{
+					Name: parentMsgs[i].Name,
+				})
+				assert.NilError(t, err)
+			}
+			response, err := fx.Service().ListRows(fx.Context(), &ListRowsRequest{
+				Parent:   parent,
+				PageSize: 9999,
+			})
+			assert.NilError(t, err)
+			assert.DeepEqual(
+				t,
+				parentMsgs[deleteCount:],
+				response.Rows,
+				cmpopts.SortSlices(func(a, b *Row) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
+
+	}
 }
 
 func (fx *TablesServiceRowTestSuiteConfig) testDelete(t *testing.T) {
