@@ -226,6 +226,7 @@ Sample skips:
 | more pages         | If there are more resources, next_page_token should be set.                    | Generated only if all are true: <ul><li>resource has a parent</li><li>has List method</li><li>resource has a parent</li></ul>                           |
 | one by one         | Listing resource one by one should eventually return all resources.            | Generated only if all are true: <ul><li>resource has a parent</li><li>has List method</li><li>resource has a parent</li></ul>                           |
 | deleted            | Method should not return deleted resources.                                    | Generated only if all are true: <ul><li>resource has a parent</li><li>has List method</li><li>has Delete method</li><li>resource has a parent</li></ul> |
+| page size zero     | Listing resource with page size zero should eventually return all resources.   | Generated only if all are true: <ul><li>resource has a parent</li><li>has List method</li><li>resource has a parent</li></ul>                           |
 
 ### Search
 

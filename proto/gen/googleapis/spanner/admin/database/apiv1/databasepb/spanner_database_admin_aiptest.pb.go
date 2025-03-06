@@ -458,6 +458,44 @@ func (fx *DatabaseAdminBackupTestSuiteConfig) testList(t *testing.T) {
 		})
 
 	}
+	{
+		const resourcesCount = 101
+		parent := fx.nextParent(t, true)
+		parentMsgs := make([]*Backup, resourcesCount)
+		for i := 0; i < resourcesCount; i++ {
+			parentMsgs[i] = fx.create(t, parent)
+		}
+
+		// Listing resource with page size zero should eventually return all resources.
+		t.Run("page size zero", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msgs := make([]*Backup, 0, resourcesCount)
+			var nextPageToken string
+			for {
+				page, err := fx.Service().ListBackups(fx.Context(), &ListBackupsRequest{
+					Parent:    parent,
+					PageSize:  0,
+					PageToken: nextPageToken,
+				})
+				assert.NilError(t, err)
+				msgs = append(msgs, page.Backups...)
+				nextPageToken = page.NextPageToken
+				if nextPageToken == "" {
+					break
+				}
+			}
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				msgs,
+				cmpopts.SortSlices(func(a, b *Backup) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
+
+	}
 }
 
 func (fx *DatabaseAdminBackupTestSuiteConfig) testDelete(t *testing.T) {
@@ -847,6 +885,44 @@ func (fx *DatabaseAdminDatabaseTestSuiteConfig) testList(t *testing.T) {
 		})
 
 	}
+	{
+		const resourcesCount = 101
+		parent := fx.nextParent(t, true)
+		parentMsgs := make([]*Database, resourcesCount)
+		for i := 0; i < resourcesCount; i++ {
+			parentMsgs[i] = fx.create(t, parent)
+		}
+
+		// Listing resource with page size zero should eventually return all resources.
+		t.Run("page size zero", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msgs := make([]*Database, 0, resourcesCount)
+			var nextPageToken string
+			for {
+				page, err := fx.Service().ListDatabases(fx.Context(), &ListDatabasesRequest{
+					Parent:    parent,
+					PageSize:  0,
+					PageToken: nextPageToken,
+				})
+				assert.NilError(t, err)
+				msgs = append(msgs, page.Databases...)
+				nextPageToken = page.NextPageToken
+				if nextPageToken == "" {
+					break
+				}
+			}
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				msgs,
+				cmpopts.SortSlices(func(a, b *Database) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
+
+	}
 }
 
 func (fx *DatabaseAdminDatabaseTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
@@ -1014,6 +1090,44 @@ func (fx *DatabaseAdminDatabaseRoleTestSuiteConfig) testList(t *testing.T) {
 				assert.Equal(t, 1, len(response.DatabaseRoles))
 				msgs = append(msgs, response.DatabaseRoles...)
 				nextPageToken = response.NextPageToken
+				if nextPageToken == "" {
+					break
+				}
+			}
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				msgs,
+				cmpopts.SortSlices(func(a, b *DatabaseRole) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
+
+	}
+	{
+		const resourcesCount = 101
+		parent := fx.nextParent(t, true)
+		parentMsgs := make([]*DatabaseRole, resourcesCount)
+		for i := 0; i < resourcesCount; i++ {
+			parentMsgs[i] = fx.create(t, parent)
+		}
+
+		// Listing resource with page size zero should eventually return all resources.
+		t.Run("page size zero", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msgs := make([]*DatabaseRole, 0, resourcesCount)
+			var nextPageToken string
+			for {
+				page, err := fx.Service().ListDatabaseRoles(fx.Context(), &ListDatabaseRolesRequest{
+					Parent:    parent,
+					PageSize:  0,
+					PageToken: nextPageToken,
+				})
+				assert.NilError(t, err)
+				msgs = append(msgs, page.DatabaseRoles...)
+				nextPageToken = page.NextPageToken
 				if nextPageToken == "" {
 					break
 				}

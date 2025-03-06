@@ -650,6 +650,44 @@ func (fx *InstanceAdminInstanceTestSuiteConfig) testList(t *testing.T) {
 		})
 
 	}
+	{
+		const resourcesCount = 101
+		parent := fx.nextParent(t, true)
+		parentMsgs := make([]*Instance, resourcesCount)
+		for i := 0; i < resourcesCount; i++ {
+			parentMsgs[i] = fx.create(t, parent)
+		}
+
+		// Listing resource with page size zero should eventually return all resources.
+		t.Run("page size zero", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msgs := make([]*Instance, 0, resourcesCount)
+			var nextPageToken string
+			for {
+				page, err := fx.Service().ListInstances(fx.Context(), &ListInstancesRequest{
+					Parent:    parent,
+					PageSize:  0,
+					PageToken: nextPageToken,
+				})
+				assert.NilError(t, err)
+				msgs = append(msgs, page.Instances...)
+				nextPageToken = page.NextPageToken
+				if nextPageToken == "" {
+					break
+				}
+			}
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				msgs,
+				cmpopts.SortSlices(func(a, b *Instance) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
+
+	}
 }
 
 func (fx *InstanceAdminInstanceTestSuiteConfig) testDelete(t *testing.T) {
@@ -1103,6 +1141,44 @@ func (fx *InstanceAdminInstanceConfigTestSuiteConfig) testList(t *testing.T) {
 				t,
 				parentMsgs[deleteCount:],
 				response.InstanceConfigs,
+				cmpopts.SortSlices(func(a, b *InstanceConfig) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
+
+	}
+	{
+		const resourcesCount = 101
+		parent := fx.nextParent(t, true)
+		parentMsgs := make([]*InstanceConfig, resourcesCount)
+		for i := 0; i < resourcesCount; i++ {
+			parentMsgs[i] = fx.create(t, parent)
+		}
+
+		// Listing resource with page size zero should eventually return all resources.
+		t.Run("page size zero", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msgs := make([]*InstanceConfig, 0, resourcesCount)
+			var nextPageToken string
+			for {
+				page, err := fx.Service().ListInstanceConfigs(fx.Context(), &ListInstanceConfigsRequest{
+					Parent:    parent,
+					PageSize:  0,
+					PageToken: nextPageToken,
+				})
+				assert.NilError(t, err)
+				msgs = append(msgs, page.InstanceConfigs...)
+				nextPageToken = page.NextPageToken
+				if nextPageToken == "" {
+					break
+				}
+			}
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				msgs,
 				cmpopts.SortSlices(func(a, b *InstanceConfig) bool {
 					return a.Name < b.Name
 				}),
@@ -1664,6 +1740,44 @@ func (fx *InstanceAdminInstancePartitionTestSuiteConfig) testList(t *testing.T) 
 				t,
 				parentMsgs[deleteCount:],
 				response.InstancePartitions,
+				cmpopts.SortSlices(func(a, b *InstancePartition) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
+
+	}
+	{
+		const resourcesCount = 101
+		parent := fx.nextParent(t, true)
+		parentMsgs := make([]*InstancePartition, resourcesCount)
+		for i := 0; i < resourcesCount; i++ {
+			parentMsgs[i] = fx.create(t, parent)
+		}
+
+		// Listing resource with page size zero should eventually return all resources.
+		t.Run("page size zero", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msgs := make([]*InstancePartition, 0, resourcesCount)
+			var nextPageToken string
+			for {
+				page, err := fx.Service().ListInstancePartitions(fx.Context(), &ListInstancePartitionsRequest{
+					Parent:    parent,
+					PageSize:  0,
+					PageToken: nextPageToken,
+				})
+				assert.NilError(t, err)
+				msgs = append(msgs, page.InstancePartitions...)
+				nextPageToken = page.NextPageToken
+				if nextPageToken == "" {
+					break
+				}
+			}
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				msgs,
 				cmpopts.SortSlices(func(a, b *InstancePartition) bool {
 					return a.Name < b.Name
 				}),

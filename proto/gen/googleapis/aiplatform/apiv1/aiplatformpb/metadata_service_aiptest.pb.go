@@ -575,6 +575,44 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testList(t *testing.T) {
 		})
 
 	}
+	{
+		const resourcesCount = 101
+		parent := fx.nextParent(t, true)
+		parentMsgs := make([]*Artifact, resourcesCount)
+		for i := 0; i < resourcesCount; i++ {
+			parentMsgs[i] = fx.create(t, parent)
+		}
+
+		// Listing resource with page size zero should eventually return all resources.
+		t.Run("page size zero", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msgs := make([]*Artifact, 0, resourcesCount)
+			var nextPageToken string
+			for {
+				page, err := fx.Service().ListArtifacts(fx.Context(), &ListArtifactsRequest{
+					Parent:    parent,
+					PageSize:  0,
+					PageToken: nextPageToken,
+				})
+				assert.NilError(t, err)
+				msgs = append(msgs, page.Artifacts...)
+				nextPageToken = page.NextPageToken
+				if nextPageToken == "" {
+					break
+				}
+			}
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				msgs,
+				cmpopts.SortSlices(func(a, b *Artifact) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
+
+	}
 }
 
 func (fx *MetadataServiceArtifactTestSuiteConfig) testDelete(t *testing.T) {
@@ -1096,6 +1134,44 @@ func (fx *MetadataServiceContextTestSuiteConfig) testList(t *testing.T) {
 				t,
 				parentMsgs[deleteCount:],
 				response.Contexts,
+				cmpopts.SortSlices(func(a, b *Context) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
+
+	}
+	{
+		const resourcesCount = 101
+		parent := fx.nextParent(t, true)
+		parentMsgs := make([]*Context, resourcesCount)
+		for i := 0; i < resourcesCount; i++ {
+			parentMsgs[i] = fx.create(t, parent)
+		}
+
+		// Listing resource with page size zero should eventually return all resources.
+		t.Run("page size zero", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msgs := make([]*Context, 0, resourcesCount)
+			var nextPageToken string
+			for {
+				page, err := fx.Service().ListContexts(fx.Context(), &ListContextsRequest{
+					Parent:    parent,
+					PageSize:  0,
+					PageToken: nextPageToken,
+				})
+				assert.NilError(t, err)
+				msgs = append(msgs, page.Contexts...)
+				nextPageToken = page.NextPageToken
+				if nextPageToken == "" {
+					break
+				}
+			}
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				msgs,
 				cmpopts.SortSlices(func(a, b *Context) bool {
 					return a.Name < b.Name
 				}),
@@ -1633,6 +1709,44 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testList(t *testing.T) {
 		})
 
 	}
+	{
+		const resourcesCount = 101
+		parent := fx.nextParent(t, true)
+		parentMsgs := make([]*Execution, resourcesCount)
+		for i := 0; i < resourcesCount; i++ {
+			parentMsgs[i] = fx.create(t, parent)
+		}
+
+		// Listing resource with page size zero should eventually return all resources.
+		t.Run("page size zero", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msgs := make([]*Execution, 0, resourcesCount)
+			var nextPageToken string
+			for {
+				page, err := fx.Service().ListExecutions(fx.Context(), &ListExecutionsRequest{
+					Parent:    parent,
+					PageSize:  0,
+					PageToken: nextPageToken,
+				})
+				assert.NilError(t, err)
+				msgs = append(msgs, page.Executions...)
+				nextPageToken = page.NextPageToken
+				if nextPageToken == "" {
+					break
+				}
+			}
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				msgs,
+				cmpopts.SortSlices(func(a, b *Execution) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
+
+	}
 }
 
 func (fx *MetadataServiceExecutionTestSuiteConfig) testDelete(t *testing.T) {
@@ -2027,6 +2141,44 @@ func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) testList(t *testing.T) {
 		})
 
 	}
+	{
+		const resourcesCount = 101
+		parent := fx.nextParent(t, true)
+		parentMsgs := make([]*MetadataSchema, resourcesCount)
+		for i := 0; i < resourcesCount; i++ {
+			parentMsgs[i] = fx.create(t, parent)
+		}
+
+		// Listing resource with page size zero should eventually return all resources.
+		t.Run("page size zero", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msgs := make([]*MetadataSchema, 0, resourcesCount)
+			var nextPageToken string
+			for {
+				page, err := fx.Service().ListMetadataSchemas(fx.Context(), &ListMetadataSchemasRequest{
+					Parent:    parent,
+					PageSize:  0,
+					PageToken: nextPageToken,
+				})
+				assert.NilError(t, err)
+				msgs = append(msgs, page.MetadataSchemas...)
+				nextPageToken = page.NextPageToken
+				if nextPageToken == "" {
+					break
+				}
+			}
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				msgs,
+				cmpopts.SortSlices(func(a, b *MetadataSchema) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
+
+	}
 }
 
 func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
@@ -2328,6 +2480,44 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testList(t *testing.T) {
 				t,
 				parentMsgs[deleteCount:],
 				response.MetadataStores,
+				cmpopts.SortSlices(func(a, b *MetadataStore) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
+
+	}
+	{
+		const resourcesCount = 101
+		parent := fx.nextParent(t, true)
+		parentMsgs := make([]*MetadataStore, resourcesCount)
+		for i := 0; i < resourcesCount; i++ {
+			parentMsgs[i] = fx.create(t, parent)
+		}
+
+		// Listing resource with page size zero should eventually return all resources.
+		t.Run("page size zero", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msgs := make([]*MetadataStore, 0, resourcesCount)
+			var nextPageToken string
+			for {
+				page, err := fx.Service().ListMetadataStores(fx.Context(), &ListMetadataStoresRequest{
+					Parent:    parent,
+					PageSize:  0,
+					PageToken: nextPageToken,
+				})
+				assert.NilError(t, err)
+				msgs = append(msgs, page.MetadataStores...)
+				nextPageToken = page.NextPageToken
+				if nextPageToken == "" {
+					break
+				}
+			}
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				msgs,
 				cmpopts.SortSlices(func(a, b *MetadataStore) bool {
 					return a.Name < b.Name
 				}),

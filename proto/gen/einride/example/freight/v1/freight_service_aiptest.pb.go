@@ -1558,6 +1558,44 @@ func (fx *FreightServiceSiteTestSuiteConfig) testList(t *testing.T) {
 		})
 
 	}
+	{
+		const resourcesCount = 101
+		parent := fx.nextParent(t, true)
+		parentMsgs := make([]*Site, resourcesCount)
+		for i := 0; i < resourcesCount; i++ {
+			parentMsgs[i] = fx.create(t, parent)
+		}
+
+		// Listing resource with page size zero should eventually return all resources.
+		t.Run("page size zero", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msgs := make([]*Site, 0, resourcesCount)
+			var nextPageToken string
+			for {
+				page, err := fx.Service().ListSites(fx.Context(), &ListSitesRequest{
+					Parent:    parent,
+					PageSize:  0,
+					PageToken: nextPageToken,
+				})
+				assert.NilError(t, err)
+				msgs = append(msgs, page.Sites...)
+				nextPageToken = page.NextPageToken
+				if nextPageToken == "" {
+					break
+				}
+			}
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				msgs,
+				cmpopts.SortSlices(func(a, b *Site) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
+
+	}
 }
 
 func (fx *FreightServiceSiteTestSuiteConfig) testDelete(t *testing.T) {

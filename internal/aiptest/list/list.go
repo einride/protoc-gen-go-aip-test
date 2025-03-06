@@ -19,6 +19,7 @@ var Suite = suite.Suite{
 	},
 	TestGroups: []suite.TestGroup{
 		withResourcesGroup,
+		withBigResourcesGroup,
 	},
 }
 
@@ -43,5 +44,25 @@ var withResourcesGroup = suite.TestGroup{
 		morePages,
 		oneByOne,
 		deleted,
+	},
+}
+
+//nolint:gochecknoglobals
+var withBigResourcesGroup = suite.TestGroup{
+	OnlyIf: suite.OnlyIfs(
+		onlyif.HasParent,
+	),
+	GenerateBefore: func(f *protogen.GeneratedFile, scope suite.Scope) error {
+		f.P("const resourcesCount = 101")
+		f.P("parent := ", ident.FixtureNextParent, "(t, true)")
+		f.P("parentMsgs := make([]*", scope.Message.GoIdent, ", resourcesCount)")
+		f.P("for i := 0; i < resourcesCount; i++ {")
+		f.P("parentMsgs[i] = fx.create(t, parent)")
+		f.P("}")
+		f.P()
+		return nil
+	},
+	Tests: []suite.Test{
+		pageSizeZero,
 	},
 }

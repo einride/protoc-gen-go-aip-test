@@ -433,6 +433,44 @@ func (fx *VizierServiceStudyTestSuiteConfig) testList(t *testing.T) {
 		})
 
 	}
+	{
+		const resourcesCount = 101
+		parent := fx.nextParent(t, true)
+		parentMsgs := make([]*Study, resourcesCount)
+		for i := 0; i < resourcesCount; i++ {
+			parentMsgs[i] = fx.create(t, parent)
+		}
+
+		// Listing resource with page size zero should eventually return all resources.
+		t.Run("page size zero", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msgs := make([]*Study, 0, resourcesCount)
+			var nextPageToken string
+			for {
+				page, err := fx.Service().ListStudies(fx.Context(), &ListStudiesRequest{
+					Parent:    parent,
+					PageSize:  0,
+					PageToken: nextPageToken,
+				})
+				assert.NilError(t, err)
+				msgs = append(msgs, page.Studies...)
+				nextPageToken = page.NextPageToken
+				if nextPageToken == "" {
+					break
+				}
+			}
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				msgs,
+				cmpopts.SortSlices(func(a, b *Study) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
+
+	}
 }
 
 func (fx *VizierServiceStudyTestSuiteConfig) testDelete(t *testing.T) {
@@ -797,6 +835,44 @@ func (fx *VizierServiceTrialTestSuiteConfig) testList(t *testing.T) {
 				t,
 				parentMsgs[deleteCount:],
 				response.Trials,
+				cmpopts.SortSlices(func(a, b *Trial) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
+
+	}
+	{
+		const resourcesCount = 101
+		parent := fx.nextParent(t, true)
+		parentMsgs := make([]*Trial, resourcesCount)
+		for i := 0; i < resourcesCount; i++ {
+			parentMsgs[i] = fx.create(t, parent)
+		}
+
+		// Listing resource with page size zero should eventually return all resources.
+		t.Run("page size zero", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msgs := make([]*Trial, 0, resourcesCount)
+			var nextPageToken string
+			for {
+				page, err := fx.Service().ListTrials(fx.Context(), &ListTrialsRequest{
+					Parent:    parent,
+					PageSize:  0,
+					PageToken: nextPageToken,
+				})
+				assert.NilError(t, err)
+				msgs = append(msgs, page.Trials...)
+				nextPageToken = page.NextPageToken
+				if nextPageToken == "" {
+					break
+				}
+			}
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				msgs,
 				cmpopts.SortSlices(func(a, b *Trial) bool {
 					return a.Name < b.Name
 				}),
