@@ -404,33 +404,35 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testUpdate(t *testing.T) {
 		assert.Check(t, updated.Etag != created.Etag)
 	})
 
-	parent := fx.nextParent(t, false)
-	created := fx.create(t, parent)
-	// Method should fail with NotFound if the resource does not exist.
-	t.Run("not found", func(t *testing.T) {
-		fx.maybeSkip(t)
-		msg := fx.Update(parent)
-		msg.Name = created.Name + "notfound"
-		_, err := fx.Service().UpdateArtifact(fx.Context(), &UpdateArtifactRequest{
-			Artifact: msg,
+	{
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		// Method should fail with NotFound if the resource does not exist.
+		t.Run("not found", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msg := fx.Update(parent)
+			msg.Name = created.Name + "notfound"
+			_, err := fx.Service().UpdateArtifact(fx.Context(), &UpdateArtifactRequest{
+				Artifact: msg,
+			})
+			assert.Equal(t, codes.NotFound, status.Code(err), err)
 		})
-		assert.Equal(t, codes.NotFound, status.Code(err), err)
-	})
 
-	// The method should fail with InvalidArgument if the update_mask is invalid.
-	t.Run("invalid update mask", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.Service().UpdateArtifact(fx.Context(), &UpdateArtifactRequest{
-			Artifact: created,
-			UpdateMask: &fieldmaskpb.FieldMask{
-				Paths: []string{
-					"invalid_field_xyz",
+		// The method should fail with InvalidArgument if the update_mask is invalid.
+		t.Run("invalid update mask", func(t *testing.T) {
+			fx.maybeSkip(t)
+			_, err := fx.Service().UpdateArtifact(fx.Context(), &UpdateArtifactRequest{
+				Artifact: created,
+				UpdateMask: &fieldmaskpb.FieldMask{
+					Paths: []string{
+						"invalid_field_xyz",
+					},
 				},
-			},
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
 
+	}
 }
 
 func (fx *MetadataServiceArtifactTestSuiteConfig) testList(t *testing.T) {
@@ -466,111 +468,113 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testList(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
-	const resourcesCount = 15
-	parent := fx.nextParent(t, true)
-	parentMsgs := make([]*Artifact, resourcesCount)
-	for i := 0; i < resourcesCount; i++ {
-		parentMsgs[i] = fx.create(t, parent)
-	}
+	{
+		const resourcesCount = 15
+		parent := fx.nextParent(t, true)
+		parentMsgs := make([]*Artifact, resourcesCount)
+		for i := 0; i < resourcesCount; i++ {
+			parentMsgs[i] = fx.create(t, parent)
+		}
 
-	// If parent is provided the method must only return resources
-	// under that parent.
-	t.Run("isolation", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListArtifacts(fx.Context(), &ListArtifactsRequest{
-			Parent:   parent,
-			PageSize: 999,
-		})
-		assert.NilError(t, err)
-		assert.DeepEqual(
-			t,
-			parentMsgs,
-			response.Artifacts,
-			cmpopts.SortSlices(func(a, b *Artifact) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
-
-	// If there are no more resources, next_page_token should not be set.
-	t.Run("last page", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListArtifacts(fx.Context(), &ListArtifactsRequest{
-			Parent:   parent,
-			PageSize: resourcesCount,
-		})
-		assert.NilError(t, err)
-		assert.Equal(t, "", response.NextPageToken)
-	})
-
-	// If there are more resources, next_page_token should be set.
-	t.Run("more pages", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListArtifacts(fx.Context(), &ListArtifactsRequest{
-			Parent:   parent,
-			PageSize: resourcesCount - 1,
-		})
-		assert.NilError(t, err)
-		assert.Check(t, response.NextPageToken != "")
-	})
-
-	// Listing resource one by one should eventually return all resources.
-	t.Run("one by one", func(t *testing.T) {
-		fx.maybeSkip(t)
-		msgs := make([]*Artifact, 0, resourcesCount)
-		var nextPageToken string
-		for {
+		// If parent is provided the method must only return resources
+		// under that parent.
+		t.Run("isolation", func(t *testing.T) {
+			fx.maybeSkip(t)
 			response, err := fx.Service().ListArtifacts(fx.Context(), &ListArtifactsRequest{
-				Parent:    parent,
-				PageSize:  1,
-				PageToken: nextPageToken,
+				Parent:   parent,
+				PageSize: 999,
 			})
 			assert.NilError(t, err)
-			assert.Equal(t, 1, len(response.Artifacts))
-			msgs = append(msgs, response.Artifacts...)
-			nextPageToken = response.NextPageToken
-			if nextPageToken == "" {
-				break
-			}
-		}
-		assert.DeepEqual(
-			t,
-			parentMsgs,
-			msgs,
-			cmpopts.SortSlices(func(a, b *Artifact) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
-
-	// Method should not return deleted resources.
-	t.Run("deleted", func(t *testing.T) {
-		fx.maybeSkip(t)
-		const deleteCount = 5
-		for i := 0; i < deleteCount; i++ {
-			_, err := fx.Service().DeleteArtifact(fx.Context(), &DeleteArtifactRequest{
-				Name: parentMsgs[i].Name,
-			})
-			assert.NilError(t, err)
-		}
-		response, err := fx.Service().ListArtifacts(fx.Context(), &ListArtifactsRequest{
-			Parent:   parent,
-			PageSize: 9999,
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				response.Artifacts,
+				cmpopts.SortSlices(func(a, b *Artifact) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
 		})
-		assert.NilError(t, err)
-		assert.DeepEqual(
-			t,
-			parentMsgs[deleteCount:],
-			response.Artifacts,
-			cmpopts.SortSlices(func(a, b *Artifact) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
 
+		// If there are no more resources, next_page_token should not be set.
+		t.Run("last page", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListArtifacts(fx.Context(), &ListArtifactsRequest{
+				Parent:   parent,
+				PageSize: resourcesCount,
+			})
+			assert.NilError(t, err)
+			assert.Equal(t, "", response.NextPageToken)
+		})
+
+		// If there are more resources, next_page_token should be set.
+		t.Run("more pages", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListArtifacts(fx.Context(), &ListArtifactsRequest{
+				Parent:   parent,
+				PageSize: resourcesCount - 1,
+			})
+			assert.NilError(t, err)
+			assert.Check(t, response.NextPageToken != "")
+		})
+
+		// Listing resource one by one should eventually return all resources.
+		t.Run("one by one", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msgs := make([]*Artifact, 0, resourcesCount)
+			var nextPageToken string
+			for {
+				response, err := fx.Service().ListArtifacts(fx.Context(), &ListArtifactsRequest{
+					Parent:    parent,
+					PageSize:  1,
+					PageToken: nextPageToken,
+				})
+				assert.NilError(t, err)
+				assert.Equal(t, 1, len(response.Artifacts))
+				msgs = append(msgs, response.Artifacts...)
+				nextPageToken = response.NextPageToken
+				if nextPageToken == "" {
+					break
+				}
+			}
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				msgs,
+				cmpopts.SortSlices(func(a, b *Artifact) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
+
+		// Method should not return deleted resources.
+		t.Run("deleted", func(t *testing.T) {
+			fx.maybeSkip(t)
+			const deleteCount = 5
+			for i := 0; i < deleteCount; i++ {
+				_, err := fx.Service().DeleteArtifact(fx.Context(), &DeleteArtifactRequest{
+					Name: parentMsgs[i].Name,
+				})
+				assert.NilError(t, err)
+			}
+			response, err := fx.Service().ListArtifacts(fx.Context(), &ListArtifactsRequest{
+				Parent:   parent,
+				PageSize: 9999,
+			})
+			assert.NilError(t, err)
+			assert.DeepEqual(
+				t,
+				parentMsgs[deleteCount:],
+				response.Artifacts,
+				cmpopts.SortSlices(func(a, b *Artifact) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
+
+	}
 }
 
 func (fx *MetadataServiceArtifactTestSuiteConfig) testDelete(t *testing.T) {
@@ -929,33 +933,35 @@ func (fx *MetadataServiceContextTestSuiteConfig) testUpdate(t *testing.T) {
 		assert.Check(t, updated.Etag != created.Etag)
 	})
 
-	parent := fx.nextParent(t, false)
-	created := fx.create(t, parent)
-	// Method should fail with NotFound if the resource does not exist.
-	t.Run("not found", func(t *testing.T) {
-		fx.maybeSkip(t)
-		msg := fx.Update(parent)
-		msg.Name = created.Name + "notfound"
-		_, err := fx.Service().UpdateContext(fx.Context(), &UpdateContextRequest{
-			Context: msg,
+	{
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		// Method should fail with NotFound if the resource does not exist.
+		t.Run("not found", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msg := fx.Update(parent)
+			msg.Name = created.Name + "notfound"
+			_, err := fx.Service().UpdateContext(fx.Context(), &UpdateContextRequest{
+				Context: msg,
+			})
+			assert.Equal(t, codes.NotFound, status.Code(err), err)
 		})
-		assert.Equal(t, codes.NotFound, status.Code(err), err)
-	})
 
-	// The method should fail with InvalidArgument if the update_mask is invalid.
-	t.Run("invalid update mask", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.Service().UpdateContext(fx.Context(), &UpdateContextRequest{
-			Context: created,
-			UpdateMask: &fieldmaskpb.FieldMask{
-				Paths: []string{
-					"invalid_field_xyz",
+		// The method should fail with InvalidArgument if the update_mask is invalid.
+		t.Run("invalid update mask", func(t *testing.T) {
+			fx.maybeSkip(t)
+			_, err := fx.Service().UpdateContext(fx.Context(), &UpdateContextRequest{
+				Context: created,
+				UpdateMask: &fieldmaskpb.FieldMask{
+					Paths: []string{
+						"invalid_field_xyz",
+					},
 				},
-			},
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
 
+	}
 }
 
 func (fx *MetadataServiceContextTestSuiteConfig) testList(t *testing.T) {
@@ -991,111 +997,113 @@ func (fx *MetadataServiceContextTestSuiteConfig) testList(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
-	const resourcesCount = 15
-	parent := fx.nextParent(t, true)
-	parentMsgs := make([]*Context, resourcesCount)
-	for i := 0; i < resourcesCount; i++ {
-		parentMsgs[i] = fx.create(t, parent)
-	}
+	{
+		const resourcesCount = 15
+		parent := fx.nextParent(t, true)
+		parentMsgs := make([]*Context, resourcesCount)
+		for i := 0; i < resourcesCount; i++ {
+			parentMsgs[i] = fx.create(t, parent)
+		}
 
-	// If parent is provided the method must only return resources
-	// under that parent.
-	t.Run("isolation", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListContexts(fx.Context(), &ListContextsRequest{
-			Parent:   parent,
-			PageSize: 999,
-		})
-		assert.NilError(t, err)
-		assert.DeepEqual(
-			t,
-			parentMsgs,
-			response.Contexts,
-			cmpopts.SortSlices(func(a, b *Context) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
-
-	// If there are no more resources, next_page_token should not be set.
-	t.Run("last page", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListContexts(fx.Context(), &ListContextsRequest{
-			Parent:   parent,
-			PageSize: resourcesCount,
-		})
-		assert.NilError(t, err)
-		assert.Equal(t, "", response.NextPageToken)
-	})
-
-	// If there are more resources, next_page_token should be set.
-	t.Run("more pages", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListContexts(fx.Context(), &ListContextsRequest{
-			Parent:   parent,
-			PageSize: resourcesCount - 1,
-		})
-		assert.NilError(t, err)
-		assert.Check(t, response.NextPageToken != "")
-	})
-
-	// Listing resource one by one should eventually return all resources.
-	t.Run("one by one", func(t *testing.T) {
-		fx.maybeSkip(t)
-		msgs := make([]*Context, 0, resourcesCount)
-		var nextPageToken string
-		for {
+		// If parent is provided the method must only return resources
+		// under that parent.
+		t.Run("isolation", func(t *testing.T) {
+			fx.maybeSkip(t)
 			response, err := fx.Service().ListContexts(fx.Context(), &ListContextsRequest{
-				Parent:    parent,
-				PageSize:  1,
-				PageToken: nextPageToken,
+				Parent:   parent,
+				PageSize: 999,
 			})
 			assert.NilError(t, err)
-			assert.Equal(t, 1, len(response.Contexts))
-			msgs = append(msgs, response.Contexts...)
-			nextPageToken = response.NextPageToken
-			if nextPageToken == "" {
-				break
-			}
-		}
-		assert.DeepEqual(
-			t,
-			parentMsgs,
-			msgs,
-			cmpopts.SortSlices(func(a, b *Context) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
-
-	// Method should not return deleted resources.
-	t.Run("deleted", func(t *testing.T) {
-		fx.maybeSkip(t)
-		const deleteCount = 5
-		for i := 0; i < deleteCount; i++ {
-			_, err := fx.Service().DeleteContext(fx.Context(), &DeleteContextRequest{
-				Name: parentMsgs[i].Name,
-			})
-			assert.NilError(t, err)
-		}
-		response, err := fx.Service().ListContexts(fx.Context(), &ListContextsRequest{
-			Parent:   parent,
-			PageSize: 9999,
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				response.Contexts,
+				cmpopts.SortSlices(func(a, b *Context) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
 		})
-		assert.NilError(t, err)
-		assert.DeepEqual(
-			t,
-			parentMsgs[deleteCount:],
-			response.Contexts,
-			cmpopts.SortSlices(func(a, b *Context) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
 
+		// If there are no more resources, next_page_token should not be set.
+		t.Run("last page", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListContexts(fx.Context(), &ListContextsRequest{
+				Parent:   parent,
+				PageSize: resourcesCount,
+			})
+			assert.NilError(t, err)
+			assert.Equal(t, "", response.NextPageToken)
+		})
+
+		// If there are more resources, next_page_token should be set.
+		t.Run("more pages", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListContexts(fx.Context(), &ListContextsRequest{
+				Parent:   parent,
+				PageSize: resourcesCount - 1,
+			})
+			assert.NilError(t, err)
+			assert.Check(t, response.NextPageToken != "")
+		})
+
+		// Listing resource one by one should eventually return all resources.
+		t.Run("one by one", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msgs := make([]*Context, 0, resourcesCount)
+			var nextPageToken string
+			for {
+				response, err := fx.Service().ListContexts(fx.Context(), &ListContextsRequest{
+					Parent:    parent,
+					PageSize:  1,
+					PageToken: nextPageToken,
+				})
+				assert.NilError(t, err)
+				assert.Equal(t, 1, len(response.Contexts))
+				msgs = append(msgs, response.Contexts...)
+				nextPageToken = response.NextPageToken
+				if nextPageToken == "" {
+					break
+				}
+			}
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				msgs,
+				cmpopts.SortSlices(func(a, b *Context) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
+
+		// Method should not return deleted resources.
+		t.Run("deleted", func(t *testing.T) {
+			fx.maybeSkip(t)
+			const deleteCount = 5
+			for i := 0; i < deleteCount; i++ {
+				_, err := fx.Service().DeleteContext(fx.Context(), &DeleteContextRequest{
+					Name: parentMsgs[i].Name,
+				})
+				assert.NilError(t, err)
+			}
+			response, err := fx.Service().ListContexts(fx.Context(), &ListContextsRequest{
+				Parent:   parent,
+				PageSize: 9999,
+			})
+			assert.NilError(t, err)
+			assert.DeepEqual(
+				t,
+				parentMsgs[deleteCount:],
+				response.Contexts,
+				cmpopts.SortSlices(func(a, b *Context) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
+
+	}
 }
 
 func (fx *MetadataServiceContextTestSuiteConfig) testDelete(t *testing.T) {
@@ -1454,33 +1462,35 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testUpdate(t *testing.T) {
 		assert.Check(t, updated.Etag != created.Etag)
 	})
 
-	parent := fx.nextParent(t, false)
-	created := fx.create(t, parent)
-	// Method should fail with NotFound if the resource does not exist.
-	t.Run("not found", func(t *testing.T) {
-		fx.maybeSkip(t)
-		msg := fx.Update(parent)
-		msg.Name = created.Name + "notfound"
-		_, err := fx.Service().UpdateExecution(fx.Context(), &UpdateExecutionRequest{
-			Execution: msg,
+	{
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		// Method should fail with NotFound if the resource does not exist.
+		t.Run("not found", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msg := fx.Update(parent)
+			msg.Name = created.Name + "notfound"
+			_, err := fx.Service().UpdateExecution(fx.Context(), &UpdateExecutionRequest{
+				Execution: msg,
+			})
+			assert.Equal(t, codes.NotFound, status.Code(err), err)
 		})
-		assert.Equal(t, codes.NotFound, status.Code(err), err)
-	})
 
-	// The method should fail with InvalidArgument if the update_mask is invalid.
-	t.Run("invalid update mask", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.Service().UpdateExecution(fx.Context(), &UpdateExecutionRequest{
-			Execution: created,
-			UpdateMask: &fieldmaskpb.FieldMask{
-				Paths: []string{
-					"invalid_field_xyz",
+		// The method should fail with InvalidArgument if the update_mask is invalid.
+		t.Run("invalid update mask", func(t *testing.T) {
+			fx.maybeSkip(t)
+			_, err := fx.Service().UpdateExecution(fx.Context(), &UpdateExecutionRequest{
+				Execution: created,
+				UpdateMask: &fieldmaskpb.FieldMask{
+					Paths: []string{
+						"invalid_field_xyz",
+					},
 				},
-			},
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
 
+	}
 }
 
 func (fx *MetadataServiceExecutionTestSuiteConfig) testList(t *testing.T) {
@@ -1516,111 +1526,113 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testList(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
-	const resourcesCount = 15
-	parent := fx.nextParent(t, true)
-	parentMsgs := make([]*Execution, resourcesCount)
-	for i := 0; i < resourcesCount; i++ {
-		parentMsgs[i] = fx.create(t, parent)
-	}
+	{
+		const resourcesCount = 15
+		parent := fx.nextParent(t, true)
+		parentMsgs := make([]*Execution, resourcesCount)
+		for i := 0; i < resourcesCount; i++ {
+			parentMsgs[i] = fx.create(t, parent)
+		}
 
-	// If parent is provided the method must only return resources
-	// under that parent.
-	t.Run("isolation", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListExecutions(fx.Context(), &ListExecutionsRequest{
-			Parent:   parent,
-			PageSize: 999,
-		})
-		assert.NilError(t, err)
-		assert.DeepEqual(
-			t,
-			parentMsgs,
-			response.Executions,
-			cmpopts.SortSlices(func(a, b *Execution) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
-
-	// If there are no more resources, next_page_token should not be set.
-	t.Run("last page", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListExecutions(fx.Context(), &ListExecutionsRequest{
-			Parent:   parent,
-			PageSize: resourcesCount,
-		})
-		assert.NilError(t, err)
-		assert.Equal(t, "", response.NextPageToken)
-	})
-
-	// If there are more resources, next_page_token should be set.
-	t.Run("more pages", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListExecutions(fx.Context(), &ListExecutionsRequest{
-			Parent:   parent,
-			PageSize: resourcesCount - 1,
-		})
-		assert.NilError(t, err)
-		assert.Check(t, response.NextPageToken != "")
-	})
-
-	// Listing resource one by one should eventually return all resources.
-	t.Run("one by one", func(t *testing.T) {
-		fx.maybeSkip(t)
-		msgs := make([]*Execution, 0, resourcesCount)
-		var nextPageToken string
-		for {
+		// If parent is provided the method must only return resources
+		// under that parent.
+		t.Run("isolation", func(t *testing.T) {
+			fx.maybeSkip(t)
 			response, err := fx.Service().ListExecutions(fx.Context(), &ListExecutionsRequest{
-				Parent:    parent,
-				PageSize:  1,
-				PageToken: nextPageToken,
+				Parent:   parent,
+				PageSize: 999,
 			})
 			assert.NilError(t, err)
-			assert.Equal(t, 1, len(response.Executions))
-			msgs = append(msgs, response.Executions...)
-			nextPageToken = response.NextPageToken
-			if nextPageToken == "" {
-				break
-			}
-		}
-		assert.DeepEqual(
-			t,
-			parentMsgs,
-			msgs,
-			cmpopts.SortSlices(func(a, b *Execution) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
-
-	// Method should not return deleted resources.
-	t.Run("deleted", func(t *testing.T) {
-		fx.maybeSkip(t)
-		const deleteCount = 5
-		for i := 0; i < deleteCount; i++ {
-			_, err := fx.Service().DeleteExecution(fx.Context(), &DeleteExecutionRequest{
-				Name: parentMsgs[i].Name,
-			})
-			assert.NilError(t, err)
-		}
-		response, err := fx.Service().ListExecutions(fx.Context(), &ListExecutionsRequest{
-			Parent:   parent,
-			PageSize: 9999,
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				response.Executions,
+				cmpopts.SortSlices(func(a, b *Execution) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
 		})
-		assert.NilError(t, err)
-		assert.DeepEqual(
-			t,
-			parentMsgs[deleteCount:],
-			response.Executions,
-			cmpopts.SortSlices(func(a, b *Execution) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
 
+		// If there are no more resources, next_page_token should not be set.
+		t.Run("last page", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListExecutions(fx.Context(), &ListExecutionsRequest{
+				Parent:   parent,
+				PageSize: resourcesCount,
+			})
+			assert.NilError(t, err)
+			assert.Equal(t, "", response.NextPageToken)
+		})
+
+		// If there are more resources, next_page_token should be set.
+		t.Run("more pages", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListExecutions(fx.Context(), &ListExecutionsRequest{
+				Parent:   parent,
+				PageSize: resourcesCount - 1,
+			})
+			assert.NilError(t, err)
+			assert.Check(t, response.NextPageToken != "")
+		})
+
+		// Listing resource one by one should eventually return all resources.
+		t.Run("one by one", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msgs := make([]*Execution, 0, resourcesCount)
+			var nextPageToken string
+			for {
+				response, err := fx.Service().ListExecutions(fx.Context(), &ListExecutionsRequest{
+					Parent:    parent,
+					PageSize:  1,
+					PageToken: nextPageToken,
+				})
+				assert.NilError(t, err)
+				assert.Equal(t, 1, len(response.Executions))
+				msgs = append(msgs, response.Executions...)
+				nextPageToken = response.NextPageToken
+				if nextPageToken == "" {
+					break
+				}
+			}
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				msgs,
+				cmpopts.SortSlices(func(a, b *Execution) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
+
+		// Method should not return deleted resources.
+		t.Run("deleted", func(t *testing.T) {
+			fx.maybeSkip(t)
+			const deleteCount = 5
+			for i := 0; i < deleteCount; i++ {
+				_, err := fx.Service().DeleteExecution(fx.Context(), &DeleteExecutionRequest{
+					Name: parentMsgs[i].Name,
+				})
+				assert.NilError(t, err)
+			}
+			response, err := fx.Service().ListExecutions(fx.Context(), &ListExecutionsRequest{
+				Parent:   parent,
+				PageSize: 9999,
+			})
+			assert.NilError(t, err)
+			assert.DeepEqual(
+				t,
+				parentMsgs[deleteCount:],
+				response.Executions,
+				cmpopts.SortSlices(func(a, b *Execution) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
+
+	}
 }
 
 func (fx *MetadataServiceExecutionTestSuiteConfig) testDelete(t *testing.T) {
@@ -1934,85 +1946,87 @@ func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) testList(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
-	const resourcesCount = 15
-	parent := fx.nextParent(t, true)
-	parentMsgs := make([]*MetadataSchema, resourcesCount)
-	for i := 0; i < resourcesCount; i++ {
-		parentMsgs[i] = fx.create(t, parent)
-	}
+	{
+		const resourcesCount = 15
+		parent := fx.nextParent(t, true)
+		parentMsgs := make([]*MetadataSchema, resourcesCount)
+		for i := 0; i < resourcesCount; i++ {
+			parentMsgs[i] = fx.create(t, parent)
+		}
 
-	// If parent is provided the method must only return resources
-	// under that parent.
-	t.Run("isolation", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListMetadataSchemas(fx.Context(), &ListMetadataSchemasRequest{
-			Parent:   parent,
-			PageSize: 999,
-		})
-		assert.NilError(t, err)
-		assert.DeepEqual(
-			t,
-			parentMsgs,
-			response.MetadataSchemas,
-			cmpopts.SortSlices(func(a, b *MetadataSchema) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
-
-	// If there are no more resources, next_page_token should not be set.
-	t.Run("last page", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListMetadataSchemas(fx.Context(), &ListMetadataSchemasRequest{
-			Parent:   parent,
-			PageSize: resourcesCount,
-		})
-		assert.NilError(t, err)
-		assert.Equal(t, "", response.NextPageToken)
-	})
-
-	// If there are more resources, next_page_token should be set.
-	t.Run("more pages", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListMetadataSchemas(fx.Context(), &ListMetadataSchemasRequest{
-			Parent:   parent,
-			PageSize: resourcesCount - 1,
-		})
-		assert.NilError(t, err)
-		assert.Check(t, response.NextPageToken != "")
-	})
-
-	// Listing resource one by one should eventually return all resources.
-	t.Run("one by one", func(t *testing.T) {
-		fx.maybeSkip(t)
-		msgs := make([]*MetadataSchema, 0, resourcesCount)
-		var nextPageToken string
-		for {
+		// If parent is provided the method must only return resources
+		// under that parent.
+		t.Run("isolation", func(t *testing.T) {
+			fx.maybeSkip(t)
 			response, err := fx.Service().ListMetadataSchemas(fx.Context(), &ListMetadataSchemasRequest{
-				Parent:    parent,
-				PageSize:  1,
-				PageToken: nextPageToken,
+				Parent:   parent,
+				PageSize: 999,
 			})
 			assert.NilError(t, err)
-			assert.Equal(t, 1, len(response.MetadataSchemas))
-			msgs = append(msgs, response.MetadataSchemas...)
-			nextPageToken = response.NextPageToken
-			if nextPageToken == "" {
-				break
-			}
-		}
-		assert.DeepEqual(
-			t,
-			parentMsgs,
-			msgs,
-			cmpopts.SortSlices(func(a, b *MetadataSchema) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				response.MetadataSchemas,
+				cmpopts.SortSlices(func(a, b *MetadataSchema) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
 
+		// If there are no more resources, next_page_token should not be set.
+		t.Run("last page", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListMetadataSchemas(fx.Context(), &ListMetadataSchemasRequest{
+				Parent:   parent,
+				PageSize: resourcesCount,
+			})
+			assert.NilError(t, err)
+			assert.Equal(t, "", response.NextPageToken)
+		})
+
+		// If there are more resources, next_page_token should be set.
+		t.Run("more pages", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListMetadataSchemas(fx.Context(), &ListMetadataSchemasRequest{
+				Parent:   parent,
+				PageSize: resourcesCount - 1,
+			})
+			assert.NilError(t, err)
+			assert.Check(t, response.NextPageToken != "")
+		})
+
+		// Listing resource one by one should eventually return all resources.
+		t.Run("one by one", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msgs := make([]*MetadataSchema, 0, resourcesCount)
+			var nextPageToken string
+			for {
+				response, err := fx.Service().ListMetadataSchemas(fx.Context(), &ListMetadataSchemasRequest{
+					Parent:    parent,
+					PageSize:  1,
+					PageToken: nextPageToken,
+				})
+				assert.NilError(t, err)
+				assert.Equal(t, 1, len(response.MetadataSchemas))
+				msgs = append(msgs, response.MetadataSchemas...)
+				nextPageToken = response.NextPageToken
+				if nextPageToken == "" {
+					break
+				}
+			}
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				msgs,
+				cmpopts.SortSlices(func(a, b *MetadataSchema) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
+
+	}
 }
 
 func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
@@ -2215,111 +2229,113 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testList(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
-	const resourcesCount = 15
-	parent := fx.nextParent(t, true)
-	parentMsgs := make([]*MetadataStore, resourcesCount)
-	for i := 0; i < resourcesCount; i++ {
-		parentMsgs[i] = fx.create(t, parent)
-	}
+	{
+		const resourcesCount = 15
+		parent := fx.nextParent(t, true)
+		parentMsgs := make([]*MetadataStore, resourcesCount)
+		for i := 0; i < resourcesCount; i++ {
+			parentMsgs[i] = fx.create(t, parent)
+		}
 
-	// If parent is provided the method must only return resources
-	// under that parent.
-	t.Run("isolation", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListMetadataStores(fx.Context(), &ListMetadataStoresRequest{
-			Parent:   parent,
-			PageSize: 999,
-		})
-		assert.NilError(t, err)
-		assert.DeepEqual(
-			t,
-			parentMsgs,
-			response.MetadataStores,
-			cmpopts.SortSlices(func(a, b *MetadataStore) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
-
-	// If there are no more resources, next_page_token should not be set.
-	t.Run("last page", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListMetadataStores(fx.Context(), &ListMetadataStoresRequest{
-			Parent:   parent,
-			PageSize: resourcesCount,
-		})
-		assert.NilError(t, err)
-		assert.Equal(t, "", response.NextPageToken)
-	})
-
-	// If there are more resources, next_page_token should be set.
-	t.Run("more pages", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListMetadataStores(fx.Context(), &ListMetadataStoresRequest{
-			Parent:   parent,
-			PageSize: resourcesCount - 1,
-		})
-		assert.NilError(t, err)
-		assert.Check(t, response.NextPageToken != "")
-	})
-
-	// Listing resource one by one should eventually return all resources.
-	t.Run("one by one", func(t *testing.T) {
-		fx.maybeSkip(t)
-		msgs := make([]*MetadataStore, 0, resourcesCount)
-		var nextPageToken string
-		for {
+		// If parent is provided the method must only return resources
+		// under that parent.
+		t.Run("isolation", func(t *testing.T) {
+			fx.maybeSkip(t)
 			response, err := fx.Service().ListMetadataStores(fx.Context(), &ListMetadataStoresRequest{
-				Parent:    parent,
-				PageSize:  1,
-				PageToken: nextPageToken,
+				Parent:   parent,
+				PageSize: 999,
 			})
 			assert.NilError(t, err)
-			assert.Equal(t, 1, len(response.MetadataStores))
-			msgs = append(msgs, response.MetadataStores...)
-			nextPageToken = response.NextPageToken
-			if nextPageToken == "" {
-				break
-			}
-		}
-		assert.DeepEqual(
-			t,
-			parentMsgs,
-			msgs,
-			cmpopts.SortSlices(func(a, b *MetadataStore) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
-
-	// Method should not return deleted resources.
-	t.Run("deleted", func(t *testing.T) {
-		fx.maybeSkip(t)
-		const deleteCount = 5
-		for i := 0; i < deleteCount; i++ {
-			_, err := fx.Service().DeleteMetadataStore(fx.Context(), &DeleteMetadataStoreRequest{
-				Name: parentMsgs[i].Name,
-			})
-			assert.NilError(t, err)
-		}
-		response, err := fx.Service().ListMetadataStores(fx.Context(), &ListMetadataStoresRequest{
-			Parent:   parent,
-			PageSize: 9999,
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				response.MetadataStores,
+				cmpopts.SortSlices(func(a, b *MetadataStore) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
 		})
-		assert.NilError(t, err)
-		assert.DeepEqual(
-			t,
-			parentMsgs[deleteCount:],
-			response.MetadataStores,
-			cmpopts.SortSlices(func(a, b *MetadataStore) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
 
+		// If there are no more resources, next_page_token should not be set.
+		t.Run("last page", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListMetadataStores(fx.Context(), &ListMetadataStoresRequest{
+				Parent:   parent,
+				PageSize: resourcesCount,
+			})
+			assert.NilError(t, err)
+			assert.Equal(t, "", response.NextPageToken)
+		})
+
+		// If there are more resources, next_page_token should be set.
+		t.Run("more pages", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListMetadataStores(fx.Context(), &ListMetadataStoresRequest{
+				Parent:   parent,
+				PageSize: resourcesCount - 1,
+			})
+			assert.NilError(t, err)
+			assert.Check(t, response.NextPageToken != "")
+		})
+
+		// Listing resource one by one should eventually return all resources.
+		t.Run("one by one", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msgs := make([]*MetadataStore, 0, resourcesCount)
+			var nextPageToken string
+			for {
+				response, err := fx.Service().ListMetadataStores(fx.Context(), &ListMetadataStoresRequest{
+					Parent:    parent,
+					PageSize:  1,
+					PageToken: nextPageToken,
+				})
+				assert.NilError(t, err)
+				assert.Equal(t, 1, len(response.MetadataStores))
+				msgs = append(msgs, response.MetadataStores...)
+				nextPageToken = response.NextPageToken
+				if nextPageToken == "" {
+					break
+				}
+			}
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				msgs,
+				cmpopts.SortSlices(func(a, b *MetadataStore) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
+
+		// Method should not return deleted resources.
+		t.Run("deleted", func(t *testing.T) {
+			fx.maybeSkip(t)
+			const deleteCount = 5
+			for i := 0; i < deleteCount; i++ {
+				_, err := fx.Service().DeleteMetadataStore(fx.Context(), &DeleteMetadataStoreRequest{
+					Name: parentMsgs[i].Name,
+				})
+				assert.NilError(t, err)
+			}
+			response, err := fx.Service().ListMetadataStores(fx.Context(), &ListMetadataStoresRequest{
+				Parent:   parent,
+				PageSize: 9999,
+			})
+			assert.NilError(t, err)
+			assert.DeepEqual(
+				t,
+				parentMsgs[deleteCount:],
+				response.MetadataStores,
+				cmpopts.SortSlices(func(a, b *MetadataStore) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
+
+	}
 }
 
 func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testDelete(t *testing.T) {

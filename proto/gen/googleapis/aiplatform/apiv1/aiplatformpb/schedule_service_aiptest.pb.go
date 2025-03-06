@@ -412,153 +412,155 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testUpdate(t *testing.T) {
 		assert.DeepEqual(t, originalCreateTime, updated.CreateTime, protocmp.Transform())
 	})
 
-	parent := fx.nextParent(t, false)
-	created := fx.create(t, parent)
-	// Method should fail with NotFound if the resource does not exist.
-	t.Run("not found", func(t *testing.T) {
-		fx.maybeSkip(t)
-		msg := fx.Update(parent)
-		msg.Name = created.Name + "notfound"
-		_, err := fx.Service().UpdateSchedule(fx.Context(), &UpdateScheduleRequest{
-			Schedule: msg,
+	{
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		// Method should fail with NotFound if the resource does not exist.
+		t.Run("not found", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msg := fx.Update(parent)
+			msg.Name = created.Name + "notfound"
+			_, err := fx.Service().UpdateSchedule(fx.Context(), &UpdateScheduleRequest{
+				Schedule: msg,
+			})
+			assert.Equal(t, codes.NotFound, status.Code(err), err)
 		})
-		assert.Equal(t, codes.NotFound, status.Code(err), err)
-	})
 
-	// The method should fail with InvalidArgument if the update_mask is invalid.
-	t.Run("invalid update mask", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.Service().UpdateSchedule(fx.Context(), &UpdateScheduleRequest{
-			Schedule: created,
-			UpdateMask: &fieldmaskpb.FieldMask{
-				Paths: []string{
-					"invalid_field_xyz",
+		// The method should fail with InvalidArgument if the update_mask is invalid.
+		t.Run("invalid update mask", func(t *testing.T) {
+			fx.maybeSkip(t)
+			_, err := fx.Service().UpdateSchedule(fx.Context(), &UpdateScheduleRequest{
+				Schedule: created,
+				UpdateMask: &fieldmaskpb.FieldMask{
+					Paths: []string{
+						"invalid_field_xyz",
+					},
 				},
-			},
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
 
-	// Method should fail with InvalidArgument if any required field is missing
-	// when called with '*' update_mask.
-	t.Run("required fields", func(t *testing.T) {
-		fx.maybeSkip(t)
-		t.Run(".create_pipeline_job_request.parent", func(t *testing.T) {
+		// Method should fail with InvalidArgument if any required field is missing
+		// when called with '*' update_mask.
+		t.Run("required fields", func(t *testing.T) {
 			fx.maybeSkip(t)
-			msg := proto.Clone(created).(*Schedule)
-			container := msg.GetCreatePipelineJobRequest()
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("parent")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.Service().UpdateSchedule(fx.Context(), &UpdateScheduleRequest{
-				Schedule: msg,
-				UpdateMask: &fieldmaskpb.FieldMask{
-					Paths: []string{
-						"*",
+			t.Run(".create_pipeline_job_request.parent", func(t *testing.T) {
+				fx.maybeSkip(t)
+				msg := proto.Clone(created).(*Schedule)
+				container := msg.GetCreatePipelineJobRequest()
+				if container == nil {
+					t.Skip("not reachable")
+				}
+				fd := container.ProtoReflect().Descriptor().Fields().ByName("parent")
+				container.ProtoReflect().Clear(fd)
+				_, err := fx.Service().UpdateSchedule(fx.Context(), &UpdateScheduleRequest{
+					Schedule: msg,
+					UpdateMask: &fieldmaskpb.FieldMask{
+						Paths: []string{
+							"*",
+						},
 					},
-				},
+				})
+				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
-		t.Run(".create_pipeline_job_request.pipeline_job", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msg := proto.Clone(created).(*Schedule)
-			container := msg.GetCreatePipelineJobRequest()
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("pipeline_job")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.Service().UpdateSchedule(fx.Context(), &UpdateScheduleRequest{
-				Schedule: msg,
-				UpdateMask: &fieldmaskpb.FieldMask{
-					Paths: []string{
-						"*",
+			t.Run(".create_pipeline_job_request.pipeline_job", func(t *testing.T) {
+				fx.maybeSkip(t)
+				msg := proto.Clone(created).(*Schedule)
+				container := msg.GetCreatePipelineJobRequest()
+				if container == nil {
+					t.Skip("not reachable")
+				}
+				fd := container.ProtoReflect().Descriptor().Fields().ByName("pipeline_job")
+				container.ProtoReflect().Clear(fd)
+				_, err := fx.Service().UpdateSchedule(fx.Context(), &UpdateScheduleRequest{
+					Schedule: msg,
+					UpdateMask: &fieldmaskpb.FieldMask{
+						Paths: []string{
+							"*",
+						},
 					},
-				},
+				})
+				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
-		t.Run(".create_pipeline_job_request.pipeline_job.runtime_config.gcs_output_directory", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msg := proto.Clone(created).(*Schedule)
-			container := msg.GetCreatePipelineJobRequest().GetPipelineJob().GetRuntimeConfig()
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("gcs_output_directory")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.Service().UpdateSchedule(fx.Context(), &UpdateScheduleRequest{
-				Schedule: msg,
-				UpdateMask: &fieldmaskpb.FieldMask{
-					Paths: []string{
-						"*",
+			t.Run(".create_pipeline_job_request.pipeline_job.runtime_config.gcs_output_directory", func(t *testing.T) {
+				fx.maybeSkip(t)
+				msg := proto.Clone(created).(*Schedule)
+				container := msg.GetCreatePipelineJobRequest().GetPipelineJob().GetRuntimeConfig()
+				if container == nil {
+					t.Skip("not reachable")
+				}
+				fd := container.ProtoReflect().Descriptor().Fields().ByName("gcs_output_directory")
+				container.ProtoReflect().Clear(fd)
+				_, err := fx.Service().UpdateSchedule(fx.Context(), &UpdateScheduleRequest{
+					Schedule: msg,
+					UpdateMask: &fieldmaskpb.FieldMask{
+						Paths: []string{
+							"*",
+						},
 					},
-				},
+				})
+				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
-		t.Run(".create_pipeline_job_request.pipeline_job.encryption_spec.kms_key_name", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msg := proto.Clone(created).(*Schedule)
-			container := msg.GetCreatePipelineJobRequest().GetPipelineJob().GetEncryptionSpec()
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("kms_key_name")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.Service().UpdateSchedule(fx.Context(), &UpdateScheduleRequest{
-				Schedule: msg,
-				UpdateMask: &fieldmaskpb.FieldMask{
-					Paths: []string{
-						"*",
+			t.Run(".create_pipeline_job_request.pipeline_job.encryption_spec.kms_key_name", func(t *testing.T) {
+				fx.maybeSkip(t)
+				msg := proto.Clone(created).(*Schedule)
+				container := msg.GetCreatePipelineJobRequest().GetPipelineJob().GetEncryptionSpec()
+				if container == nil {
+					t.Skip("not reachable")
+				}
+				fd := container.ProtoReflect().Descriptor().Fields().ByName("kms_key_name")
+				container.ProtoReflect().Clear(fd)
+				_, err := fx.Service().UpdateSchedule(fx.Context(), &UpdateScheduleRequest{
+					Schedule: msg,
+					UpdateMask: &fieldmaskpb.FieldMask{
+						Paths: []string{
+							"*",
+						},
 					},
-				},
+				})
+				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
-		t.Run(".display_name", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msg := proto.Clone(created).(*Schedule)
-			container := msg
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.Service().UpdateSchedule(fx.Context(), &UpdateScheduleRequest{
-				Schedule: msg,
-				UpdateMask: &fieldmaskpb.FieldMask{
-					Paths: []string{
-						"*",
+			t.Run(".display_name", func(t *testing.T) {
+				fx.maybeSkip(t)
+				msg := proto.Clone(created).(*Schedule)
+				container := msg
+				if container == nil {
+					t.Skip("not reachable")
+				}
+				fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
+				container.ProtoReflect().Clear(fd)
+				_, err := fx.Service().UpdateSchedule(fx.Context(), &UpdateScheduleRequest{
+					Schedule: msg,
+					UpdateMask: &fieldmaskpb.FieldMask{
+						Paths: []string{
+							"*",
+						},
 					},
-				},
+				})
+				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
-		t.Run(".max_concurrent_run_count", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msg := proto.Clone(created).(*Schedule)
-			container := msg
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("max_concurrent_run_count")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.Service().UpdateSchedule(fx.Context(), &UpdateScheduleRequest{
-				Schedule: msg,
-				UpdateMask: &fieldmaskpb.FieldMask{
-					Paths: []string{
-						"*",
+			t.Run(".max_concurrent_run_count", func(t *testing.T) {
+				fx.maybeSkip(t)
+				msg := proto.Clone(created).(*Schedule)
+				container := msg
+				if container == nil {
+					t.Skip("not reachable")
+				}
+				fd := container.ProtoReflect().Descriptor().Fields().ByName("max_concurrent_run_count")
+				container.ProtoReflect().Clear(fd)
+				_, err := fx.Service().UpdateSchedule(fx.Context(), &UpdateScheduleRequest{
+					Schedule: msg,
+					UpdateMask: &fieldmaskpb.FieldMask{
+						Paths: []string{
+							"*",
+						},
 					},
-				},
+				})
+				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
-	})
 
+	}
 }
 
 func (fx *ScheduleServiceScheduleTestSuiteConfig) testList(t *testing.T) {
@@ -594,111 +596,113 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testList(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
-	const resourcesCount = 15
-	parent := fx.nextParent(t, true)
-	parentMsgs := make([]*Schedule, resourcesCount)
-	for i := 0; i < resourcesCount; i++ {
-		parentMsgs[i] = fx.create(t, parent)
-	}
+	{
+		const resourcesCount = 15
+		parent := fx.nextParent(t, true)
+		parentMsgs := make([]*Schedule, resourcesCount)
+		for i := 0; i < resourcesCount; i++ {
+			parentMsgs[i] = fx.create(t, parent)
+		}
 
-	// If parent is provided the method must only return resources
-	// under that parent.
-	t.Run("isolation", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListSchedules(fx.Context(), &ListSchedulesRequest{
-			Parent:   parent,
-			PageSize: 999,
-		})
-		assert.NilError(t, err)
-		assert.DeepEqual(
-			t,
-			parentMsgs,
-			response.Schedules,
-			cmpopts.SortSlices(func(a, b *Schedule) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
-
-	// If there are no more resources, next_page_token should not be set.
-	t.Run("last page", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListSchedules(fx.Context(), &ListSchedulesRequest{
-			Parent:   parent,
-			PageSize: resourcesCount,
-		})
-		assert.NilError(t, err)
-		assert.Equal(t, "", response.NextPageToken)
-	})
-
-	// If there are more resources, next_page_token should be set.
-	t.Run("more pages", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListSchedules(fx.Context(), &ListSchedulesRequest{
-			Parent:   parent,
-			PageSize: resourcesCount - 1,
-		})
-		assert.NilError(t, err)
-		assert.Check(t, response.NextPageToken != "")
-	})
-
-	// Listing resource one by one should eventually return all resources.
-	t.Run("one by one", func(t *testing.T) {
-		fx.maybeSkip(t)
-		msgs := make([]*Schedule, 0, resourcesCount)
-		var nextPageToken string
-		for {
+		// If parent is provided the method must only return resources
+		// under that parent.
+		t.Run("isolation", func(t *testing.T) {
+			fx.maybeSkip(t)
 			response, err := fx.Service().ListSchedules(fx.Context(), &ListSchedulesRequest{
-				Parent:    parent,
-				PageSize:  1,
-				PageToken: nextPageToken,
+				Parent:   parent,
+				PageSize: 999,
 			})
 			assert.NilError(t, err)
-			assert.Equal(t, 1, len(response.Schedules))
-			msgs = append(msgs, response.Schedules...)
-			nextPageToken = response.NextPageToken
-			if nextPageToken == "" {
-				break
-			}
-		}
-		assert.DeepEqual(
-			t,
-			parentMsgs,
-			msgs,
-			cmpopts.SortSlices(func(a, b *Schedule) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
-
-	// Method should not return deleted resources.
-	t.Run("deleted", func(t *testing.T) {
-		fx.maybeSkip(t)
-		const deleteCount = 5
-		for i := 0; i < deleteCount; i++ {
-			_, err := fx.Service().DeleteSchedule(fx.Context(), &DeleteScheduleRequest{
-				Name: parentMsgs[i].Name,
-			})
-			assert.NilError(t, err)
-		}
-		response, err := fx.Service().ListSchedules(fx.Context(), &ListSchedulesRequest{
-			Parent:   parent,
-			PageSize: 9999,
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				response.Schedules,
+				cmpopts.SortSlices(func(a, b *Schedule) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
 		})
-		assert.NilError(t, err)
-		assert.DeepEqual(
-			t,
-			parentMsgs[deleteCount:],
-			response.Schedules,
-			cmpopts.SortSlices(func(a, b *Schedule) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
 
+		// If there are no more resources, next_page_token should not be set.
+		t.Run("last page", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListSchedules(fx.Context(), &ListSchedulesRequest{
+				Parent:   parent,
+				PageSize: resourcesCount,
+			})
+			assert.NilError(t, err)
+			assert.Equal(t, "", response.NextPageToken)
+		})
+
+		// If there are more resources, next_page_token should be set.
+		t.Run("more pages", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListSchedules(fx.Context(), &ListSchedulesRequest{
+				Parent:   parent,
+				PageSize: resourcesCount - 1,
+			})
+			assert.NilError(t, err)
+			assert.Check(t, response.NextPageToken != "")
+		})
+
+		// Listing resource one by one should eventually return all resources.
+		t.Run("one by one", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msgs := make([]*Schedule, 0, resourcesCount)
+			var nextPageToken string
+			for {
+				response, err := fx.Service().ListSchedules(fx.Context(), &ListSchedulesRequest{
+					Parent:    parent,
+					PageSize:  1,
+					PageToken: nextPageToken,
+				})
+				assert.NilError(t, err)
+				assert.Equal(t, 1, len(response.Schedules))
+				msgs = append(msgs, response.Schedules...)
+				nextPageToken = response.NextPageToken
+				if nextPageToken == "" {
+					break
+				}
+			}
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				msgs,
+				cmpopts.SortSlices(func(a, b *Schedule) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
+
+		// Method should not return deleted resources.
+		t.Run("deleted", func(t *testing.T) {
+			fx.maybeSkip(t)
+			const deleteCount = 5
+			for i := 0; i < deleteCount; i++ {
+				_, err := fx.Service().DeleteSchedule(fx.Context(), &DeleteScheduleRequest{
+					Name: parentMsgs[i].Name,
+				})
+				assert.NilError(t, err)
+			}
+			response, err := fx.Service().ListSchedules(fx.Context(), &ListSchedulesRequest{
+				Parent:   parent,
+				PageSize: 9999,
+			})
+			assert.NilError(t, err)
+			assert.DeepEqual(
+				t,
+				parentMsgs[deleteCount:],
+				response.Schedules,
+				cmpopts.SortSlices(func(a, b *Schedule) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
+
+	}
 }
 
 func (fx *ScheduleServiceScheduleTestSuiteConfig) testDelete(t *testing.T) {

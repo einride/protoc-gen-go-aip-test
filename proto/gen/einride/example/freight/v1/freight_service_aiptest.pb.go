@@ -495,76 +495,78 @@ func (fx *FreightServiceShipperTestSuiteConfig) testUpdate(t *testing.T) {
 		assert.Check(t, updated.Etag != created.Etag)
 	})
 
-	created := fx.create(t)
-	// Method should fail with NotFound if the resource does not exist.
-	t.Run("not found", func(t *testing.T) {
-		fx.maybeSkip(t)
-		msg := fx.Update()
-		msg.Name = created.Name + "notfound"
-		_, err := fx.Service().UpdateShipper(fx.Context(), &UpdateShipperRequest{
-			Shipper: msg,
-		})
-		assert.Equal(t, codes.NotFound, status.Code(err), err)
-	})
-
-	// The method should fail with InvalidArgument if the update_mask is invalid.
-	t.Run("invalid update mask", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.Service().UpdateShipper(fx.Context(), &UpdateShipperRequest{
-			Shipper: created,
-			UpdateMask: &fieldmaskpb.FieldMask{
-				Paths: []string{
-					"invalid_field_xyz",
-				},
-			},
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-	// Method should fail with InvalidArgument if any required field is missing
-	// when called with '*' update_mask.
-	t.Run("required fields", func(t *testing.T) {
-		fx.maybeSkip(t)
-		t.Run(".display_name", func(t *testing.T) {
+	{
+		created := fx.create(t)
+		// Method should fail with NotFound if the resource does not exist.
+		t.Run("not found", func(t *testing.T) {
 			fx.maybeSkip(t)
-			msg := proto.Clone(created).(*Shipper)
-			container := msg
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
-			container.ProtoReflect().Clear(fd)
+			msg := fx.Update()
+			msg.Name = created.Name + "notfound"
 			_, err := fx.Service().UpdateShipper(fx.Context(), &UpdateShipperRequest{
 				Shipper: msg,
+			})
+			assert.Equal(t, codes.NotFound, status.Code(err), err)
+		})
+
+		// The method should fail with InvalidArgument if the update_mask is invalid.
+		t.Run("invalid update mask", func(t *testing.T) {
+			fx.maybeSkip(t)
+			_, err := fx.Service().UpdateShipper(fx.Context(), &UpdateShipperRequest{
+				Shipper: created,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
-						"*",
+						"invalid_field_xyz",
 					},
 				},
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
-		t.Run(".billing_account", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msg := proto.Clone(created).(*Shipper)
-			container := msg
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("billing_account")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.Service().UpdateShipper(fx.Context(), &UpdateShipperRequest{
-				Shipper: msg,
-				UpdateMask: &fieldmaskpb.FieldMask{
-					Paths: []string{
-						"*",
-					},
-				},
-			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
-	})
 
+		// Method should fail with InvalidArgument if any required field is missing
+		// when called with '*' update_mask.
+		t.Run("required fields", func(t *testing.T) {
+			fx.maybeSkip(t)
+			t.Run(".display_name", func(t *testing.T) {
+				fx.maybeSkip(t)
+				msg := proto.Clone(created).(*Shipper)
+				container := msg
+				if container == nil {
+					t.Skip("not reachable")
+				}
+				fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
+				container.ProtoReflect().Clear(fd)
+				_, err := fx.Service().UpdateShipper(fx.Context(), &UpdateShipperRequest{
+					Shipper: msg,
+					UpdateMask: &fieldmaskpb.FieldMask{
+						Paths: []string{
+							"*",
+						},
+					},
+				})
+				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+			})
+			t.Run(".billing_account", func(t *testing.T) {
+				fx.maybeSkip(t)
+				msg := proto.Clone(created).(*Shipper)
+				container := msg
+				if container == nil {
+					t.Skip("not reachable")
+				}
+				fd := container.ProtoReflect().Descriptor().Fields().ByName("billing_account")
+				container.ProtoReflect().Clear(fd)
+				_, err := fx.Service().UpdateShipper(fx.Context(), &UpdateShipperRequest{
+					Shipper: msg,
+					UpdateMask: &fieldmaskpb.FieldMask{
+						Paths: []string{
+							"*",
+						},
+					},
+				})
+				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+			})
+		})
+
+	}
 }
 
 func (fx *FreightServiceShipperTestSuiteConfig) testList(t *testing.T) {
@@ -1135,106 +1137,108 @@ func (fx *FreightServiceSiteTestSuiteConfig) testBatchGet(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
-	parent := fx.nextParent(t, false)
-	created00 := fx.create(t, parent)
-	created01 := fx.create(t, parent)
-	created02 := fx.create(t, parent)
-	// Resources should be returned without errors if they exist.
-	t.Run("all exists", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().BatchGetSites(fx.Context(), &BatchGetSitesRequest{
-			Parent: parent,
-			Names: []string{
-				created00.Name,
-				created01.Name,
-				created02.Name,
-			},
-		})
-		assert.NilError(t, err)
-		assert.DeepEqual(
-			t,
-			[]*Site{
-				created00,
-				created01,
-				created02,
-			},
-			response.Sites,
-			protocmp.Transform(),
-		)
-	})
-
-	// The method must be atomic; it must fail for all resources
-	// or succeed for all resources (no partial success).
-	t.Run("atomic", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.Service().BatchGetSites(fx.Context(), &BatchGetSitesRequest{
-			Parent: parent,
-			Names: []string{
-				created00.Name,
-				created01.Name + "notfound",
-				created02.Name,
-			},
-		})
-		assert.Equal(t, codes.NotFound, status.Code(err), err)
-	})
-
-	// If a caller sets the "parent", and the parent collection in the name of any resource
-	// being retrieved does not match, the request must fail.
-	t.Run("parent mismatch", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.Service().BatchGetSites(fx.Context(), &BatchGetSitesRequest{
-			Parent: fx.peekNextParent(t),
-			Names: []string{
-				created00.Name,
-			},
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-	// The order of resources in the response must be the same as the names in the request.
-	t.Run("ordered", func(t *testing.T) {
-		fx.maybeSkip(t)
-		for _, order := range [][]*Site{
-			{created00, created01, created02},
-			{created01, created00, created02},
-			{created02, created01, created00},
-		} {
+	{
+		parent := fx.nextParent(t, false)
+		created00 := fx.create(t, parent)
+		created01 := fx.create(t, parent)
+		created02 := fx.create(t, parent)
+		// Resources should be returned without errors if they exist.
+		t.Run("all exists", func(t *testing.T) {
+			fx.maybeSkip(t)
 			response, err := fx.Service().BatchGetSites(fx.Context(), &BatchGetSitesRequest{
 				Parent: parent,
 				Names: []string{
-					order[0].GetName(),
-					order[1].GetName(),
-					order[2].GetName(),
+					created00.Name,
+					created01.Name,
+					created02.Name,
 				},
 			})
 			assert.NilError(t, err)
-			assert.DeepEqual(t, order, response.Sites, protocmp.Transform())
-		}
-	})
-
-	// If a caller provides duplicate names, the service should return
-	// duplicate resources.
-	t.Run("duplicate names", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().BatchGetSites(fx.Context(), &BatchGetSitesRequest{
-			Parent: parent,
-			Names: []string{
-				created00.Name,
-				created00.Name,
-			},
+			assert.DeepEqual(
+				t,
+				[]*Site{
+					created00,
+					created01,
+					created02,
+				},
+				response.Sites,
+				protocmp.Transform(),
+			)
 		})
-		assert.NilError(t, err)
-		assert.DeepEqual(
-			t,
-			[]*Site{
-				created00,
-				created00,
-			},
-			response.Sites,
-			protocmp.Transform(),
-		)
-	})
 
+		// The method must be atomic; it must fail for all resources
+		// or succeed for all resources (no partial success).
+		t.Run("atomic", func(t *testing.T) {
+			fx.maybeSkip(t)
+			_, err := fx.Service().BatchGetSites(fx.Context(), &BatchGetSitesRequest{
+				Parent: parent,
+				Names: []string{
+					created00.Name,
+					created01.Name + "notfound",
+					created02.Name,
+				},
+			})
+			assert.Equal(t, codes.NotFound, status.Code(err), err)
+		})
+
+		// If a caller sets the "parent", and the parent collection in the name of any resource
+		// being retrieved does not match, the request must fail.
+		t.Run("parent mismatch", func(t *testing.T) {
+			fx.maybeSkip(t)
+			_, err := fx.Service().BatchGetSites(fx.Context(), &BatchGetSitesRequest{
+				Parent: fx.peekNextParent(t),
+				Names: []string{
+					created00.Name,
+				},
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+		})
+
+		// The order of resources in the response must be the same as the names in the request.
+		t.Run("ordered", func(t *testing.T) {
+			fx.maybeSkip(t)
+			for _, order := range [][]*Site{
+				{created00, created01, created02},
+				{created01, created00, created02},
+				{created02, created01, created00},
+			} {
+				response, err := fx.Service().BatchGetSites(fx.Context(), &BatchGetSitesRequest{
+					Parent: parent,
+					Names: []string{
+						order[0].GetName(),
+						order[1].GetName(),
+						order[2].GetName(),
+					},
+				})
+				assert.NilError(t, err)
+				assert.DeepEqual(t, order, response.Sites, protocmp.Transform())
+			}
+		})
+
+		// If a caller provides duplicate names, the service should return
+		// duplicate resources.
+		t.Run("duplicate names", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().BatchGetSites(fx.Context(), &BatchGetSitesRequest{
+				Parent: parent,
+				Names: []string{
+					created00.Name,
+					created00.Name,
+				},
+			})
+			assert.NilError(t, err)
+			assert.DeepEqual(
+				t,
+				[]*Site{
+					created00,
+					created00,
+				},
+				response.Sites,
+				protocmp.Transform(),
+			)
+		})
+
+	}
 }
 
 func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
@@ -1338,77 +1342,79 @@ func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
 		assert.Check(t, updated.Etag != created.Etag)
 	})
 
-	parent := fx.nextParent(t, false)
-	created := fx.create(t, parent)
-	// Method should fail with NotFound if the resource does not exist.
-	t.Run("not found", func(t *testing.T) {
-		fx.maybeSkip(t)
-		msg := fx.Update(parent)
-		msg.Name = created.Name + "notfound"
-		_, err := fx.Service().UpdateSite(fx.Context(), &UpdateSiteRequest{
-			Site: msg,
-		})
-		assert.Equal(t, codes.NotFound, status.Code(err), err)
-	})
-
-	// The method should fail with InvalidArgument if the update_mask is invalid.
-	t.Run("invalid update mask", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.Service().UpdateSite(fx.Context(), &UpdateSiteRequest{
-			Site: created,
-			UpdateMask: &fieldmaskpb.FieldMask{
-				Paths: []string{
-					"invalid_field_xyz",
-				},
-			},
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-	// Method should fail with InvalidArgument if any required field is missing
-	// when called with '*' update_mask.
-	t.Run("required fields", func(t *testing.T) {
-		fx.maybeSkip(t)
-		t.Run(".display_name", func(t *testing.T) {
+	{
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		// Method should fail with NotFound if the resource does not exist.
+		t.Run("not found", func(t *testing.T) {
 			fx.maybeSkip(t)
-			msg := proto.Clone(created).(*Site)
-			container := msg
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
-			container.ProtoReflect().Clear(fd)
+			msg := fx.Update(parent)
+			msg.Name = created.Name + "notfound"
 			_, err := fx.Service().UpdateSite(fx.Context(), &UpdateSiteRequest{
 				Site: msg,
+			})
+			assert.Equal(t, codes.NotFound, status.Code(err), err)
+		})
+
+		// The method should fail with InvalidArgument if the update_mask is invalid.
+		t.Run("invalid update mask", func(t *testing.T) {
+			fx.maybeSkip(t)
+			_, err := fx.Service().UpdateSite(fx.Context(), &UpdateSiteRequest{
+				Site: created,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
-						"*",
+						"invalid_field_xyz",
 					},
 				},
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
-		t.Run(".billing.billing_account", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msg := proto.Clone(created).(*Site)
-			container := msg.GetBilling()
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("billing_account")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.Service().UpdateSite(fx.Context(), &UpdateSiteRequest{
-				Site: msg,
-				UpdateMask: &fieldmaskpb.FieldMask{
-					Paths: []string{
-						"*",
-					},
-				},
-			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
-	})
 
+		// Method should fail with InvalidArgument if any required field is missing
+		// when called with '*' update_mask.
+		t.Run("required fields", func(t *testing.T) {
+			fx.maybeSkip(t)
+			t.Run(".display_name", func(t *testing.T) {
+				fx.maybeSkip(t)
+				msg := proto.Clone(created).(*Site)
+				container := msg
+				if container == nil {
+					t.Skip("not reachable")
+				}
+				fd := container.ProtoReflect().Descriptor().Fields().ByName("display_name")
+				container.ProtoReflect().Clear(fd)
+				_, err := fx.Service().UpdateSite(fx.Context(), &UpdateSiteRequest{
+					Site: msg,
+					UpdateMask: &fieldmaskpb.FieldMask{
+						Paths: []string{
+							"*",
+						},
+					},
+				})
+				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+			})
+			t.Run(".billing.billing_account", func(t *testing.T) {
+				fx.maybeSkip(t)
+				msg := proto.Clone(created).(*Site)
+				container := msg.GetBilling()
+				if container == nil {
+					t.Skip("not reachable")
+				}
+				fd := container.ProtoReflect().Descriptor().Fields().ByName("billing_account")
+				container.ProtoReflect().Clear(fd)
+				_, err := fx.Service().UpdateSite(fx.Context(), &UpdateSiteRequest{
+					Site: msg,
+					UpdateMask: &fieldmaskpb.FieldMask{
+						Paths: []string{
+							"*",
+						},
+					},
+				})
+				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+			})
+		})
+
+	}
 }
 
 func (fx *FreightServiceSiteTestSuiteConfig) testList(t *testing.T) {
@@ -1444,112 +1450,114 @@ func (fx *FreightServiceSiteTestSuiteConfig) testList(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
-	const resourcesCount = 15
-	parent := fx.nextParent(t, true)
-	parentMsgs := make([]*Site, resourcesCount)
-	for i := 0; i < resourcesCount; i++ {
-		parentMsgs[i] = fx.create(t, parent)
-	}
+	{
+		const resourcesCount = 15
+		parent := fx.nextParent(t, true)
+		parentMsgs := make([]*Site, resourcesCount)
+		for i := 0; i < resourcesCount; i++ {
+			parentMsgs[i] = fx.create(t, parent)
+		}
 
-	// If parent is provided the method must only return resources
-	// under that parent.
-	t.Run("isolation", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListSites(fx.Context(), &ListSitesRequest{
-			Parent:   parent,
-			PageSize: 999,
-		})
-		assert.NilError(t, err)
-		assert.DeepEqual(
-			t,
-			parentMsgs,
-			response.Sites,
-			cmpopts.SortSlices(func(a, b *Site) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
-
-	// If there are no more resources, next_page_token should not be set.
-	t.Run("last page", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListSites(fx.Context(), &ListSitesRequest{
-			Parent:   parent,
-			PageSize: resourcesCount,
-		})
-		assert.NilError(t, err)
-		assert.Equal(t, "", response.NextPageToken)
-	})
-
-	// If there are more resources, next_page_token should be set.
-	t.Run("more pages", func(t *testing.T) {
-		fx.maybeSkip(t)
-		response, err := fx.Service().ListSites(fx.Context(), &ListSitesRequest{
-			Parent:   parent,
-			PageSize: resourcesCount - 1,
-		})
-		assert.NilError(t, err)
-		assert.Check(t, response.NextPageToken != "")
-	})
-
-	// Listing resource one by one should eventually return all resources.
-	t.Run("one by one", func(t *testing.T) {
-		fx.maybeSkip(t)
-		msgs := make([]*Site, 0, resourcesCount)
-		var nextPageToken string
-		for {
+		// If parent is provided the method must only return resources
+		// under that parent.
+		t.Run("isolation", func(t *testing.T) {
+			fx.maybeSkip(t)
 			response, err := fx.Service().ListSites(fx.Context(), &ListSitesRequest{
-				Parent:    parent,
-				PageSize:  1,
-				PageToken: nextPageToken,
+				Parent:   parent,
+				PageSize: 999,
 			})
 			assert.NilError(t, err)
-			assert.Equal(t, 1, len(response.Sites))
-			msgs = append(msgs, response.Sites...)
-			nextPageToken = response.NextPageToken
-			if nextPageToken == "" {
-				break
-			}
-		}
-		assert.DeepEqual(
-			t,
-			parentMsgs,
-			msgs,
-			cmpopts.SortSlices(func(a, b *Site) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
-
-	// Method should not return deleted resources.
-	t.Run("deleted", func(t *testing.T) {
-		fx.maybeSkip(t)
-		const deleteCount = 5
-		for i := 0; i < deleteCount; i++ {
-			_, err := fx.Service().DeleteSite(fx.Context(), &DeleteSiteRequest{
-				Name: parentMsgs[i].Name,
-				Etag: parentMsgs[i].Etag,
-			})
-			assert.NilError(t, err)
-		}
-		response, err := fx.Service().ListSites(fx.Context(), &ListSitesRequest{
-			Parent:   parent,
-			PageSize: 9999,
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				response.Sites,
+				cmpopts.SortSlices(func(a, b *Site) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
 		})
-		assert.NilError(t, err)
-		assert.DeepEqual(
-			t,
-			parentMsgs[deleteCount:],
-			response.Sites,
-			cmpopts.SortSlices(func(a, b *Site) bool {
-				return a.Name < b.Name
-			}),
-			protocmp.Transform(),
-		)
-	})
 
+		// If there are no more resources, next_page_token should not be set.
+		t.Run("last page", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListSites(fx.Context(), &ListSitesRequest{
+				Parent:   parent,
+				PageSize: resourcesCount,
+			})
+			assert.NilError(t, err)
+			assert.Equal(t, "", response.NextPageToken)
+		})
+
+		// If there are more resources, next_page_token should be set.
+		t.Run("more pages", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListSites(fx.Context(), &ListSitesRequest{
+				Parent:   parent,
+				PageSize: resourcesCount - 1,
+			})
+			assert.NilError(t, err)
+			assert.Check(t, response.NextPageToken != "")
+		})
+
+		// Listing resource one by one should eventually return all resources.
+		t.Run("one by one", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msgs := make([]*Site, 0, resourcesCount)
+			var nextPageToken string
+			for {
+				response, err := fx.Service().ListSites(fx.Context(), &ListSitesRequest{
+					Parent:    parent,
+					PageSize:  1,
+					PageToken: nextPageToken,
+				})
+				assert.NilError(t, err)
+				assert.Equal(t, 1, len(response.Sites))
+				msgs = append(msgs, response.Sites...)
+				nextPageToken = response.NextPageToken
+				if nextPageToken == "" {
+					break
+				}
+			}
+			assert.DeepEqual(
+				t,
+				parentMsgs,
+				msgs,
+				cmpopts.SortSlices(func(a, b *Site) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
+
+		// Method should not return deleted resources.
+		t.Run("deleted", func(t *testing.T) {
+			fx.maybeSkip(t)
+			const deleteCount = 5
+			for i := 0; i < deleteCount; i++ {
+				_, err := fx.Service().DeleteSite(fx.Context(), &DeleteSiteRequest{
+					Name: parentMsgs[i].Name,
+					Etag: parentMsgs[i].Etag,
+				})
+				assert.NilError(t, err)
+			}
+			response, err := fx.Service().ListSites(fx.Context(), &ListSitesRequest{
+				Parent:   parent,
+				PageSize: 9999,
+			})
+			assert.NilError(t, err)
+			assert.DeepEqual(
+				t,
+				parentMsgs[deleteCount:],
+				response.Sites,
+				cmpopts.SortSlices(func(a, b *Site) bool {
+					return a.Name < b.Name
+				}),
+				protocmp.Transform(),
+			)
+		})
+
+	}
 }
 
 func (fx *FreightServiceSiteTestSuiteConfig) testDelete(t *testing.T) {

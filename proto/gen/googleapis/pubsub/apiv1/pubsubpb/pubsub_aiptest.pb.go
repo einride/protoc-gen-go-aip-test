@@ -115,153 +115,155 @@ func (fx *PublisherTopicTestSuiteConfig) testUpdate(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
-	parent := fx.nextParent(t, false)
-	created := fx.create(t, parent)
-	// Method should fail with NotFound if the resource does not exist.
-	t.Run("not found", func(t *testing.T) {
-		fx.maybeSkip(t)
-		msg := fx.Update(parent)
-		msg.Name = created.Name + "notfound"
-		_, err := fx.Service().UpdateTopic(fx.Context(), &UpdateTopicRequest{
-			Topic: msg,
+	{
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		// Method should fail with NotFound if the resource does not exist.
+		t.Run("not found", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msg := fx.Update(parent)
+			msg.Name = created.Name + "notfound"
+			_, err := fx.Service().UpdateTopic(fx.Context(), &UpdateTopicRequest{
+				Topic: msg,
+			})
+			assert.Equal(t, codes.NotFound, status.Code(err), err)
 		})
-		assert.Equal(t, codes.NotFound, status.Code(err), err)
-	})
 
-	// The method should fail with InvalidArgument if the update_mask is invalid.
-	t.Run("invalid update mask", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.Service().UpdateTopic(fx.Context(), &UpdateTopicRequest{
-			Topic: created,
-			UpdateMask: &fieldmaskpb.FieldMask{
-				Paths: []string{
-					"invalid_field_xyz",
+		// The method should fail with InvalidArgument if the update_mask is invalid.
+		t.Run("invalid update mask", func(t *testing.T) {
+			fx.maybeSkip(t)
+			_, err := fx.Service().UpdateTopic(fx.Context(), &UpdateTopicRequest{
+				Topic: created,
+				UpdateMask: &fieldmaskpb.FieldMask{
+					Paths: []string{
+						"invalid_field_xyz",
+					},
 				},
-			},
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
 
-	// Method should fail with InvalidArgument if any required field is missing
-	// when called with '*' update_mask.
-	t.Run("required fields", func(t *testing.T) {
-		fx.maybeSkip(t)
-		t.Run(".name", func(t *testing.T) {
+		// Method should fail with InvalidArgument if any required field is missing
+		// when called with '*' update_mask.
+		t.Run("required fields", func(t *testing.T) {
 			fx.maybeSkip(t)
-			msg := proto.Clone(created).(*Topic)
-			container := msg
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("name")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.Service().UpdateTopic(fx.Context(), &UpdateTopicRequest{
-				Topic: msg,
-				UpdateMask: &fieldmaskpb.FieldMask{
-					Paths: []string{
-						"*",
+			t.Run(".name", func(t *testing.T) {
+				fx.maybeSkip(t)
+				msg := proto.Clone(created).(*Topic)
+				container := msg
+				if container == nil {
+					t.Skip("not reachable")
+				}
+				fd := container.ProtoReflect().Descriptor().Fields().ByName("name")
+				container.ProtoReflect().Clear(fd)
+				_, err := fx.Service().UpdateTopic(fx.Context(), &UpdateTopicRequest{
+					Topic: msg,
+					UpdateMask: &fieldmaskpb.FieldMask{
+						Paths: []string{
+							"*",
+						},
 					},
-				},
+				})
+				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
-		t.Run(".schema_settings.schema", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msg := proto.Clone(created).(*Topic)
-			container := msg.GetSchemaSettings()
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("schema")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.Service().UpdateTopic(fx.Context(), &UpdateTopicRequest{
-				Topic: msg,
-				UpdateMask: &fieldmaskpb.FieldMask{
-					Paths: []string{
-						"*",
+			t.Run(".schema_settings.schema", func(t *testing.T) {
+				fx.maybeSkip(t)
+				msg := proto.Clone(created).(*Topic)
+				container := msg.GetSchemaSettings()
+				if container == nil {
+					t.Skip("not reachable")
+				}
+				fd := container.ProtoReflect().Descriptor().Fields().ByName("schema")
+				container.ProtoReflect().Clear(fd)
+				_, err := fx.Service().UpdateTopic(fx.Context(), &UpdateTopicRequest{
+					Topic: msg,
+					UpdateMask: &fieldmaskpb.FieldMask{
+						Paths: []string{
+							"*",
+						},
 					},
-				},
+				})
+				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
-		t.Run(".ingestion_data_source_settings.aws_kinesis.stream_arn", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msg := proto.Clone(created).(*Topic)
-			container := msg.GetIngestionDataSourceSettings().GetAwsKinesis()
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("stream_arn")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.Service().UpdateTopic(fx.Context(), &UpdateTopicRequest{
-				Topic: msg,
-				UpdateMask: &fieldmaskpb.FieldMask{
-					Paths: []string{
-						"*",
+			t.Run(".ingestion_data_source_settings.aws_kinesis.stream_arn", func(t *testing.T) {
+				fx.maybeSkip(t)
+				msg := proto.Clone(created).(*Topic)
+				container := msg.GetIngestionDataSourceSettings().GetAwsKinesis()
+				if container == nil {
+					t.Skip("not reachable")
+				}
+				fd := container.ProtoReflect().Descriptor().Fields().ByName("stream_arn")
+				container.ProtoReflect().Clear(fd)
+				_, err := fx.Service().UpdateTopic(fx.Context(), &UpdateTopicRequest{
+					Topic: msg,
+					UpdateMask: &fieldmaskpb.FieldMask{
+						Paths: []string{
+							"*",
+						},
 					},
-				},
+				})
+				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
-		t.Run(".ingestion_data_source_settings.aws_kinesis.consumer_arn", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msg := proto.Clone(created).(*Topic)
-			container := msg.GetIngestionDataSourceSettings().GetAwsKinesis()
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("consumer_arn")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.Service().UpdateTopic(fx.Context(), &UpdateTopicRequest{
-				Topic: msg,
-				UpdateMask: &fieldmaskpb.FieldMask{
-					Paths: []string{
-						"*",
+			t.Run(".ingestion_data_source_settings.aws_kinesis.consumer_arn", func(t *testing.T) {
+				fx.maybeSkip(t)
+				msg := proto.Clone(created).(*Topic)
+				container := msg.GetIngestionDataSourceSettings().GetAwsKinesis()
+				if container == nil {
+					t.Skip("not reachable")
+				}
+				fd := container.ProtoReflect().Descriptor().Fields().ByName("consumer_arn")
+				container.ProtoReflect().Clear(fd)
+				_, err := fx.Service().UpdateTopic(fx.Context(), &UpdateTopicRequest{
+					Topic: msg,
+					UpdateMask: &fieldmaskpb.FieldMask{
+						Paths: []string{
+							"*",
+						},
 					},
-				},
+				})
+				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
-		t.Run(".ingestion_data_source_settings.aws_kinesis.aws_role_arn", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msg := proto.Clone(created).(*Topic)
-			container := msg.GetIngestionDataSourceSettings().GetAwsKinesis()
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("aws_role_arn")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.Service().UpdateTopic(fx.Context(), &UpdateTopicRequest{
-				Topic: msg,
-				UpdateMask: &fieldmaskpb.FieldMask{
-					Paths: []string{
-						"*",
+			t.Run(".ingestion_data_source_settings.aws_kinesis.aws_role_arn", func(t *testing.T) {
+				fx.maybeSkip(t)
+				msg := proto.Clone(created).(*Topic)
+				container := msg.GetIngestionDataSourceSettings().GetAwsKinesis()
+				if container == nil {
+					t.Skip("not reachable")
+				}
+				fd := container.ProtoReflect().Descriptor().Fields().ByName("aws_role_arn")
+				container.ProtoReflect().Clear(fd)
+				_, err := fx.Service().UpdateTopic(fx.Context(), &UpdateTopicRequest{
+					Topic: msg,
+					UpdateMask: &fieldmaskpb.FieldMask{
+						Paths: []string{
+							"*",
+						},
 					},
-				},
+				})
+				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
-		t.Run(".ingestion_data_source_settings.aws_kinesis.gcp_service_account", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msg := proto.Clone(created).(*Topic)
-			container := msg.GetIngestionDataSourceSettings().GetAwsKinesis()
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("gcp_service_account")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.Service().UpdateTopic(fx.Context(), &UpdateTopicRequest{
-				Topic: msg,
-				UpdateMask: &fieldmaskpb.FieldMask{
-					Paths: []string{
-						"*",
+			t.Run(".ingestion_data_source_settings.aws_kinesis.gcp_service_account", func(t *testing.T) {
+				fx.maybeSkip(t)
+				msg := proto.Clone(created).(*Topic)
+				container := msg.GetIngestionDataSourceSettings().GetAwsKinesis()
+				if container == nil {
+					t.Skip("not reachable")
+				}
+				fd := container.ProtoReflect().Descriptor().Fields().ByName("gcp_service_account")
+				container.ProtoReflect().Clear(fd)
+				_, err := fx.Service().UpdateTopic(fx.Context(), &UpdateTopicRequest{
+					Topic: msg,
+					UpdateMask: &fieldmaskpb.FieldMask{
+						Paths: []string{
+							"*",
+						},
 					},
-				},
+				})
+				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
-	})
 
+	}
 }
 
 func (fx *PublisherTopicTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
@@ -429,33 +431,35 @@ func (fx *SubscriberSnapshotTestSuiteConfig) testUpdate(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
-	parent := fx.nextParent(t, false)
-	created := fx.create(t, parent)
-	// Method should fail with NotFound if the resource does not exist.
-	t.Run("not found", func(t *testing.T) {
-		fx.maybeSkip(t)
-		msg := fx.Update(parent)
-		msg.Name = created.Name + "notfound"
-		_, err := fx.Service().UpdateSnapshot(fx.Context(), &UpdateSnapshotRequest{
-			Snapshot: msg,
+	{
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		// Method should fail with NotFound if the resource does not exist.
+		t.Run("not found", func(t *testing.T) {
+			fx.maybeSkip(t)
+			msg := fx.Update(parent)
+			msg.Name = created.Name + "notfound"
+			_, err := fx.Service().UpdateSnapshot(fx.Context(), &UpdateSnapshotRequest{
+				Snapshot: msg,
+			})
+			assert.Equal(t, codes.NotFound, status.Code(err), err)
 		})
-		assert.Equal(t, codes.NotFound, status.Code(err), err)
-	})
 
-	// The method should fail with InvalidArgument if the update_mask is invalid.
-	t.Run("invalid update mask", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.Service().UpdateSnapshot(fx.Context(), &UpdateSnapshotRequest{
-			Snapshot: created,
-			UpdateMask: &fieldmaskpb.FieldMask{
-				Paths: []string{
-					"invalid_field_xyz",
+		// The method should fail with InvalidArgument if the update_mask is invalid.
+		t.Run("invalid update mask", func(t *testing.T) {
+			fx.maybeSkip(t)
+			_, err := fx.Service().UpdateSnapshot(fx.Context(), &UpdateSnapshotRequest{
+				Snapshot: created,
+				UpdateMask: &fieldmaskpb.FieldMask{
+					Paths: []string{
+						"invalid_field_xyz",
+					},
 				},
-			},
+			})
+			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
 
+	}
 }
 
 func (fx *SubscriberSnapshotTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
@@ -554,96 +558,98 @@ func (fx *SubscriberSubscriptionTestSuiteConfig) testUpdate(t *testing.T) {
 		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 	})
 
-	parent := fx.nextParent(t, false)
-	created := fx.create(t, parent)
-	// Method should fail with NotFound if the resource does not exist.
-	t.Run("not found", func(t *testing.T) {
-		fx.maybeSkip(t)
-		msg := fx.Update(parent)
-		msg.Name = created.Name + "notfound"
-		_, err := fx.Service().UpdateSubscription(fx.Context(), &UpdateSubscriptionRequest{
-			Subscription: msg,
-		})
-		assert.Equal(t, codes.NotFound, status.Code(err), err)
-	})
-
-	// The method should fail with InvalidArgument if the update_mask is invalid.
-	t.Run("invalid update mask", func(t *testing.T) {
-		fx.maybeSkip(t)
-		_, err := fx.Service().UpdateSubscription(fx.Context(), &UpdateSubscriptionRequest{
-			Subscription: created,
-			UpdateMask: &fieldmaskpb.FieldMask{
-				Paths: []string{
-					"invalid_field_xyz",
-				},
-			},
-		})
-		assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-	})
-
-	// Method should fail with InvalidArgument if any required field is missing
-	// when called with '*' update_mask.
-	t.Run("required fields", func(t *testing.T) {
-		fx.maybeSkip(t)
-		t.Run(".name", func(t *testing.T) {
+	{
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		// Method should fail with NotFound if the resource does not exist.
+		t.Run("not found", func(t *testing.T) {
 			fx.maybeSkip(t)
-			msg := proto.Clone(created).(*Subscription)
-			container := msg
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("name")
-			container.ProtoReflect().Clear(fd)
+			msg := fx.Update(parent)
+			msg.Name = created.Name + "notfound"
 			_, err := fx.Service().UpdateSubscription(fx.Context(), &UpdateSubscriptionRequest{
 				Subscription: msg,
+			})
+			assert.Equal(t, codes.NotFound, status.Code(err), err)
+		})
+
+		// The method should fail with InvalidArgument if the update_mask is invalid.
+		t.Run("invalid update mask", func(t *testing.T) {
+			fx.maybeSkip(t)
+			_, err := fx.Service().UpdateSubscription(fx.Context(), &UpdateSubscriptionRequest{
+				Subscription: created,
 				UpdateMask: &fieldmaskpb.FieldMask{
 					Paths: []string{
-						"*",
+						"invalid_field_xyz",
 					},
 				},
 			})
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
-		t.Run(".topic", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msg := proto.Clone(created).(*Subscription)
-			container := msg
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("topic")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.Service().UpdateSubscription(fx.Context(), &UpdateSubscriptionRequest{
-				Subscription: msg,
-				UpdateMask: &fieldmaskpb.FieldMask{
-					Paths: []string{
-						"*",
-					},
-				},
-			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
-		t.Run(".cloud_storage_config.bucket", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msg := proto.Clone(created).(*Subscription)
-			container := msg.GetCloudStorageConfig()
-			if container == nil {
-				t.Skip("not reachable")
-			}
-			fd := container.ProtoReflect().Descriptor().Fields().ByName("bucket")
-			container.ProtoReflect().Clear(fd)
-			_, err := fx.Service().UpdateSubscription(fx.Context(), &UpdateSubscriptionRequest{
-				Subscription: msg,
-				UpdateMask: &fieldmaskpb.FieldMask{
-					Paths: []string{
-						"*",
-					},
-				},
-			})
-			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
-		})
-	})
 
+		// Method should fail with InvalidArgument if any required field is missing
+		// when called with '*' update_mask.
+		t.Run("required fields", func(t *testing.T) {
+			fx.maybeSkip(t)
+			t.Run(".name", func(t *testing.T) {
+				fx.maybeSkip(t)
+				msg := proto.Clone(created).(*Subscription)
+				container := msg
+				if container == nil {
+					t.Skip("not reachable")
+				}
+				fd := container.ProtoReflect().Descriptor().Fields().ByName("name")
+				container.ProtoReflect().Clear(fd)
+				_, err := fx.Service().UpdateSubscription(fx.Context(), &UpdateSubscriptionRequest{
+					Subscription: msg,
+					UpdateMask: &fieldmaskpb.FieldMask{
+						Paths: []string{
+							"*",
+						},
+					},
+				})
+				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+			})
+			t.Run(".topic", func(t *testing.T) {
+				fx.maybeSkip(t)
+				msg := proto.Clone(created).(*Subscription)
+				container := msg
+				if container == nil {
+					t.Skip("not reachable")
+				}
+				fd := container.ProtoReflect().Descriptor().Fields().ByName("topic")
+				container.ProtoReflect().Clear(fd)
+				_, err := fx.Service().UpdateSubscription(fx.Context(), &UpdateSubscriptionRequest{
+					Subscription: msg,
+					UpdateMask: &fieldmaskpb.FieldMask{
+						Paths: []string{
+							"*",
+						},
+					},
+				})
+				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+			})
+			t.Run(".cloud_storage_config.bucket", func(t *testing.T) {
+				fx.maybeSkip(t)
+				msg := proto.Clone(created).(*Subscription)
+				container := msg.GetCloudStorageConfig()
+				if container == nil {
+					t.Skip("not reachable")
+				}
+				fd := container.ProtoReflect().Descriptor().Fields().ByName("bucket")
+				container.ProtoReflect().Clear(fd)
+				_, err := fx.Service().UpdateSubscription(fx.Context(), &UpdateSubscriptionRequest{
+					Subscription: msg,
+					UpdateMask: &fieldmaskpb.FieldMask{
+						Paths: []string{
+							"*",
+						},
+					},
+				})
+				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
+			})
+		})
+
+	}
 }
 
 func (fx *SubscriberSubscriptionTestSuiteConfig) nextParent(t *testing.T, pristine bool) string {
