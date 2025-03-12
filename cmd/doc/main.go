@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/einride/protoc-gen-go-aip-test/internal/aiptest"
@@ -47,6 +48,8 @@ func formatOnlyIfMarkdownList(onlyIf suite.OnlyIf) string {
 		for _, o := range onlyIfs {
 			onlyIfsStr = append(onlyIfsStr, "<li>"+o.String()+"</li>")
 		}
+		slices.Sort(onlyIfsStr)
+		onlyIfsStr = slices.Compact(onlyIfsStr)
 		return "<ul>" + strings.Join(onlyIfsStr, "") + "</ul>"
 	}
 	return onlyIf.String()
