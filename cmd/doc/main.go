@@ -11,7 +11,7 @@ import (
 func main() {
 	for _, s := range aiptest.Suites {
 		fmt.Println("###", s.Name)
-		fmt.Println("| Name | Description | Only if |")
+		fmt.Println("| Name | Description | Generated only if all are true: |")
 		fmt.Println("| ---- | ----------- | ------- |")
 		for _, test := range s.Tests {
 			printTestRow(test.Name, test.Doc, test.OnlyIf)
@@ -35,7 +35,6 @@ func printTestRow(name string, doc []string, onlyif suite.OnlyIf) {
 		"|",
 		strings.Join(doc, " "),
 		"|",
-		"Generated only if all are true:",
 		formatOnlyIfMarkdownList(onlyif),
 		"|",
 	)
