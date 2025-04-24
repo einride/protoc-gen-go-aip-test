@@ -108,14 +108,14 @@ func (s *serviceGenerator) generateFixture(f *protogen.GeneratedFile) {
 	})
 
 	service := f.QualifiedGoIdent(protogen.GoIdent{
-		GoName:       s.service.GoName + "Server",
+		GoName:       s.service.GoName + "Client",
 		GoImportPath: s.service.Methods[0].Input.GoIdent.GoImportPath,
 	})
 
 	f.P("type ", serviceTestSuiteName(s.service.Desc), " struct {")
 	f.P("T *", testingT)
-	f.P("// Server to test.")
-	f.P("Server  ", service)
+	f.P("// Client to test.")
+	f.P("Client  ", service)
 	f.P()
 
 	f.P("}")
@@ -132,7 +132,7 @@ func (s *serviceGenerator) generateTestMethods(f *protogen.GeneratedFile) {
 		GoImportPath: "testing",
 	})
 	service := f.QualifiedGoIdent(protogen.GoIdent{
-		GoName:       s.service.GoName + "Server",
+		GoName:       s.service.GoName + "Client",
 		GoImportPath: s.service.Methods[0].Input.GoIdent.GoImportPath,
 	})
 	serviceFx := serviceTestSuiteName(s.service.Desc)
@@ -141,7 +141,7 @@ func (s *serviceGenerator) generateTestMethods(f *protogen.GeneratedFile) {
 		f.P("func (fx ", serviceFx, ") Test", resourceType(resource), "(ctx ", context, ", options ", resourceFx, ") {")
 		f.P("fx.T.Run(", strconv.Quote(resourceType(resource)), ", func(t *", testingT, ") {")
 		f.P("options.Context = func() ", context, " { return ctx }")
-		f.P("options.Service = func() ", service, " { return fx.Server", "}")
+		f.P("options.Service = func() ", service, " { return fx.Client", "}")
 		f.P("options.test(t)")
 		f.P("})")
 		f.P("}")

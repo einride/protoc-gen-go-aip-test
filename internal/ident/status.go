@@ -8,5 +8,8 @@ import (
 //
 //nolint:gochecknoglobals
 var (
-	StatusCode = protogen.GoIdent{GoName: "Code", GoImportPath: "google.golang.org/grpc/status"}
+	StatusCode = protogen.GoIdent{
+		GoName:       "CodeOf",
+		GoImportPath: "connectrpc.com/connect",
+	}
 )

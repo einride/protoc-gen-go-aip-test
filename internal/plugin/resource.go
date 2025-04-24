@@ -36,7 +36,7 @@ func (r *resourceGenerator) generateFixture(f *protogen.GeneratedFile) {
 		GoImportPath: "context",
 	})
 	service := f.QualifiedGoIdent(protogen.GoIdent{
-		GoName:       r.service.GoName + "Server",
+		GoName:       r.service.GoName + "Client",
 		GoImportPath: r.service.Methods[0].Input.GoIdent.GoImportPath,
 	})
 
