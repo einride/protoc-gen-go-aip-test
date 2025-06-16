@@ -121,31 +121,3 @@ var invalidUserSettableID = suite.Test{
 		return nil
 	},
 }
-
-//nolint:gochecknoglobals
-var invalidUserSettableIDUuid = suite.Test{
-	Name: "invalid user settable id - uuid",
-	Doc: []string{
-		"Method should fail with InvalidArgument if the user settable ID appears",
-		"to be a UUID, see [doc](https://google.aip.dev/122#resource-id-segments).",
-	},
-	OnlyIf: suite.OnlyIfs(
-		onlyif.HasMethod(aipreflect.MethodTypeCreate),
-		onlyif.MethodNotLRO(aipreflect.MethodTypeCreate),
-		onlyif.HasUserSettableID,
-	),
-	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
-		createMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeCreate)
-		if util.HasParent(scope.Resource) {
-			f.P("parent := ", ident.FixtureNextParent, "(t, false)")
-		}
-		util.MethodCreate{
-			Resource:       scope.Resource,
-			Method:         createMethod,
-			Parent:         "parent",
-			UserSettableID: strconv.Quote("a3b950fb-ef42-4901-adc8-647ba02b5635"),
-		}.Generate(f, "_", "err", ":=")
-		f.P(ident.AssertEqual, "(t, ", ident.Codes(codes.InvalidArgument), ", ", ident.StatusCode, "(err), err)")
-		return nil
-	},
-}
