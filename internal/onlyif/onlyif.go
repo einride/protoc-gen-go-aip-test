@@ -45,6 +45,16 @@ func MethodNotLRO(methodType aipreflect.MethodType) suite.OnlyIf {
 	}
 }
 
+func ReturnsNotEmpty(methodType aipreflect.MethodType) suite.OnlyIf {
+	return onlyIf{
+		f: func(scope suite.Scope) bool {
+			method, ok := util.StandardMethod(scope.Service, scope.Resource, methodType)
+			return ok && !util.ReturnsEmpty(method.Desc)
+		},
+		doc: fmt.Sprintf("%s method does not return google.protobuf.Empty", methodType),
+	}
+}
+
 //nolint:gochecknoglobals
 var HasUserSettableID = onlyIf{
 	f: func(scope suite.Scope) bool {
