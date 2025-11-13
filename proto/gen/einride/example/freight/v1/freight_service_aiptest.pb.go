@@ -655,6 +655,18 @@ func (fx *FreightServiceShipperTestSuiteConfig) testDelete(t *testing.T) {
 		assert.Equal(t, codes.Aborted, status.Code(err), err)
 	})
 
+	// A soft-deleted resource should have delete_time assigned.
+	t.Run("soft-deleted delete_time", func(t *testing.T) {
+		fx.maybeSkip(t)
+		created := fx.create(t)
+		beforeDelete := time.Now()
+		deleted, err := fx.Service().DeleteShipper(fx.Context(), &DeleteShipperRequest{
+			Name: created.Name,
+		})
+		assert.NilError(t, err)
+		assert.Check(t, deleted.DeleteTime.AsTime().After(beforeDelete))
+	})
+
 }
 
 func (fx *FreightServiceShipperTestSuiteConfig) maybeSkip(t *testing.T) {
@@ -1658,6 +1670,20 @@ func (fx *FreightServiceSiteTestSuiteConfig) testDelete(t *testing.T) {
 			Etag: `"99999"`,
 		})
 		assert.Equal(t, codes.Aborted, status.Code(err), err)
+	})
+
+	// A soft-deleted resource should have delete_time assigned.
+	t.Run("soft-deleted delete_time", func(t *testing.T) {
+		fx.maybeSkip(t)
+		parent := fx.nextParent(t, false)
+		created := fx.create(t, parent)
+		beforeDelete := time.Now()
+		deleted, err := fx.Service().DeleteSite(fx.Context(), &DeleteSiteRequest{
+			Name: created.Name,
+			Etag: created.Etag,
+		})
+		assert.NilError(t, err)
+		assert.Check(t, deleted.DeleteTime.AsTime().After(beforeDelete))
 	})
 
 }
