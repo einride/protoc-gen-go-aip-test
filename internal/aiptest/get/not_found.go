@@ -19,6 +19,7 @@ var notFound = suite.Test{
 
 	OnlyIf: suite.OnlyIfs(
 		onlyif.HasMethod(aipreflect.MethodTypeGet),
+		onlyif.IsNotSingletonResource,
 	),
 	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
 		getMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeGet)
