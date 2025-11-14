@@ -60,6 +60,18 @@ func isSingleton(s string) bool {
 	return !evenSegments && !lastSegmentIsVariable
 }
 
+// hasVariables returns true if the resource name pattern contains variables, example: shippers/{shipper}.
+func hasVariables(s string) bool {
+	var sc resourcename.Scanner
+	sc.Init(s)
+	for sc.Scan() {
+		if sc.Segment().IsVariable() {
+			return true
+		}
+	}
+	return false
+}
+
 func HasAnyStandardMethodFor(s protoreflect.ServiceDescriptor, r *annotations.ResourceDescriptor) bool {
 	for _, resource := range method.NewMethods(s).Resources() {
 		if resource.GetType() == r.GetType() {
@@ -111,6 +123,10 @@ func IsSingletonResource(r *annotations.ResourceDescriptor) bool {
 		}
 	}
 	return true
+}
+
+func HasVariables(r *annotations.ResourceDescriptor) bool {
+	return hasVariables(r.GetPattern()[0])
 }
 
 func HasUpdateMask(method protoreflect.MethodDescriptor) bool {

@@ -181,7 +181,7 @@ Sample skips:
 | invalid name   | Method should fail with InvalidArgument if the provided name is not valid.                 | <ul><li>has Get method</li></ul>                                                           |
 | exists         | Resource should be returned without errors if it exists.                                   | <ul><li>has Get method</li></ul>                                                           |
 | not found      | Method should fail with NotFound if the resource does not exist.                           | <ul><li>has Get method</li><li>resource is not a singleton</li></ul>                       |
-| only wildcards | Method should fail with InvalidArgument if the provided name only contains wildcards ('-') | <ul><li>has Get method</li></ul>                                                           |
+| only wildcards | Method should fail with InvalidArgument if the provided name only contains wildcards ('-') | <ul><li>has Get method</li><li>resource name pattern contains variables</li></ul>          |
 | soft-deleted   | A soft-deleted resource should be returned without errors.                                 | <ul><li>has Delete method</li><li>has Get method</li><li>has field 'delete_time'</li></ul> |
 
 ### BatchGet

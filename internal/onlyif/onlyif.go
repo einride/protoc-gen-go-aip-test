@@ -97,6 +97,14 @@ var IsNotSingletonResource = onlyIf{
 	doc: "resource is not a singleton",
 }
 
+//nolint:gochecknoglobals
+var HasVariablesInResourceNamePattern = onlyIf{
+	f: func(scope suite.Scope) bool {
+		return util.HasVariables(scope.Resource)
+	},
+	doc: "resource name pattern contains variables",
+}
+
 func HasRequestEtag(method aipreflect.MethodType) suite.OnlyIf {
 	return onlyIf{
 		f: func(scope suite.Scope) bool {
