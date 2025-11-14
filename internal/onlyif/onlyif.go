@@ -89,6 +89,14 @@ var HasRequiredFields = onlyIf{
 	doc: "resource has any required fields",
 }
 
+//nolint:gochecknoglobals
+var IsNotSingletonResource = onlyIf{
+	f: func(scope suite.Scope) bool {
+		return !util.IsSingletonResource(scope.Resource)
+	},
+	doc: "resource is not a singleton",
+}
+
 func HasRequestEtag(method aipreflect.MethodType) suite.OnlyIf {
 	return onlyIf{
 		f: func(scope suite.Scope) bool {
