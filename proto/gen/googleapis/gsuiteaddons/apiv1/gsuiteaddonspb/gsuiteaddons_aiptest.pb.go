@@ -166,16 +166,6 @@ func (fx *GSuiteAddOnsAuthorizationTestSuiteConfig) testGet(t *testing.T) {
 		assert.DeepEqual(t, msg, created, protocmp.Transform())
 	})
 
-	// Method should fail with NotFound if the resource does not exist.
-	t.Run("not found", func(t *testing.T) {
-		fx.maybeSkip(t)
-		created := fx.create(t)
-		_, err := fx.Service().GetAuthorization(fx.Context(), &GetAuthorizationRequest{
-			Name: created.Name + "notfound",
-		})
-		assert.Equal(t, codes.NotFound, status.Code(err), err)
-	})
-
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
 		fx.maybeSkip(t)
@@ -770,17 +760,6 @@ func (fx *GSuiteAddOnsInstallStatusTestSuiteConfig) testGet(t *testing.T) {
 		})
 		assert.NilError(t, err)
 		assert.DeepEqual(t, msg, created, protocmp.Transform())
-	})
-
-	// Method should fail with NotFound if the resource does not exist.
-	t.Run("not found", func(t *testing.T) {
-		fx.maybeSkip(t)
-		parent := fx.nextParent(t, false)
-		created := fx.create(t, parent)
-		_, err := fx.Service().GetInstallStatus(fx.Context(), &GetInstallStatusRequest{
-			Name: created.Name + "notfound",
-		})
-		assert.Equal(t, codes.NotFound, status.Code(err), err)
 	})
 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
