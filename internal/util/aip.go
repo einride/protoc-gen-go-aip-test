@@ -46,6 +46,20 @@ func resourceNameSegments(pattern string) []resourcename.Segment {
 	return segments
 }
 
+// isSingleton reports whether the resource name pattern is a singleton.
+func isSingleton(s string) bool {
+	segments := 0
+	var sc resourcename.Scanner
+	sc.Init(s)
+	for sc.Scan() {
+		segments++
+	}
+	evenSegments := segments%2 == 0
+	lastSegmentIsVariable := sc.Segment().IsVariable()
+	// Singleton resource have odd number of segments and last segment is not a variable.
+	return !evenSegments && !lastSegmentIsVariable
+}
+
 func HasAnyStandardMethodFor(s protoreflect.ServiceDescriptor, r *annotations.ResourceDescriptor) bool {
 	for _, resource := range method.NewMethods(s).Resources() {
 		if resource.GetType() == r.GetType() {
@@ -88,6 +102,15 @@ func IsAlternativeBatchDelete(method protoreflect.MethodDescriptor) bool {
 	}
 	inputFields := method.Input().Fields()
 	return inputFields.ByName("requests") != nil
+}
+
+func IsSingletonResource(r *annotations.ResourceDescriptor) bool {
+	for _, pattern := range r.GetPattern() {
+		if !isSingleton(pattern) {
+			return false
+		}
+	}
+	return true
 }
 
 func HasUpdateMask(method protoreflect.MethodDescriptor) bool {
