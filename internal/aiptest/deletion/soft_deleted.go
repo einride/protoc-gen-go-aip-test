@@ -19,6 +19,7 @@ var softDeletedDeleteTime = suite.Test{
 		onlyif.HasMethod(aipreflect.MethodTypeDelete),
 		onlyif.HasField("delete_time"),
 		onlyif.ReturnsNotEmpty(aipreflect.MethodTypeDelete),
+		onlyif.MethodNotLRO(aipreflect.MethodTypeDelete),
 	),
 	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
 		deleteMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeDelete)
