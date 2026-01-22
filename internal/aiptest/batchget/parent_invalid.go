@@ -24,13 +24,13 @@ var parentInvalid = suite.Test{
 		onlyif.HasMethod(aipreflect.MethodTypeBatchGet),
 		onlyif.BatchMethodNotAlternative(aipreflect.MethodTypeBatchGet),
 	),
-	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
+	Generate: func(f *protogen.GeneratedFile, scope suite.Scope, apiMode util.APIMode) error {
 		batchGetMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeBatchGet)
 		util.MethodBatchGet{
 			Resource: scope.Resource,
 			Method:   batchGetMethod,
 			Parent:   strconv.Quote("invalid resource name"),
-		}.Generate(f, "_", "err", ":=")
+		}.Generate(f, "req", "_", "err", ":=", apiMode)
 		f.P(ident.AssertEqual, "(t, ", ident.Codes(codes.InvalidArgument), ", ", ident.StatusCode, "(err), err)")
 		return nil
 	},

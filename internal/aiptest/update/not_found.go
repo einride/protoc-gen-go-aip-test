@@ -21,15 +21,15 @@ var notFound = suite.Test{
 		onlyif.HasMethod(aipreflect.MethodTypeUpdate),
 		onlyif.IsNotSingletonResource,
 	),
-	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
+	Generate: func(f *protogen.GeneratedFile, scope suite.Scope, apiMode util.APIMode) error {
 		updateMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeUpdate)
 		util.MethodUpdate{
 			Resource: scope.Resource,
 			Method:   updateMethod,
 			Parent:   "parent",
 			// appending to the resource name ensures it is valid
-			Name: "created.Name + \"notfound\"",
-		}.Generate(f, "_", "err", ":=")
+			Name: util.FieldGet("created", "Name", apiMode) + " + \"notfound\"",
+		}.Generate(f, "req", "_", "err", ":=", apiMode)
 		f.P(ident.AssertEqual, "(t, ", ident.Codes(codes.NotFound), ",", ident.StatusCode, "(err), err)")
 		return nil
 	},

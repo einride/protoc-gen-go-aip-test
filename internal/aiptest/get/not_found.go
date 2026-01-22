@@ -21,7 +21,7 @@ var notFound = suite.Test{
 		onlyif.HasMethod(aipreflect.MethodTypeGet),
 		onlyif.IsNotSingletonResource,
 	),
-	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
+	Generate: func(f *protogen.GeneratedFile, scope suite.Scope, apiMode util.APIMode) error {
 		getMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeGet)
 
 		if util.HasParent(scope.Resource) {
@@ -34,8 +34,8 @@ var notFound = suite.Test{
 			Resource: scope.Resource,
 			Method:   getMethod,
 			// appending to the resource name ensures it is valid
-			Name: "created.Name + \"notfound\"",
-		}.Generate(f, "_", "err", ":=")
+			Name: util.FieldGet("created", "Name", apiMode) + " + \"notfound\"",
+		}.Generate(f, "req", "_", "err", ":=", apiMode)
 		f.P(ident.AssertEqual, "(t, ", ident.Codes(codes.NotFound), ",", ident.StatusCode, "(err), err)")
 		return nil
 	},

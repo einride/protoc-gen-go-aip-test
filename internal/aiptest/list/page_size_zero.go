@@ -21,7 +21,7 @@ var pageSizeZero = suite.Test{
 		onlyif.HasMethod(aipreflect.MethodTypeList),
 		onlyif.HasParent,
 	),
-	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
+	Generate: func(f *protogen.GeneratedFile, scope suite.Scope, apiMode util.APIMode) error {
 		listMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeList)
 		responseResources := strcase.UpperCamelCase(string(util.FindResourceField(
 			listMethod.Output.Desc,
@@ -36,10 +36,10 @@ var pageSizeZero = suite.Test{
 			Parent:    "parent",
 			PageSize:  "0",
 			PageToken: "nextPageToken",
-		}.Generate(f, "page", "err", ":=")
+		}.Generate(f, "req", "page", "err", ":=", apiMode)
 		f.P(ident.AssertNilError, "(t, err)")
-		f.P("msgs = append(msgs, page." + responseResources + "...)")
-		f.P("nextPageToken = page.NextPageToken")
+		f.P("msgs = append(msgs, ", util.FieldGet("page", responseResources, apiMode)+"...)")
+		f.P("nextPageToken = ", util.FieldGet("page", "NextPageToken", apiMode))
 		f.P("if nextPageToken == \"\" {")
 		f.P("break")
 		f.P("}")
@@ -49,7 +49,7 @@ var pageSizeZero = suite.Test{
 		f.P("parentMsgs,")
 		f.P("msgs,")
 		f.P(ident.CmpoptsSortSlices, "(func(a,b *", scope.Message.GoIdent, ") bool {")
-		f.P("return a.Name < b.Name")
+		f.P("return ", util.FieldGet("a", "Name", apiMode), " < ", util.FieldGet("b", "Name", apiMode))
 		f.P("}),")
 		f.P(ident.ProtocmpTransform, "(),")
 		f.P(")")

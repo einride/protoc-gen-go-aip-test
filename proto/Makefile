@@ -55,13 +55,21 @@ all: $(sagefile)
 buf-format: $(sagefile)
 	@$(sagefile) Proto:BufFormat
 
-.PHONY: buf-generate
-buf-generate: $(sagefile)
-	@$(sagefile) Proto:BufGenerate
+.PHONY: buf-generate-googleapis-opaque
+buf-generate-googleapis-opaque: $(sagefile)
+	@$(sagefile) Proto:BufGenerateGoogleapisOpaque
 
-.PHONY: buf-generate-googleapis
-buf-generate-googleapis: $(sagefile)
-	@$(sagefile) Proto:BufGenerateGoogleapis
+.PHONY: buf-generate-googleapis-open-struct
+buf-generate-googleapis-open-struct: $(sagefile)
+	@$(sagefile) Proto:BufGenerateGoogleapisOpenStruct
+
+.PHONY: buf-generate-opaque
+buf-generate-opaque: $(sagefile)
+	@$(sagefile) Proto:BufGenerateOpaque
+
+.PHONY: buf-generate-open-struct
+buf-generate-open-struct: $(sagefile)
+	@$(sagefile) Proto:BufGenerateOpenStruct
 
 .PHONY: buf-lint
 buf-lint: $(sagefile)

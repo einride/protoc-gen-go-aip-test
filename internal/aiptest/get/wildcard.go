@@ -23,13 +23,13 @@ var wildcardName = suite.Test{
 		onlyif.HasMethod(aipreflect.MethodTypeGet),
 		onlyif.HasVariablesInResourceNamePattern,
 	),
-	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
+	Generate: func(f *protogen.GeneratedFile, scope suite.Scope, apiMode util.APIMode) error {
 		getMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeGet)
 		util.MethodGet{
 			Resource: scope.Resource,
 			Method:   getMethod,
 			Name:     strconv.Quote(util.WildcardResourceName(scope.Resource)),
-		}.Generate(f, "_", "err", ":=")
+		}.Generate(f, "req", "_", "err", ":=", apiMode)
 		f.P(ident.AssertEqual, "(t, ", ident.Codes(codes.InvalidArgument), ",", ident.StatusCode, "(err), err)")
 		return nil
 	},

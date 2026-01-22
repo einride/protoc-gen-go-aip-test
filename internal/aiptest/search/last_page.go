@@ -20,16 +20,16 @@ var lastPage = suite.Test{
 		onlyif.HasMethod(aipreflect.MethodTypeSearch),
 		onlyif.HasParent,
 	),
-	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
+	Generate: func(f *protogen.GeneratedFile, scope suite.Scope, apiMode util.APIMode) error {
 		searchMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeSearch)
 		util.MethodSearch{
 			Resource: scope.Resource,
 			Method:   searchMethod,
 			Parent:   "parent",
 			PageSize: "resourcesCount",
-		}.Generate(f, "response", "err", ":=")
+		}.Generate(f, "req", "response", "err", ":=", apiMode)
 		f.P(ident.AssertNilError, "(t, err)")
-		f.P(ident.AssertEqual, "(t, \"\", response.NextPageToken)")
+		f.P(ident.AssertEqual, "(t, \"\", ", util.FieldGet("response", "NextPageToken", apiMode), ")")
 		return nil
 	},
 }

@@ -20,7 +20,7 @@ var negativePageSize = suite.Test{
 	OnlyIf: suite.OnlyIfs(
 		onlyif.HasMethod(aipreflect.MethodTypeList),
 	),
-	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
+	Generate: func(f *protogen.GeneratedFile, scope suite.Scope, apiMode util.APIMode) error {
 		listMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeList)
 		if util.HasParent(scope.Resource) {
 			f.P("parent := ", ident.FixtureNextParent, "(t, false)")
@@ -30,7 +30,7 @@ var negativePageSize = suite.Test{
 			Method:   listMethod,
 			Parent:   "parent",
 			PageSize: "-10",
-		}.Generate(f, "_", "err", ":=")
+		}.Generate(f, "req", "_", "err", ":=", apiMode)
 		f.P(ident.AssertEqual, "(t, ", ident.Codes(codes.InvalidArgument), ", ", ident.StatusCode, "(err), err)")
 		return nil
 	},

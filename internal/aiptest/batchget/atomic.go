@@ -22,19 +22,19 @@ var atomic = suite.Test{
 		onlyif.HasMethod(aipreflect.MethodTypeBatchGet),
 		onlyif.BatchMethodNotAlternative(aipreflect.MethodTypeBatchGet),
 	),
-	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
+	Generate: func(f *protogen.GeneratedFile, scope suite.Scope, apiMode util.APIMode) error {
 		batchGetMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeBatchGet)
 		util.MethodBatchGet{
 			Resource: scope.Resource,
 			Method:   batchGetMethod,
 			Parent:   "parent",
 			Names: []string{
-				"created00.Name",
+				util.FieldGet("created00", "Name", apiMode),
 				// appending to the resource name ensures it is valid
-				"created01.Name + \"notfound\"",
-				"created02.Name",
+				util.FieldGet("created01", "Name", apiMode) + " + \"notfound\"",
+				util.FieldGet("created02", "Name", apiMode),
 			},
-		}.Generate(f, "_", "err", ":=")
+		}.Generate(f, "req", "_", "err", ":=", apiMode)
 		f.P(ident.AssertEqual, "(t, ", ident.Codes(codes.NotFound), ", ", ident.StatusCode, "(err), err)")
 		return nil
 	},

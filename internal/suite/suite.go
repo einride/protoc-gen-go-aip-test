@@ -1,6 +1,7 @@
 package suite
 
 import (
+	"github.com/einride/protoc-gen-go-aip-test/internal/util"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/compiler/protogen"
 )
@@ -37,7 +38,7 @@ type Test struct {
 	Name     string
 	Doc      []string
 	OnlyIf   OnlyIf
-	Generate func(f *protogen.GeneratedFile, scope Scope) error
+	Generate func(f *protogen.GeneratedFile, scope Scope, apiMode util.APIMode) error
 }
 
 func (t Test) Enabled(scope Scope) bool {

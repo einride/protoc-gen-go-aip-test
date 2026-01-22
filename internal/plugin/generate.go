@@ -16,13 +16,14 @@ const (
 	fileSuffix = "aiptest.pb.go"
 )
 
-func Generate(plugin *protogen.Plugin) error {
+// GenerateWithConfig generates code using the provided configuration.
+func GenerateWithConfig(plugin *protogen.Plugin, config Config) error {
 	plugin.SupportedFeatures |= 1 // proto3 optional
-	filesPerPackage, err := collectServices(plugin)
+	filesPerPackage, err := collectServices(plugin, config)
 	if err != nil {
 		return err
 	}
-	return generate(plugin, filesPerPackage)
+	return generate(plugin, filesPerPackage, config)
 }
 
 type File struct {
@@ -33,6 +34,7 @@ type File struct {
 // collectServices collects valid services to generate AIP test code for.
 func collectServices(
 	plugin *protogen.Plugin,
+	config Config,
 ) (map[protoreflect.FullName][]File, error) {
 	pkgResources := findResourcesPerPackage(plugin)
 	result := make(map[protoreflect.FullName][]File, 10)
@@ -73,6 +75,7 @@ func collectServices(
 				service:   service,
 				resources: rs,
 				messages:  ms,
+				config:    config,
 			}
 			f.services = append(f.services, generator)
 		}
@@ -81,7 +84,8 @@ func collectServices(
 	return result, nil
 }
 
-func generate(plugin *protogen.Plugin, filesPerPackage map[protoreflect.FullName][]File) error {
+func generate(plugin *protogen.Plugin, filesPerPackage map[protoreflect.FullName][]File, config Config) error {
+	_ = config // will be used in subsequent commits
 	for _, files := range filesPerPackage {
 		generateForPackage(plugin, files)
 		for _, file := range files {

@@ -21,7 +21,7 @@ var oneByOne = suite.Test{
 		onlyif.HasMethod(aipreflect.MethodTypeSearch),
 		onlyif.HasParent,
 	),
-	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
+	Generate: func(f *protogen.GeneratedFile, scope suite.Scope, apiMode util.APIMode) error {
 		searchMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeSearch)
 		responseResources := strcase.UpperCamelCase(string(util.FindResourceField(
 			searchMethod.Output.Desc,
@@ -36,11 +36,11 @@ var oneByOne = suite.Test{
 			Parent:    "parent",
 			PageToken: "nextPageToken",
 			PageSize:  "1",
-		}.Generate(f, "response", "err", ":=")
+		}.Generate(f, "req", "response", "err", ":=", apiMode)
 		f.P(ident.AssertNilError, "(t, err)")
 		f.P(ident.AssertEqual, "(t, 1, len(response.", responseResources, "))")
 		f.P("msgs = append(msgs, response.", responseResources, "...)")
-		f.P("nextPageToken = response.NextPageToken")
+		f.P("nextPageToken = ", util.FieldGet("response", "NextPageToken", apiMode))
 		f.P("if nextPageToken == \"\" {")
 		f.P("break")
 		f.P("}")
@@ -50,7 +50,7 @@ var oneByOne = suite.Test{
 		f.P("parentMsgs,")
 		f.P("msgs,")
 		f.P(ident.CmpoptsSortSlices, "(func(a,b *", scope.Message.GoIdent, ") bool {")
-		f.P("return a.Name < b.Name")
+		f.P("return ", util.FieldGet("a", "Name", apiMode), " < ", util.FieldGet("b", "Name", apiMode))
 		f.P("}),")
 		f.P(ident.ProtocmpTransform, "(),")
 		f.P(")")

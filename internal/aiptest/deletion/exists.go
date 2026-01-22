@@ -19,7 +19,7 @@ var exists = suite.Test{
 	OnlyIf: suite.OnlyIfs(
 		onlyif.HasMethod(aipreflect.MethodTypeDelete),
 	),
-	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
+	Generate: func(f *protogen.GeneratedFile, scope suite.Scope, apiMode util.APIMode) error {
 		deleteMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeDelete)
 
 		if util.HasParent(scope.Resource) {
@@ -32,7 +32,7 @@ var exists = suite.Test{
 			Resource:    scope.Resource,
 			Method:      deleteMethod,
 			ResourceVar: "created",
-		}.Generate(f, "_", "err", ":=")
+		}.Generate(f, "req", "_", "err", ":=", apiMode)
 		f.P(ident.AssertNilError, "(t, err)")
 		return nil
 	},
