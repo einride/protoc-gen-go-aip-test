@@ -7,7 +7,6 @@ import (
 	"github.com/einride/protoc-gen-go-aip-test/internal/onlyif"
 	"github.com/einride/protoc-gen-go-aip-test/internal/suite"
 	"github.com/einride/protoc-gen-go-aip-test/internal/util"
-	"github.com/stoewer/go-strcase"
 	"go.einride.tech/aip/reflect/aipreflect"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/grpc/codes"
@@ -28,7 +27,7 @@ var resourceReferences = suite.Test{
 		onlyif.HasMethod(aipreflect.MethodTypeCreate),
 		onlyif.HasMutableResourceReferences,
 	),
-	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
+	Generate: func(f *protogen.GeneratedFile, scope suite.Scope, apiMode util.APIMode) error {
 		createMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeCreate)
 		util.RangeMutableResourceReferences(
 			scope.Message.Desc,
@@ -63,18 +62,18 @@ var resourceReferences = suite.Test{
 				f.P("t.Skip(\"not reachable\")")
 				f.P("}")
 
-				fieldGoName := strcase.UpperCamelCase(string(fieldPath.FieldDescriptor().Name()))
+				fieldName := string(fieldPath.FieldDescriptor().Name())
 				if field.IsList() {
-					f.P("container.", fieldGoName, "= []string{\"invalid resource name\"}")
+					f.P(util.FieldSet("container", fieldName, "[]string{\"invalid resource name\"}", apiMode))
 				} else {
-					f.P("container.", fieldGoName, "= \"invalid resource name\"")
+					f.P(util.FieldSet("container", fieldName, "\"invalid resource name\"", apiMode))
 				}
 				util.MethodCreate{
 					Resource: scope.Resource,
 					Method:   createMethod,
 					Parent:   "parent",
 					Message:  "msg",
-				}.Generate(f, "_", "err", ":=")
+				}.Generate(f, "req", "_", "err", ":=", apiMode)
 				f.P(
 					ident.AssertEqual,
 					"(t, ",

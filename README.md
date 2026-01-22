@@ -54,6 +54,26 @@ protoc
   [.proto files ...]
 ```
 
+#### Opaque API Support
+
+The plugin supports both the traditional Open Struct API and the newer
+[Opaque API](https://go.dev/blog/protobuf-opaque). By default, the plugin
+generates code that expects your proto resources to be generated using the Open
+Struct API but if you are generating using the Opaque API, it is possible to
+configure this in the plugin using the `api_mode=API_OPAQUE` option:
+
+```bash
+protoc
+  --go-aip-test_out=[OUTPUT DIR] \
+  --go-aip-test_opt=module=[OUTPUT MODULE],api_mode=API_OPAQUE \
+  [.proto files ...]
+```
+
+Available values for the `api_mode` option:
+
+- `api_mode=API_OPEN` (default) - Generate code for the Open Struct API
+- `api_mode=API_OPAQUE` - Generate code for the Opaque API
+
 This can also be done via a
 [buf generate](https://docs.buf.build/generate/usage) template. See
 [buf.gen.yaml](./proto/buf.gen.yaml) for an example.
@@ -101,6 +121,8 @@ func Test_FreightService(t *testing.T) {
 	})
 }
 ```
+
+See [example/opaque](./example/opaque) for an opaque example.
 
 #### Alternative 2:
 

@@ -22,7 +22,7 @@ var isolation = suite.Test{
 		onlyif.HasMethod(aipreflect.MethodTypeSearch),
 		onlyif.HasParent,
 	),
-	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
+	Generate: func(f *protogen.GeneratedFile, scope suite.Scope, apiMode util.APIMode) error {
 		searchMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeSearch)
 		responseResources := strcase.UpperCamelCase(string(util.FindResourceField(
 			searchMethod.Output.Desc,
@@ -33,14 +33,14 @@ var isolation = suite.Test{
 			Method:   searchMethod,
 			Parent:   "parent",
 			PageSize: "999",
-		}.Generate(f, "response", "err", ":=")
+		}.Generate(f, "req", "response", "err", ":=", apiMode)
 		f.P(ident.AssertNilError, "(t, err)")
 		f.P(ident.AssertDeepEqual, "(")
 		f.P("t,")
 		f.P("parentMsgs,")
-		f.P("response.", responseResources, ",")
+		f.P(util.FieldGet("response", responseResources, apiMode), ",")
 		f.P(ident.CmpoptsSortSlices, "(func(a,b *", scope.Message.GoIdent, ") bool {")
-		f.P("return a.Name < b.Name")
+		f.P("return ", util.FieldGet("a", "Name", apiMode), " < ", util.FieldGet("b", "Name", apiMode))
 		f.P("}),")
 		f.P(ident.ProtocmpTransform, "(),")
 		f.P(")")

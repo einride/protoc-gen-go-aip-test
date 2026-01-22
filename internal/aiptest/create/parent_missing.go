@@ -23,14 +23,14 @@ var parentMissing = suite.Test{
 		onlyif.HasMethod(aipreflect.MethodTypeCreate),
 		onlyif.HasParent,
 	),
-	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
+	Generate: func(f *protogen.GeneratedFile, scope suite.Scope, apiMode util.APIMode) error {
 		createMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeCreate)
 		util.MethodCreate{
 			Resource: scope.Resource,
 			Method:   createMethod,
 			Message:  "fx.Create(fx.nextParent(t, false))",
 			Parent:   strconv.Quote(""),
-		}.Generate(f, "_", "err", ":=")
+		}.Generate(f, "req", "_", "err", ":=", apiMode)
 		f.P(ident.AssertEqual, "(t, ", ident.Codes(codes.InvalidArgument), ", ", ident.StatusCode, "(err), err)")
 		return nil
 	},

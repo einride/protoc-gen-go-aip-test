@@ -25,7 +25,7 @@ var alreadyExists = suite.Test{
 		onlyif.MethodNotLRO(aipreflect.MethodTypeCreate),
 		onlyif.HasUserSettableID,
 	),
-	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
+	Generate: func(f *protogen.GeneratedFile, scope suite.Scope, apiMode util.APIMode) error {
 		createMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeCreate)
 		if util.HasParent(scope.Resource) {
 			f.P("parent := ", ident.FixtureNextParent, "(t, false)")
@@ -36,9 +36,9 @@ var alreadyExists = suite.Test{
 			Parent:         "parent",
 			UserSettableID: strconv.Quote("alreadyexists"),
 		}
-		m.Generate(f, "_", "err", ":=")
+		m.Generate(f, "req1", "_", "err", ":=", apiMode)
 		f.P(ident.AssertNilError, "(t, err)")
-		m.Generate(f, "_", "err", "=")
+		m.Generate(f, "req2", "_", "err", "=", apiMode)
 		f.P(ident.AssertEqual, "(t, ", ident.Codes(codes.AlreadyExists), ",", ident.StatusCode, "(err), err)")
 		return nil
 	},

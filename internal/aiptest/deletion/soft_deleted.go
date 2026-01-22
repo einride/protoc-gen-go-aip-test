@@ -21,7 +21,7 @@ var softDeletedDeleteTime = suite.Test{
 		onlyif.ReturnsNotEmpty(aipreflect.MethodTypeDelete),
 		onlyif.MethodNotLRO(aipreflect.MethodTypeDelete),
 	),
-	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
+	Generate: func(f *protogen.GeneratedFile, scope suite.Scope, apiMode util.APIMode) error {
 		deleteMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeDelete)
 
 		if util.HasParent(scope.Resource) {
@@ -35,9 +35,14 @@ var softDeletedDeleteTime = suite.Test{
 			Resource:    scope.Resource,
 			Method:      deleteMethod,
 			ResourceVar: "created",
-		}.Generate(f, "deleted", "err", ":=")
+		}.Generate(f, "req", "deleted", "err", ":=", apiMode)
 		f.P(ident.AssertNilError, "(t, err)")
-		f.P(ident.AssertCheck, "(t, deleted.DeleteTime.AsTime().After(beforeDelete))")
+		f.P(
+			ident.AssertCheck,
+			"(t, ",
+			util.FieldGet("deleted", "DeleteTime", apiMode),
+			".AsTime().After(beforeDelete))",
+		)
 		return nil
 	},
 }

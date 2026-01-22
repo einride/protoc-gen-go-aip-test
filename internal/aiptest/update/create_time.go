@@ -24,7 +24,7 @@ var preserveCreateTime = suite.Test{
 		onlyif.HasField("create_time"),
 		onlyif.HasRequiredFields,
 	),
-	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
+	Generate: func(f *protogen.GeneratedFile, scope suite.Scope, apiMode util.APIMode) error {
 		updateMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeUpdate)
 
 		if util.HasParent(scope.Resource) {
@@ -33,15 +33,22 @@ var preserveCreateTime = suite.Test{
 		} else {
 			f.P("created := fx.create(t)")
 		}
-		f.P("originalCreateTime := created.CreateTime")
+		f.P("originalCreateTime := ", util.FieldGet("created", "CreateTime", apiMode))
 		util.MethodUpdate{
 			Resource:   scope.Resource,
 			Method:     updateMethod,
 			Msg:        "created",
 			UpdateMask: []string{strconv.Quote("*")},
-		}.Generate(f, "updated", "err", ":=")
+		}.Generate(f, "req", "updated", "err", ":=", apiMode)
 		f.P(ident.AssertNilError, "(t, err)")
-		f.P(ident.AssertDeepEqual, "(t, originalCreateTime, updated.CreateTime,", ident.ProtocmpTransform, "())")
+		f.P(
+			ident.AssertDeepEqual,
+			"(t, originalCreateTime, ",
+			util.FieldGet("updated", "CreateTime", apiMode),
+			",",
+			ident.ProtocmpTransform,
+			"())",
+		)
 		return nil
 	},
 }

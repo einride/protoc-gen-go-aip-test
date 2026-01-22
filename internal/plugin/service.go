@@ -11,6 +11,7 @@ type serviceGenerator struct {
 	service   *protogen.Service
 	resources []*annotations.ResourceDescriptor
 	messages  []*protogen.Message
+	config    Config
 }
 
 func (s *serviceGenerator) Generate(f *protogen.GeneratedFile) error {
@@ -25,6 +26,7 @@ func (s *serviceGenerator) Generate(f *protogen.GeneratedFile) error {
 			service:  s.service,
 			resource: resource,
 			message:  message,
+			config:   s.config,
 		}
 		if err := generator.Generate(f); err != nil {
 			return err
