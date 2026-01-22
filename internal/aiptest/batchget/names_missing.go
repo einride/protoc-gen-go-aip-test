@@ -21,7 +21,7 @@ var namesMissing = suite.Test{
 		onlyif.HasMethod(aipreflect.MethodTypeBatchGet),
 		onlyif.BatchMethodNotAlternative(aipreflect.MethodTypeBatchGet),
 	),
-	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
+	Generate: func(f *protogen.GeneratedFile, scope suite.Scope, apiMode util.APIMode) error {
 		batchGetMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeBatchGet)
 		if util.HasParent(scope.Resource) {
 			f.P("parent := ", ident.FixtureNextParent, "(t, false)")
@@ -31,7 +31,7 @@ var namesMissing = suite.Test{
 			Method:   batchGetMethod,
 			Parent:   "parent",
 			Names:    nil,
-		}.Generate(f, "_", "err", ":=")
+		}.Generate(f, "req", "_", "err", ":=", apiMode)
 		f.P(ident.AssertEqual, "(t, ", ident.Codes(codes.InvalidArgument), ", ", ident.StatusCode, "(err), err)")
 		return nil
 	},

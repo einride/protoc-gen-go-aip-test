@@ -21,7 +21,7 @@ var persisted = suite.Test{
 		onlyif.MethodNotLRO(aipreflect.MethodTypeUpdate),
 		onlyif.HasMethod(aipreflect.MethodTypeGet),
 	),
-	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
+	Generate: func(f *protogen.GeneratedFile, scope suite.Scope, apiMode util.APIMode) error {
 		updateMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeUpdate)
 		getMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeGet)
 
@@ -35,13 +35,13 @@ var persisted = suite.Test{
 			Resource: scope.Resource,
 			Method:   updateMethod,
 			Msg:      "created",
-		}.Generate(f, "updated", "err", ":=")
+		}.Generate(f, "updateReq", "updated", "err", ":=", apiMode)
 		f.P(ident.AssertNilError, "(t, err)")
 		util.MethodGet{
 			Resource: scope.Resource,
 			Method:   getMethod,
-			Name:     "updated.Name",
-		}.Generate(f, "persisted", "err", ":=")
+			Name:     util.FieldGet("updated", "Name", apiMode),
+		}.Generate(f, "getReq", "persisted", "err", ":=", apiMode)
 		f.P(ident.AssertNilError, "(t, err)")
 		f.P(ident.AssertDeepEqual, "(t, updated, persisted, ", ident.ProtocmpTransform, "())")
 		return nil

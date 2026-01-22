@@ -1,0 +1,18 @@
+version: v1
+
+plugins:
+  - name: go
+    out: gen/opaque/googleapis
+    opt:
+      - module=cloud.google.com/go
+      - default_api_level=API_OPAQUE
+
+  - name: go-grpc
+    out: gen/opaque/googleapis
+    opt: module=cloud.google.com/go
+
+  - name: go-aip-test
+    out: gen/opaque/googleapis
+    opt:
+      - module=cloud.google.com/go
+      - api_mode=API_OPAQUE

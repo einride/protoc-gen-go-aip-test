@@ -22,7 +22,7 @@ var invalidPageToken = suite.Test{
 	OnlyIf: suite.OnlyIfs(
 		onlyif.HasMethod(aipreflect.MethodTypeSearch),
 	),
-	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
+	Generate: func(f *protogen.GeneratedFile, scope suite.Scope, apiMode util.APIMode) error {
 		searchMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeSearch)
 		if util.HasParent(scope.Resource) {
 			f.P("parent := ", ident.FixtureNextParent, "(t, false)")
@@ -32,7 +32,7 @@ var invalidPageToken = suite.Test{
 			Method:    searchMethod,
 			Parent:    "parent",
 			PageToken: strconv.Quote("invalid page token"),
-		}.Generate(f, "_", "err", ":=")
+		}.Generate(f, "req", "_", "err", ":=", apiMode)
 		f.P(ident.AssertEqual, "(t, ", ident.Codes(codes.InvalidArgument), ", ", ident.StatusCode, "(err), err)")
 		return nil
 	},

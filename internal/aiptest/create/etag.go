@@ -20,7 +20,7 @@ var etagPopulated = suite.Test{
 		onlyif.MethodNotLRO(aipreflect.MethodTypeCreate),
 		onlyif.HasField("etag"),
 	),
-	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
+	Generate: func(f *protogen.GeneratedFile, scope suite.Scope, apiMode util.APIMode) error {
 		createMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeCreate)
 		if util.HasParent(scope.Resource) {
 			f.P("parent := ", ident.FixtureNextParent, "(t, false)")
@@ -29,9 +29,9 @@ var etagPopulated = suite.Test{
 			Resource: scope.Resource,
 			Method:   createMethod,
 			Parent:   "parent",
-		}.Generate(f, "created", "err", ":=")
+		}.Generate(f, "req", "created", "err", ":=", apiMode)
 		f.P(ident.AssertNilError, "(t, err)")
-		f.P(ident.AssertCheck, "(t, created.Etag != \"\")")
+		f.P(ident.AssertCheck, "(t, ", util.FieldGet("created", "Etag", apiMode), " != \"\")")
 		return nil
 	},
 }

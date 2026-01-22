@@ -20,7 +20,7 @@ var etagMismatch = suite.Test{
 		onlyif.HasMethod(aipreflect.MethodTypeUpdate),
 		onlyif.HasField("etag"),
 	),
-	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
+	Generate: func(f *protogen.GeneratedFile, scope suite.Scope, apiMode util.APIMode) error {
 		if util.HasParent(scope.Resource) {
 			f.P("parent := ", ident.FixtureNextParent, "(t, false)")
 			f.P("created := fx.create(t, parent)")
@@ -32,10 +32,10 @@ var etagMismatch = suite.Test{
 			Resource: scope.Resource,
 			Method:   updateMethod,
 			Parent:   "parent",
-			Name:     "created.Name",
+			Name:     util.FieldGet("created", "Name", apiMode),
 			Etag:     util.EtagLiteral("99999"),
 			EtagTest: true,
-		}.Generate(f, "_", "err", ":=")
+		}.Generate(f, "req", "_", "err", ":=", apiMode)
 		f.P(ident.AssertEqual, "(t, ", ident.Codes(codes.Aborted), ",", ident.StatusCode, "(err), err)")
 		return nil
 	},
@@ -51,7 +51,7 @@ var etagUpdated = suite.Test{
 		onlyif.HasMethod(aipreflect.MethodTypeUpdate),
 		onlyif.HasField("etag"),
 	),
-	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
+	Generate: func(f *protogen.GeneratedFile, scope suite.Scope, apiMode util.APIMode) error {
 		if util.HasParent(scope.Resource) {
 			f.P("parent := ", ident.FixtureNextParent, "(t, false)")
 			f.P("created := fx.create(t, parent)")
@@ -63,15 +63,22 @@ var etagUpdated = suite.Test{
 			Resource: scope.Resource,
 			Method:   updateMethod,
 			Parent:   "parent",
-			Name:     "created.Name",
-			Etag:     "created.Etag",
+			Name:     util.FieldGet("created", "Name", apiMode),
+			Etag:     util.FieldGet("created", "Etag", apiMode),
 			EtagTest: true,
-		}.Generate(f, "updated", "err", ":=")
+		}.Generate(f, "req", "updated", "err", ":=", apiMode)
 		f.P(ident.AssertNilError, "(t, err)")
 
 		if !util.ReturnsLRO(updateMethod.Desc) {
 			// only assert etag is different if the resource is returned.
-			f.P(ident.AssertCheck, "(t, updated.Etag != created.Etag)")
+			f.P(
+				ident.AssertCheck,
+				"(t, ",
+				util.FieldGet("updated", "Etag", apiMode),
+				" != ",
+				util.FieldGet("created", "Etag", apiMode),
+				")",
+			)
 		} else {
 			f.P("_ = updated") // prevent unused error.
 		}

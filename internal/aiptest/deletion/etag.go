@@ -21,7 +21,7 @@ var etagMismatch = suite.Test{
 		onlyif.HasRequestEtag(aipreflect.MethodTypeDelete),
 		onlyif.HasField("etag"),
 	),
-	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
+	Generate: func(f *protogen.GeneratedFile, scope suite.Scope, apiMode util.APIMode) error {
 		if util.HasParent(scope.Resource) {
 			f.P("parent := ", ident.FixtureNextParent, "(t, false)")
 			f.P("created := fx.create(t, parent)")
@@ -34,7 +34,7 @@ var etagMismatch = suite.Test{
 			Method:      deleteMethod,
 			ResourceVar: "created",
 			Etag:        util.EtagLiteral("99999"),
-		}.Generate(f, "_", "err", ":=")
+		}.Generate(f, "req", "_", "err", ":=", apiMode)
 		f.P(ident.AssertEqual, "(t, ", ident.Codes(codes.Aborted), ",", ident.StatusCode, "(err), err)")
 		return nil
 	},

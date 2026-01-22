@@ -21,7 +21,7 @@ var pageSizeZero = suite.Test{
 		onlyif.HasMethod(aipreflect.MethodTypeList),
 		onlyif.HasParent,
 	),
-	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
+	Generate: func(f *protogen.GeneratedFile, scope suite.Scope, apiMode util.APIMode) error {
 		listMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeList)
 		responseResources := strcase.UpperCamelCase(string(util.FindResourceField(
 			listMethod.Output.Desc,
@@ -32,13 +32,13 @@ var pageSizeZero = suite.Test{
 			Method:   listMethod,
 			Parent:   "parent",
 			PageSize: "0",
-		}.Generate(f, "response", "err", ":=")
+		}.Generate(f, "req", "response", "err", ":=", apiMode)
 		f.P(ident.AssertNilError, "(t, err)")
 		f.P("// Server should use a default page size and return at least some results")
 		f.P(
 			ident.AssertCheck,
-			"(t, len(response.",
-			responseResources,
+			"(t, len(",
+			util.FieldGet("response", responseResources, apiMode),
 			") > 0, \"expected server to return at least 1 resource with page_size=0\")",
 		)
 		return nil

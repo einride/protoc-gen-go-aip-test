@@ -26,7 +26,7 @@ var requiredFields = suite.Test{
 		onlyif.HasMethod(aipreflect.MethodTypeCreate),
 		onlyif.HasRequiredFields,
 	),
-	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
+	Generate: func(f *protogen.GeneratedFile, scope suite.Scope, apiMode util.APIMode) error {
 		createMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeCreate)
 		util.RangeRequiredFields(scope.Message.Desc, func(p protopath.Path, _ protoreflect.FieldDescriptor) {
 			// strip root step
@@ -61,7 +61,7 @@ var requiredFields = suite.Test{
 				Method:   createMethod,
 				Parent:   "parent",
 				Message:  "msg",
-			}.Generate(f, "_", "err", ":=")
+			}.Generate(f, "req", "_", "err", ":=", apiMode)
 			f.P(ident.AssertEqual, "(t, ", ident.Codes(codes.InvalidArgument), ", ", ident.StatusCode, "(err), err)")
 			f.P("})")
 		})

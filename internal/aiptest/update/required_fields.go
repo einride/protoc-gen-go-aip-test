@@ -28,7 +28,7 @@ var requiredFields = suite.Test{
 		onlyif.HasMethod(aipreflect.MethodTypeUpdate),
 		onlyif.HasRequiredFields,
 	),
-	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
+	Generate: func(f *protogen.GeneratedFile, scope suite.Scope, apiMode util.APIMode) error {
 		updateMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeUpdate)
 		util.RangeRequiredFields(scope.Message.Desc, func(p protopath.Path, field protoreflect.FieldDescriptor) {
 			if fieldbehavior.Has(field, annotations.FieldBehavior_IMMUTABLE) {
@@ -61,7 +61,7 @@ var requiredFields = suite.Test{
 				Method:     updateMethod,
 				Msg:        "msg",
 				UpdateMask: []string{strconv.Quote("*")},
-			}.Generate(f, "_", "err", ":=")
+			}.Generate(f, "req", "_", "err", ":=", apiMode)
 			f.P(ident.AssertEqual, "(t, ", ident.Codes(codes.InvalidArgument), ", ", ident.StatusCode, "(err), err)")
 			f.P("})")
 		})

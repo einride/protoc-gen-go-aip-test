@@ -23,13 +23,13 @@ var invalidParent = suite.Test{
 		onlyif.HasMethod(aipreflect.MethodTypeSearch),
 		onlyif.HasParent,
 	),
-	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
+	Generate: func(f *protogen.GeneratedFile, scope suite.Scope, apiMode util.APIMode) error {
 		searchMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeSearch)
 		util.MethodSearch{
 			Resource: scope.Resource,
 			Method:   searchMethod,
 			Parent:   strconv.Quote("invalid resource name"),
-		}.Generate(f, "_", "err", ":=")
+		}.Generate(f, "req", "_", "err", ":=", apiMode)
 		f.P(ident.AssertEqual, "(t, ", ident.Codes(codes.InvalidArgument), ", ", ident.StatusCode, "(err), err)")
 		return nil
 	},

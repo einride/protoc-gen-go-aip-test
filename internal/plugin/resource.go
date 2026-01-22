@@ -16,6 +16,7 @@ type resourceGenerator struct {
 	service  *protogen.Service
 	resource *annotations.ResourceDescriptor
 	message  *protogen.Message
+	config   Config
 }
 
 func (r *resourceGenerator) Generate(f *protogen.GeneratedFile) error {
@@ -195,7 +196,7 @@ func (r *resourceGenerator) generateTestCase(f *protogen.GeneratedFile, test sui
 	}
 	f.P("t.Run(", strconv.Quote(test.Name), ", func(t *", testingT, ") {")
 	f.P(ident.FixtureMaybeSkip, "(t)")
-	if err := test.Generate(f, scope); err != nil {
+	if err := test.Generate(f, scope, r.config.toUtilAPIMode()); err != nil {
 		return err
 	}
 	f.P("})")
@@ -247,7 +248,7 @@ func (r *resourceGenerator) generateCreate(f *protogen.GeneratedFile) {
 			Resource: r.resource,
 			Method:   createMethod,
 			Parent:   "parent",
-		}.Generate(f, "created", "err", ":=")
+		}.Generate(f, "req", "created", "err", ":=", r.config.toUtilAPIMode())
 		f.P(ident.AssertNilError, "(t, err)")
 		f.P("return created")
 	default:
