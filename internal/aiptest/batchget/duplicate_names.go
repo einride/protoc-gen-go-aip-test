@@ -34,7 +34,7 @@ var duplicateNames = suite.Test{
 			Method:   batchGetMethod,
 			Parent:   "parent",
 			Names:    []string{"created00.Name", "created00.Name"},
-		}.Generate(f, "response", "err", ":=")
+		}.Generate(f, scope.Transport, "response", "err", ":=")
 		f.P(ident.AssertNilError, "(t, err)")
 		f.P(ident.AssertDeepEqual, "(")
 		f.P("t,")

@@ -39,7 +39,7 @@ var preserveCreateTime = suite.Test{
 			Method:     updateMethod,
 			Msg:        "created",
 			UpdateMask: []string{strconv.Quote("*")},
-		}.Generate(f, "updated", "err", ":=")
+		}.Generate(f, scope.Transport, "updated", "err", ":=")
 		f.P(ident.AssertNilError, "(t, err)")
 		f.P(ident.AssertDeepEqual, "(t, originalCreateTime, updated.CreateTime,", ident.ProtocmpTransform, "())")
 		return nil

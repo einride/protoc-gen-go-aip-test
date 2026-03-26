@@ -33,7 +33,7 @@ var exists = suite.Test{
 			Method:   getMethod,
 			// appending to the resource name ensures it is valid
 			Name: "created.Name",
-		}.Generate(f, "msg", "err", ":=")
+		}.Generate(f, scope.Transport, "msg", "err", ":=")
 		f.P(ident.AssertNilError, "(t, err)")
 		f.P(ident.AssertDeepEqual, "(t, msg, created, ", ident.ProtocmpTransform, "())")
 		return nil

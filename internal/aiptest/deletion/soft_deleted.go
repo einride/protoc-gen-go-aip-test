@@ -35,7 +35,7 @@ var softDeletedDeleteTime = suite.Test{
 			Resource:    scope.Resource,
 			Method:      deleteMethod,
 			ResourceVar: "created",
-		}.Generate(f, "deleted", "err", ":=")
+		}.Generate(f, scope.Transport, "deleted", "err", ":=")
 		f.P(ident.AssertNilError, "(t, err)")
 		f.P(ident.AssertCheck, "(t, deleted.DeleteTime.AsTime().After(beforeDelete))")
 		return nil

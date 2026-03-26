@@ -36,7 +36,7 @@ var oneByOne = suite.Test{
 			Parent:    "parent",
 			PageToken: "nextPageToken",
 			PageSize:  "1",
-		}.Generate(f, "response", "err", ":=")
+		}.Generate(f, scope.Transport, "response", "err", ":=")
 		f.P(ident.AssertNilError, "(t, err)")
 		f.P(ident.AssertEqual, "(t, 1, len(response.", responseResources, "))")
 		f.P("msgs = append(msgs, response.", responseResources, "...)")

@@ -35,7 +35,7 @@ var deleted = suite.Test{
 			Method:      deleteMethod,
 			Resource:    scope.Resource,
 			ResourceVar: "parentMsgs[i]",
-		}.Generate(f, "_", "err", ":=")
+		}.Generate(f, scope.Transport, "_", "err", ":=")
 		f.P(ident.AssertNilError, "(t, err)")
 		f.P("}")
 		util.MethodSearch{
@@ -43,7 +43,7 @@ var deleted = suite.Test{
 			Method:   searchMethod,
 			Parent:   "parent",
 			PageSize: "9999",
-		}.Generate(f, "response", "err", ":=")
+		}.Generate(f, scope.Transport, "response", "err", ":=")
 		f.P(ident.AssertNilError, "(t, err)")
 		f.P(ident.AssertDeepEqual, "(")
 		f.P("t,")

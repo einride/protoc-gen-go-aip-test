@@ -30,8 +30,15 @@ var parentMismatch = suite.Test{
 			Method:   batchGetMethod,
 			Parent:   "fx.peekNextParent(t)",
 			Names:    []string{"created00.Name"},
-		}.Generate(f, "_", "err", ":=")
-		f.P(ident.AssertEqual, "(t, ", ident.Codes(codes.InvalidArgument), ",", ident.StatusCode, "(err), err)")
+		}.Generate(f, scope.Transport, "_", "err", ":=")
+		f.P(
+			ident.AssertEqual,
+			"(t, ",
+			scope.Transport.CodesIdent(codes.InvalidArgument),
+			",",
+			scope.Transport.CodeOfIdent(),
+			"(err), err)",
+		)
 		return nil
 	},
 }

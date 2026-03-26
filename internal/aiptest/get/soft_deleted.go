@@ -34,13 +34,13 @@ var softDeleted = suite.Test{
 			Resource:    scope.Resource,
 			Method:      deleteMethod,
 			ResourceVar: "created",
-		}.Generate(f, "deleted", "err", ":=")
+		}.Generate(f, scope.Transport, "deleted", "err", ":=")
 		f.P(ident.AssertNilError, "(t, err)")
 		util.MethodGet{
 			Resource: scope.Resource,
 			Method:   getMethod,
 			Name:     "created.Name",
-		}.Generate(f, "msg", "err", ":=")
+		}.Generate(f, scope.Transport, "msg", "err", ":=")
 		f.P(ident.AssertNilError, "(t, err)")
 		if util.ReturnsEmpty(deleteMethod.Desc) {
 			// skip asserting if the deleted method returns an Empty response.

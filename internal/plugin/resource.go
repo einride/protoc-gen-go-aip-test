@@ -6,6 +6,7 @@ import (
 	"github.com/einride/protoc-gen-go-aip-test/internal/aiptest"
 	"github.com/einride/protoc-gen-go-aip-test/internal/ident"
 	"github.com/einride/protoc-gen-go-aip-test/internal/suite"
+	"github.com/einride/protoc-gen-go-aip-test/internal/transport"
 	"github.com/einride/protoc-gen-go-aip-test/internal/util"
 	"go.einride.tech/aip/reflect/aipreflect"
 	"google.golang.org/genproto/googleapis/api/annotations"
@@ -13,9 +14,11 @@ import (
 )
 
 type resourceGenerator struct {
-	service  *protogen.Service
-	resource *annotations.ResourceDescriptor
-	message  *protogen.Message
+	service       *protogen.Service
+	resource      *annotations.ResourceDescriptor
+	message       *protogen.Message
+	transport     transport.Transport
+	goPackageName protogen.GoPackageName
 }
 
 func (r *resourceGenerator) Generate(f *protogen.GeneratedFile) error {
@@ -35,10 +38,7 @@ func (r *resourceGenerator) generateFixture(f *protogen.GeneratedFile) {
 		GoName:       "Context",
 		GoImportPath: "context",
 	})
-	service := f.QualifiedGoIdent(protogen.GoIdent{
-		GoName:       r.service.GoName + "Server",
-		GoImportPath: r.service.Methods[0].Input.GoIdent.GoImportPath,
-	})
+	service := f.QualifiedGoIdent(r.transport.ServiceIdent(r.service, r.goPackageName))
 
 	f.P("type ", resourceTestSuiteConfigName(r.service.Desc, r.resource), " struct {")
 	f.P("currParent int")
@@ -113,9 +113,10 @@ func (r *resourceGenerator) generateTestMethod(f *protogen.GeneratedFile) {
 
 	f.P("func (fx *", resourceTestSuiteConfigName(r.service.Desc, r.resource), ") test(t *", testingT, ") {")
 	scope := suite.Scope{
-		Service:  r.service,
-		Resource: r.resource,
-		Message:  r.message,
+		Service:   r.service,
+		Resource:  r.resource,
+		Message:   r.message,
+		Transport: r.transport,
 	}
 	for _, s := range aiptest.Suites {
 		if s.Enabled(scope) {
@@ -132,15 +133,24 @@ func (r *resourceGenerator) generateTestCases(f *protogen.GeneratedFile) error {
 		GoImportPath: "testing",
 	})
 	scope := suite.Scope{
-		Service:  r.service,
-		Resource: r.resource,
-		Message:  r.message,
+		Service:   r.service,
+		Resource:  r.resource,
+		Message:   r.message,
+		Transport: r.transport,
 	}
 	for _, s := range aiptest.Suites {
 		if !s.Enabled(scope) {
 			continue
 		}
-		f.P("func (fx *", resourceTestSuiteConfigName(r.service.Desc, r.resource), ") test", s.Name, "(t *", testingT, ") {")
+		f.P(
+			"func (fx *",
+			resourceTestSuiteConfigName(r.service.Desc, r.resource),
+			") test",
+			s.Name,
+			"(t *",
+			testingT,
+			") {",
+		)
 		f.P(ident.FixtureMaybeSkip, "(t)")
 		for _, t := range s.Tests {
 			if !t.Enabled(scope) {
@@ -239,7 +249,7 @@ func (r *resourceGenerator) generateCreate(f *protogen.GeneratedFile) {
 			Resource: r.resource,
 			Method:   createMethod,
 			Parent:   "parent",
-		}.Generate(f, "created", "err", ":=")
+		}.Generate(f, r.transport, "created", "err", ":=")
 		f.P(ident.AssertNilError, "(t, err)")
 		f.P("return created")
 	default:

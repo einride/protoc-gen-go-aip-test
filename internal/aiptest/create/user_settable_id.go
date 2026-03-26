@@ -36,7 +36,7 @@ var userSettableID = suite.Test{
 			Method:         createMethod,
 			Parent:         "parent",
 			UserSettableID: strconv.Quote("usersetid"),
-		}.Generate(f, "msg", "err", ":=")
+		}.Generate(f, scope.Transport, "msg", "err", ":=")
 		f.P(ident.AssertNilError, "(t, err)")
 		f.P(ident.AssertCheck, "(t, ", ident.StringsHasSuffix, "(msg.GetName(), ", strconv.Quote("usersetid"), "))")
 		return nil
@@ -114,8 +114,15 @@ var invalidUserSettableID = suite.Test{
 			Method:         createMethod,
 			Parent:         "parent",
 			UserSettableID: "tt.id",
-		}.Generate(f, "_", "err", ":=")
-		f.P(ident.AssertEqual, "(t, ", ident.Codes(codes.InvalidArgument), ", ", ident.StatusCode, "(err), err)")
+		}.Generate(f, scope.Transport, "_", "err", ":=")
+		f.P(
+			ident.AssertEqual,
+			"(t, ",
+			scope.Transport.CodesIdent(codes.InvalidArgument),
+			", ",
+			scope.Transport.CodeOfIdent(),
+			"(err), err)",
+		)
 		f.P("})")
 		f.P("}")
 		return nil

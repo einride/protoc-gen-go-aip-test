@@ -37,7 +37,7 @@ var ordered = suite.Test{
 			Method:   batchGetMethod,
 			Parent:   "parent",
 			Names:    []string{"order[0].GetName()", "order[1].GetName()", "order[2].GetName()"},
-		}.Generate(f, "response", "err", ":=")
+		}.Generate(f, scope.Transport, "response", "err", ":=")
 		f.P(ident.AssertNilError, "(t, err)")
 		f.P(ident.AssertDeepEqual, "(t, order, response.", responseResources, ",", ident.ProtocmpTransform, "())")
 		f.P("}")

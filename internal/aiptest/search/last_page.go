@@ -27,7 +27,7 @@ var lastPage = suite.Test{
 			Method:   searchMethod,
 			Parent:   "parent",
 			PageSize: "resourcesCount",
-		}.Generate(f, "response", "err", ":=")
+		}.Generate(f, scope.Transport, "response", "err", ":=")
 		f.P(ident.AssertNilError, "(t, err)")
 		f.P(ident.AssertEqual, "(t, \"\", response.NextPageToken)")
 		return nil

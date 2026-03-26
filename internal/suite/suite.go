@@ -1,14 +1,16 @@
 package suite
 
 import (
+	"github.com/einride/protoc-gen-go-aip-test/internal/transport"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
 type Scope struct {
-	Service  *protogen.Service
-	Resource *annotations.ResourceDescriptor
-	Message  *protogen.Message
+	Service   *protogen.Service
+	Resource  *annotations.ResourceDescriptor
+	Message   *protogen.Message
+	Transport transport.Transport
 }
 
 // Suite contains a suite of tests for a method.

@@ -32,7 +32,7 @@ var exists = suite.Test{
 			Resource:    scope.Resource,
 			Method:      deleteMethod,
 			ResourceVar: "created",
-		}.Generate(f, "_", "err", ":=")
+		}.Generate(f, scope.Transport, "_", "err", ":=")
 		f.P(ident.AssertNilError, "(t, err)")
 		return nil
 	},

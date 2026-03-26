@@ -36,7 +36,7 @@ var updateTime = suite.Test{
 			Resource: scope.Resource,
 			Method:   updateMethod,
 			Msg:      "created",
-		}.Generate(f, "updated", "err", ":=")
+		}.Generate(f, scope.Transport, "updated", "err", ":=")
 		f.P(ident.AssertNilError, "(t, err)")
 		f.P(ident.AssertCheck, "(t, updated.UpdateTime.AsTime().After(created.UpdateTime.AsTime()))")
 		return nil
