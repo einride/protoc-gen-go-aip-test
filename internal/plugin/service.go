@@ -3,14 +3,17 @@ package plugin
 import (
 	"strconv"
 
+	"github.com/einride/protoc-gen-go-aip-test/internal/transport"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
 type serviceGenerator struct {
-	service   *protogen.Service
-	resources []*annotations.ResourceDescriptor
-	messages  []*protogen.Message
+	service       *protogen.Service
+	resources     []*annotations.ResourceDescriptor
+	messages      []*protogen.Message
+	transport     transport.Transport
+	goPackageName protogen.GoPackageName
 }
 
 func (s *serviceGenerator) Generate(f *protogen.GeneratedFile) error {
@@ -22,9 +25,11 @@ func (s *serviceGenerator) Generate(f *protogen.GeneratedFile) error {
 	for i, resource := range s.resources {
 		message := s.messages[i]
 		generator := resourceGenerator{
-			service:  s.service,
-			resource: resource,
-			message:  message,
+			service:       s.service,
+			resource:      resource,
+			message:       message,
+			transport:     s.transport,
+			goPackageName: s.goPackageName,
 		}
 		if err := generator.Generate(f); err != nil {
 			return err
@@ -107,10 +112,7 @@ func (s *serviceGenerator) generateFixture(f *protogen.GeneratedFile) {
 		GoImportPath: "testing",
 	})
 
-	service := f.QualifiedGoIdent(protogen.GoIdent{
-		GoName:       s.service.GoName + "Server",
-		GoImportPath: s.service.Methods[0].Input.GoIdent.GoImportPath,
-	})
+	service := f.QualifiedGoIdent(s.transport.ServiceIdent(s.service, s.goPackageName))
 
 	f.P("type ", serviceTestSuiteName(s.service.Desc), " struct {")
 	f.P("T *", testingT)
@@ -131,10 +133,7 @@ func (s *serviceGenerator) generateTestMethods(f *protogen.GeneratedFile) {
 		GoName:       "T",
 		GoImportPath: "testing",
 	})
-	service := f.QualifiedGoIdent(protogen.GoIdent{
-		GoName:       s.service.GoName + "Server",
-		GoImportPath: s.service.Methods[0].Input.GoIdent.GoImportPath,
-	})
+	service := f.QualifiedGoIdent(s.transport.ServiceIdent(s.service, s.goPackageName))
 	serviceFx := serviceTestSuiteName(s.service.Desc)
 	for _, resource := range s.resources {
 		resourceFx := resourceTestSuiteConfigName(s.service.Desc, resource)

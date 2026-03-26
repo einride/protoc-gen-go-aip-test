@@ -36,7 +36,7 @@ var pageSizeZero = suite.Test{
 			Parent:    "parent",
 			PageSize:  "0",
 			PageToken: "nextPageToken",
-		}.Generate(f, "page", "err", ":=")
+		}.Generate(f, scope.Transport, "page", "err", ":=")
 		f.P(ident.AssertNilError, "(t, err)")
 		f.P("msgs = append(msgs, page." + responseResources + "...)")
 		f.P("nextPageToken = page.NextPageToken")

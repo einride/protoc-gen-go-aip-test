@@ -58,6 +58,39 @@ This can also be done via a
 [buf generate](https://docs.buf.build/generate/usage) template. See
 [buf.gen.yaml](./proto/buf.gen.yaml) for an example.
 
+#### Transport option
+
+By default the generated test code targets
+[protoc-gen-go-grpc](https://pkg.go.dev/google.golang.org/grpc/cmd/protoc-gen-go-grpc)
+service interfaces. The `transport` option can be used to generate tests for
+[Connect](https://connectrpc.com/docs/go/getting-started/) instead:
+
+| Value            | Description                                                                                                                                                                  |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `grpc` (default) | Targets `ServiceServer` interfaces from protoc-gen-go-grpc. Uses `grpc/codes` and `grpc/status`.                                                                             |
+| `connect`        | Targets `ServiceHandler` interfaces from protoc-gen-connect-go with `connect.Request[T]`/`connect.Response[T]` wrappers. Uses `connect.CodeOf` and connect error codes.      |
+| `connect-simple` | Targets `ServiceHandler` interfaces from protoc-gen-connect-go in simple mode (`--connect-go_opt=simple=true`). Method signatures match gRPC (no request/response wrappers). |
+
+Example with `protoc`:
+
+```bash
+protoc
+  --go-aip-test_out=[OUTPUT DIR] \
+  --go-aip-test_opt=module=[OUTPUT MODULE],transport=connect \
+  [.proto files ...]
+```
+
+Example with `buf.gen.yaml`:
+
+```yaml
+plugins:
+  - name: go-aip-test
+    out: gen
+    opt:
+      - module=example.com/your/module/gen
+      - transport=connect
+```
+
 ### Step 4: Run tests
 
 There are two alternative ways of bootstrapping the tests.

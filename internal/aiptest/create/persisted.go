@@ -30,13 +30,13 @@ var persisted = suite.Test{
 			Resource: scope.Resource,
 			Method:   createMethod,
 			Parent:   "parent",
-		}.Generate(f, "msg", "err", ":=")
+		}.Generate(f, scope.Transport, "msg", "err", ":=")
 		f.P(ident.AssertNilError, "(t, err)")
 		util.MethodGet{
 			Resource: scope.Resource,
 			Method:   getMethod,
 			Name:     "msg.Name",
-		}.Generate(f, "persisted", "err", ":=")
+		}.Generate(f, scope.Transport, "persisted", "err", ":=")
 		f.P(ident.AssertNilError, "(t, err)")
 		f.P(ident.AssertDeepEqual, "(t, msg, persisted, ", ident.ProtocmpTransform, "())")
 		return nil

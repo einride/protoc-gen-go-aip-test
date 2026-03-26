@@ -33,8 +33,15 @@ var namesInvalid = suite.Test{
 			Method:   batchGetMethod,
 			Parent:   "parent",
 			Names:    []string{strconv.Quote("invalid resource name")},
-		}.Generate(f, "_", "err", ":=")
-		f.P(ident.AssertEqual, "(t, ", ident.Codes(codes.InvalidArgument), ", ", ident.StatusCode, "(err), err)")
+		}.Generate(f, scope.Transport, "_", "err", ":=")
+		f.P(
+			ident.AssertEqual,
+			"(t, ",
+			scope.Transport.CodesIdent(codes.InvalidArgument),
+			", ",
+			scope.Transport.CodeOfIdent(),
+			"(err), err)",
+		)
 		return nil
 	},
 }

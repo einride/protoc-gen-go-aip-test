@@ -32,7 +32,7 @@ var createTime = suite.Test{
 			Resource: scope.Resource,
 			Method:   createMethod,
 			Parent:   "parent",
-		}.Generate(f, "msg", "err", ":=")
+		}.Generate(f, scope.Transport, "msg", "err", ":=")
 		f.P(ident.AssertNilError, "(t, err)")
 		f.P(ident.AssertCheck, "(t, msg.CreateTime != nil)")
 		f.P(ident.AssertCheck, "(t, !msg.CreateTime.AsTime().IsZero())")

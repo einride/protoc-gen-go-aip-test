@@ -28,8 +28,15 @@ var invalidName = suite.Test{
 			Resource: scope.Resource,
 			Method:   getMethod,
 			Name:     strconv.Quote("invalid resource name"),
-		}.Generate(f, "_", "err", ":=")
-		f.P(ident.AssertEqual, "(t, ", ident.Codes(codes.InvalidArgument), ",", ident.StatusCode, "(err), err)")
+		}.Generate(f, scope.Transport, "_", "err", ":=")
+		f.P(
+			ident.AssertEqual,
+			"(t, ",
+			scope.Transport.CodesIdent(codes.InvalidArgument),
+			",",
+			scope.Transport.CodeOfIdent(),
+			"(err), err)",
+		)
 		return nil
 	},
 }

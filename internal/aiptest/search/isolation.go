@@ -33,7 +33,7 @@ var isolation = suite.Test{
 			Method:   searchMethod,
 			Parent:   "parent",
 			PageSize: "999",
-		}.Generate(f, "response", "err", ":=")
+		}.Generate(f, scope.Transport, "response", "err", ":=")
 		f.P(ident.AssertNilError, "(t, err)")
 		f.P(ident.AssertDeepEqual, "(")
 		f.P("t,")

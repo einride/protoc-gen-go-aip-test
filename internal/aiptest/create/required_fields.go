@@ -61,8 +61,15 @@ var requiredFields = suite.Test{
 				Method:   createMethod,
 				Parent:   "parent",
 				Message:  "msg",
-			}.Generate(f, "_", "err", ":=")
-			f.P(ident.AssertEqual, "(t, ", ident.Codes(codes.InvalidArgument), ", ", ident.StatusCode, "(err), err)")
+			}.Generate(f, scope.Transport, "_", "err", ":=")
+			f.P(
+				ident.AssertEqual,
+				"(t, ",
+				scope.Transport.CodesIdent(codes.InvalidArgument),
+				", ",
+				scope.Transport.CodeOfIdent(),
+				"(err), err)",
+			)
 			f.P("})")
 		})
 		return nil

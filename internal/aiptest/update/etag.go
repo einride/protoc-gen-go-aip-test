@@ -35,8 +35,15 @@ var etagMismatch = suite.Test{
 			Name:     "created.Name",
 			Etag:     util.EtagLiteral("99999"),
 			EtagTest: true,
-		}.Generate(f, "_", "err", ":=")
-		f.P(ident.AssertEqual, "(t, ", ident.Codes(codes.Aborted), ",", ident.StatusCode, "(err), err)")
+		}.Generate(f, scope.Transport, "_", "err", ":=")
+		f.P(
+			ident.AssertEqual,
+			"(t, ",
+			scope.Transport.CodesIdent(codes.Aborted),
+			",",
+			scope.Transport.CodeOfIdent(),
+			"(err), err)",
+		)
 		return nil
 	},
 }
@@ -66,7 +73,7 @@ var etagUpdated = suite.Test{
 			Name:     "created.Name",
 			Etag:     "created.Etag",
 			EtagTest: true,
-		}.Generate(f, "updated", "err", ":=")
+		}.Generate(f, scope.Transport, "updated", "err", ":=")
 		f.P(ident.AssertNilError, "(t, err)")
 
 		if !util.ReturnsLRO(updateMethod.Desc) {

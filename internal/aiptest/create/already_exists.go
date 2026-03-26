@@ -36,10 +36,17 @@ var alreadyExists = suite.Test{
 			Parent:         "parent",
 			UserSettableID: strconv.Quote("alreadyexists"),
 		}
-		m.Generate(f, "_", "err", ":=")
+		m.Generate(f, scope.Transport, "_", "err", ":=")
 		f.P(ident.AssertNilError, "(t, err)")
-		m.Generate(f, "_", "err", "=")
-		f.P(ident.AssertEqual, "(t, ", ident.Codes(codes.AlreadyExists), ",", ident.StatusCode, "(err), err)")
+		m.Generate(f, scope.Transport, "_", "err", "=")
+		f.P(
+			ident.AssertEqual,
+			"(t, ",
+			scope.Transport.CodesIdent(codes.AlreadyExists),
+			",",
+			scope.Transport.CodeOfIdent(),
+			"(err), err)",
+		)
 		return nil
 	},
 }
