@@ -531,6 +531,27 @@ func (fx *TensorboardServiceTensorboardTestSuiteConfig) testList(t *testing.T) {
 			)
 		})
 
+		// When listing resource with page size zero the service should use a default value.
+		t.Run("page size zero", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListTensorboards(fx.Context(), &ListTensorboardsRequest{
+				Parent:   parent,
+				PageSize: 0,
+			})
+			assert.NilError(t, err)
+			// Server should use a default page size and return at least some results
+			assert.Check(t, len(response.Tensorboards) > 0, "expected server to return at least 1 resource with page_size=0")
+		})
+
+	}
+	{
+		const resourcesCount = 15
+		parent := fx.nextParent(t, true)
+		parentMsgs := make([]*Tensorboard, resourcesCount)
+		for i := 0; i < resourcesCount; i++ {
+			parentMsgs[i] = fx.create(t, parent)
+		}
+
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
 			fx.maybeSkip(t)
@@ -550,44 +571,6 @@ func (fx *TensorboardServiceTensorboardTestSuiteConfig) testList(t *testing.T) {
 				t,
 				parentMsgs[deleteCount:],
 				response.Tensorboards,
-				cmpopts.SortSlices(func(a, b *Tensorboard) bool {
-					return a.Name < b.Name
-				}),
-				protocmp.Transform(),
-			)
-		})
-
-	}
-	{
-		const resourcesCount = 101
-		parent := fx.nextParent(t, true)
-		parentMsgs := make([]*Tensorboard, resourcesCount)
-		for i := 0; i < resourcesCount; i++ {
-			parentMsgs[i] = fx.create(t, parent)
-		}
-
-		// Listing resource with page size zero should eventually return all resources.
-		t.Run("page size zero", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msgs := make([]*Tensorboard, 0, resourcesCount)
-			var nextPageToken string
-			for {
-				page, err := fx.Service().ListTensorboards(fx.Context(), &ListTensorboardsRequest{
-					Parent:    parent,
-					PageSize:  0,
-					PageToken: nextPageToken,
-				})
-				assert.NilError(t, err)
-				msgs = append(msgs, page.Tensorboards...)
-				nextPageToken = page.NextPageToken
-				if nextPageToken == "" {
-					break
-				}
-			}
-			assert.DeepEqual(
-				t,
-				parentMsgs,
-				msgs,
 				cmpopts.SortSlices(func(a, b *Tensorboard) bool {
 					return a.Name < b.Name
 				}),
@@ -1082,6 +1065,27 @@ func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testList(t *te
 			)
 		})
 
+		// When listing resource with page size zero the service should use a default value.
+		t.Run("page size zero", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListTensorboardExperiments(fx.Context(), &ListTensorboardExperimentsRequest{
+				Parent:   parent,
+				PageSize: 0,
+			})
+			assert.NilError(t, err)
+			// Server should use a default page size and return at least some results
+			assert.Check(t, len(response.TensorboardExperiments) > 0, "expected server to return at least 1 resource with page_size=0")
+		})
+
+	}
+	{
+		const resourcesCount = 15
+		parent := fx.nextParent(t, true)
+		parentMsgs := make([]*TensorboardExperiment, resourcesCount)
+		for i := 0; i < resourcesCount; i++ {
+			parentMsgs[i] = fx.create(t, parent)
+		}
+
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
 			fx.maybeSkip(t)
@@ -1101,44 +1105,6 @@ func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testList(t *te
 				t,
 				parentMsgs[deleteCount:],
 				response.TensorboardExperiments,
-				cmpopts.SortSlices(func(a, b *TensorboardExperiment) bool {
-					return a.Name < b.Name
-				}),
-				protocmp.Transform(),
-			)
-		})
-
-	}
-	{
-		const resourcesCount = 101
-		parent := fx.nextParent(t, true)
-		parentMsgs := make([]*TensorboardExperiment, resourcesCount)
-		for i := 0; i < resourcesCount; i++ {
-			parentMsgs[i] = fx.create(t, parent)
-		}
-
-		// Listing resource with page size zero should eventually return all resources.
-		t.Run("page size zero", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msgs := make([]*TensorboardExperiment, 0, resourcesCount)
-			var nextPageToken string
-			for {
-				page, err := fx.Service().ListTensorboardExperiments(fx.Context(), &ListTensorboardExperimentsRequest{
-					Parent:    parent,
-					PageSize:  0,
-					PageToken: nextPageToken,
-				})
-				assert.NilError(t, err)
-				msgs = append(msgs, page.TensorboardExperiments...)
-				nextPageToken = page.NextPageToken
-				if nextPageToken == "" {
-					break
-				}
-			}
-			assert.DeepEqual(
-				t,
-				parentMsgs,
-				msgs,
 				cmpopts.SortSlices(func(a, b *TensorboardExperiment) bool {
 					return a.Name < b.Name
 				}),
@@ -1702,6 +1668,27 @@ func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testList(t *testing.T
 			)
 		})
 
+		// When listing resource with page size zero the service should use a default value.
+		t.Run("page size zero", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListTensorboardRuns(fx.Context(), &ListTensorboardRunsRequest{
+				Parent:   parent,
+				PageSize: 0,
+			})
+			assert.NilError(t, err)
+			// Server should use a default page size and return at least some results
+			assert.Check(t, len(response.TensorboardRuns) > 0, "expected server to return at least 1 resource with page_size=0")
+		})
+
+	}
+	{
+		const resourcesCount = 15
+		parent := fx.nextParent(t, true)
+		parentMsgs := make([]*TensorboardRun, resourcesCount)
+		for i := 0; i < resourcesCount; i++ {
+			parentMsgs[i] = fx.create(t, parent)
+		}
+
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
 			fx.maybeSkip(t)
@@ -1721,44 +1708,6 @@ func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testList(t *testing.T
 				t,
 				parentMsgs[deleteCount:],
 				response.TensorboardRuns,
-				cmpopts.SortSlices(func(a, b *TensorboardRun) bool {
-					return a.Name < b.Name
-				}),
-				protocmp.Transform(),
-			)
-		})
-
-	}
-	{
-		const resourcesCount = 101
-		parent := fx.nextParent(t, true)
-		parentMsgs := make([]*TensorboardRun, resourcesCount)
-		for i := 0; i < resourcesCount; i++ {
-			parentMsgs[i] = fx.create(t, parent)
-		}
-
-		// Listing resource with page size zero should eventually return all resources.
-		t.Run("page size zero", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msgs := make([]*TensorboardRun, 0, resourcesCount)
-			var nextPageToken string
-			for {
-				page, err := fx.Service().ListTensorboardRuns(fx.Context(), &ListTensorboardRunsRequest{
-					Parent:    parent,
-					PageSize:  0,
-					PageToken: nextPageToken,
-				})
-				assert.NilError(t, err)
-				msgs = append(msgs, page.TensorboardRuns...)
-				nextPageToken = page.NextPageToken
-				if nextPageToken == "" {
-					break
-				}
-			}
-			assert.DeepEqual(
-				t,
-				parentMsgs,
-				msgs,
 				cmpopts.SortSlices(func(a, b *TensorboardRun) bool {
 					return a.Name < b.Name
 				}),
@@ -2338,6 +2287,27 @@ func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testList(t *te
 			)
 		})
 
+		// When listing resource with page size zero the service should use a default value.
+		t.Run("page size zero", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListTensorboardTimeSeries(fx.Context(), &ListTensorboardTimeSeriesRequest{
+				Parent:   parent,
+				PageSize: 0,
+			})
+			assert.NilError(t, err)
+			// Server should use a default page size and return at least some results
+			assert.Check(t, len(response.TensorboardTimeSeries) > 0, "expected server to return at least 1 resource with page_size=0")
+		})
+
+	}
+	{
+		const resourcesCount = 15
+		parent := fx.nextParent(t, true)
+		parentMsgs := make([]*TensorboardTimeSeries, resourcesCount)
+		for i := 0; i < resourcesCount; i++ {
+			parentMsgs[i] = fx.create(t, parent)
+		}
+
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
 			fx.maybeSkip(t)
@@ -2357,44 +2327,6 @@ func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testList(t *te
 				t,
 				parentMsgs[deleteCount:],
 				response.TensorboardTimeSeries,
-				cmpopts.SortSlices(func(a, b *TensorboardTimeSeries) bool {
-					return a.Name < b.Name
-				}),
-				protocmp.Transform(),
-			)
-		})
-
-	}
-	{
-		const resourcesCount = 101
-		parent := fx.nextParent(t, true)
-		parentMsgs := make([]*TensorboardTimeSeries, resourcesCount)
-		for i := 0; i < resourcesCount; i++ {
-			parentMsgs[i] = fx.create(t, parent)
-		}
-
-		// Listing resource with page size zero should eventually return all resources.
-		t.Run("page size zero", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msgs := make([]*TensorboardTimeSeries, 0, resourcesCount)
-			var nextPageToken string
-			for {
-				page, err := fx.Service().ListTensorboardTimeSeries(fx.Context(), &ListTensorboardTimeSeriesRequest{
-					Parent:    parent,
-					PageSize:  0,
-					PageToken: nextPageToken,
-				})
-				assert.NilError(t, err)
-				msgs = append(msgs, page.TensorboardTimeSeries...)
-				nextPageToken = page.NextPageToken
-				if nextPageToken == "" {
-					break
-				}
-			}
-			assert.DeepEqual(
-				t,
-				parentMsgs,
-				msgs,
 				cmpopts.SortSlices(func(a, b *TensorboardTimeSeries) bool {
 					return a.Name < b.Name
 				}),

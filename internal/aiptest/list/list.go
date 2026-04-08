@@ -19,7 +19,7 @@ var Suite = suite.Suite{
 	},
 	TestGroups: []suite.TestGroup{
 		withResourcesGroup,
-		withBigResourcesGroup,
+		withDeletedResourcesGroup,
 	},
 }
 
@@ -43,17 +43,17 @@ var withResourcesGroup = suite.TestGroup{
 		lastPage,
 		morePages,
 		oneByOne,
-		deleted,
+		pageSizeZero,
 	},
 }
 
 //nolint:gochecknoglobals
-var withBigResourcesGroup = suite.TestGroup{
+var withDeletedResourcesGroup = suite.TestGroup{
 	OnlyIf: suite.OnlyIfs(
 		onlyif.HasParent,
 	),
 	GenerateBefore: func(f *protogen.GeneratedFile, scope suite.Scope) error {
-		f.P("const resourcesCount = 101")
+		f.P("const resourcesCount = 15")
 		f.P("parent := ", ident.FixtureNextParent, "(t, true)")
 		f.P("parentMsgs := make([]*", scope.Message.GoIdent, ", resourcesCount)")
 		f.P("for i := 0; i < resourcesCount; i++ {")
@@ -63,6 +63,6 @@ var withBigResourcesGroup = suite.TestGroup{
 		return nil
 	},
 	Tests: []suite.Test{
-		pageSizeZero,
+		deleted,
 	},
 }

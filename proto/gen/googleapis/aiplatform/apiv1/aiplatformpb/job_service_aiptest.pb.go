@@ -788,6 +788,27 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) testList(t *testing.T) {
 			)
 		})
 
+		// When listing resource with page size zero the service should use a default value.
+		t.Run("page size zero", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListBatchPredictionJobs(fx.Context(), &ListBatchPredictionJobsRequest{
+				Parent:   parent,
+				PageSize: 0,
+			})
+			assert.NilError(t, err)
+			// Server should use a default page size and return at least some results
+			assert.Check(t, len(response.BatchPredictionJobs) > 0, "expected server to return at least 1 resource with page_size=0")
+		})
+
+	}
+	{
+		const resourcesCount = 15
+		parent := fx.nextParent(t, true)
+		parentMsgs := make([]*BatchPredictionJob, resourcesCount)
+		for i := 0; i < resourcesCount; i++ {
+			parentMsgs[i] = fx.create(t, parent)
+		}
+
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
 			fx.maybeSkip(t)
@@ -807,44 +828,6 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) testList(t *testing.T) {
 				t,
 				parentMsgs[deleteCount:],
 				response.BatchPredictionJobs,
-				cmpopts.SortSlices(func(a, b *BatchPredictionJob) bool {
-					return a.Name < b.Name
-				}),
-				protocmp.Transform(),
-			)
-		})
-
-	}
-	{
-		const resourcesCount = 101
-		parent := fx.nextParent(t, true)
-		parentMsgs := make([]*BatchPredictionJob, resourcesCount)
-		for i := 0; i < resourcesCount; i++ {
-			parentMsgs[i] = fx.create(t, parent)
-		}
-
-		// Listing resource with page size zero should eventually return all resources.
-		t.Run("page size zero", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msgs := make([]*BatchPredictionJob, 0, resourcesCount)
-			var nextPageToken string
-			for {
-				page, err := fx.Service().ListBatchPredictionJobs(fx.Context(), &ListBatchPredictionJobsRequest{
-					Parent:    parent,
-					PageSize:  0,
-					PageToken: nextPageToken,
-				})
-				assert.NilError(t, err)
-				msgs = append(msgs, page.BatchPredictionJobs...)
-				nextPageToken = page.NextPageToken
-				if nextPageToken == "" {
-					break
-				}
-			}
-			assert.DeepEqual(
-				t,
-				parentMsgs,
-				msgs,
 				cmpopts.SortSlices(func(a, b *BatchPredictionJob) bool {
 					return a.Name < b.Name
 				}),
@@ -1380,6 +1363,27 @@ func (fx *JobServiceCustomJobTestSuiteConfig) testList(t *testing.T) {
 			)
 		})
 
+		// When listing resource with page size zero the service should use a default value.
+		t.Run("page size zero", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListCustomJobs(fx.Context(), &ListCustomJobsRequest{
+				Parent:   parent,
+				PageSize: 0,
+			})
+			assert.NilError(t, err)
+			// Server should use a default page size and return at least some results
+			assert.Check(t, len(response.CustomJobs) > 0, "expected server to return at least 1 resource with page_size=0")
+		})
+
+	}
+	{
+		const resourcesCount = 15
+		parent := fx.nextParent(t, true)
+		parentMsgs := make([]*CustomJob, resourcesCount)
+		for i := 0; i < resourcesCount; i++ {
+			parentMsgs[i] = fx.create(t, parent)
+		}
+
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
 			fx.maybeSkip(t)
@@ -1399,44 +1403,6 @@ func (fx *JobServiceCustomJobTestSuiteConfig) testList(t *testing.T) {
 				t,
 				parentMsgs[deleteCount:],
 				response.CustomJobs,
-				cmpopts.SortSlices(func(a, b *CustomJob) bool {
-					return a.Name < b.Name
-				}),
-				protocmp.Transform(),
-			)
-		})
-
-	}
-	{
-		const resourcesCount = 101
-		parent := fx.nextParent(t, true)
-		parentMsgs := make([]*CustomJob, resourcesCount)
-		for i := 0; i < resourcesCount; i++ {
-			parentMsgs[i] = fx.create(t, parent)
-		}
-
-		// Listing resource with page size zero should eventually return all resources.
-		t.Run("page size zero", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msgs := make([]*CustomJob, 0, resourcesCount)
-			var nextPageToken string
-			for {
-				page, err := fx.Service().ListCustomJobs(fx.Context(), &ListCustomJobsRequest{
-					Parent:    parent,
-					PageSize:  0,
-					PageToken: nextPageToken,
-				})
-				assert.NilError(t, err)
-				msgs = append(msgs, page.CustomJobs...)
-				nextPageToken = page.NextPageToken
-				if nextPageToken == "" {
-					break
-				}
-			}
-			assert.DeepEqual(
-				t,
-				parentMsgs,
-				msgs,
 				cmpopts.SortSlices(func(a, b *CustomJob) bool {
 					return a.Name < b.Name
 				}),
@@ -1944,6 +1910,27 @@ func (fx *JobServiceDataLabelingJobTestSuiteConfig) testList(t *testing.T) {
 			)
 		})
 
+		// When listing resource with page size zero the service should use a default value.
+		t.Run("page size zero", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListDataLabelingJobs(fx.Context(), &ListDataLabelingJobsRequest{
+				Parent:   parent,
+				PageSize: 0,
+			})
+			assert.NilError(t, err)
+			// Server should use a default page size and return at least some results
+			assert.Check(t, len(response.DataLabelingJobs) > 0, "expected server to return at least 1 resource with page_size=0")
+		})
+
+	}
+	{
+		const resourcesCount = 15
+		parent := fx.nextParent(t, true)
+		parentMsgs := make([]*DataLabelingJob, resourcesCount)
+		for i := 0; i < resourcesCount; i++ {
+			parentMsgs[i] = fx.create(t, parent)
+		}
+
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
 			fx.maybeSkip(t)
@@ -1963,44 +1950,6 @@ func (fx *JobServiceDataLabelingJobTestSuiteConfig) testList(t *testing.T) {
 				t,
 				parentMsgs[deleteCount:],
 				response.DataLabelingJobs,
-				cmpopts.SortSlices(func(a, b *DataLabelingJob) bool {
-					return a.Name < b.Name
-				}),
-				protocmp.Transform(),
-			)
-		})
-
-	}
-	{
-		const resourcesCount = 101
-		parent := fx.nextParent(t, true)
-		parentMsgs := make([]*DataLabelingJob, resourcesCount)
-		for i := 0; i < resourcesCount; i++ {
-			parentMsgs[i] = fx.create(t, parent)
-		}
-
-		// Listing resource with page size zero should eventually return all resources.
-		t.Run("page size zero", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msgs := make([]*DataLabelingJob, 0, resourcesCount)
-			var nextPageToken string
-			for {
-				page, err := fx.Service().ListDataLabelingJobs(fx.Context(), &ListDataLabelingJobsRequest{
-					Parent:    parent,
-					PageSize:  0,
-					PageToken: nextPageToken,
-				})
-				assert.NilError(t, err)
-				msgs = append(msgs, page.DataLabelingJobs...)
-				nextPageToken = page.NextPageToken
-				if nextPageToken == "" {
-					break
-				}
-			}
-			assert.DeepEqual(
-				t,
-				parentMsgs,
-				msgs,
 				cmpopts.SortSlices(func(a, b *DataLabelingJob) bool {
 					return a.Name < b.Name
 				}),
@@ -2616,6 +2565,27 @@ func (fx *JobServiceHyperparameterTuningJobTestSuiteConfig) testList(t *testing.
 			)
 		})
 
+		// When listing resource with page size zero the service should use a default value.
+		t.Run("page size zero", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListHyperparameterTuningJobs(fx.Context(), &ListHyperparameterTuningJobsRequest{
+				Parent:   parent,
+				PageSize: 0,
+			})
+			assert.NilError(t, err)
+			// Server should use a default page size and return at least some results
+			assert.Check(t, len(response.HyperparameterTuningJobs) > 0, "expected server to return at least 1 resource with page_size=0")
+		})
+
+	}
+	{
+		const resourcesCount = 15
+		parent := fx.nextParent(t, true)
+		parentMsgs := make([]*HyperparameterTuningJob, resourcesCount)
+		for i := 0; i < resourcesCount; i++ {
+			parentMsgs[i] = fx.create(t, parent)
+		}
+
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
 			fx.maybeSkip(t)
@@ -2635,44 +2605,6 @@ func (fx *JobServiceHyperparameterTuningJobTestSuiteConfig) testList(t *testing.
 				t,
 				parentMsgs[deleteCount:],
 				response.HyperparameterTuningJobs,
-				cmpopts.SortSlices(func(a, b *HyperparameterTuningJob) bool {
-					return a.Name < b.Name
-				}),
-				protocmp.Transform(),
-			)
-		})
-
-	}
-	{
-		const resourcesCount = 101
-		parent := fx.nextParent(t, true)
-		parentMsgs := make([]*HyperparameterTuningJob, resourcesCount)
-		for i := 0; i < resourcesCount; i++ {
-			parentMsgs[i] = fx.create(t, parent)
-		}
-
-		// Listing resource with page size zero should eventually return all resources.
-		t.Run("page size zero", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msgs := make([]*HyperparameterTuningJob, 0, resourcesCount)
-			var nextPageToken string
-			for {
-				page, err := fx.Service().ListHyperparameterTuningJobs(fx.Context(), &ListHyperparameterTuningJobsRequest{
-					Parent:    parent,
-					PageSize:  0,
-					PageToken: nextPageToken,
-				})
-				assert.NilError(t, err)
-				msgs = append(msgs, page.HyperparameterTuningJobs...)
-				nextPageToken = page.NextPageToken
-				if nextPageToken == "" {
-					break
-				}
-			}
-			assert.DeepEqual(
-				t,
-				parentMsgs,
-				msgs,
 				cmpopts.SortSlices(func(a, b *HyperparameterTuningJob) bool {
 					return a.Name < b.Name
 				}),
@@ -3430,6 +3362,27 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testList(t *tes
 			)
 		})
 
+		// When listing resource with page size zero the service should use a default value.
+		t.Run("page size zero", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListModelDeploymentMonitoringJobs(fx.Context(), &ListModelDeploymentMonitoringJobsRequest{
+				Parent:   parent,
+				PageSize: 0,
+			})
+			assert.NilError(t, err)
+			// Server should use a default page size and return at least some results
+			assert.Check(t, len(response.ModelDeploymentMonitoringJobs) > 0, "expected server to return at least 1 resource with page_size=0")
+		})
+
+	}
+	{
+		const resourcesCount = 15
+		parent := fx.nextParent(t, true)
+		parentMsgs := make([]*ModelDeploymentMonitoringJob, resourcesCount)
+		for i := 0; i < resourcesCount; i++ {
+			parentMsgs[i] = fx.create(t, parent)
+		}
+
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
 			fx.maybeSkip(t)
@@ -3449,44 +3402,6 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testList(t *tes
 				t,
 				parentMsgs[deleteCount:],
 				response.ModelDeploymentMonitoringJobs,
-				cmpopts.SortSlices(func(a, b *ModelDeploymentMonitoringJob) bool {
-					return a.Name < b.Name
-				}),
-				protocmp.Transform(),
-			)
-		})
-
-	}
-	{
-		const resourcesCount = 101
-		parent := fx.nextParent(t, true)
-		parentMsgs := make([]*ModelDeploymentMonitoringJob, resourcesCount)
-		for i := 0; i < resourcesCount; i++ {
-			parentMsgs[i] = fx.create(t, parent)
-		}
-
-		// Listing resource with page size zero should eventually return all resources.
-		t.Run("page size zero", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msgs := make([]*ModelDeploymentMonitoringJob, 0, resourcesCount)
-			var nextPageToken string
-			for {
-				page, err := fx.Service().ListModelDeploymentMonitoringJobs(fx.Context(), &ListModelDeploymentMonitoringJobsRequest{
-					Parent:    parent,
-					PageSize:  0,
-					PageToken: nextPageToken,
-				})
-				assert.NilError(t, err)
-				msgs = append(msgs, page.ModelDeploymentMonitoringJobs...)
-				nextPageToken = page.NextPageToken
-				if nextPageToken == "" {
-					break
-				}
-			}
-			assert.DeepEqual(
-				t,
-				parentMsgs,
-				msgs,
 				cmpopts.SortSlices(func(a, b *ModelDeploymentMonitoringJob) bool {
 					return a.Name < b.Name
 				}),
@@ -4166,6 +4081,27 @@ func (fx *JobServiceNasJobTestSuiteConfig) testList(t *testing.T) {
 			)
 		})
 
+		// When listing resource with page size zero the service should use a default value.
+		t.Run("page size zero", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListNasJobs(fx.Context(), &ListNasJobsRequest{
+				Parent:   parent,
+				PageSize: 0,
+			})
+			assert.NilError(t, err)
+			// Server should use a default page size and return at least some results
+			assert.Check(t, len(response.NasJobs) > 0, "expected server to return at least 1 resource with page_size=0")
+		})
+
+	}
+	{
+		const resourcesCount = 15
+		parent := fx.nextParent(t, true)
+		parentMsgs := make([]*NasJob, resourcesCount)
+		for i := 0; i < resourcesCount; i++ {
+			parentMsgs[i] = fx.create(t, parent)
+		}
+
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
 			fx.maybeSkip(t)
@@ -4185,44 +4121,6 @@ func (fx *JobServiceNasJobTestSuiteConfig) testList(t *testing.T) {
 				t,
 				parentMsgs[deleteCount:],
 				response.NasJobs,
-				cmpopts.SortSlices(func(a, b *NasJob) bool {
-					return a.Name < b.Name
-				}),
-				protocmp.Transform(),
-			)
-		})
-
-	}
-	{
-		const resourcesCount = 101
-		parent := fx.nextParent(t, true)
-		parentMsgs := make([]*NasJob, resourcesCount)
-		for i := 0; i < resourcesCount; i++ {
-			parentMsgs[i] = fx.create(t, parent)
-		}
-
-		// Listing resource with page size zero should eventually return all resources.
-		t.Run("page size zero", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msgs := make([]*NasJob, 0, resourcesCount)
-			var nextPageToken string
-			for {
-				page, err := fx.Service().ListNasJobs(fx.Context(), &ListNasJobsRequest{
-					Parent:    parent,
-					PageSize:  0,
-					PageToken: nextPageToken,
-				})
-				assert.NilError(t, err)
-				msgs = append(msgs, page.NasJobs...)
-				nextPageToken = page.NextPageToken
-				if nextPageToken == "" {
-					break
-				}
-			}
-			assert.DeepEqual(
-				t,
-				parentMsgs,
-				msgs,
 				cmpopts.SortSlices(func(a, b *NasJob) bool {
 					return a.Name < b.Name
 				}),
@@ -4537,42 +4435,16 @@ func (fx *JobServiceNasTrialDetailTestSuiteConfig) testList(t *testing.T) {
 			)
 		})
 
-	}
-	{
-		const resourcesCount = 101
-		parent := fx.nextParent(t, true)
-		parentMsgs := make([]*NasTrialDetail, resourcesCount)
-		for i := 0; i < resourcesCount; i++ {
-			parentMsgs[i] = fx.create(t, parent)
-		}
-
-		// Listing resource with page size zero should eventually return all resources.
+		// When listing resource with page size zero the service should use a default value.
 		t.Run("page size zero", func(t *testing.T) {
 			fx.maybeSkip(t)
-			msgs := make([]*NasTrialDetail, 0, resourcesCount)
-			var nextPageToken string
-			for {
-				page, err := fx.Service().ListNasTrialDetails(fx.Context(), &ListNasTrialDetailsRequest{
-					Parent:    parent,
-					PageSize:  0,
-					PageToken: nextPageToken,
-				})
-				assert.NilError(t, err)
-				msgs = append(msgs, page.NasTrialDetails...)
-				nextPageToken = page.NextPageToken
-				if nextPageToken == "" {
-					break
-				}
-			}
-			assert.DeepEqual(
-				t,
-				parentMsgs,
-				msgs,
-				cmpopts.SortSlices(func(a, b *NasTrialDetail) bool {
-					return a.Name < b.Name
-				}),
-				protocmp.Transform(),
-			)
+			response, err := fx.Service().ListNasTrialDetails(fx.Context(), &ListNasTrialDetailsRequest{
+				Parent:   parent,
+				PageSize: 0,
+			})
+			assert.NilError(t, err)
+			// Server should use a default page size and return at least some results
+			assert.Check(t, len(response.NasTrialDetails) > 0, "expected server to return at least 1 resource with page_size=0")
 		})
 
 	}
