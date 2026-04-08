@@ -215,17 +215,17 @@ Sample skips:
 
 ### List
 
-| Name               | Description                                                                    | Generated only if all are true:                                                           |
-| ------------------ | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------- |
-| invalid parent     | Method should fail with InvalidArgument if provided parent is invalid.         | <ul><li>has List method</li><li>resource has a parent</li></ul>                           |
-| invalid page token | Method should fail with InvalidArgument is provided page token is not valid.   | <ul><li>has List method</li></ul>                                                         |
-| negative page size | Method should fail with InvalidArgument is provided page size is negative.     | <ul><li>has List method</li></ul>                                                         |
-| isolation          | If parent is provided the method must only return resources under that parent. | <ul><li>has List method</li><li>resource has a parent</li></ul>                           |
-| last page          | If there are no more resources, next_page_token should not be set.             | <ul><li>has List method</li><li>resource has a parent</li></ul>                           |
-| more pages         | If there are more resources, next_page_token should be set.                    | <ul><li>has List method</li><li>resource has a parent</li></ul>                           |
-| one by one         | Listing resource one by one should eventually return all resources.            | <ul><li>has List method</li><li>resource has a parent</li></ul>                           |
-| deleted            | Method should not return deleted resources.                                    | <ul><li>has Delete method</li><li>has List method</li><li>resource has a parent</li></ul> |
-| page size zero     | Listing resource with page size zero should eventually return all resources.   | <ul><li>has List method</li><li>resource has a parent</li></ul>                           |
+| Name               | Description                                                                       | Generated only if all are true:                                                           |
+| ------------------ | --------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| invalid parent     | Method should fail with InvalidArgument if provided parent is invalid.            | <ul><li>has List method</li><li>resource has a parent</li></ul>                           |
+| invalid page token | Method should fail with InvalidArgument is provided page token is not valid.      | <ul><li>has List method</li></ul>                                                         |
+| negative page size | Method should fail with InvalidArgument is provided page size is negative.        | <ul><li>has List method</li></ul>                                                         |
+| isolation          | If parent is provided the method must only return resources under that parent.    | <ul><li>has List method</li><li>resource has a parent</li></ul>                           |
+| last page          | If there are no more resources, next_page_token should not be set.                | <ul><li>has List method</li><li>resource has a parent</li></ul>                           |
+| more pages         | If there are more resources, next_page_token should be set.                       | <ul><li>has List method</li><li>resource has a parent</li></ul>                           |
+| one by one         | Listing resource one by one should eventually return all resources.               | <ul><li>has List method</li><li>resource has a parent</li></ul>                           |
+| page size zero     | When listing resource with page size zero the service should use a default value. | <ul><li>has List method</li><li>resource has a parent</li></ul>                           |
+| deleted            | Method should not return deleted resources.                                       | <ul><li>has Delete method</li><li>has List method</li><li>resource has a parent</li></ul> |
 
 ### Search
 

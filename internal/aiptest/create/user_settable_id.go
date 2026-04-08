@@ -104,6 +104,7 @@ var invalidUserSettableID = suite.Test{
 		}
 		f.P("} {")
 		f.P("t.Run(tt.name, func(t *testing.T) {")
+		f.P("t.Parallel()")
 		f.P(ident.FixtureMaybeSkip, "(t)")
 		createMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeCreate)
 		if util.HasParent(scope.Resource) {

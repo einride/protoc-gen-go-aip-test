@@ -138,18 +138,37 @@ type FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig struct {
 	Skip []string
 }
 
+// clone creates an isolated copy of the fixture for parallel test execution.
+// This prevents race conditions on the currParent.
+func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) clone() *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig {
+	clone := *fx
+	return &clone
+}
+
 func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) test(t *testing.T) {
-	t.Run("Create", fx.testCreate)
-	t.Run("Get", fx.testGet)
-	t.Run("Update", fx.testUpdate)
-	t.Run("List", fx.testList)
-	t.Run("Delete", fx.testDelete)
+	t.Run("Create", func(t *testing.T) {
+		fx.clone().testCreate(t)
+	})
+	t.Run("Get", func(t *testing.T) {
+		fx.clone().testGet(t)
+	})
+	t.Run("Update", func(t *testing.T) {
+		fx.clone().testUpdate(t)
+	})
+	t.Run("List", func(t *testing.T) {
+		fx.clone().testList(t)
+	})
+	t.Run("Delete", func(t *testing.T) {
+		fx.clone().testDelete(t)
+	})
 }
 
 func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testCreate(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().CreateFeatureOnlineStore(fx.Context(), &CreateFeatureOnlineStoreRequest{
 			Parent:             "",
@@ -160,6 +179,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testC
 
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().CreateFeatureOnlineStore(fx.Context(), &CreateFeatureOnlineStoreRequest{
 			Parent:             "invalid resource name",
@@ -171,8 +191,10 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testC
 	// The method should fail with InvalidArgument if the resource has any
 	// required fields and they are not provided.
 	t.Run("required fields", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		t.Run(".bigtable.auto_scaling", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -189,6 +211,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testC
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
 		t.Run(".bigtable.auto_scaling.min_node_count", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -205,6 +228,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testC
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
 		t.Run(".bigtable.auto_scaling.max_node_count", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -225,9 +249,11 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testC
 }
 
 func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testGet(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetFeatureOnlineStore(fx.Context(), &GetFeatureOnlineStoreRequest{
 			Name: "",
@@ -237,6 +263,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testG
 
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetFeatureOnlineStore(fx.Context(), &GetFeatureOnlineStoreRequest{
 			Name: "invalid resource name",
@@ -246,6 +273,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testG
 
 	// Resource should be returned without errors if it exists.
 	t.Run("exists", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -258,6 +286,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testG
 
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -269,6 +298,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testG
 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetFeatureOnlineStore(fx.Context(), &GetFeatureOnlineStoreRequest{
 			Name: "projects/-/locations/-/featureOnlineStores/-",
@@ -279,9 +309,11 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testG
 }
 
 func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testUpdate(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
@@ -294,6 +326,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testU
 
 	// Method should fail with InvalidArgument if provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
@@ -306,6 +339,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testU
 
 	// Method should fail with Aborted if the supplied etag doesnt match the current etag value.
 	t.Run("etag mismatch", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -319,6 +353,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testU
 
 	// Field etag should have a new value when the resource is successfully updated.
 	t.Run("etag updated", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -336,6 +371,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testU
 		created := fx.create(t, parent)
 		// Method should fail with NotFound if the resource does not exist.
 		t.Run("not found", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			msg := fx.Update(parent)
 			msg.Name = created.Name + "notfound"
@@ -347,6 +383,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testU
 
 		// The method should fail with InvalidArgument if the update_mask is invalid.
 		t.Run("invalid update mask", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			_, err := fx.Service().UpdateFeatureOnlineStore(fx.Context(), &UpdateFeatureOnlineStoreRequest{
 				FeatureOnlineStore: created,
@@ -362,8 +399,10 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testU
 		// Method should fail with InvalidArgument if any required field is missing
 		// when called with '*' update_mask.
 		t.Run("required fields", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			t.Run(".bigtable.auto_scaling", func(t *testing.T) {
+				t.Parallel()
 				fx.maybeSkip(t)
 				msg := proto.Clone(created).(*FeatureOnlineStore)
 				container := msg.GetBigtable()
@@ -383,6 +422,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testU
 				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 			})
 			t.Run(".bigtable.auto_scaling.min_node_count", func(t *testing.T) {
+				t.Parallel()
 				fx.maybeSkip(t)
 				msg := proto.Clone(created).(*FeatureOnlineStore)
 				container := msg.GetBigtable().GetAutoScaling()
@@ -402,6 +442,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testU
 				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 			})
 			t.Run(".bigtable.auto_scaling.max_node_count", func(t *testing.T) {
+				t.Parallel()
 				fx.maybeSkip(t)
 				msg := proto.Clone(created).(*FeatureOnlineStore)
 				container := msg.GetBigtable().GetAutoScaling()
@@ -426,9 +467,11 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testU
 }
 
 func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testList(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().ListFeatureOnlineStores(fx.Context(), &ListFeatureOnlineStoresRequest{
 			Parent: "invalid resource name",
@@ -438,6 +481,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testL
 
 	// Method should fail with InvalidArgument is provided page token is not valid.
 	t.Run("invalid page token", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		_, err := fx.Service().ListFeatureOnlineStores(fx.Context(), &ListFeatureOnlineStoresRequest{
@@ -449,6 +493,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testL
 
 	// Method should fail with InvalidArgument is provided page size is negative.
 	t.Run("negative page size", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		_, err := fx.Service().ListFeatureOnlineStores(fx.Context(), &ListFeatureOnlineStoresRequest{
@@ -469,6 +514,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testL
 		// If parent is provided the method must only return resources
 		// under that parent.
 		t.Run("isolation", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListFeatureOnlineStores(fx.Context(), &ListFeatureOnlineStoresRequest{
 				Parent:   parent,
@@ -488,6 +534,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testL
 
 		// If there are no more resources, next_page_token should not be set.
 		t.Run("last page", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListFeatureOnlineStores(fx.Context(), &ListFeatureOnlineStoresRequest{
 				Parent:   parent,
@@ -499,6 +546,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testL
 
 		// If there are more resources, next_page_token should be set.
 		t.Run("more pages", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListFeatureOnlineStores(fx.Context(), &ListFeatureOnlineStoresRequest{
 				Parent:   parent,
@@ -510,6 +558,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testL
 
 		// Listing resource one by one should eventually return all resources.
 		t.Run("one by one", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			msgs := make([]*FeatureOnlineStore, 0, resourcesCount)
 			var nextPageToken string
@@ -540,6 +589,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testL
 
 		// When listing resource with page size zero the service should use a default value.
 		t.Run("page size zero", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListFeatureOnlineStores(fx.Context(), &ListFeatureOnlineStoresRequest{
 				Parent:   parent,
@@ -561,6 +611,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testL
 
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			const deleteCount = 5
 			for i := 0; i < deleteCount; i++ {
@@ -589,9 +640,11 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testL
 }
 
 func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testDelete(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteFeatureOnlineStore(fx.Context(), &DeleteFeatureOnlineStoreRequest{
 			Name: "",
@@ -601,6 +654,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testD
 
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteFeatureOnlineStore(fx.Context(), &DeleteFeatureOnlineStoreRequest{
 			Name: "invalid resource name",
@@ -610,6 +664,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testD
 
 	// Resource should be deleted without errors if it exists.
 	t.Run("exists", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -621,6 +676,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testD
 
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -632,6 +688,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testD
 
 	// Method should fail with NotFound if the resource was already deleted. This also applies to soft-deletion.
 	t.Run("already deleted", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -648,6 +705,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testD
 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteFeatureOnlineStore(fx.Context(), &DeleteFeatureOnlineStoreRequest{
 			Name: "projects/-/locations/-/featureOnlineStores/-",
@@ -716,18 +774,37 @@ type FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig struct {
 	Skip []string
 }
 
+// clone creates an isolated copy of the fixture for parallel test execution.
+// This prevents race conditions on the currParent.
+func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) clone() *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig {
+	clone := *fx
+	return &clone
+}
+
 func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) test(t *testing.T) {
-	t.Run("Create", fx.testCreate)
-	t.Run("Get", fx.testGet)
-	t.Run("Update", fx.testUpdate)
-	t.Run("List", fx.testList)
-	t.Run("Delete", fx.testDelete)
+	t.Run("Create", func(t *testing.T) {
+		fx.clone().testCreate(t)
+	})
+	t.Run("Get", func(t *testing.T) {
+		fx.clone().testGet(t)
+	})
+	t.Run("Update", func(t *testing.T) {
+		fx.clone().testUpdate(t)
+	})
+	t.Run("List", func(t *testing.T) {
+		fx.clone().testList(t)
+	})
+	t.Run("Delete", func(t *testing.T) {
+		fx.clone().testDelete(t)
+	})
 }
 
 func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testCreate(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().CreateFeatureView(fx.Context(), &CreateFeatureViewRequest{
 			Parent:      "",
@@ -738,6 +815,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testCreate(t
 
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().CreateFeatureView(fx.Context(), &CreateFeatureViewRequest{
 			Parent:      "invalid resource name",
@@ -749,8 +827,10 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testCreate(t
 	// The method should fail with InvalidArgument if the resource has any
 	// required fields and they are not provided.
 	t.Run("required fields", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		t.Run(".big_query_source.uri", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -767,6 +847,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testCreate(t
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
 		t.Run(".big_query_source.entity_id_columns", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -783,6 +864,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testCreate(t
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
 		t.Run(".feature_registry_source.feature_groups", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -803,9 +885,11 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testCreate(t
 }
 
 func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testGet(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetFeatureView(fx.Context(), &GetFeatureViewRequest{
 			Name: "",
@@ -815,6 +899,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testGet(t *t
 
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetFeatureView(fx.Context(), &GetFeatureViewRequest{
 			Name: "invalid resource name",
@@ -824,6 +909,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testGet(t *t
 
 	// Resource should be returned without errors if it exists.
 	t.Run("exists", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -836,6 +922,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testGet(t *t
 
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -847,6 +934,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testGet(t *t
 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetFeatureView(fx.Context(), &GetFeatureViewRequest{
 			Name: "projects/-/locations/-/featureOnlineStores/-/featureViews/-",
@@ -857,9 +945,11 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testGet(t *t
 }
 
 func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testUpdate(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
@@ -872,6 +962,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testUpdate(t
 
 	// Method should fail with InvalidArgument if provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
@@ -884,6 +975,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testUpdate(t
 
 	// Method should fail with Aborted if the supplied etag doesnt match the current etag value.
 	t.Run("etag mismatch", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -897,6 +989,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testUpdate(t
 
 	// Field etag should have a new value when the resource is successfully updated.
 	t.Run("etag updated", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -914,6 +1007,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testUpdate(t
 		created := fx.create(t, parent)
 		// Method should fail with NotFound if the resource does not exist.
 		t.Run("not found", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			msg := fx.Update(parent)
 			msg.Name = created.Name + "notfound"
@@ -925,6 +1019,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testUpdate(t
 
 		// The method should fail with InvalidArgument if the update_mask is invalid.
 		t.Run("invalid update mask", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			_, err := fx.Service().UpdateFeatureView(fx.Context(), &UpdateFeatureViewRequest{
 				FeatureView: created,
@@ -940,8 +1035,10 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testUpdate(t
 		// Method should fail with InvalidArgument if any required field is missing
 		// when called with '*' update_mask.
 		t.Run("required fields", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			t.Run(".big_query_source.uri", func(t *testing.T) {
+				t.Parallel()
 				fx.maybeSkip(t)
 				msg := proto.Clone(created).(*FeatureView)
 				container := msg.GetBigQuerySource()
@@ -961,6 +1058,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testUpdate(t
 				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 			})
 			t.Run(".big_query_source.entity_id_columns", func(t *testing.T) {
+				t.Parallel()
 				fx.maybeSkip(t)
 				msg := proto.Clone(created).(*FeatureView)
 				container := msg.GetBigQuerySource()
@@ -980,6 +1078,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testUpdate(t
 				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 			})
 			t.Run(".feature_registry_source.feature_groups", func(t *testing.T) {
+				t.Parallel()
 				fx.maybeSkip(t)
 				msg := proto.Clone(created).(*FeatureView)
 				container := msg.GetFeatureRegistrySource()
@@ -1004,9 +1103,11 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testUpdate(t
 }
 
 func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testList(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().ListFeatureViews(fx.Context(), &ListFeatureViewsRequest{
 			Parent: "invalid resource name",
@@ -1016,6 +1117,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testList(t *
 
 	// Method should fail with InvalidArgument is provided page token is not valid.
 	t.Run("invalid page token", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		_, err := fx.Service().ListFeatureViews(fx.Context(), &ListFeatureViewsRequest{
@@ -1027,6 +1129,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testList(t *
 
 	// Method should fail with InvalidArgument is provided page size is negative.
 	t.Run("negative page size", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		_, err := fx.Service().ListFeatureViews(fx.Context(), &ListFeatureViewsRequest{
@@ -1047,6 +1150,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testList(t *
 		// If parent is provided the method must only return resources
 		// under that parent.
 		t.Run("isolation", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListFeatureViews(fx.Context(), &ListFeatureViewsRequest{
 				Parent:   parent,
@@ -1066,6 +1170,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testList(t *
 
 		// If there are no more resources, next_page_token should not be set.
 		t.Run("last page", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListFeatureViews(fx.Context(), &ListFeatureViewsRequest{
 				Parent:   parent,
@@ -1077,6 +1182,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testList(t *
 
 		// If there are more resources, next_page_token should be set.
 		t.Run("more pages", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListFeatureViews(fx.Context(), &ListFeatureViewsRequest{
 				Parent:   parent,
@@ -1088,6 +1194,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testList(t *
 
 		// Listing resource one by one should eventually return all resources.
 		t.Run("one by one", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			msgs := make([]*FeatureView, 0, resourcesCount)
 			var nextPageToken string
@@ -1118,6 +1225,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testList(t *
 
 		// When listing resource with page size zero the service should use a default value.
 		t.Run("page size zero", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListFeatureViews(fx.Context(), &ListFeatureViewsRequest{
 				Parent:   parent,
@@ -1139,6 +1247,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testList(t *
 
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			const deleteCount = 5
 			for i := 0; i < deleteCount; i++ {
@@ -1167,9 +1276,11 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testList(t *
 }
 
 func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testDelete(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteFeatureView(fx.Context(), &DeleteFeatureViewRequest{
 			Name: "",
@@ -1179,6 +1290,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testDelete(t
 
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteFeatureView(fx.Context(), &DeleteFeatureViewRequest{
 			Name: "invalid resource name",
@@ -1188,6 +1300,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testDelete(t
 
 	// Resource should be deleted without errors if it exists.
 	t.Run("exists", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1199,6 +1312,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testDelete(t
 
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1210,6 +1324,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testDelete(t
 
 	// Method should fail with NotFound if the resource was already deleted. This also applies to soft-deletion.
 	t.Run("already deleted", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1226,6 +1341,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testDelete(t
 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteFeatureView(fx.Context(), &DeleteFeatureViewRequest{
 			Name: "projects/-/locations/-/featureOnlineStores/-/featureViews/-",
@@ -1294,15 +1410,28 @@ type FeatureOnlineStoreAdminServiceFeatureViewSyncTestSuiteConfig struct {
 	Skip []string
 }
 
+// clone creates an isolated copy of the fixture for parallel test execution.
+// This prevents race conditions on the currParent.
+func (fx *FeatureOnlineStoreAdminServiceFeatureViewSyncTestSuiteConfig) clone() *FeatureOnlineStoreAdminServiceFeatureViewSyncTestSuiteConfig {
+	clone := *fx
+	return &clone
+}
+
 func (fx *FeatureOnlineStoreAdminServiceFeatureViewSyncTestSuiteConfig) test(t *testing.T) {
-	t.Run("Get", fx.testGet)
-	t.Run("List", fx.testList)
+	t.Run("Get", func(t *testing.T) {
+		fx.clone().testGet(t)
+	})
+	t.Run("List", func(t *testing.T) {
+		fx.clone().testList(t)
+	})
 }
 
 func (fx *FeatureOnlineStoreAdminServiceFeatureViewSyncTestSuiteConfig) testGet(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetFeatureViewSync(fx.Context(), &GetFeatureViewSyncRequest{
 			Name: "",
@@ -1312,6 +1441,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewSyncTestSuiteConfig) testGet(
 
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetFeatureViewSync(fx.Context(), &GetFeatureViewSyncRequest{
 			Name: "invalid resource name",
@@ -1321,6 +1451,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewSyncTestSuiteConfig) testGet(
 
 	// Resource should be returned without errors if it exists.
 	t.Run("exists", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1333,6 +1464,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewSyncTestSuiteConfig) testGet(
 
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1344,6 +1476,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewSyncTestSuiteConfig) testGet(
 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetFeatureViewSync(fx.Context(), &GetFeatureViewSyncRequest{
 			Name: "projects/-/locations/-/featureOnlineStores/-/featureViews/-/featureViewSyncs/feature_view_sync",
@@ -1354,9 +1487,11 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewSyncTestSuiteConfig) testGet(
 }
 
 func (fx *FeatureOnlineStoreAdminServiceFeatureViewSyncTestSuiteConfig) testList(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().ListFeatureViewSyncs(fx.Context(), &ListFeatureViewSyncsRequest{
 			Parent: "invalid resource name",
@@ -1366,6 +1501,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewSyncTestSuiteConfig) testList
 
 	// Method should fail with InvalidArgument is provided page token is not valid.
 	t.Run("invalid page token", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		_, err := fx.Service().ListFeatureViewSyncs(fx.Context(), &ListFeatureViewSyncsRequest{
@@ -1377,6 +1513,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewSyncTestSuiteConfig) testList
 
 	// Method should fail with InvalidArgument is provided page size is negative.
 	t.Run("negative page size", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		_, err := fx.Service().ListFeatureViewSyncs(fx.Context(), &ListFeatureViewSyncsRequest{
@@ -1397,6 +1534,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewSyncTestSuiteConfig) testList
 		// If parent is provided the method must only return resources
 		// under that parent.
 		t.Run("isolation", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListFeatureViewSyncs(fx.Context(), &ListFeatureViewSyncsRequest{
 				Parent:   parent,
@@ -1416,6 +1554,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewSyncTestSuiteConfig) testList
 
 		// If there are no more resources, next_page_token should not be set.
 		t.Run("last page", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListFeatureViewSyncs(fx.Context(), &ListFeatureViewSyncsRequest{
 				Parent:   parent,
@@ -1427,6 +1566,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewSyncTestSuiteConfig) testList
 
 		// If there are more resources, next_page_token should be set.
 		t.Run("more pages", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListFeatureViewSyncs(fx.Context(), &ListFeatureViewSyncsRequest{
 				Parent:   parent,
@@ -1438,6 +1578,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewSyncTestSuiteConfig) testList
 
 		// Listing resource one by one should eventually return all resources.
 		t.Run("one by one", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			msgs := make([]*FeatureViewSync, 0, resourcesCount)
 			var nextPageToken string
@@ -1468,6 +1609,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewSyncTestSuiteConfig) testList
 
 		// When listing resource with page size zero the service should use a default value.
 		t.Run("page size zero", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListFeatureViewSyncs(fx.Context(), &ListFeatureViewSyncsRequest{
 				Parent:   parent,

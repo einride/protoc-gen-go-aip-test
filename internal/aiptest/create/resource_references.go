@@ -45,6 +45,7 @@ var resourceReferences = suite.Test{
 				isTopLevel := len(containerPath) == 0
 
 				f.P("t.Run(", strconv.Quote(p.String()), ", func(t *", ident.TestingT, ") {")
+				f.P("t.Parallel()")
 				f.P(ident.FixtureMaybeSkip, "(t)")
 				if util.HasParent(scope.Resource) {
 					f.P("parent := ", ident.FixtureNextParent, "(t, false)")

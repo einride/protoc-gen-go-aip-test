@@ -43,6 +43,7 @@ var requiredFields = suite.Test{
 			isTopLevel := len(containerPath) == 0
 
 			f.P("t.Run(", strconv.Quote(p.String()), ", func(t *", ident.TestingT, ") {")
+			f.P("t.Parallel()")
 			f.P(ident.FixtureMaybeSkip, "(t)")
 			f.P("msg := ", ident.ProtoClone, "(created).(*", scope.Message.GoIdent, ")")
 			if isTopLevel {

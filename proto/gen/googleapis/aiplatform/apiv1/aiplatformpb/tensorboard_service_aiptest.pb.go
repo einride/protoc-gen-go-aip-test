@@ -166,18 +166,37 @@ type TensorboardServiceTensorboardTestSuiteConfig struct {
 	Skip []string
 }
 
+// clone creates an isolated copy of the fixture for parallel test execution.
+// This prevents race conditions on the currParent.
+func (fx *TensorboardServiceTensorboardTestSuiteConfig) clone() *TensorboardServiceTensorboardTestSuiteConfig {
+	clone := *fx
+	return &clone
+}
+
 func (fx *TensorboardServiceTensorboardTestSuiteConfig) test(t *testing.T) {
-	t.Run("Create", fx.testCreate)
-	t.Run("Get", fx.testGet)
-	t.Run("Update", fx.testUpdate)
-	t.Run("List", fx.testList)
-	t.Run("Delete", fx.testDelete)
+	t.Run("Create", func(t *testing.T) {
+		fx.clone().testCreate(t)
+	})
+	t.Run("Get", func(t *testing.T) {
+		fx.clone().testGet(t)
+	})
+	t.Run("Update", func(t *testing.T) {
+		fx.clone().testUpdate(t)
+	})
+	t.Run("List", func(t *testing.T) {
+		fx.clone().testList(t)
+	})
+	t.Run("Delete", func(t *testing.T) {
+		fx.clone().testDelete(t)
+	})
 }
 
 func (fx *TensorboardServiceTensorboardTestSuiteConfig) testCreate(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().CreateTensorboard(fx.Context(), &CreateTensorboardRequest{
 			Parent:      "",
@@ -188,6 +207,7 @@ func (fx *TensorboardServiceTensorboardTestSuiteConfig) testCreate(t *testing.T)
 
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().CreateTensorboard(fx.Context(), &CreateTensorboardRequest{
 			Parent:      "invalid resource name",
@@ -199,8 +219,10 @@ func (fx *TensorboardServiceTensorboardTestSuiteConfig) testCreate(t *testing.T)
 	// The method should fail with InvalidArgument if the resource has any
 	// required fields and they are not provided.
 	t.Run("required fields", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		t.Run(".display_name", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -217,6 +239,7 @@ func (fx *TensorboardServiceTensorboardTestSuiteConfig) testCreate(t *testing.T)
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
 		t.Run(".encryption_spec.kms_key_name", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -237,9 +260,11 @@ func (fx *TensorboardServiceTensorboardTestSuiteConfig) testCreate(t *testing.T)
 }
 
 func (fx *TensorboardServiceTensorboardTestSuiteConfig) testGet(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetTensorboard(fx.Context(), &GetTensorboardRequest{
 			Name: "",
@@ -249,6 +274,7 @@ func (fx *TensorboardServiceTensorboardTestSuiteConfig) testGet(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetTensorboard(fx.Context(), &GetTensorboardRequest{
 			Name: "invalid resource name",
@@ -258,6 +284,7 @@ func (fx *TensorboardServiceTensorboardTestSuiteConfig) testGet(t *testing.T) {
 
 	// Resource should be returned without errors if it exists.
 	t.Run("exists", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -270,6 +297,7 @@ func (fx *TensorboardServiceTensorboardTestSuiteConfig) testGet(t *testing.T) {
 
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -281,6 +309,7 @@ func (fx *TensorboardServiceTensorboardTestSuiteConfig) testGet(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetTensorboard(fx.Context(), &GetTensorboardRequest{
 			Name: "projects/-/locations/-/tensorboards/-",
@@ -291,9 +320,11 @@ func (fx *TensorboardServiceTensorboardTestSuiteConfig) testGet(t *testing.T) {
 }
 
 func (fx *TensorboardServiceTensorboardTestSuiteConfig) testUpdate(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
@@ -306,6 +337,7 @@ func (fx *TensorboardServiceTensorboardTestSuiteConfig) testUpdate(t *testing.T)
 
 	// Method should fail with InvalidArgument if provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
@@ -318,6 +350,7 @@ func (fx *TensorboardServiceTensorboardTestSuiteConfig) testUpdate(t *testing.T)
 
 	// Method should fail with Aborted if the supplied etag doesnt match the current etag value.
 	t.Run("etag mismatch", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -331,6 +364,7 @@ func (fx *TensorboardServiceTensorboardTestSuiteConfig) testUpdate(t *testing.T)
 
 	// Field etag should have a new value when the resource is successfully updated.
 	t.Run("etag updated", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -348,6 +382,7 @@ func (fx *TensorboardServiceTensorboardTestSuiteConfig) testUpdate(t *testing.T)
 		created := fx.create(t, parent)
 		// Method should fail with NotFound if the resource does not exist.
 		t.Run("not found", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			msg := fx.Update(parent)
 			msg.Name = created.Name + "notfound"
@@ -359,6 +394,7 @@ func (fx *TensorboardServiceTensorboardTestSuiteConfig) testUpdate(t *testing.T)
 
 		// The method should fail with InvalidArgument if the update_mask is invalid.
 		t.Run("invalid update mask", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			_, err := fx.Service().UpdateTensorboard(fx.Context(), &UpdateTensorboardRequest{
 				Tensorboard: created,
@@ -374,8 +410,10 @@ func (fx *TensorboardServiceTensorboardTestSuiteConfig) testUpdate(t *testing.T)
 		// Method should fail with InvalidArgument if any required field is missing
 		// when called with '*' update_mask.
 		t.Run("required fields", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			t.Run(".display_name", func(t *testing.T) {
+				t.Parallel()
 				fx.maybeSkip(t)
 				msg := proto.Clone(created).(*Tensorboard)
 				container := msg
@@ -395,6 +433,7 @@ func (fx *TensorboardServiceTensorboardTestSuiteConfig) testUpdate(t *testing.T)
 				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 			})
 			t.Run(".encryption_spec.kms_key_name", func(t *testing.T) {
+				t.Parallel()
 				fx.maybeSkip(t)
 				msg := proto.Clone(created).(*Tensorboard)
 				container := msg.GetEncryptionSpec()
@@ -419,9 +458,11 @@ func (fx *TensorboardServiceTensorboardTestSuiteConfig) testUpdate(t *testing.T)
 }
 
 func (fx *TensorboardServiceTensorboardTestSuiteConfig) testList(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().ListTensorboards(fx.Context(), &ListTensorboardsRequest{
 			Parent: "invalid resource name",
@@ -431,6 +472,7 @@ func (fx *TensorboardServiceTensorboardTestSuiteConfig) testList(t *testing.T) {
 
 	// Method should fail with InvalidArgument is provided page token is not valid.
 	t.Run("invalid page token", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		_, err := fx.Service().ListTensorboards(fx.Context(), &ListTensorboardsRequest{
@@ -442,6 +484,7 @@ func (fx *TensorboardServiceTensorboardTestSuiteConfig) testList(t *testing.T) {
 
 	// Method should fail with InvalidArgument is provided page size is negative.
 	t.Run("negative page size", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		_, err := fx.Service().ListTensorboards(fx.Context(), &ListTensorboardsRequest{
@@ -462,6 +505,7 @@ func (fx *TensorboardServiceTensorboardTestSuiteConfig) testList(t *testing.T) {
 		// If parent is provided the method must only return resources
 		// under that parent.
 		t.Run("isolation", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListTensorboards(fx.Context(), &ListTensorboardsRequest{
 				Parent:   parent,
@@ -481,6 +525,7 @@ func (fx *TensorboardServiceTensorboardTestSuiteConfig) testList(t *testing.T) {
 
 		// If there are no more resources, next_page_token should not be set.
 		t.Run("last page", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListTensorboards(fx.Context(), &ListTensorboardsRequest{
 				Parent:   parent,
@@ -492,6 +537,7 @@ func (fx *TensorboardServiceTensorboardTestSuiteConfig) testList(t *testing.T) {
 
 		// If there are more resources, next_page_token should be set.
 		t.Run("more pages", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListTensorboards(fx.Context(), &ListTensorboardsRequest{
 				Parent:   parent,
@@ -503,6 +549,7 @@ func (fx *TensorboardServiceTensorboardTestSuiteConfig) testList(t *testing.T) {
 
 		// Listing resource one by one should eventually return all resources.
 		t.Run("one by one", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			msgs := make([]*Tensorboard, 0, resourcesCount)
 			var nextPageToken string
@@ -533,6 +580,7 @@ func (fx *TensorboardServiceTensorboardTestSuiteConfig) testList(t *testing.T) {
 
 		// When listing resource with page size zero the service should use a default value.
 		t.Run("page size zero", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListTensorboards(fx.Context(), &ListTensorboardsRequest{
 				Parent:   parent,
@@ -554,6 +602,7 @@ func (fx *TensorboardServiceTensorboardTestSuiteConfig) testList(t *testing.T) {
 
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			const deleteCount = 5
 			for i := 0; i < deleteCount; i++ {
@@ -582,9 +631,11 @@ func (fx *TensorboardServiceTensorboardTestSuiteConfig) testList(t *testing.T) {
 }
 
 func (fx *TensorboardServiceTensorboardTestSuiteConfig) testDelete(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteTensorboard(fx.Context(), &DeleteTensorboardRequest{
 			Name: "",
@@ -594,6 +645,7 @@ func (fx *TensorboardServiceTensorboardTestSuiteConfig) testDelete(t *testing.T)
 
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteTensorboard(fx.Context(), &DeleteTensorboardRequest{
 			Name: "invalid resource name",
@@ -603,6 +655,7 @@ func (fx *TensorboardServiceTensorboardTestSuiteConfig) testDelete(t *testing.T)
 
 	// Resource should be deleted without errors if it exists.
 	t.Run("exists", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -614,6 +667,7 @@ func (fx *TensorboardServiceTensorboardTestSuiteConfig) testDelete(t *testing.T)
 
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -625,6 +679,7 @@ func (fx *TensorboardServiceTensorboardTestSuiteConfig) testDelete(t *testing.T)
 
 	// Method should fail with NotFound if the resource was already deleted. This also applies to soft-deletion.
 	t.Run("already deleted", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -641,6 +696,7 @@ func (fx *TensorboardServiceTensorboardTestSuiteConfig) testDelete(t *testing.T)
 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteTensorboard(fx.Context(), &DeleteTensorboardRequest{
 			Name: "projects/-/locations/-/tensorboards/-",
@@ -709,18 +765,37 @@ type TensorboardServiceTensorboardExperimentTestSuiteConfig struct {
 	Skip []string
 }
 
+// clone creates an isolated copy of the fixture for parallel test execution.
+// This prevents race conditions on the currParent.
+func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) clone() *TensorboardServiceTensorboardExperimentTestSuiteConfig {
+	clone := *fx
+	return &clone
+}
+
 func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) test(t *testing.T) {
-	t.Run("Create", fx.testCreate)
-	t.Run("Get", fx.testGet)
-	t.Run("Update", fx.testUpdate)
-	t.Run("List", fx.testList)
-	t.Run("Delete", fx.testDelete)
+	t.Run("Create", func(t *testing.T) {
+		fx.clone().testCreate(t)
+	})
+	t.Run("Get", func(t *testing.T) {
+		fx.clone().testGet(t)
+	})
+	t.Run("Update", func(t *testing.T) {
+		fx.clone().testUpdate(t)
+	})
+	t.Run("List", func(t *testing.T) {
+		fx.clone().testList(t)
+	})
+	t.Run("Delete", func(t *testing.T) {
+		fx.clone().testDelete(t)
+	})
 }
 
 func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testCreate(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().CreateTensorboardExperiment(fx.Context(), &CreateTensorboardExperimentRequest{
 			Parent:                "",
@@ -731,6 +806,7 @@ func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testCreate(t *
 
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().CreateTensorboardExperiment(fx.Context(), &CreateTensorboardExperimentRequest{
 			Parent:                "invalid resource name",
@@ -741,6 +817,7 @@ func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testCreate(t *
 
 	// Field create_time should be populated when the resource is created.
 	t.Run("create time", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		beforeCreate := time.Now()
@@ -756,6 +833,7 @@ func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testCreate(t *
 
 	// The created resource should be persisted and reachable with Get.
 	t.Run("persisted", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		msg, err := fx.Service().CreateTensorboardExperiment(fx.Context(), &CreateTensorboardExperimentRequest{
@@ -772,6 +850,7 @@ func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testCreate(t *
 
 	// Field etag should be populated when the resource is created.
 	t.Run("etag populated", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created, err := fx.Service().CreateTensorboardExperiment(fx.Context(), &CreateTensorboardExperimentRequest{
@@ -785,9 +864,11 @@ func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testCreate(t *
 }
 
 func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testGet(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetTensorboardExperiment(fx.Context(), &GetTensorboardExperimentRequest{
 			Name: "",
@@ -797,6 +878,7 @@ func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testGet(t *tes
 
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetTensorboardExperiment(fx.Context(), &GetTensorboardExperimentRequest{
 			Name: "invalid resource name",
@@ -806,6 +888,7 @@ func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testGet(t *tes
 
 	// Resource should be returned without errors if it exists.
 	t.Run("exists", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -818,6 +901,7 @@ func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testGet(t *tes
 
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -829,6 +913,7 @@ func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testGet(t *tes
 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetTensorboardExperiment(fx.Context(), &GetTensorboardExperimentRequest{
 			Name: "projects/-/locations/-/tensorboards/-/experiments/-",
@@ -839,9 +924,11 @@ func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testGet(t *tes
 }
 
 func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testUpdate(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
@@ -854,6 +941,7 @@ func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testUpdate(t *
 
 	// Method should fail with InvalidArgument if provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
@@ -866,6 +954,7 @@ func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testUpdate(t *
 
 	// Field update_time should be updated when the resource is updated.
 	t.Run("update time", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -878,6 +967,7 @@ func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testUpdate(t *
 
 	// The updated resource should be persisted and reachable with Get.
 	t.Run("persisted", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -894,6 +984,7 @@ func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testUpdate(t *
 
 	// Method should fail with Aborted if the supplied etag doesnt match the current etag value.
 	t.Run("etag mismatch", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -908,6 +999,7 @@ func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testUpdate(t *
 
 	// Field etag should have a new value when the resource is successfully updated.
 	t.Run("etag updated", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -926,6 +1018,7 @@ func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testUpdate(t *
 		created := fx.create(t, parent)
 		// Method should fail with NotFound if the resource does not exist.
 		t.Run("not found", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			msg := fx.Update(parent)
 			msg.Name = created.Name + "notfound"
@@ -937,6 +1030,7 @@ func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testUpdate(t *
 
 		// The method should fail with InvalidArgument if the update_mask is invalid.
 		t.Run("invalid update mask", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			_, err := fx.Service().UpdateTensorboardExperiment(fx.Context(), &UpdateTensorboardExperimentRequest{
 				TensorboardExperiment: created,
@@ -953,9 +1047,11 @@ func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testUpdate(t *
 }
 
 func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testList(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().ListTensorboardExperiments(fx.Context(), &ListTensorboardExperimentsRequest{
 			Parent: "invalid resource name",
@@ -965,6 +1061,7 @@ func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testList(t *te
 
 	// Method should fail with InvalidArgument is provided page token is not valid.
 	t.Run("invalid page token", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		_, err := fx.Service().ListTensorboardExperiments(fx.Context(), &ListTensorboardExperimentsRequest{
@@ -976,6 +1073,7 @@ func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testList(t *te
 
 	// Method should fail with InvalidArgument is provided page size is negative.
 	t.Run("negative page size", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		_, err := fx.Service().ListTensorboardExperiments(fx.Context(), &ListTensorboardExperimentsRequest{
@@ -996,6 +1094,7 @@ func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testList(t *te
 		// If parent is provided the method must only return resources
 		// under that parent.
 		t.Run("isolation", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListTensorboardExperiments(fx.Context(), &ListTensorboardExperimentsRequest{
 				Parent:   parent,
@@ -1015,6 +1114,7 @@ func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testList(t *te
 
 		// If there are no more resources, next_page_token should not be set.
 		t.Run("last page", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListTensorboardExperiments(fx.Context(), &ListTensorboardExperimentsRequest{
 				Parent:   parent,
@@ -1026,6 +1126,7 @@ func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testList(t *te
 
 		// If there are more resources, next_page_token should be set.
 		t.Run("more pages", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListTensorboardExperiments(fx.Context(), &ListTensorboardExperimentsRequest{
 				Parent:   parent,
@@ -1037,6 +1138,7 @@ func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testList(t *te
 
 		// Listing resource one by one should eventually return all resources.
 		t.Run("one by one", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			msgs := make([]*TensorboardExperiment, 0, resourcesCount)
 			var nextPageToken string
@@ -1067,6 +1169,7 @@ func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testList(t *te
 
 		// When listing resource with page size zero the service should use a default value.
 		t.Run("page size zero", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListTensorboardExperiments(fx.Context(), &ListTensorboardExperimentsRequest{
 				Parent:   parent,
@@ -1088,6 +1191,7 @@ func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testList(t *te
 
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			const deleteCount = 5
 			for i := 0; i < deleteCount; i++ {
@@ -1116,9 +1220,11 @@ func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testList(t *te
 }
 
 func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testDelete(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteTensorboardExperiment(fx.Context(), &DeleteTensorboardExperimentRequest{
 			Name: "",
@@ -1128,6 +1234,7 @@ func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testDelete(t *
 
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteTensorboardExperiment(fx.Context(), &DeleteTensorboardExperimentRequest{
 			Name: "invalid resource name",
@@ -1137,6 +1244,7 @@ func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testDelete(t *
 
 	// Resource should be deleted without errors if it exists.
 	t.Run("exists", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1148,6 +1256,7 @@ func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testDelete(t *
 
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1159,6 +1268,7 @@ func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testDelete(t *
 
 	// Method should fail with NotFound if the resource was already deleted. This also applies to soft-deletion.
 	t.Run("already deleted", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1175,6 +1285,7 @@ func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testDelete(t *
 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteTensorboardExperiment(fx.Context(), &DeleteTensorboardExperimentRequest{
 			Name: "projects/-/locations/-/tensorboards/-/experiments/-",
@@ -1247,18 +1358,37 @@ type TensorboardServiceTensorboardRunTestSuiteConfig struct {
 	Skip []string
 }
 
+// clone creates an isolated copy of the fixture for parallel test execution.
+// This prevents race conditions on the currParent.
+func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) clone() *TensorboardServiceTensorboardRunTestSuiteConfig {
+	clone := *fx
+	return &clone
+}
+
 func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) test(t *testing.T) {
-	t.Run("Create", fx.testCreate)
-	t.Run("Get", fx.testGet)
-	t.Run("Update", fx.testUpdate)
-	t.Run("List", fx.testList)
-	t.Run("Delete", fx.testDelete)
+	t.Run("Create", func(t *testing.T) {
+		fx.clone().testCreate(t)
+	})
+	t.Run("Get", func(t *testing.T) {
+		fx.clone().testGet(t)
+	})
+	t.Run("Update", func(t *testing.T) {
+		fx.clone().testUpdate(t)
+	})
+	t.Run("List", func(t *testing.T) {
+		fx.clone().testList(t)
+	})
+	t.Run("Delete", func(t *testing.T) {
+		fx.clone().testDelete(t)
+	})
 }
 
 func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testCreate(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().CreateTensorboardRun(fx.Context(), &CreateTensorboardRunRequest{
 			Parent:         "",
@@ -1269,6 +1399,7 @@ func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testCreate(t *testing
 
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().CreateTensorboardRun(fx.Context(), &CreateTensorboardRunRequest{
 			Parent:         "invalid resource name",
@@ -1279,6 +1410,7 @@ func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testCreate(t *testing
 
 	// Field create_time should be populated when the resource is created.
 	t.Run("create time", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		beforeCreate := time.Now()
@@ -1294,6 +1426,7 @@ func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testCreate(t *testing
 
 	// The created resource should be persisted and reachable with Get.
 	t.Run("persisted", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		msg, err := fx.Service().CreateTensorboardRun(fx.Context(), &CreateTensorboardRunRequest{
@@ -1311,8 +1444,10 @@ func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testCreate(t *testing
 	// The method should fail with InvalidArgument if the resource has any
 	// required fields and they are not provided.
 	t.Run("required fields", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		t.Run(".display_name", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -1332,6 +1467,7 @@ func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testCreate(t *testing
 
 	// Field etag should be populated when the resource is created.
 	t.Run("etag populated", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created, err := fx.Service().CreateTensorboardRun(fx.Context(), &CreateTensorboardRunRequest{
@@ -1345,9 +1481,11 @@ func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testCreate(t *testing
 }
 
 func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testGet(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetTensorboardRun(fx.Context(), &GetTensorboardRunRequest{
 			Name: "",
@@ -1357,6 +1495,7 @@ func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testGet(t *testing.T)
 
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetTensorboardRun(fx.Context(), &GetTensorboardRunRequest{
 			Name: "invalid resource name",
@@ -1366,6 +1505,7 @@ func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testGet(t *testing.T)
 
 	// Resource should be returned without errors if it exists.
 	t.Run("exists", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1378,6 +1518,7 @@ func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testGet(t *testing.T)
 
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1389,6 +1530,7 @@ func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testGet(t *testing.T)
 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetTensorboardRun(fx.Context(), &GetTensorboardRunRequest{
 			Name: "projects/-/locations/-/tensorboards/-/experiments/-/runs/-",
@@ -1399,9 +1541,11 @@ func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testGet(t *testing.T)
 }
 
 func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testUpdate(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
@@ -1414,6 +1558,7 @@ func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testUpdate(t *testing
 
 	// Method should fail with InvalidArgument if provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
@@ -1426,6 +1571,7 @@ func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testUpdate(t *testing
 
 	// Field update_time should be updated when the resource is updated.
 	t.Run("update time", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1438,6 +1584,7 @@ func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testUpdate(t *testing
 
 	// The updated resource should be persisted and reachable with Get.
 	t.Run("persisted", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1454,6 +1601,7 @@ func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testUpdate(t *testing
 
 	// The field create_time should be preserved when a '*'-update mask is used.
 	t.Run("preserve create_time", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1472,6 +1620,7 @@ func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testUpdate(t *testing
 
 	// Method should fail with Aborted if the supplied etag doesnt match the current etag value.
 	t.Run("etag mismatch", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1486,6 +1635,7 @@ func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testUpdate(t *testing
 
 	// Field etag should have a new value when the resource is successfully updated.
 	t.Run("etag updated", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1504,6 +1654,7 @@ func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testUpdate(t *testing
 		created := fx.create(t, parent)
 		// Method should fail with NotFound if the resource does not exist.
 		t.Run("not found", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			msg := fx.Update(parent)
 			msg.Name = created.Name + "notfound"
@@ -1515,6 +1666,7 @@ func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testUpdate(t *testing
 
 		// The method should fail with InvalidArgument if the update_mask is invalid.
 		t.Run("invalid update mask", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			_, err := fx.Service().UpdateTensorboardRun(fx.Context(), &UpdateTensorboardRunRequest{
 				TensorboardRun: created,
@@ -1530,8 +1682,10 @@ func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testUpdate(t *testing
 		// Method should fail with InvalidArgument if any required field is missing
 		// when called with '*' update_mask.
 		t.Run("required fields", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			t.Run(".display_name", func(t *testing.T) {
+				t.Parallel()
 				fx.maybeSkip(t)
 				msg := proto.Clone(created).(*TensorboardRun)
 				container := msg
@@ -1556,9 +1710,11 @@ func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testUpdate(t *testing
 }
 
 func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testList(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().ListTensorboardRuns(fx.Context(), &ListTensorboardRunsRequest{
 			Parent: "invalid resource name",
@@ -1568,6 +1724,7 @@ func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testList(t *testing.T
 
 	// Method should fail with InvalidArgument is provided page token is not valid.
 	t.Run("invalid page token", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		_, err := fx.Service().ListTensorboardRuns(fx.Context(), &ListTensorboardRunsRequest{
@@ -1579,6 +1736,7 @@ func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testList(t *testing.T
 
 	// Method should fail with InvalidArgument is provided page size is negative.
 	t.Run("negative page size", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		_, err := fx.Service().ListTensorboardRuns(fx.Context(), &ListTensorboardRunsRequest{
@@ -1599,6 +1757,7 @@ func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testList(t *testing.T
 		// If parent is provided the method must only return resources
 		// under that parent.
 		t.Run("isolation", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListTensorboardRuns(fx.Context(), &ListTensorboardRunsRequest{
 				Parent:   parent,
@@ -1618,6 +1777,7 @@ func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testList(t *testing.T
 
 		// If there are no more resources, next_page_token should not be set.
 		t.Run("last page", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListTensorboardRuns(fx.Context(), &ListTensorboardRunsRequest{
 				Parent:   parent,
@@ -1629,6 +1789,7 @@ func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testList(t *testing.T
 
 		// If there are more resources, next_page_token should be set.
 		t.Run("more pages", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListTensorboardRuns(fx.Context(), &ListTensorboardRunsRequest{
 				Parent:   parent,
@@ -1640,6 +1801,7 @@ func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testList(t *testing.T
 
 		// Listing resource one by one should eventually return all resources.
 		t.Run("one by one", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			msgs := make([]*TensorboardRun, 0, resourcesCount)
 			var nextPageToken string
@@ -1670,6 +1832,7 @@ func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testList(t *testing.T
 
 		// When listing resource with page size zero the service should use a default value.
 		t.Run("page size zero", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListTensorboardRuns(fx.Context(), &ListTensorboardRunsRequest{
 				Parent:   parent,
@@ -1691,6 +1854,7 @@ func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testList(t *testing.T
 
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			const deleteCount = 5
 			for i := 0; i < deleteCount; i++ {
@@ -1719,9 +1883,11 @@ func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testList(t *testing.T
 }
 
 func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testDelete(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteTensorboardRun(fx.Context(), &DeleteTensorboardRunRequest{
 			Name: "",
@@ -1731,6 +1897,7 @@ func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testDelete(t *testing
 
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteTensorboardRun(fx.Context(), &DeleteTensorboardRunRequest{
 			Name: "invalid resource name",
@@ -1740,6 +1907,7 @@ func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testDelete(t *testing
 
 	// Resource should be deleted without errors if it exists.
 	t.Run("exists", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1751,6 +1919,7 @@ func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testDelete(t *testing
 
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1762,6 +1931,7 @@ func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testDelete(t *testing
 
 	// Method should fail with NotFound if the resource was already deleted. This also applies to soft-deletion.
 	t.Run("already deleted", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1778,6 +1948,7 @@ func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testDelete(t *testing
 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteTensorboardRun(fx.Context(), &DeleteTensorboardRunRequest{
 			Name: "projects/-/locations/-/tensorboards/-/experiments/-/runs/-",
@@ -1850,18 +2021,37 @@ type TensorboardServiceTensorboardTimeSeriesTestSuiteConfig struct {
 	Skip []string
 }
 
+// clone creates an isolated copy of the fixture for parallel test execution.
+// This prevents race conditions on the currParent.
+func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) clone() *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig {
+	clone := *fx
+	return &clone
+}
+
 func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) test(t *testing.T) {
-	t.Run("Create", fx.testCreate)
-	t.Run("Get", fx.testGet)
-	t.Run("Update", fx.testUpdate)
-	t.Run("List", fx.testList)
-	t.Run("Delete", fx.testDelete)
+	t.Run("Create", func(t *testing.T) {
+		fx.clone().testCreate(t)
+	})
+	t.Run("Get", func(t *testing.T) {
+		fx.clone().testGet(t)
+	})
+	t.Run("Update", func(t *testing.T) {
+		fx.clone().testUpdate(t)
+	})
+	t.Run("List", func(t *testing.T) {
+		fx.clone().testList(t)
+	})
+	t.Run("Delete", func(t *testing.T) {
+		fx.clone().testDelete(t)
+	})
 }
 
 func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testCreate(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().CreateTensorboardTimeSeries(fx.Context(), &CreateTensorboardTimeSeriesRequest{
 			Parent:                "",
@@ -1872,6 +2062,7 @@ func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testCreate(t *
 
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().CreateTensorboardTimeSeries(fx.Context(), &CreateTensorboardTimeSeriesRequest{
 			Parent:                "invalid resource name",
@@ -1882,6 +2073,7 @@ func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testCreate(t *
 
 	// Field create_time should be populated when the resource is created.
 	t.Run("create time", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		beforeCreate := time.Now()
@@ -1897,6 +2089,7 @@ func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testCreate(t *
 
 	// The created resource should be persisted and reachable with Get.
 	t.Run("persisted", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		msg, err := fx.Service().CreateTensorboardTimeSeries(fx.Context(), &CreateTensorboardTimeSeriesRequest{
@@ -1914,8 +2107,10 @@ func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testCreate(t *
 	// The method should fail with InvalidArgument if the resource has any
 	// required fields and they are not provided.
 	t.Run("required fields", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		t.Run(".display_name", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -1932,6 +2127,7 @@ func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testCreate(t *
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
 		t.Run(".value_type", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -1951,6 +2147,7 @@ func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testCreate(t *
 
 	// Field etag should be populated when the resource is created.
 	t.Run("etag populated", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created, err := fx.Service().CreateTensorboardTimeSeries(fx.Context(), &CreateTensorboardTimeSeriesRequest{
@@ -1964,9 +2161,11 @@ func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testCreate(t *
 }
 
 func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testGet(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetTensorboardTimeSeries(fx.Context(), &GetTensorboardTimeSeriesRequest{
 			Name: "",
@@ -1976,6 +2175,7 @@ func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testGet(t *tes
 
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetTensorboardTimeSeries(fx.Context(), &GetTensorboardTimeSeriesRequest{
 			Name: "invalid resource name",
@@ -1985,6 +2185,7 @@ func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testGet(t *tes
 
 	// Resource should be returned without errors if it exists.
 	t.Run("exists", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1997,6 +2198,7 @@ func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testGet(t *tes
 
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -2008,6 +2210,7 @@ func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testGet(t *tes
 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetTensorboardTimeSeries(fx.Context(), &GetTensorboardTimeSeriesRequest{
 			Name: "projects/-/locations/-/tensorboards/-/experiments/-/runs/-/timeSeries/-",
@@ -2018,9 +2221,11 @@ func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testGet(t *tes
 }
 
 func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testUpdate(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
@@ -2033,6 +2238,7 @@ func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testUpdate(t *
 
 	// Method should fail with InvalidArgument if provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
@@ -2045,6 +2251,7 @@ func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testUpdate(t *
 
 	// Field update_time should be updated when the resource is updated.
 	t.Run("update time", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -2057,6 +2264,7 @@ func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testUpdate(t *
 
 	// The updated resource should be persisted and reachable with Get.
 	t.Run("persisted", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -2073,6 +2281,7 @@ func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testUpdate(t *
 
 	// The field create_time should be preserved when a '*'-update mask is used.
 	t.Run("preserve create_time", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -2091,6 +2300,7 @@ func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testUpdate(t *
 
 	// Method should fail with Aborted if the supplied etag doesnt match the current etag value.
 	t.Run("etag mismatch", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -2105,6 +2315,7 @@ func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testUpdate(t *
 
 	// Field etag should have a new value when the resource is successfully updated.
 	t.Run("etag updated", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -2123,6 +2334,7 @@ func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testUpdate(t *
 		created := fx.create(t, parent)
 		// Method should fail with NotFound if the resource does not exist.
 		t.Run("not found", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			msg := fx.Update(parent)
 			msg.Name = created.Name + "notfound"
@@ -2134,6 +2346,7 @@ func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testUpdate(t *
 
 		// The method should fail with InvalidArgument if the update_mask is invalid.
 		t.Run("invalid update mask", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			_, err := fx.Service().UpdateTensorboardTimeSeries(fx.Context(), &UpdateTensorboardTimeSeriesRequest{
 				TensorboardTimeSeries: created,
@@ -2149,8 +2362,10 @@ func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testUpdate(t *
 		// Method should fail with InvalidArgument if any required field is missing
 		// when called with '*' update_mask.
 		t.Run("required fields", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			t.Run(".display_name", func(t *testing.T) {
+				t.Parallel()
 				fx.maybeSkip(t)
 				msg := proto.Clone(created).(*TensorboardTimeSeries)
 				container := msg
@@ -2175,9 +2390,11 @@ func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testUpdate(t *
 }
 
 func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testList(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().ListTensorboardTimeSeries(fx.Context(), &ListTensorboardTimeSeriesRequest{
 			Parent: "invalid resource name",
@@ -2187,6 +2404,7 @@ func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testList(t *te
 
 	// Method should fail with InvalidArgument is provided page token is not valid.
 	t.Run("invalid page token", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		_, err := fx.Service().ListTensorboardTimeSeries(fx.Context(), &ListTensorboardTimeSeriesRequest{
@@ -2198,6 +2416,7 @@ func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testList(t *te
 
 	// Method should fail with InvalidArgument is provided page size is negative.
 	t.Run("negative page size", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		_, err := fx.Service().ListTensorboardTimeSeries(fx.Context(), &ListTensorboardTimeSeriesRequest{
@@ -2218,6 +2437,7 @@ func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testList(t *te
 		// If parent is provided the method must only return resources
 		// under that parent.
 		t.Run("isolation", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListTensorboardTimeSeries(fx.Context(), &ListTensorboardTimeSeriesRequest{
 				Parent:   parent,
@@ -2237,6 +2457,7 @@ func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testList(t *te
 
 		// If there are no more resources, next_page_token should not be set.
 		t.Run("last page", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListTensorboardTimeSeries(fx.Context(), &ListTensorboardTimeSeriesRequest{
 				Parent:   parent,
@@ -2248,6 +2469,7 @@ func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testList(t *te
 
 		// If there are more resources, next_page_token should be set.
 		t.Run("more pages", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListTensorboardTimeSeries(fx.Context(), &ListTensorboardTimeSeriesRequest{
 				Parent:   parent,
@@ -2259,6 +2481,7 @@ func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testList(t *te
 
 		// Listing resource one by one should eventually return all resources.
 		t.Run("one by one", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			msgs := make([]*TensorboardTimeSeries, 0, resourcesCount)
 			var nextPageToken string
@@ -2289,6 +2512,7 @@ func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testList(t *te
 
 		// When listing resource with page size zero the service should use a default value.
 		t.Run("page size zero", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListTensorboardTimeSeries(fx.Context(), &ListTensorboardTimeSeriesRequest{
 				Parent:   parent,
@@ -2310,6 +2534,7 @@ func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testList(t *te
 
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			const deleteCount = 5
 			for i := 0; i < deleteCount; i++ {
@@ -2338,9 +2563,11 @@ func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testList(t *te
 }
 
 func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testDelete(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteTensorboardTimeSeries(fx.Context(), &DeleteTensorboardTimeSeriesRequest{
 			Name: "",
@@ -2350,6 +2577,7 @@ func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testDelete(t *
 
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteTensorboardTimeSeries(fx.Context(), &DeleteTensorboardTimeSeriesRequest{
 			Name: "invalid resource name",
@@ -2359,6 +2587,7 @@ func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testDelete(t *
 
 	// Resource should be deleted without errors if it exists.
 	t.Run("exists", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -2370,6 +2599,7 @@ func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testDelete(t *
 
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -2381,6 +2611,7 @@ func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testDelete(t *
 
 	// Method should fail with NotFound if the resource was already deleted. This also applies to soft-deletion.
 	t.Run("already deleted", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -2397,6 +2628,7 @@ func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testDelete(t *
 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteTensorboardTimeSeries(fx.Context(), &DeleteTensorboardTimeSeriesRequest{
 			Name: "projects/-/locations/-/tensorboards/-/experiments/-/runs/-/timeSeries/-",

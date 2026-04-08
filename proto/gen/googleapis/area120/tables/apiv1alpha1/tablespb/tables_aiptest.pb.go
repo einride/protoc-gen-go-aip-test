@@ -137,18 +137,37 @@ type TablesServiceRowTestSuiteConfig struct {
 	Skip []string
 }
 
+// clone creates an isolated copy of the fixture for parallel test execution.
+// This prevents race conditions on the currParent.
+func (fx *TablesServiceRowTestSuiteConfig) clone() *TablesServiceRowTestSuiteConfig {
+	clone := *fx
+	return &clone
+}
+
 func (fx *TablesServiceRowTestSuiteConfig) test(t *testing.T) {
-	t.Run("Create", fx.testCreate)
-	t.Run("Get", fx.testGet)
-	t.Run("Update", fx.testUpdate)
-	t.Run("List", fx.testList)
-	t.Run("Delete", fx.testDelete)
+	t.Run("Create", func(t *testing.T) {
+		fx.clone().testCreate(t)
+	})
+	t.Run("Get", func(t *testing.T) {
+		fx.clone().testGet(t)
+	})
+	t.Run("Update", func(t *testing.T) {
+		fx.clone().testUpdate(t)
+	})
+	t.Run("List", func(t *testing.T) {
+		fx.clone().testList(t)
+	})
+	t.Run("Delete", func(t *testing.T) {
+		fx.clone().testDelete(t)
+	})
 }
 
 func (fx *TablesServiceRowTestSuiteConfig) testCreate(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().CreateRow(fx.Context(), &CreateRowRequest{
 			Parent: "",
@@ -159,6 +178,7 @@ func (fx *TablesServiceRowTestSuiteConfig) testCreate(t *testing.T) {
 
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().CreateRow(fx.Context(), &CreateRowRequest{
 			Parent: "invalid resource name",
@@ -169,6 +189,7 @@ func (fx *TablesServiceRowTestSuiteConfig) testCreate(t *testing.T) {
 
 	// The created resource should be persisted and reachable with Get.
 	t.Run("persisted", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		msg, err := fx.Service().CreateRow(fx.Context(), &CreateRowRequest{
@@ -186,9 +207,11 @@ func (fx *TablesServiceRowTestSuiteConfig) testCreate(t *testing.T) {
 }
 
 func (fx *TablesServiceRowTestSuiteConfig) testGet(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetRow(fx.Context(), &GetRowRequest{
 			Name: "",
@@ -198,6 +221,7 @@ func (fx *TablesServiceRowTestSuiteConfig) testGet(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetRow(fx.Context(), &GetRowRequest{
 			Name: "invalid resource name",
@@ -207,6 +231,7 @@ func (fx *TablesServiceRowTestSuiteConfig) testGet(t *testing.T) {
 
 	// Resource should be returned without errors if it exists.
 	t.Run("exists", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -219,6 +244,7 @@ func (fx *TablesServiceRowTestSuiteConfig) testGet(t *testing.T) {
 
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -230,6 +256,7 @@ func (fx *TablesServiceRowTestSuiteConfig) testGet(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetRow(fx.Context(), &GetRowRequest{
 			Name: "tables/-/rows/-",
@@ -240,9 +267,11 @@ func (fx *TablesServiceRowTestSuiteConfig) testGet(t *testing.T) {
 }
 
 func (fx *TablesServiceRowTestSuiteConfig) testUpdate(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
@@ -255,6 +284,7 @@ func (fx *TablesServiceRowTestSuiteConfig) testUpdate(t *testing.T) {
 
 	// Method should fail with InvalidArgument if provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
@@ -267,6 +297,7 @@ func (fx *TablesServiceRowTestSuiteConfig) testUpdate(t *testing.T) {
 
 	// The updated resource should be persisted and reachable with Get.
 	t.Run("persisted", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -286,6 +317,7 @@ func (fx *TablesServiceRowTestSuiteConfig) testUpdate(t *testing.T) {
 		created := fx.create(t, parent)
 		// Method should fail with NotFound if the resource does not exist.
 		t.Run("not found", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			msg := fx.Update(parent)
 			msg.Name = created.Name + "notfound"
@@ -297,6 +329,7 @@ func (fx *TablesServiceRowTestSuiteConfig) testUpdate(t *testing.T) {
 
 		// The method should fail with InvalidArgument if the update_mask is invalid.
 		t.Run("invalid update mask", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			_, err := fx.Service().UpdateRow(fx.Context(), &UpdateRowRequest{
 				Row: created,
@@ -313,9 +346,11 @@ func (fx *TablesServiceRowTestSuiteConfig) testUpdate(t *testing.T) {
 }
 
 func (fx *TablesServiceRowTestSuiteConfig) testList(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().ListRows(fx.Context(), &ListRowsRequest{
 			Parent: "invalid resource name",
@@ -325,6 +360,7 @@ func (fx *TablesServiceRowTestSuiteConfig) testList(t *testing.T) {
 
 	// Method should fail with InvalidArgument is provided page token is not valid.
 	t.Run("invalid page token", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		_, err := fx.Service().ListRows(fx.Context(), &ListRowsRequest{
@@ -336,6 +372,7 @@ func (fx *TablesServiceRowTestSuiteConfig) testList(t *testing.T) {
 
 	// Method should fail with InvalidArgument is provided page size is negative.
 	t.Run("negative page size", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		_, err := fx.Service().ListRows(fx.Context(), &ListRowsRequest{
@@ -356,6 +393,7 @@ func (fx *TablesServiceRowTestSuiteConfig) testList(t *testing.T) {
 		// If parent is provided the method must only return resources
 		// under that parent.
 		t.Run("isolation", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListRows(fx.Context(), &ListRowsRequest{
 				Parent:   parent,
@@ -375,6 +413,7 @@ func (fx *TablesServiceRowTestSuiteConfig) testList(t *testing.T) {
 
 		// If there are no more resources, next_page_token should not be set.
 		t.Run("last page", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListRows(fx.Context(), &ListRowsRequest{
 				Parent:   parent,
@@ -386,6 +425,7 @@ func (fx *TablesServiceRowTestSuiteConfig) testList(t *testing.T) {
 
 		// If there are more resources, next_page_token should be set.
 		t.Run("more pages", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListRows(fx.Context(), &ListRowsRequest{
 				Parent:   parent,
@@ -397,6 +437,7 @@ func (fx *TablesServiceRowTestSuiteConfig) testList(t *testing.T) {
 
 		// Listing resource one by one should eventually return all resources.
 		t.Run("one by one", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			msgs := make([]*Row, 0, resourcesCount)
 			var nextPageToken string
@@ -427,6 +468,7 @@ func (fx *TablesServiceRowTestSuiteConfig) testList(t *testing.T) {
 
 		// When listing resource with page size zero the service should use a default value.
 		t.Run("page size zero", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListRows(fx.Context(), &ListRowsRequest{
 				Parent:   parent,
@@ -448,6 +490,7 @@ func (fx *TablesServiceRowTestSuiteConfig) testList(t *testing.T) {
 
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			const deleteCount = 5
 			for i := 0; i < deleteCount; i++ {
@@ -476,9 +519,11 @@ func (fx *TablesServiceRowTestSuiteConfig) testList(t *testing.T) {
 }
 
 func (fx *TablesServiceRowTestSuiteConfig) testDelete(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteRow(fx.Context(), &DeleteRowRequest{
 			Name: "",
@@ -488,6 +533,7 @@ func (fx *TablesServiceRowTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteRow(fx.Context(), &DeleteRowRequest{
 			Name: "invalid resource name",
@@ -497,6 +543,7 @@ func (fx *TablesServiceRowTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Resource should be deleted without errors if it exists.
 	t.Run("exists", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -508,6 +555,7 @@ func (fx *TablesServiceRowTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -519,6 +567,7 @@ func (fx *TablesServiceRowTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Method should fail with NotFound if the resource was already deleted. This also applies to soft-deletion.
 	t.Run("already deleted", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -535,6 +584,7 @@ func (fx *TablesServiceRowTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteRow(fx.Context(), &DeleteRowRequest{
 			Name: "tables/-/rows/-",
@@ -602,15 +652,28 @@ type TablesServiceTableTestSuiteConfig struct {
 	Skip []string
 }
 
+// clone creates an isolated copy of the fixture for parallel test execution.
+// This prevents race conditions on the currParent.
+func (fx *TablesServiceTableTestSuiteConfig) clone() *TablesServiceTableTestSuiteConfig {
+	clone := *fx
+	return &clone
+}
+
 func (fx *TablesServiceTableTestSuiteConfig) test(t *testing.T) {
-	t.Run("Get", fx.testGet)
-	t.Run("List", fx.testList)
+	t.Run("Get", func(t *testing.T) {
+		fx.clone().testGet(t)
+	})
+	t.Run("List", func(t *testing.T) {
+		fx.clone().testList(t)
+	})
 }
 
 func (fx *TablesServiceTableTestSuiteConfig) testGet(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetTable(fx.Context(), &GetTableRequest{
 			Name: "",
@@ -620,6 +683,7 @@ func (fx *TablesServiceTableTestSuiteConfig) testGet(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetTable(fx.Context(), &GetTableRequest{
 			Name: "invalid resource name",
@@ -629,6 +693,7 @@ func (fx *TablesServiceTableTestSuiteConfig) testGet(t *testing.T) {
 
 	// Resource should be returned without errors if it exists.
 	t.Run("exists", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		created := fx.create(t)
 		msg, err := fx.Service().GetTable(fx.Context(), &GetTableRequest{
@@ -640,6 +705,7 @@ func (fx *TablesServiceTableTestSuiteConfig) testGet(t *testing.T) {
 
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		created := fx.create(t)
 		_, err := fx.Service().GetTable(fx.Context(), &GetTableRequest{
@@ -650,6 +716,7 @@ func (fx *TablesServiceTableTestSuiteConfig) testGet(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetTable(fx.Context(), &GetTableRequest{
 			Name: "tables/-",
@@ -660,9 +727,11 @@ func (fx *TablesServiceTableTestSuiteConfig) testGet(t *testing.T) {
 }
 
 func (fx *TablesServiceTableTestSuiteConfig) testList(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument is provided page token is not valid.
 	t.Run("invalid page token", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().ListTables(fx.Context(), &ListTablesRequest{
 			PageToken: "invalid page token",
@@ -672,6 +741,7 @@ func (fx *TablesServiceTableTestSuiteConfig) testList(t *testing.T) {
 
 	// Method should fail with InvalidArgument is provided page size is negative.
 	t.Run("negative page size", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().ListTables(fx.Context(), &ListTablesRequest{
 			PageSize: -10,
@@ -721,15 +791,28 @@ type TablesServiceWorkspaceTestSuiteConfig struct {
 	Skip []string
 }
 
+// clone creates an isolated copy of the fixture for parallel test execution.
+// This prevents race conditions on the currParent.
+func (fx *TablesServiceWorkspaceTestSuiteConfig) clone() *TablesServiceWorkspaceTestSuiteConfig {
+	clone := *fx
+	return &clone
+}
+
 func (fx *TablesServiceWorkspaceTestSuiteConfig) test(t *testing.T) {
-	t.Run("Get", fx.testGet)
-	t.Run("List", fx.testList)
+	t.Run("Get", func(t *testing.T) {
+		fx.clone().testGet(t)
+	})
+	t.Run("List", func(t *testing.T) {
+		fx.clone().testList(t)
+	})
 }
 
 func (fx *TablesServiceWorkspaceTestSuiteConfig) testGet(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetWorkspace(fx.Context(), &GetWorkspaceRequest{
 			Name: "",
@@ -739,6 +822,7 @@ func (fx *TablesServiceWorkspaceTestSuiteConfig) testGet(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetWorkspace(fx.Context(), &GetWorkspaceRequest{
 			Name: "invalid resource name",
@@ -748,6 +832,7 @@ func (fx *TablesServiceWorkspaceTestSuiteConfig) testGet(t *testing.T) {
 
 	// Resource should be returned without errors if it exists.
 	t.Run("exists", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		created := fx.create(t)
 		msg, err := fx.Service().GetWorkspace(fx.Context(), &GetWorkspaceRequest{
@@ -759,6 +844,7 @@ func (fx *TablesServiceWorkspaceTestSuiteConfig) testGet(t *testing.T) {
 
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		created := fx.create(t)
 		_, err := fx.Service().GetWorkspace(fx.Context(), &GetWorkspaceRequest{
@@ -769,6 +855,7 @@ func (fx *TablesServiceWorkspaceTestSuiteConfig) testGet(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetWorkspace(fx.Context(), &GetWorkspaceRequest{
 			Name: "workspaces/-",
@@ -779,9 +866,11 @@ func (fx *TablesServiceWorkspaceTestSuiteConfig) testGet(t *testing.T) {
 }
 
 func (fx *TablesServiceWorkspaceTestSuiteConfig) testList(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument is provided page token is not valid.
 	t.Run("invalid page token", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().ListWorkspaces(fx.Context(), &ListWorkspacesRequest{
 			PageToken: "invalid page token",
@@ -791,6 +880,7 @@ func (fx *TablesServiceWorkspaceTestSuiteConfig) testList(t *testing.T) {
 
 	// Method should fail with InvalidArgument is provided page size is negative.
 	t.Run("negative page size", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().ListWorkspaces(fx.Context(), &ListWorkspacesRequest{
 			PageSize: -10,
