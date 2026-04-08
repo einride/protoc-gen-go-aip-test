@@ -107,34 +107,17 @@ type VizierServiceStudyTestSuiteConfig struct {
 	Skip []string
 }
 
-// clone creates an isolated copy of the fixture for parallel test execution.
-// This prevents race conditions on the currParent.
-func (fx *VizierServiceStudyTestSuiteConfig) clone() *VizierServiceStudyTestSuiteConfig {
-	clone := *fx
-	return &clone
-}
-
 func (fx *VizierServiceStudyTestSuiteConfig) test(t *testing.T) {
-	t.Run("Create", func(t *testing.T) {
-		fx.clone().testCreate(t)
-	})
-	t.Run("Get", func(t *testing.T) {
-		fx.clone().testGet(t)
-	})
-	t.Run("List", func(t *testing.T) {
-		fx.clone().testList(t)
-	})
-	t.Run("Delete", func(t *testing.T) {
-		fx.clone().testDelete(t)
-	})
+	t.Run("Create", fx.testCreate)
+	t.Run("Get", fx.testGet)
+	t.Run("List", fx.testList)
+	t.Run("Delete", fx.testDelete)
 }
 
 func (fx *VizierServiceStudyTestSuiteConfig) testCreate(t *testing.T) {
-	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().CreateStudy(fx.Context(), &CreateStudyRequest{
 			Parent: "",
@@ -145,7 +128,6 @@ func (fx *VizierServiceStudyTestSuiteConfig) testCreate(t *testing.T) {
 
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().CreateStudy(fx.Context(), &CreateStudyRequest{
 			Parent: "invalid resource name",
@@ -156,7 +138,6 @@ func (fx *VizierServiceStudyTestSuiteConfig) testCreate(t *testing.T) {
 
 	// Field create_time should be populated when the resource is created.
 	t.Run("create time", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		beforeCreate := time.Now()
@@ -172,7 +153,6 @@ func (fx *VizierServiceStudyTestSuiteConfig) testCreate(t *testing.T) {
 
 	// The created resource should be persisted and reachable with Get.
 	t.Run("persisted", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		msg, err := fx.Service().CreateStudy(fx.Context(), &CreateStudyRequest{
@@ -190,10 +170,8 @@ func (fx *VizierServiceStudyTestSuiteConfig) testCreate(t *testing.T) {
 	// The method should fail with InvalidArgument if the resource has any
 	// required fields and they are not provided.
 	t.Run("required fields", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		t.Run(".display_name", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -210,7 +188,6 @@ func (fx *VizierServiceStudyTestSuiteConfig) testCreate(t *testing.T) {
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
 		t.Run(".study_spec", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -227,7 +204,6 @@ func (fx *VizierServiceStudyTestSuiteConfig) testCreate(t *testing.T) {
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
 		t.Run(".study_spec.metrics", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -244,7 +220,6 @@ func (fx *VizierServiceStudyTestSuiteConfig) testCreate(t *testing.T) {
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
 		t.Run(".study_spec.parameters", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -265,11 +240,9 @@ func (fx *VizierServiceStudyTestSuiteConfig) testCreate(t *testing.T) {
 }
 
 func (fx *VizierServiceStudyTestSuiteConfig) testGet(t *testing.T) {
-	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetStudy(fx.Context(), &GetStudyRequest{
 			Name: "",
@@ -279,7 +252,6 @@ func (fx *VizierServiceStudyTestSuiteConfig) testGet(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetStudy(fx.Context(), &GetStudyRequest{
 			Name: "invalid resource name",
@@ -289,7 +261,6 @@ func (fx *VizierServiceStudyTestSuiteConfig) testGet(t *testing.T) {
 
 	// Resource should be returned without errors if it exists.
 	t.Run("exists", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -302,7 +273,6 @@ func (fx *VizierServiceStudyTestSuiteConfig) testGet(t *testing.T) {
 
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -314,7 +284,6 @@ func (fx *VizierServiceStudyTestSuiteConfig) testGet(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetStudy(fx.Context(), &GetStudyRequest{
 			Name: "projects/-/locations/-/studies/-",
@@ -325,11 +294,9 @@ func (fx *VizierServiceStudyTestSuiteConfig) testGet(t *testing.T) {
 }
 
 func (fx *VizierServiceStudyTestSuiteConfig) testList(t *testing.T) {
-	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().ListStudies(fx.Context(), &ListStudiesRequest{
 			Parent: "invalid resource name",
@@ -339,7 +306,6 @@ func (fx *VizierServiceStudyTestSuiteConfig) testList(t *testing.T) {
 
 	// Method should fail with InvalidArgument is provided page token is not valid.
 	t.Run("invalid page token", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		_, err := fx.Service().ListStudies(fx.Context(), &ListStudiesRequest{
@@ -351,7 +317,6 @@ func (fx *VizierServiceStudyTestSuiteConfig) testList(t *testing.T) {
 
 	// Method should fail with InvalidArgument is provided page size is negative.
 	t.Run("negative page size", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		_, err := fx.Service().ListStudies(fx.Context(), &ListStudiesRequest{
@@ -372,7 +337,6 @@ func (fx *VizierServiceStudyTestSuiteConfig) testList(t *testing.T) {
 		// If parent is provided the method must only return resources
 		// under that parent.
 		t.Run("isolation", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListStudies(fx.Context(), &ListStudiesRequest{
 				Parent:   parent,
@@ -392,7 +356,6 @@ func (fx *VizierServiceStudyTestSuiteConfig) testList(t *testing.T) {
 
 		// If there are no more resources, next_page_token should not be set.
 		t.Run("last page", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListStudies(fx.Context(), &ListStudiesRequest{
 				Parent:   parent,
@@ -404,7 +367,6 @@ func (fx *VizierServiceStudyTestSuiteConfig) testList(t *testing.T) {
 
 		// If there are more resources, next_page_token should be set.
 		t.Run("more pages", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListStudies(fx.Context(), &ListStudiesRequest{
 				Parent:   parent,
@@ -416,7 +378,6 @@ func (fx *VizierServiceStudyTestSuiteConfig) testList(t *testing.T) {
 
 		// Listing resource one by one should eventually return all resources.
 		t.Run("one by one", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			msgs := make([]*Study, 0, resourcesCount)
 			var nextPageToken string
@@ -447,7 +408,6 @@ func (fx *VizierServiceStudyTestSuiteConfig) testList(t *testing.T) {
 
 		// When listing resource with page size zero the service should use a default value.
 		t.Run("page size zero", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListStudies(fx.Context(), &ListStudiesRequest{
 				Parent:   parent,
@@ -469,7 +429,6 @@ func (fx *VizierServiceStudyTestSuiteConfig) testList(t *testing.T) {
 
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			const deleteCount = 5
 			for i := 0; i < deleteCount; i++ {
@@ -498,11 +457,9 @@ func (fx *VizierServiceStudyTestSuiteConfig) testList(t *testing.T) {
 }
 
 func (fx *VizierServiceStudyTestSuiteConfig) testDelete(t *testing.T) {
-	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteStudy(fx.Context(), &DeleteStudyRequest{
 			Name: "",
@@ -512,7 +469,6 @@ func (fx *VizierServiceStudyTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteStudy(fx.Context(), &DeleteStudyRequest{
 			Name: "invalid resource name",
@@ -522,7 +478,6 @@ func (fx *VizierServiceStudyTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Resource should be deleted without errors if it exists.
 	t.Run("exists", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -534,7 +489,6 @@ func (fx *VizierServiceStudyTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -546,7 +500,6 @@ func (fx *VizierServiceStudyTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Method should fail with NotFound if the resource was already deleted. This also applies to soft-deletion.
 	t.Run("already deleted", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -563,7 +516,6 @@ func (fx *VizierServiceStudyTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteStudy(fx.Context(), &DeleteStudyRequest{
 			Name: "projects/-/locations/-/studies/-",
@@ -633,34 +585,17 @@ type VizierServiceTrialTestSuiteConfig struct {
 	Skip []string
 }
 
-// clone creates an isolated copy of the fixture for parallel test execution.
-// This prevents race conditions on the currParent.
-func (fx *VizierServiceTrialTestSuiteConfig) clone() *VizierServiceTrialTestSuiteConfig {
-	clone := *fx
-	return &clone
-}
-
 func (fx *VizierServiceTrialTestSuiteConfig) test(t *testing.T) {
-	t.Run("Create", func(t *testing.T) {
-		fx.clone().testCreate(t)
-	})
-	t.Run("Get", func(t *testing.T) {
-		fx.clone().testGet(t)
-	})
-	t.Run("List", func(t *testing.T) {
-		fx.clone().testList(t)
-	})
-	t.Run("Delete", func(t *testing.T) {
-		fx.clone().testDelete(t)
-	})
+	t.Run("Create", fx.testCreate)
+	t.Run("Get", fx.testGet)
+	t.Run("List", fx.testList)
+	t.Run("Delete", fx.testDelete)
 }
 
 func (fx *VizierServiceTrialTestSuiteConfig) testCreate(t *testing.T) {
-	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().CreateTrial(fx.Context(), &CreateTrialRequest{
 			Parent: "",
@@ -671,7 +606,6 @@ func (fx *VizierServiceTrialTestSuiteConfig) testCreate(t *testing.T) {
 
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().CreateTrial(fx.Context(), &CreateTrialRequest{
 			Parent: "invalid resource name",
@@ -682,7 +616,6 @@ func (fx *VizierServiceTrialTestSuiteConfig) testCreate(t *testing.T) {
 
 	// The created resource should be persisted and reachable with Get.
 	t.Run("persisted", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		msg, err := fx.Service().CreateTrial(fx.Context(), &CreateTrialRequest{
@@ -700,11 +633,9 @@ func (fx *VizierServiceTrialTestSuiteConfig) testCreate(t *testing.T) {
 }
 
 func (fx *VizierServiceTrialTestSuiteConfig) testGet(t *testing.T) {
-	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetTrial(fx.Context(), &GetTrialRequest{
 			Name: "",
@@ -714,7 +645,6 @@ func (fx *VizierServiceTrialTestSuiteConfig) testGet(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetTrial(fx.Context(), &GetTrialRequest{
 			Name: "invalid resource name",
@@ -724,7 +654,6 @@ func (fx *VizierServiceTrialTestSuiteConfig) testGet(t *testing.T) {
 
 	// Resource should be returned without errors if it exists.
 	t.Run("exists", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -737,7 +666,6 @@ func (fx *VizierServiceTrialTestSuiteConfig) testGet(t *testing.T) {
 
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -749,7 +677,6 @@ func (fx *VizierServiceTrialTestSuiteConfig) testGet(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetTrial(fx.Context(), &GetTrialRequest{
 			Name: "projects/-/locations/-/studies/-/trials/-",
@@ -760,11 +687,9 @@ func (fx *VizierServiceTrialTestSuiteConfig) testGet(t *testing.T) {
 }
 
 func (fx *VizierServiceTrialTestSuiteConfig) testList(t *testing.T) {
-	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().ListTrials(fx.Context(), &ListTrialsRequest{
 			Parent: "invalid resource name",
@@ -774,7 +699,6 @@ func (fx *VizierServiceTrialTestSuiteConfig) testList(t *testing.T) {
 
 	// Method should fail with InvalidArgument is provided page token is not valid.
 	t.Run("invalid page token", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		_, err := fx.Service().ListTrials(fx.Context(), &ListTrialsRequest{
@@ -786,7 +710,6 @@ func (fx *VizierServiceTrialTestSuiteConfig) testList(t *testing.T) {
 
 	// Method should fail with InvalidArgument is provided page size is negative.
 	t.Run("negative page size", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		_, err := fx.Service().ListTrials(fx.Context(), &ListTrialsRequest{
@@ -807,7 +730,6 @@ func (fx *VizierServiceTrialTestSuiteConfig) testList(t *testing.T) {
 		// If parent is provided the method must only return resources
 		// under that parent.
 		t.Run("isolation", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListTrials(fx.Context(), &ListTrialsRequest{
 				Parent:   parent,
@@ -827,7 +749,6 @@ func (fx *VizierServiceTrialTestSuiteConfig) testList(t *testing.T) {
 
 		// If there are no more resources, next_page_token should not be set.
 		t.Run("last page", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListTrials(fx.Context(), &ListTrialsRequest{
 				Parent:   parent,
@@ -839,7 +760,6 @@ func (fx *VizierServiceTrialTestSuiteConfig) testList(t *testing.T) {
 
 		// If there are more resources, next_page_token should be set.
 		t.Run("more pages", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListTrials(fx.Context(), &ListTrialsRequest{
 				Parent:   parent,
@@ -851,7 +771,6 @@ func (fx *VizierServiceTrialTestSuiteConfig) testList(t *testing.T) {
 
 		// Listing resource one by one should eventually return all resources.
 		t.Run("one by one", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			msgs := make([]*Trial, 0, resourcesCount)
 			var nextPageToken string
@@ -882,7 +801,6 @@ func (fx *VizierServiceTrialTestSuiteConfig) testList(t *testing.T) {
 
 		// When listing resource with page size zero the service should use a default value.
 		t.Run("page size zero", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListTrials(fx.Context(), &ListTrialsRequest{
 				Parent:   parent,
@@ -904,7 +822,6 @@ func (fx *VizierServiceTrialTestSuiteConfig) testList(t *testing.T) {
 
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			const deleteCount = 5
 			for i := 0; i < deleteCount; i++ {
@@ -933,11 +850,9 @@ func (fx *VizierServiceTrialTestSuiteConfig) testList(t *testing.T) {
 }
 
 func (fx *VizierServiceTrialTestSuiteConfig) testDelete(t *testing.T) {
-	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteTrial(fx.Context(), &DeleteTrialRequest{
 			Name: "",
@@ -947,7 +862,6 @@ func (fx *VizierServiceTrialTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteTrial(fx.Context(), &DeleteTrialRequest{
 			Name: "invalid resource name",
@@ -957,7 +871,6 @@ func (fx *VizierServiceTrialTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Resource should be deleted without errors if it exists.
 	t.Run("exists", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -969,7 +882,6 @@ func (fx *VizierServiceTrialTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -981,7 +893,6 @@ func (fx *VizierServiceTrialTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Method should fail with NotFound if the resource was already deleted. This also applies to soft-deletion.
 	t.Run("already deleted", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -998,7 +909,6 @@ func (fx *VizierServiceTrialTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteTrial(fx.Context(), &DeleteTrialRequest{
 			Name: "projects/-/locations/-/studies/-/trials/-",

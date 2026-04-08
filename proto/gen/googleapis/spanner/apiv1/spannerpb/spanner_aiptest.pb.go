@@ -81,28 +81,15 @@ type SpannerSessionTestSuiteConfig struct {
 	Skip []string
 }
 
-// clone creates an isolated copy of the fixture for parallel test execution.
-// This prevents race conditions on the currParent.
-func (fx *SpannerSessionTestSuiteConfig) clone() *SpannerSessionTestSuiteConfig {
-	clone := *fx
-	return &clone
-}
-
 func (fx *SpannerSessionTestSuiteConfig) test(t *testing.T) {
-	t.Run("Get", func(t *testing.T) {
-		fx.clone().testGet(t)
-	})
-	t.Run("Delete", func(t *testing.T) {
-		fx.clone().testDelete(t)
-	})
+	t.Run("Get", fx.testGet)
+	t.Run("Delete", fx.testDelete)
 }
 
 func (fx *SpannerSessionTestSuiteConfig) testGet(t *testing.T) {
-	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetSession(fx.Context(), &GetSessionRequest{
 			Name: "",
@@ -112,7 +99,6 @@ func (fx *SpannerSessionTestSuiteConfig) testGet(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetSession(fx.Context(), &GetSessionRequest{
 			Name: "invalid resource name",
@@ -122,7 +108,6 @@ func (fx *SpannerSessionTestSuiteConfig) testGet(t *testing.T) {
 
 	// Resource should be returned without errors if it exists.
 	t.Run("exists", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -135,7 +120,6 @@ func (fx *SpannerSessionTestSuiteConfig) testGet(t *testing.T) {
 
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -147,7 +131,6 @@ func (fx *SpannerSessionTestSuiteConfig) testGet(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetSession(fx.Context(), &GetSessionRequest{
 			Name: "projects/-/instances/-/databases/-/sessions/-",
@@ -158,11 +141,9 @@ func (fx *SpannerSessionTestSuiteConfig) testGet(t *testing.T) {
 }
 
 func (fx *SpannerSessionTestSuiteConfig) testDelete(t *testing.T) {
-	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteSession(fx.Context(), &DeleteSessionRequest{
 			Name: "",
@@ -172,7 +153,6 @@ func (fx *SpannerSessionTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteSession(fx.Context(), &DeleteSessionRequest{
 			Name: "invalid resource name",
@@ -182,7 +162,6 @@ func (fx *SpannerSessionTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Resource should be deleted without errors if it exists.
 	t.Run("exists", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -194,7 +173,6 @@ func (fx *SpannerSessionTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -206,7 +184,6 @@ func (fx *SpannerSessionTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Method should fail with NotFound if the resource was already deleted. This also applies to soft-deletion.
 	t.Run("already deleted", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -223,7 +200,6 @@ func (fx *SpannerSessionTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteSession(fx.Context(), &DeleteSessionRequest{
 			Name: "projects/-/instances/-/databases/-/sessions/-",

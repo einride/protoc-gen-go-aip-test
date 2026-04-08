@@ -20,7 +20,6 @@ type resourceGenerator struct {
 
 func (r *resourceGenerator) Generate(f *protogen.GeneratedFile) error {
 	r.generateFixture(f)
-	r.generateClone(f)
 	r.generateTestMethod(f)
 	if err := r.generateTestCases(f); err != nil {
 		return err
@@ -106,17 +105,6 @@ func (r *resourceGenerator) generateFixture(f *protogen.GeneratedFile) {
 	f.P()
 }
 
-func (r *resourceGenerator) generateClone(f *protogen.GeneratedFile) {
-	fixtureName := resourceTestSuiteConfigName(r.service.Desc, r.resource)
-	f.P("// clone creates an isolated copy of the fixture for parallel test execution.")
-	f.P("// This prevents race conditions on the currParent.")
-	f.P("func (fx *", fixtureName, ") clone() *", fixtureName, " {")
-	f.P("clone := *fx")
-	f.P("return &clone")
-	f.P("}")
-	f.P()
-}
-
 func (r *resourceGenerator) generateTestMethod(f *protogen.GeneratedFile) {
 	testingT := f.QualifiedGoIdent(protogen.GoIdent{
 		GoName:       "T",
@@ -131,10 +119,7 @@ func (r *resourceGenerator) generateTestMethod(f *protogen.GeneratedFile) {
 	}
 	for _, s := range aiptest.Suites {
 		if s.Enabled(scope) {
-			// Use closure with clone to ensure each test suite has isolated state
-			f.P("t.Run(", strconv.Quote(s.Name), ", func(t *", testingT, ") {")
-			f.P("fx.clone().test", s.Name, "(t)")
-			f.P("})")
+			f.P("t.Run(", strconv.Quote(s.Name), ", fx.test", s.Name, ")")
 		}
 	}
 	f.P("}")
@@ -156,7 +141,6 @@ func (r *resourceGenerator) generateTestCases(f *protogen.GeneratedFile) error {
 			continue
 		}
 		f.P("func (fx *", resourceTestSuiteConfigName(r.service.Desc, r.resource), ") test", s.Name, "(t *", testingT, ") {")
-		f.P("t.Parallel()")
 		f.P(ident.FixtureMaybeSkip, "(t)")
 		for _, t := range s.Tests {
 			if !t.Enabled(scope) {
@@ -202,7 +186,6 @@ func (r *resourceGenerator) generateTestCase(f *protogen.GeneratedFile, test sui
 		f.P("// ", line)
 	}
 	f.P("t.Run(", strconv.Quote(test.Name), ", func(t *", testingT, ") {")
-	f.P("t.Parallel()")
 	f.P(ident.FixtureMaybeSkip, "(t)")
 	if err := test.Generate(f, scope); err != nil {
 		return err
