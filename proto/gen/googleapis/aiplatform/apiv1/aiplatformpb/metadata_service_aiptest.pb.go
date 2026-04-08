@@ -192,18 +192,37 @@ type MetadataServiceArtifactTestSuiteConfig struct {
 	Skip []string
 }
 
+// clone creates an isolated copy of the fixture for parallel test execution.
+// This prevents race conditions on the currParent.
+func (fx *MetadataServiceArtifactTestSuiteConfig) clone() *MetadataServiceArtifactTestSuiteConfig {
+	clone := *fx
+	return &clone
+}
+
 func (fx *MetadataServiceArtifactTestSuiteConfig) test(t *testing.T) {
-	t.Run("Create", fx.testCreate)
-	t.Run("Get", fx.testGet)
-	t.Run("Update", fx.testUpdate)
-	t.Run("List", fx.testList)
-	t.Run("Delete", fx.testDelete)
+	t.Run("Create", func(t *testing.T) {
+		fx.clone().testCreate(t)
+	})
+	t.Run("Get", func(t *testing.T) {
+		fx.clone().testGet(t)
+	})
+	t.Run("Update", func(t *testing.T) {
+		fx.clone().testUpdate(t)
+	})
+	t.Run("List", func(t *testing.T) {
+		fx.clone().testList(t)
+	})
+	t.Run("Delete", func(t *testing.T) {
+		fx.clone().testDelete(t)
+	})
 }
 
 func (fx *MetadataServiceArtifactTestSuiteConfig) testCreate(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().CreateArtifact(fx.Context(), &CreateArtifactRequest{
 			Parent:   "",
@@ -214,6 +233,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testCreate(t *testing.T) {
 
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().CreateArtifact(fx.Context(), &CreateArtifactRequest{
 			Parent:   "invalid resource name",
@@ -224,6 +244,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testCreate(t *testing.T) {
 
 	// Field create_time should be populated when the resource is created.
 	t.Run("create time", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		beforeCreate := time.Now()
@@ -239,6 +260,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testCreate(t *testing.T) {
 
 	// The created resource should be persisted and reachable with Get.
 	t.Run("persisted", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		msg, err := fx.Service().CreateArtifact(fx.Context(), &CreateArtifactRequest{
@@ -255,6 +277,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testCreate(t *testing.T) {
 
 	// Field etag should be populated when the resource is created.
 	t.Run("etag populated", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created, err := fx.Service().CreateArtifact(fx.Context(), &CreateArtifactRequest{
@@ -268,9 +291,11 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testCreate(t *testing.T) {
 }
 
 func (fx *MetadataServiceArtifactTestSuiteConfig) testGet(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetArtifact(fx.Context(), &GetArtifactRequest{
 			Name: "",
@@ -280,6 +305,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testGet(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetArtifact(fx.Context(), &GetArtifactRequest{
 			Name: "invalid resource name",
@@ -289,6 +315,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testGet(t *testing.T) {
 
 	// Resource should be returned without errors if it exists.
 	t.Run("exists", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -301,6 +328,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testGet(t *testing.T) {
 
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -312,6 +340,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testGet(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetArtifact(fx.Context(), &GetArtifactRequest{
 			Name: "projects/-/locations/-/metadataStores/-/artifacts/-",
@@ -322,9 +351,11 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testGet(t *testing.T) {
 }
 
 func (fx *MetadataServiceArtifactTestSuiteConfig) testUpdate(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
@@ -337,6 +368,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testUpdate(t *testing.T) {
 
 	// Method should fail with InvalidArgument if provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
@@ -349,6 +381,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testUpdate(t *testing.T) {
 
 	// Field update_time should be updated when the resource is updated.
 	t.Run("update time", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -361,6 +394,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testUpdate(t *testing.T) {
 
 	// The updated resource should be persisted and reachable with Get.
 	t.Run("persisted", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -377,6 +411,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testUpdate(t *testing.T) {
 
 	// Method should fail with Aborted if the supplied etag doesnt match the current etag value.
 	t.Run("etag mismatch", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -391,6 +426,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testUpdate(t *testing.T) {
 
 	// Field etag should have a new value when the resource is successfully updated.
 	t.Run("etag updated", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -409,6 +445,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testUpdate(t *testing.T) {
 		created := fx.create(t, parent)
 		// Method should fail with NotFound if the resource does not exist.
 		t.Run("not found", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			msg := fx.Update(parent)
 			msg.Name = created.Name + "notfound"
@@ -420,6 +457,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testUpdate(t *testing.T) {
 
 		// The method should fail with InvalidArgument if the update_mask is invalid.
 		t.Run("invalid update mask", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			_, err := fx.Service().UpdateArtifact(fx.Context(), &UpdateArtifactRequest{
 				Artifact: created,
@@ -436,9 +474,11 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testUpdate(t *testing.T) {
 }
 
 func (fx *MetadataServiceArtifactTestSuiteConfig) testList(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().ListArtifacts(fx.Context(), &ListArtifactsRequest{
 			Parent: "invalid resource name",
@@ -448,6 +488,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testList(t *testing.T) {
 
 	// Method should fail with InvalidArgument is provided page token is not valid.
 	t.Run("invalid page token", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		_, err := fx.Service().ListArtifacts(fx.Context(), &ListArtifactsRequest{
@@ -459,6 +500,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testList(t *testing.T) {
 
 	// Method should fail with InvalidArgument is provided page size is negative.
 	t.Run("negative page size", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		_, err := fx.Service().ListArtifacts(fx.Context(), &ListArtifactsRequest{
@@ -479,6 +521,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testList(t *testing.T) {
 		// If parent is provided the method must only return resources
 		// under that parent.
 		t.Run("isolation", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListArtifacts(fx.Context(), &ListArtifactsRequest{
 				Parent:   parent,
@@ -498,6 +541,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testList(t *testing.T) {
 
 		// If there are no more resources, next_page_token should not be set.
 		t.Run("last page", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListArtifacts(fx.Context(), &ListArtifactsRequest{
 				Parent:   parent,
@@ -509,6 +553,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testList(t *testing.T) {
 
 		// If there are more resources, next_page_token should be set.
 		t.Run("more pages", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListArtifacts(fx.Context(), &ListArtifactsRequest{
 				Parent:   parent,
@@ -520,6 +565,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testList(t *testing.T) {
 
 		// Listing resource one by one should eventually return all resources.
 		t.Run("one by one", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			msgs := make([]*Artifact, 0, resourcesCount)
 			var nextPageToken string
@@ -550,6 +596,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testList(t *testing.T) {
 
 		// When listing resource with page size zero the service should use a default value.
 		t.Run("page size zero", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListArtifacts(fx.Context(), &ListArtifactsRequest{
 				Parent:   parent,
@@ -571,6 +618,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testList(t *testing.T) {
 
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			const deleteCount = 5
 			for i := 0; i < deleteCount; i++ {
@@ -599,9 +647,11 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testList(t *testing.T) {
 }
 
 func (fx *MetadataServiceArtifactTestSuiteConfig) testDelete(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteArtifact(fx.Context(), &DeleteArtifactRequest{
 			Name: "",
@@ -611,6 +661,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteArtifact(fx.Context(), &DeleteArtifactRequest{
 			Name: "invalid resource name",
@@ -620,6 +671,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Resource should be deleted without errors if it exists.
 	t.Run("exists", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -631,6 +683,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -642,6 +695,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Method should fail with NotFound if the resource was already deleted. This also applies to soft-deletion.
 	t.Run("already deleted", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -658,6 +712,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteArtifact(fx.Context(), &DeleteArtifactRequest{
 			Name: "projects/-/locations/-/metadataStores/-/artifacts/-",
@@ -667,6 +722,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Method should fail with Aborted if the supplied etag doesnt match the current etag value.
 	t.Run("etag mismatch", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -742,18 +798,37 @@ type MetadataServiceContextTestSuiteConfig struct {
 	Skip []string
 }
 
+// clone creates an isolated copy of the fixture for parallel test execution.
+// This prevents race conditions on the currParent.
+func (fx *MetadataServiceContextTestSuiteConfig) clone() *MetadataServiceContextTestSuiteConfig {
+	clone := *fx
+	return &clone
+}
+
 func (fx *MetadataServiceContextTestSuiteConfig) test(t *testing.T) {
-	t.Run("Create", fx.testCreate)
-	t.Run("Get", fx.testGet)
-	t.Run("Update", fx.testUpdate)
-	t.Run("List", fx.testList)
-	t.Run("Delete", fx.testDelete)
+	t.Run("Create", func(t *testing.T) {
+		fx.clone().testCreate(t)
+	})
+	t.Run("Get", func(t *testing.T) {
+		fx.clone().testGet(t)
+	})
+	t.Run("Update", func(t *testing.T) {
+		fx.clone().testUpdate(t)
+	})
+	t.Run("List", func(t *testing.T) {
+		fx.clone().testList(t)
+	})
+	t.Run("Delete", func(t *testing.T) {
+		fx.clone().testDelete(t)
+	})
 }
 
 func (fx *MetadataServiceContextTestSuiteConfig) testCreate(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().CreateContext(fx.Context(), &CreateContextRequest{
 			Parent:  "",
@@ -764,6 +839,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testCreate(t *testing.T) {
 
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().CreateContext(fx.Context(), &CreateContextRequest{
 			Parent:  "invalid resource name",
@@ -774,6 +850,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testCreate(t *testing.T) {
 
 	// Field create_time should be populated when the resource is created.
 	t.Run("create time", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		beforeCreate := time.Now()
@@ -789,6 +866,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testCreate(t *testing.T) {
 
 	// The created resource should be persisted and reachable with Get.
 	t.Run("persisted", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		msg, err := fx.Service().CreateContext(fx.Context(), &CreateContextRequest{
@@ -805,6 +883,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testCreate(t *testing.T) {
 
 	// Field etag should be populated when the resource is created.
 	t.Run("etag populated", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created, err := fx.Service().CreateContext(fx.Context(), &CreateContextRequest{
@@ -818,9 +897,11 @@ func (fx *MetadataServiceContextTestSuiteConfig) testCreate(t *testing.T) {
 }
 
 func (fx *MetadataServiceContextTestSuiteConfig) testGet(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetContext(fx.Context(), &GetContextRequest{
 			Name: "",
@@ -830,6 +911,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testGet(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetContext(fx.Context(), &GetContextRequest{
 			Name: "invalid resource name",
@@ -839,6 +921,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testGet(t *testing.T) {
 
 	// Resource should be returned without errors if it exists.
 	t.Run("exists", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -851,6 +934,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testGet(t *testing.T) {
 
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -862,6 +946,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testGet(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetContext(fx.Context(), &GetContextRequest{
 			Name: "projects/-/locations/-/metadataStores/-/contexts/-",
@@ -872,9 +957,11 @@ func (fx *MetadataServiceContextTestSuiteConfig) testGet(t *testing.T) {
 }
 
 func (fx *MetadataServiceContextTestSuiteConfig) testUpdate(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
@@ -887,6 +974,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testUpdate(t *testing.T) {
 
 	// Method should fail with InvalidArgument if provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
@@ -899,6 +987,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testUpdate(t *testing.T) {
 
 	// Field update_time should be updated when the resource is updated.
 	t.Run("update time", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -911,6 +1000,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testUpdate(t *testing.T) {
 
 	// The updated resource should be persisted and reachable with Get.
 	t.Run("persisted", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -927,6 +1017,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testUpdate(t *testing.T) {
 
 	// Method should fail with Aborted if the supplied etag doesnt match the current etag value.
 	t.Run("etag mismatch", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -941,6 +1032,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testUpdate(t *testing.T) {
 
 	// Field etag should have a new value when the resource is successfully updated.
 	t.Run("etag updated", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -959,6 +1051,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testUpdate(t *testing.T) {
 		created := fx.create(t, parent)
 		// Method should fail with NotFound if the resource does not exist.
 		t.Run("not found", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			msg := fx.Update(parent)
 			msg.Name = created.Name + "notfound"
@@ -970,6 +1063,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testUpdate(t *testing.T) {
 
 		// The method should fail with InvalidArgument if the update_mask is invalid.
 		t.Run("invalid update mask", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			_, err := fx.Service().UpdateContext(fx.Context(), &UpdateContextRequest{
 				Context: created,
@@ -986,9 +1080,11 @@ func (fx *MetadataServiceContextTestSuiteConfig) testUpdate(t *testing.T) {
 }
 
 func (fx *MetadataServiceContextTestSuiteConfig) testList(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().ListContexts(fx.Context(), &ListContextsRequest{
 			Parent: "invalid resource name",
@@ -998,6 +1094,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testList(t *testing.T) {
 
 	// Method should fail with InvalidArgument is provided page token is not valid.
 	t.Run("invalid page token", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		_, err := fx.Service().ListContexts(fx.Context(), &ListContextsRequest{
@@ -1009,6 +1106,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testList(t *testing.T) {
 
 	// Method should fail with InvalidArgument is provided page size is negative.
 	t.Run("negative page size", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		_, err := fx.Service().ListContexts(fx.Context(), &ListContextsRequest{
@@ -1029,6 +1127,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testList(t *testing.T) {
 		// If parent is provided the method must only return resources
 		// under that parent.
 		t.Run("isolation", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListContexts(fx.Context(), &ListContextsRequest{
 				Parent:   parent,
@@ -1048,6 +1147,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testList(t *testing.T) {
 
 		// If there are no more resources, next_page_token should not be set.
 		t.Run("last page", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListContexts(fx.Context(), &ListContextsRequest{
 				Parent:   parent,
@@ -1059,6 +1159,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testList(t *testing.T) {
 
 		// If there are more resources, next_page_token should be set.
 		t.Run("more pages", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListContexts(fx.Context(), &ListContextsRequest{
 				Parent:   parent,
@@ -1070,6 +1171,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testList(t *testing.T) {
 
 		// Listing resource one by one should eventually return all resources.
 		t.Run("one by one", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			msgs := make([]*Context, 0, resourcesCount)
 			var nextPageToken string
@@ -1100,6 +1202,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testList(t *testing.T) {
 
 		// When listing resource with page size zero the service should use a default value.
 		t.Run("page size zero", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListContexts(fx.Context(), &ListContextsRequest{
 				Parent:   parent,
@@ -1121,6 +1224,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testList(t *testing.T) {
 
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			const deleteCount = 5
 			for i := 0; i < deleteCount; i++ {
@@ -1149,9 +1253,11 @@ func (fx *MetadataServiceContextTestSuiteConfig) testList(t *testing.T) {
 }
 
 func (fx *MetadataServiceContextTestSuiteConfig) testDelete(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteContext(fx.Context(), &DeleteContextRequest{
 			Name: "",
@@ -1161,6 +1267,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteContext(fx.Context(), &DeleteContextRequest{
 			Name: "invalid resource name",
@@ -1170,6 +1277,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Resource should be deleted without errors if it exists.
 	t.Run("exists", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1181,6 +1289,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1192,6 +1301,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Method should fail with NotFound if the resource was already deleted. This also applies to soft-deletion.
 	t.Run("already deleted", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1208,6 +1318,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteContext(fx.Context(), &DeleteContextRequest{
 			Name: "projects/-/locations/-/metadataStores/-/contexts/-",
@@ -1217,6 +1328,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Method should fail with Aborted if the supplied etag doesnt match the current etag value.
 	t.Run("etag mismatch", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1292,18 +1404,37 @@ type MetadataServiceExecutionTestSuiteConfig struct {
 	Skip []string
 }
 
+// clone creates an isolated copy of the fixture for parallel test execution.
+// This prevents race conditions on the currParent.
+func (fx *MetadataServiceExecutionTestSuiteConfig) clone() *MetadataServiceExecutionTestSuiteConfig {
+	clone := *fx
+	return &clone
+}
+
 func (fx *MetadataServiceExecutionTestSuiteConfig) test(t *testing.T) {
-	t.Run("Create", fx.testCreate)
-	t.Run("Get", fx.testGet)
-	t.Run("Update", fx.testUpdate)
-	t.Run("List", fx.testList)
-	t.Run("Delete", fx.testDelete)
+	t.Run("Create", func(t *testing.T) {
+		fx.clone().testCreate(t)
+	})
+	t.Run("Get", func(t *testing.T) {
+		fx.clone().testGet(t)
+	})
+	t.Run("Update", func(t *testing.T) {
+		fx.clone().testUpdate(t)
+	})
+	t.Run("List", func(t *testing.T) {
+		fx.clone().testList(t)
+	})
+	t.Run("Delete", func(t *testing.T) {
+		fx.clone().testDelete(t)
+	})
 }
 
 func (fx *MetadataServiceExecutionTestSuiteConfig) testCreate(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().CreateExecution(fx.Context(), &CreateExecutionRequest{
 			Parent:    "",
@@ -1314,6 +1445,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testCreate(t *testing.T) {
 
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().CreateExecution(fx.Context(), &CreateExecutionRequest{
 			Parent:    "invalid resource name",
@@ -1324,6 +1456,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testCreate(t *testing.T) {
 
 	// Field create_time should be populated when the resource is created.
 	t.Run("create time", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		beforeCreate := time.Now()
@@ -1339,6 +1472,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testCreate(t *testing.T) {
 
 	// The created resource should be persisted and reachable with Get.
 	t.Run("persisted", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		msg, err := fx.Service().CreateExecution(fx.Context(), &CreateExecutionRequest{
@@ -1355,6 +1489,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testCreate(t *testing.T) {
 
 	// Field etag should be populated when the resource is created.
 	t.Run("etag populated", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created, err := fx.Service().CreateExecution(fx.Context(), &CreateExecutionRequest{
@@ -1368,9 +1503,11 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testCreate(t *testing.T) {
 }
 
 func (fx *MetadataServiceExecutionTestSuiteConfig) testGet(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetExecution(fx.Context(), &GetExecutionRequest{
 			Name: "",
@@ -1380,6 +1517,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testGet(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetExecution(fx.Context(), &GetExecutionRequest{
 			Name: "invalid resource name",
@@ -1389,6 +1527,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testGet(t *testing.T) {
 
 	// Resource should be returned without errors if it exists.
 	t.Run("exists", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1401,6 +1540,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testGet(t *testing.T) {
 
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1412,6 +1552,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testGet(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetExecution(fx.Context(), &GetExecutionRequest{
 			Name: "projects/-/locations/-/metadataStores/-/executions/-",
@@ -1422,9 +1563,11 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testGet(t *testing.T) {
 }
 
 func (fx *MetadataServiceExecutionTestSuiteConfig) testUpdate(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
@@ -1437,6 +1580,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testUpdate(t *testing.T) {
 
 	// Method should fail with InvalidArgument if provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
@@ -1449,6 +1593,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testUpdate(t *testing.T) {
 
 	// Field update_time should be updated when the resource is updated.
 	t.Run("update time", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1461,6 +1606,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testUpdate(t *testing.T) {
 
 	// The updated resource should be persisted and reachable with Get.
 	t.Run("persisted", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1477,6 +1623,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testUpdate(t *testing.T) {
 
 	// Method should fail with Aborted if the supplied etag doesnt match the current etag value.
 	t.Run("etag mismatch", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1491,6 +1638,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testUpdate(t *testing.T) {
 
 	// Field etag should have a new value when the resource is successfully updated.
 	t.Run("etag updated", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1509,6 +1657,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testUpdate(t *testing.T) {
 		created := fx.create(t, parent)
 		// Method should fail with NotFound if the resource does not exist.
 		t.Run("not found", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			msg := fx.Update(parent)
 			msg.Name = created.Name + "notfound"
@@ -1520,6 +1669,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testUpdate(t *testing.T) {
 
 		// The method should fail with InvalidArgument if the update_mask is invalid.
 		t.Run("invalid update mask", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			_, err := fx.Service().UpdateExecution(fx.Context(), &UpdateExecutionRequest{
 				Execution: created,
@@ -1536,9 +1686,11 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testUpdate(t *testing.T) {
 }
 
 func (fx *MetadataServiceExecutionTestSuiteConfig) testList(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().ListExecutions(fx.Context(), &ListExecutionsRequest{
 			Parent: "invalid resource name",
@@ -1548,6 +1700,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testList(t *testing.T) {
 
 	// Method should fail with InvalidArgument is provided page token is not valid.
 	t.Run("invalid page token", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		_, err := fx.Service().ListExecutions(fx.Context(), &ListExecutionsRequest{
@@ -1559,6 +1712,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testList(t *testing.T) {
 
 	// Method should fail with InvalidArgument is provided page size is negative.
 	t.Run("negative page size", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		_, err := fx.Service().ListExecutions(fx.Context(), &ListExecutionsRequest{
@@ -1579,6 +1733,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testList(t *testing.T) {
 		// If parent is provided the method must only return resources
 		// under that parent.
 		t.Run("isolation", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListExecutions(fx.Context(), &ListExecutionsRequest{
 				Parent:   parent,
@@ -1598,6 +1753,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testList(t *testing.T) {
 
 		// If there are no more resources, next_page_token should not be set.
 		t.Run("last page", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListExecutions(fx.Context(), &ListExecutionsRequest{
 				Parent:   parent,
@@ -1609,6 +1765,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testList(t *testing.T) {
 
 		// If there are more resources, next_page_token should be set.
 		t.Run("more pages", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListExecutions(fx.Context(), &ListExecutionsRequest{
 				Parent:   parent,
@@ -1620,6 +1777,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testList(t *testing.T) {
 
 		// Listing resource one by one should eventually return all resources.
 		t.Run("one by one", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			msgs := make([]*Execution, 0, resourcesCount)
 			var nextPageToken string
@@ -1650,6 +1808,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testList(t *testing.T) {
 
 		// When listing resource with page size zero the service should use a default value.
 		t.Run("page size zero", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListExecutions(fx.Context(), &ListExecutionsRequest{
 				Parent:   parent,
@@ -1671,6 +1830,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testList(t *testing.T) {
 
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			const deleteCount = 5
 			for i := 0; i < deleteCount; i++ {
@@ -1699,9 +1859,11 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testList(t *testing.T) {
 }
 
 func (fx *MetadataServiceExecutionTestSuiteConfig) testDelete(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteExecution(fx.Context(), &DeleteExecutionRequest{
 			Name: "",
@@ -1711,6 +1873,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteExecution(fx.Context(), &DeleteExecutionRequest{
 			Name: "invalid resource name",
@@ -1720,6 +1883,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Resource should be deleted without errors if it exists.
 	t.Run("exists", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1731,6 +1895,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1742,6 +1907,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Method should fail with NotFound if the resource was already deleted. This also applies to soft-deletion.
 	t.Run("already deleted", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1758,6 +1924,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteExecution(fx.Context(), &DeleteExecutionRequest{
 			Name: "projects/-/locations/-/metadataStores/-/executions/-",
@@ -1767,6 +1934,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Method should fail with Aborted if the supplied etag doesnt match the current etag value.
 	t.Run("etag mismatch", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1839,16 +2007,31 @@ type MetadataServiceMetadataSchemaTestSuiteConfig struct {
 	Skip []string
 }
 
+// clone creates an isolated copy of the fixture for parallel test execution.
+// This prevents race conditions on the currParent.
+func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) clone() *MetadataServiceMetadataSchemaTestSuiteConfig {
+	clone := *fx
+	return &clone
+}
+
 func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) test(t *testing.T) {
-	t.Run("Create", fx.testCreate)
-	t.Run("Get", fx.testGet)
-	t.Run("List", fx.testList)
+	t.Run("Create", func(t *testing.T) {
+		fx.clone().testCreate(t)
+	})
+	t.Run("Get", func(t *testing.T) {
+		fx.clone().testGet(t)
+	})
+	t.Run("List", func(t *testing.T) {
+		fx.clone().testList(t)
+	})
 }
 
 func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) testCreate(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().CreateMetadataSchema(fx.Context(), &CreateMetadataSchemaRequest{
 			Parent:         "",
@@ -1859,6 +2042,7 @@ func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) testCreate(t *testing.T)
 
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().CreateMetadataSchema(fx.Context(), &CreateMetadataSchemaRequest{
 			Parent:         "invalid resource name",
@@ -1869,6 +2053,7 @@ func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) testCreate(t *testing.T)
 
 	// Field create_time should be populated when the resource is created.
 	t.Run("create time", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		beforeCreate := time.Now()
@@ -1884,6 +2069,7 @@ func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) testCreate(t *testing.T)
 
 	// The created resource should be persisted and reachable with Get.
 	t.Run("persisted", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		msg, err := fx.Service().CreateMetadataSchema(fx.Context(), &CreateMetadataSchemaRequest{
@@ -1901,8 +2087,10 @@ func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) testCreate(t *testing.T)
 	// The method should fail with InvalidArgument if the resource has any
 	// required fields and they are not provided.
 	t.Run("required fields", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		t.Run(".schema", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -1923,9 +2111,11 @@ func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) testCreate(t *testing.T)
 }
 
 func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) testGet(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetMetadataSchema(fx.Context(), &GetMetadataSchemaRequest{
 			Name: "",
@@ -1935,6 +2125,7 @@ func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) testGet(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetMetadataSchema(fx.Context(), &GetMetadataSchemaRequest{
 			Name: "invalid resource name",
@@ -1944,6 +2135,7 @@ func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) testGet(t *testing.T) {
 
 	// Resource should be returned without errors if it exists.
 	t.Run("exists", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1956,6 +2148,7 @@ func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) testGet(t *testing.T) {
 
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1967,6 +2160,7 @@ func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) testGet(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetMetadataSchema(fx.Context(), &GetMetadataSchemaRequest{
 			Name: "projects/-/locations/-/metadataStores/-/metadataSchemas/-",
@@ -1977,9 +2171,11 @@ func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) testGet(t *testing.T) {
 }
 
 func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) testList(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().ListMetadataSchemas(fx.Context(), &ListMetadataSchemasRequest{
 			Parent: "invalid resource name",
@@ -1989,6 +2185,7 @@ func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) testList(t *testing.T) {
 
 	// Method should fail with InvalidArgument is provided page token is not valid.
 	t.Run("invalid page token", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		_, err := fx.Service().ListMetadataSchemas(fx.Context(), &ListMetadataSchemasRequest{
@@ -2000,6 +2197,7 @@ func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) testList(t *testing.T) {
 
 	// Method should fail with InvalidArgument is provided page size is negative.
 	t.Run("negative page size", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		_, err := fx.Service().ListMetadataSchemas(fx.Context(), &ListMetadataSchemasRequest{
@@ -2020,6 +2218,7 @@ func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) testList(t *testing.T) {
 		// If parent is provided the method must only return resources
 		// under that parent.
 		t.Run("isolation", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListMetadataSchemas(fx.Context(), &ListMetadataSchemasRequest{
 				Parent:   parent,
@@ -2039,6 +2238,7 @@ func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) testList(t *testing.T) {
 
 		// If there are no more resources, next_page_token should not be set.
 		t.Run("last page", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListMetadataSchemas(fx.Context(), &ListMetadataSchemasRequest{
 				Parent:   parent,
@@ -2050,6 +2250,7 @@ func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) testList(t *testing.T) {
 
 		// If there are more resources, next_page_token should be set.
 		t.Run("more pages", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListMetadataSchemas(fx.Context(), &ListMetadataSchemasRequest{
 				Parent:   parent,
@@ -2061,6 +2262,7 @@ func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) testList(t *testing.T) {
 
 		// Listing resource one by one should eventually return all resources.
 		t.Run("one by one", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			msgs := make([]*MetadataSchema, 0, resourcesCount)
 			var nextPageToken string
@@ -2091,6 +2293,7 @@ func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) testList(t *testing.T) {
 
 		// When listing resource with page size zero the service should use a default value.
 		t.Run("page size zero", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListMetadataSchemas(fx.Context(), &ListMetadataSchemasRequest{
 				Parent:   parent,
@@ -2164,17 +2367,34 @@ type MetadataServiceMetadataStoreTestSuiteConfig struct {
 	Skip []string
 }
 
+// clone creates an isolated copy of the fixture for parallel test execution.
+// This prevents race conditions on the currParent.
+func (fx *MetadataServiceMetadataStoreTestSuiteConfig) clone() *MetadataServiceMetadataStoreTestSuiteConfig {
+	clone := *fx
+	return &clone
+}
+
 func (fx *MetadataServiceMetadataStoreTestSuiteConfig) test(t *testing.T) {
-	t.Run("Create", fx.testCreate)
-	t.Run("Get", fx.testGet)
-	t.Run("List", fx.testList)
-	t.Run("Delete", fx.testDelete)
+	t.Run("Create", func(t *testing.T) {
+		fx.clone().testCreate(t)
+	})
+	t.Run("Get", func(t *testing.T) {
+		fx.clone().testGet(t)
+	})
+	t.Run("List", func(t *testing.T) {
+		fx.clone().testList(t)
+	})
+	t.Run("Delete", func(t *testing.T) {
+		fx.clone().testDelete(t)
+	})
 }
 
 func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testCreate(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().CreateMetadataStore(fx.Context(), &CreateMetadataStoreRequest{
 			Parent:        "",
@@ -2185,6 +2405,7 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testCreate(t *testing.T) 
 
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().CreateMetadataStore(fx.Context(), &CreateMetadataStoreRequest{
 			Parent:        "invalid resource name",
@@ -2196,8 +2417,10 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testCreate(t *testing.T) 
 	// The method should fail with InvalidArgument if the resource has any
 	// required fields and they are not provided.
 	t.Run("required fields", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		t.Run(".encryption_spec.kms_key_name", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -2218,9 +2441,11 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testCreate(t *testing.T) 
 }
 
 func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testGet(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetMetadataStore(fx.Context(), &GetMetadataStoreRequest{
 			Name: "",
@@ -2230,6 +2455,7 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testGet(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetMetadataStore(fx.Context(), &GetMetadataStoreRequest{
 			Name: "invalid resource name",
@@ -2239,6 +2465,7 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testGet(t *testing.T) {
 
 	// Resource should be returned without errors if it exists.
 	t.Run("exists", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -2251,6 +2478,7 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testGet(t *testing.T) {
 
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -2262,6 +2490,7 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testGet(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetMetadataStore(fx.Context(), &GetMetadataStoreRequest{
 			Name: "projects/-/locations/-/metadataStores/-",
@@ -2272,9 +2501,11 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testGet(t *testing.T) {
 }
 
 func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testList(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().ListMetadataStores(fx.Context(), &ListMetadataStoresRequest{
 			Parent: "invalid resource name",
@@ -2284,6 +2515,7 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testList(t *testing.T) {
 
 	// Method should fail with InvalidArgument is provided page token is not valid.
 	t.Run("invalid page token", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		_, err := fx.Service().ListMetadataStores(fx.Context(), &ListMetadataStoresRequest{
@@ -2295,6 +2527,7 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testList(t *testing.T) {
 
 	// Method should fail with InvalidArgument is provided page size is negative.
 	t.Run("negative page size", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		_, err := fx.Service().ListMetadataStores(fx.Context(), &ListMetadataStoresRequest{
@@ -2315,6 +2548,7 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testList(t *testing.T) {
 		// If parent is provided the method must only return resources
 		// under that parent.
 		t.Run("isolation", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListMetadataStores(fx.Context(), &ListMetadataStoresRequest{
 				Parent:   parent,
@@ -2334,6 +2568,7 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testList(t *testing.T) {
 
 		// If there are no more resources, next_page_token should not be set.
 		t.Run("last page", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListMetadataStores(fx.Context(), &ListMetadataStoresRequest{
 				Parent:   parent,
@@ -2345,6 +2580,7 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testList(t *testing.T) {
 
 		// If there are more resources, next_page_token should be set.
 		t.Run("more pages", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListMetadataStores(fx.Context(), &ListMetadataStoresRequest{
 				Parent:   parent,
@@ -2356,6 +2592,7 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testList(t *testing.T) {
 
 		// Listing resource one by one should eventually return all resources.
 		t.Run("one by one", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			msgs := make([]*MetadataStore, 0, resourcesCount)
 			var nextPageToken string
@@ -2386,6 +2623,7 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testList(t *testing.T) {
 
 		// When listing resource with page size zero the service should use a default value.
 		t.Run("page size zero", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListMetadataStores(fx.Context(), &ListMetadataStoresRequest{
 				Parent:   parent,
@@ -2407,6 +2645,7 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testList(t *testing.T) {
 
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			const deleteCount = 5
 			for i := 0; i < deleteCount; i++ {
@@ -2435,9 +2674,11 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testList(t *testing.T) {
 }
 
 func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testDelete(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteMetadataStore(fx.Context(), &DeleteMetadataStoreRequest{
 			Name: "",
@@ -2447,6 +2688,7 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testDelete(t *testing.T) 
 
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteMetadataStore(fx.Context(), &DeleteMetadataStoreRequest{
 			Name: "invalid resource name",
@@ -2456,6 +2698,7 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testDelete(t *testing.T) 
 
 	// Resource should be deleted without errors if it exists.
 	t.Run("exists", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -2467,6 +2710,7 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testDelete(t *testing.T) 
 
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -2478,6 +2722,7 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testDelete(t *testing.T) 
 
 	// Method should fail with NotFound if the resource was already deleted. This also applies to soft-deletion.
 	t.Run("already deleted", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -2494,6 +2739,7 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testDelete(t *testing.T) 
 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteMetadataStore(fx.Context(), &DeleteMetadataStoreRequest{
 			Name: "projects/-/locations/-/metadataStores/-",

@@ -84,18 +84,37 @@ type IndexEndpointServiceIndexEndpointTestSuiteConfig struct {
 	Skip []string
 }
 
+// clone creates an isolated copy of the fixture for parallel test execution.
+// This prevents race conditions on the currParent.
+func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) clone() *IndexEndpointServiceIndexEndpointTestSuiteConfig {
+	clone := *fx
+	return &clone
+}
+
 func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) test(t *testing.T) {
-	t.Run("Create", fx.testCreate)
-	t.Run("Get", fx.testGet)
-	t.Run("Update", fx.testUpdate)
-	t.Run("List", fx.testList)
-	t.Run("Delete", fx.testDelete)
+	t.Run("Create", func(t *testing.T) {
+		fx.clone().testCreate(t)
+	})
+	t.Run("Get", func(t *testing.T) {
+		fx.clone().testGet(t)
+	})
+	t.Run("Update", func(t *testing.T) {
+		fx.clone().testUpdate(t)
+	})
+	t.Run("List", func(t *testing.T) {
+		fx.clone().testList(t)
+	})
+	t.Run("Delete", func(t *testing.T) {
+		fx.clone().testDelete(t)
+	})
 }
 
 func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) testCreate(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().CreateIndexEndpoint(fx.Context(), &CreateIndexEndpointRequest{
 			Parent:        "",
@@ -106,6 +125,7 @@ func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) testCreate(t *testin
 
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().CreateIndexEndpoint(fx.Context(), &CreateIndexEndpointRequest{
 			Parent:        "invalid resource name",
@@ -117,8 +137,10 @@ func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) testCreate(t *testin
 	// The method should fail with InvalidArgument if the resource has any
 	// required fields and they are not provided.
 	t.Run("required fields", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		t.Run(".display_name", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -135,6 +157,7 @@ func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) testCreate(t *testin
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
 		t.Run(".private_service_connect_config.enable_private_service_connect", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -151,6 +174,7 @@ func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) testCreate(t *testin
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
 		t.Run(".encryption_spec.kms_key_name", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -171,9 +195,11 @@ func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) testCreate(t *testin
 }
 
 func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) testGet(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetIndexEndpoint(fx.Context(), &GetIndexEndpointRequest{
 			Name: "",
@@ -183,6 +209,7 @@ func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) testGet(t *testing.T
 
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetIndexEndpoint(fx.Context(), &GetIndexEndpointRequest{
 			Name: "invalid resource name",
@@ -192,6 +219,7 @@ func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) testGet(t *testing.T
 
 	// Resource should be returned without errors if it exists.
 	t.Run("exists", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -204,6 +232,7 @@ func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) testGet(t *testing.T
 
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -215,6 +244,7 @@ func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) testGet(t *testing.T
 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetIndexEndpoint(fx.Context(), &GetIndexEndpointRequest{
 			Name: "projects/-/locations/-/indexEndpoints/-",
@@ -225,9 +255,11 @@ func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) testGet(t *testing.T
 }
 
 func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) testUpdate(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
@@ -240,6 +272,7 @@ func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) testUpdate(t *testin
 
 	// Method should fail with InvalidArgument if provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
@@ -252,6 +285,7 @@ func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) testUpdate(t *testin
 
 	// The updated resource should be persisted and reachable with Get.
 	t.Run("persisted", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -268,6 +302,7 @@ func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) testUpdate(t *testin
 
 	// The field create_time should be preserved when a '*'-update mask is used.
 	t.Run("preserve create_time", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -286,6 +321,7 @@ func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) testUpdate(t *testin
 
 	// Method should fail with Aborted if the supplied etag doesnt match the current etag value.
 	t.Run("etag mismatch", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -300,6 +336,7 @@ func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) testUpdate(t *testin
 
 	// Field etag should have a new value when the resource is successfully updated.
 	t.Run("etag updated", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -318,6 +355,7 @@ func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) testUpdate(t *testin
 		created := fx.create(t, parent)
 		// Method should fail with NotFound if the resource does not exist.
 		t.Run("not found", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			msg := fx.Update(parent)
 			msg.Name = created.Name + "notfound"
@@ -329,6 +367,7 @@ func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) testUpdate(t *testin
 
 		// The method should fail with InvalidArgument if the update_mask is invalid.
 		t.Run("invalid update mask", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			_, err := fx.Service().UpdateIndexEndpoint(fx.Context(), &UpdateIndexEndpointRequest{
 				IndexEndpoint: created,
@@ -344,8 +383,10 @@ func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) testUpdate(t *testin
 		// Method should fail with InvalidArgument if any required field is missing
 		// when called with '*' update_mask.
 		t.Run("required fields", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			t.Run(".display_name", func(t *testing.T) {
+				t.Parallel()
 				fx.maybeSkip(t)
 				msg := proto.Clone(created).(*IndexEndpoint)
 				container := msg
@@ -365,6 +406,7 @@ func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) testUpdate(t *testin
 				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 			})
 			t.Run(".private_service_connect_config.enable_private_service_connect", func(t *testing.T) {
+				t.Parallel()
 				fx.maybeSkip(t)
 				msg := proto.Clone(created).(*IndexEndpoint)
 				container := msg.GetPrivateServiceConnectConfig()
@@ -384,6 +426,7 @@ func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) testUpdate(t *testin
 				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 			})
 			t.Run(".encryption_spec.kms_key_name", func(t *testing.T) {
+				t.Parallel()
 				fx.maybeSkip(t)
 				msg := proto.Clone(created).(*IndexEndpoint)
 				container := msg.GetEncryptionSpec()
@@ -408,9 +451,11 @@ func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) testUpdate(t *testin
 }
 
 func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) testList(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().ListIndexEndpoints(fx.Context(), &ListIndexEndpointsRequest{
 			Parent: "invalid resource name",
@@ -420,6 +465,7 @@ func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) testList(t *testing.
 
 	// Method should fail with InvalidArgument is provided page token is not valid.
 	t.Run("invalid page token", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		_, err := fx.Service().ListIndexEndpoints(fx.Context(), &ListIndexEndpointsRequest{
@@ -431,6 +477,7 @@ func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) testList(t *testing.
 
 	// Method should fail with InvalidArgument is provided page size is negative.
 	t.Run("negative page size", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		_, err := fx.Service().ListIndexEndpoints(fx.Context(), &ListIndexEndpointsRequest{
@@ -451,6 +498,7 @@ func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) testList(t *testing.
 		// If parent is provided the method must only return resources
 		// under that parent.
 		t.Run("isolation", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListIndexEndpoints(fx.Context(), &ListIndexEndpointsRequest{
 				Parent:   parent,
@@ -470,6 +518,7 @@ func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) testList(t *testing.
 
 		// If there are no more resources, next_page_token should not be set.
 		t.Run("last page", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListIndexEndpoints(fx.Context(), &ListIndexEndpointsRequest{
 				Parent:   parent,
@@ -481,6 +530,7 @@ func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) testList(t *testing.
 
 		// If there are more resources, next_page_token should be set.
 		t.Run("more pages", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListIndexEndpoints(fx.Context(), &ListIndexEndpointsRequest{
 				Parent:   parent,
@@ -492,6 +542,7 @@ func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) testList(t *testing.
 
 		// Listing resource one by one should eventually return all resources.
 		t.Run("one by one", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			msgs := make([]*IndexEndpoint, 0, resourcesCount)
 			var nextPageToken string
@@ -522,6 +573,7 @@ func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) testList(t *testing.
 
 		// When listing resource with page size zero the service should use a default value.
 		t.Run("page size zero", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListIndexEndpoints(fx.Context(), &ListIndexEndpointsRequest{
 				Parent:   parent,
@@ -543,6 +595,7 @@ func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) testList(t *testing.
 
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			const deleteCount = 5
 			for i := 0; i < deleteCount; i++ {
@@ -571,9 +624,11 @@ func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) testList(t *testing.
 }
 
 func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) testDelete(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteIndexEndpoint(fx.Context(), &DeleteIndexEndpointRequest{
 			Name: "",
@@ -583,6 +638,7 @@ func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) testDelete(t *testin
 
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteIndexEndpoint(fx.Context(), &DeleteIndexEndpointRequest{
 			Name: "invalid resource name",
@@ -592,6 +648,7 @@ func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) testDelete(t *testin
 
 	// Resource should be deleted without errors if it exists.
 	t.Run("exists", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -603,6 +660,7 @@ func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) testDelete(t *testin
 
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -614,6 +672,7 @@ func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) testDelete(t *testin
 
 	// Method should fail with NotFound if the resource was already deleted. This also applies to soft-deletion.
 	t.Run("already deleted", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -630,6 +689,7 @@ func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) testDelete(t *testin
 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteIndexEndpoint(fx.Context(), &DeleteIndexEndpointRequest{
 			Name: "projects/-/locations/-/indexEndpoints/-",

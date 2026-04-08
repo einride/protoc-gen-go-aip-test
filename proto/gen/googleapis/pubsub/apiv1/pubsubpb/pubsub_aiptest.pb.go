@@ -85,14 +85,25 @@ type PublisherTopicTestSuiteConfig struct {
 	Skip []string
 }
 
+// clone creates an isolated copy of the fixture for parallel test execution.
+// This prevents race conditions on the currParent.
+func (fx *PublisherTopicTestSuiteConfig) clone() *PublisherTopicTestSuiteConfig {
+	clone := *fx
+	return &clone
+}
+
 func (fx *PublisherTopicTestSuiteConfig) test(t *testing.T) {
-	t.Run("Update", fx.testUpdate)
+	t.Run("Update", func(t *testing.T) {
+		fx.clone().testUpdate(t)
+	})
 }
 
 func (fx *PublisherTopicTestSuiteConfig) testUpdate(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
@@ -105,6 +116,7 @@ func (fx *PublisherTopicTestSuiteConfig) testUpdate(t *testing.T) {
 
 	// Method should fail with InvalidArgument if provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
@@ -120,6 +132,7 @@ func (fx *PublisherTopicTestSuiteConfig) testUpdate(t *testing.T) {
 		created := fx.create(t, parent)
 		// Method should fail with NotFound if the resource does not exist.
 		t.Run("not found", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			msg := fx.Update(parent)
 			msg.Name = created.Name + "notfound"
@@ -131,6 +144,7 @@ func (fx *PublisherTopicTestSuiteConfig) testUpdate(t *testing.T) {
 
 		// The method should fail with InvalidArgument if the update_mask is invalid.
 		t.Run("invalid update mask", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			_, err := fx.Service().UpdateTopic(fx.Context(), &UpdateTopicRequest{
 				Topic: created,
@@ -146,8 +160,10 @@ func (fx *PublisherTopicTestSuiteConfig) testUpdate(t *testing.T) {
 		// Method should fail with InvalidArgument if any required field is missing
 		// when called with '*' update_mask.
 		t.Run("required fields", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			t.Run(".name", func(t *testing.T) {
+				t.Parallel()
 				fx.maybeSkip(t)
 				msg := proto.Clone(created).(*Topic)
 				container := msg
@@ -167,6 +183,7 @@ func (fx *PublisherTopicTestSuiteConfig) testUpdate(t *testing.T) {
 				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 			})
 			t.Run(".schema_settings.schema", func(t *testing.T) {
+				t.Parallel()
 				fx.maybeSkip(t)
 				msg := proto.Clone(created).(*Topic)
 				container := msg.GetSchemaSettings()
@@ -186,6 +203,7 @@ func (fx *PublisherTopicTestSuiteConfig) testUpdate(t *testing.T) {
 				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 			})
 			t.Run(".ingestion_data_source_settings.aws_kinesis.stream_arn", func(t *testing.T) {
+				t.Parallel()
 				fx.maybeSkip(t)
 				msg := proto.Clone(created).(*Topic)
 				container := msg.GetIngestionDataSourceSettings().GetAwsKinesis()
@@ -205,6 +223,7 @@ func (fx *PublisherTopicTestSuiteConfig) testUpdate(t *testing.T) {
 				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 			})
 			t.Run(".ingestion_data_source_settings.aws_kinesis.consumer_arn", func(t *testing.T) {
+				t.Parallel()
 				fx.maybeSkip(t)
 				msg := proto.Clone(created).(*Topic)
 				container := msg.GetIngestionDataSourceSettings().GetAwsKinesis()
@@ -224,6 +243,7 @@ func (fx *PublisherTopicTestSuiteConfig) testUpdate(t *testing.T) {
 				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 			})
 			t.Run(".ingestion_data_source_settings.aws_kinesis.aws_role_arn", func(t *testing.T) {
+				t.Parallel()
 				fx.maybeSkip(t)
 				msg := proto.Clone(created).(*Topic)
 				container := msg.GetIngestionDataSourceSettings().GetAwsKinesis()
@@ -243,6 +263,7 @@ func (fx *PublisherTopicTestSuiteConfig) testUpdate(t *testing.T) {
 				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 			})
 			t.Run(".ingestion_data_source_settings.aws_kinesis.gcp_service_account", func(t *testing.T) {
+				t.Parallel()
 				fx.maybeSkip(t)
 				msg := proto.Clone(created).(*Topic)
 				container := msg.GetIngestionDataSourceSettings().GetAwsKinesis()
@@ -401,14 +422,25 @@ type SubscriberSnapshotTestSuiteConfig struct {
 	Skip []string
 }
 
+// clone creates an isolated copy of the fixture for parallel test execution.
+// This prevents race conditions on the currParent.
+func (fx *SubscriberSnapshotTestSuiteConfig) clone() *SubscriberSnapshotTestSuiteConfig {
+	clone := *fx
+	return &clone
+}
+
 func (fx *SubscriberSnapshotTestSuiteConfig) test(t *testing.T) {
-	t.Run("Update", fx.testUpdate)
+	t.Run("Update", func(t *testing.T) {
+		fx.clone().testUpdate(t)
+	})
 }
 
 func (fx *SubscriberSnapshotTestSuiteConfig) testUpdate(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
@@ -421,6 +453,7 @@ func (fx *SubscriberSnapshotTestSuiteConfig) testUpdate(t *testing.T) {
 
 	// Method should fail with InvalidArgument if provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
@@ -436,6 +469,7 @@ func (fx *SubscriberSnapshotTestSuiteConfig) testUpdate(t *testing.T) {
 		created := fx.create(t, parent)
 		// Method should fail with NotFound if the resource does not exist.
 		t.Run("not found", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			msg := fx.Update(parent)
 			msg.Name = created.Name + "notfound"
@@ -447,6 +481,7 @@ func (fx *SubscriberSnapshotTestSuiteConfig) testUpdate(t *testing.T) {
 
 		// The method should fail with InvalidArgument if the update_mask is invalid.
 		t.Run("invalid update mask", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			_, err := fx.Service().UpdateSnapshot(fx.Context(), &UpdateSnapshotRequest{
 				Snapshot: created,
@@ -528,14 +563,25 @@ type SubscriberSubscriptionTestSuiteConfig struct {
 	Skip []string
 }
 
+// clone creates an isolated copy of the fixture for parallel test execution.
+// This prevents race conditions on the currParent.
+func (fx *SubscriberSubscriptionTestSuiteConfig) clone() *SubscriberSubscriptionTestSuiteConfig {
+	clone := *fx
+	return &clone
+}
+
 func (fx *SubscriberSubscriptionTestSuiteConfig) test(t *testing.T) {
-	t.Run("Update", fx.testUpdate)
+	t.Run("Update", func(t *testing.T) {
+		fx.clone().testUpdate(t)
+	})
 }
 
 func (fx *SubscriberSubscriptionTestSuiteConfig) testUpdate(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
@@ -548,6 +594,7 @@ func (fx *SubscriberSubscriptionTestSuiteConfig) testUpdate(t *testing.T) {
 
 	// Method should fail with InvalidArgument if provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
@@ -563,6 +610,7 @@ func (fx *SubscriberSubscriptionTestSuiteConfig) testUpdate(t *testing.T) {
 		created := fx.create(t, parent)
 		// Method should fail with NotFound if the resource does not exist.
 		t.Run("not found", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			msg := fx.Update(parent)
 			msg.Name = created.Name + "notfound"
@@ -574,6 +622,7 @@ func (fx *SubscriberSubscriptionTestSuiteConfig) testUpdate(t *testing.T) {
 
 		// The method should fail with InvalidArgument if the update_mask is invalid.
 		t.Run("invalid update mask", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			_, err := fx.Service().UpdateSubscription(fx.Context(), &UpdateSubscriptionRequest{
 				Subscription: created,
@@ -589,8 +638,10 @@ func (fx *SubscriberSubscriptionTestSuiteConfig) testUpdate(t *testing.T) {
 		// Method should fail with InvalidArgument if any required field is missing
 		// when called with '*' update_mask.
 		t.Run("required fields", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			t.Run(".name", func(t *testing.T) {
+				t.Parallel()
 				fx.maybeSkip(t)
 				msg := proto.Clone(created).(*Subscription)
 				container := msg
@@ -610,6 +661,7 @@ func (fx *SubscriberSubscriptionTestSuiteConfig) testUpdate(t *testing.T) {
 				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 			})
 			t.Run(".topic", func(t *testing.T) {
+				t.Parallel()
 				fx.maybeSkip(t)
 				msg := proto.Clone(created).(*Subscription)
 				container := msg
@@ -629,6 +681,7 @@ func (fx *SubscriberSubscriptionTestSuiteConfig) testUpdate(t *testing.T) {
 				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 			})
 			t.Run(".cloud_storage_config.bucket", func(t *testing.T) {
+				t.Parallel()
 				fx.maybeSkip(t)
 				msg := proto.Clone(created).(*Subscription)
 				container := msg.GetCloudStorageConfig()

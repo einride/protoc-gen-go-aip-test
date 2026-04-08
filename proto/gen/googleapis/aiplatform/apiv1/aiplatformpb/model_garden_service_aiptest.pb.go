@@ -81,14 +81,25 @@ type ModelGardenServicePublisherModelTestSuiteConfig struct {
 	Skip []string
 }
 
+// clone creates an isolated copy of the fixture for parallel test execution.
+// This prevents race conditions on the currParent.
+func (fx *ModelGardenServicePublisherModelTestSuiteConfig) clone() *ModelGardenServicePublisherModelTestSuiteConfig {
+	clone := *fx
+	return &clone
+}
+
 func (fx *ModelGardenServicePublisherModelTestSuiteConfig) test(t *testing.T) {
-	t.Run("Get", fx.testGet)
+	t.Run("Get", func(t *testing.T) {
+		fx.clone().testGet(t)
+	})
 }
 
 func (fx *ModelGardenServicePublisherModelTestSuiteConfig) testGet(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetPublisherModel(fx.Context(), &GetPublisherModelRequest{
 			Name: "",
@@ -98,6 +109,7 @@ func (fx *ModelGardenServicePublisherModelTestSuiteConfig) testGet(t *testing.T)
 
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetPublisherModel(fx.Context(), &GetPublisherModelRequest{
 			Name: "invalid resource name",
@@ -107,6 +119,7 @@ func (fx *ModelGardenServicePublisherModelTestSuiteConfig) testGet(t *testing.T)
 
 	// Resource should be returned without errors if it exists.
 	t.Run("exists", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -119,6 +132,7 @@ func (fx *ModelGardenServicePublisherModelTestSuiteConfig) testGet(t *testing.T)
 
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -130,6 +144,7 @@ func (fx *ModelGardenServicePublisherModelTestSuiteConfig) testGet(t *testing.T)
 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetPublisherModel(fx.Context(), &GetPublisherModelRequest{
 			Name: "publishers/-/models/-",

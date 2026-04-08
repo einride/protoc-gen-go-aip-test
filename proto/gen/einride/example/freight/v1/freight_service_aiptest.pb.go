@@ -111,18 +111,37 @@ type FreightServiceShipperTestSuiteConfig struct {
 	Skip []string
 }
 
+// clone creates an isolated copy of the fixture for parallel test execution.
+// This prevents race conditions on the currParent.
+func (fx *FreightServiceShipperTestSuiteConfig) clone() *FreightServiceShipperTestSuiteConfig {
+	clone := *fx
+	return &clone
+}
+
 func (fx *FreightServiceShipperTestSuiteConfig) test(t *testing.T) {
-	t.Run("Create", fx.testCreate)
-	t.Run("Get", fx.testGet)
-	t.Run("Update", fx.testUpdate)
-	t.Run("List", fx.testList)
-	t.Run("Delete", fx.testDelete)
+	t.Run("Create", func(t *testing.T) {
+		fx.clone().testCreate(t)
+	})
+	t.Run("Get", func(t *testing.T) {
+		fx.clone().testGet(t)
+	})
+	t.Run("Update", func(t *testing.T) {
+		fx.clone().testUpdate(t)
+	})
+	t.Run("List", func(t *testing.T) {
+		fx.clone().testList(t)
+	})
+	t.Run("Delete", func(t *testing.T) {
+		fx.clone().testDelete(t)
+	})
 }
 
 func (fx *FreightServiceShipperTestSuiteConfig) testCreate(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Field create_time should be populated when the resource is created.
 	t.Run("create time", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		beforeCreate := time.Now()
 		userSetID := ""
@@ -141,6 +160,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testCreate(t *testing.T) {
 
 	// The created resource should be persisted and reachable with Get.
 	t.Run("persisted", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		userSetID := ""
 		if fx.IDGenerator != nil {
@@ -161,6 +181,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testCreate(t *testing.T) {
 	// If method support user settable IDs, when set the resource should
 	// be returned with the provided ID.
 	t.Run("user settable id", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		msg, err := fx.Service().CreateShipper(fx.Context(), &CreateShipperRequest{
 			Shipper:   fx.Create(),
@@ -173,6 +194,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testCreate(t *testing.T) {
 	// Method should fail with InvalidArgument if the user settable id doesn't
 	// conform to RFC-1034, see [doc](https://google.aip.dev/122#resource-id-segments).
 	t.Run("invalid user settable id", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		for _, tt := range []struct {
 			name string
@@ -212,6 +234,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testCreate(t *testing.T) {
 			},
 		} {
 			t.Run(tt.name, func(t *testing.T) {
+				t.Parallel()
 				fx.maybeSkip(t)
 				_, err := fx.Service().CreateShipper(fx.Context(), &CreateShipperRequest{
 					Shipper:   fx.Create(),
@@ -225,6 +248,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testCreate(t *testing.T) {
 	// If method support user settable IDs and the same ID is reused
 	// the method should return AlreadyExists.
 	t.Run("already exists", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().CreateShipper(fx.Context(), &CreateShipperRequest{
 			Shipper:   fx.Create(),
@@ -241,8 +265,10 @@ func (fx *FreightServiceShipperTestSuiteConfig) testCreate(t *testing.T) {
 	// The method should fail with InvalidArgument if the resource has any
 	// required fields and they are not provided.
 	t.Run("required fields", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		t.Run(".display_name", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			msg := fx.Create()
 			container := msg
@@ -262,6 +288,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testCreate(t *testing.T) {
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
 		t.Run(".billing_account", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			msg := fx.Create()
 			container := msg
@@ -285,8 +312,10 @@ func (fx *FreightServiceShipperTestSuiteConfig) testCreate(t *testing.T) {
 	// The method should fail with InvalidArgument if the resource has any
 	// resource references and they are invalid.
 	t.Run("resource references", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		t.Run(".billing_account", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			msg := fx.Create()
 			container := msg
@@ -308,6 +337,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testCreate(t *testing.T) {
 
 	// Field etag should be populated when the resource is created.
 	t.Run("etag populated", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		userSetID := ""
 		if fx.IDGenerator != nil {
@@ -324,9 +354,11 @@ func (fx *FreightServiceShipperTestSuiteConfig) testCreate(t *testing.T) {
 }
 
 func (fx *FreightServiceShipperTestSuiteConfig) testGet(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetShipper(fx.Context(), &GetShipperRequest{
 			Name: "",
@@ -336,6 +368,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testGet(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetShipper(fx.Context(), &GetShipperRequest{
 			Name: "invalid resource name",
@@ -345,6 +378,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testGet(t *testing.T) {
 
 	// Resource should be returned without errors if it exists.
 	t.Run("exists", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		created := fx.create(t)
 		msg, err := fx.Service().GetShipper(fx.Context(), &GetShipperRequest{
@@ -356,6 +390,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testGet(t *testing.T) {
 
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		created := fx.create(t)
 		_, err := fx.Service().GetShipper(fx.Context(), &GetShipperRequest{
@@ -366,6 +401,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testGet(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetShipper(fx.Context(), &GetShipperRequest{
 			Name: "shippers/-",
@@ -375,6 +411,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testGet(t *testing.T) {
 
 	// A soft-deleted resource should be returned without errors.
 	t.Run("soft-deleted", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		created := fx.create(t)
 		deleted, err := fx.Service().DeleteShipper(fx.Context(), &DeleteShipperRequest{
@@ -391,9 +428,11 @@ func (fx *FreightServiceShipperTestSuiteConfig) testGet(t *testing.T) {
 }
 
 func (fx *FreightServiceShipperTestSuiteConfig) testUpdate(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		msg := fx.Update()
 		msg.Name = ""
@@ -405,6 +444,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testUpdate(t *testing.T) {
 
 	// Method should fail with InvalidArgument if provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		msg := fx.Update()
 		msg.Name = "invalid resource name"
@@ -416,6 +456,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testUpdate(t *testing.T) {
 
 	// Field update_time should be updated when the resource is updated.
 	t.Run("update time", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		created := fx.create(t)
 		updated, err := fx.Service().UpdateShipper(fx.Context(), &UpdateShipperRequest{
@@ -427,6 +468,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testUpdate(t *testing.T) {
 
 	// The updated resource should be persisted and reachable with Get.
 	t.Run("persisted", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		created := fx.create(t)
 		updated, err := fx.Service().UpdateShipper(fx.Context(), &UpdateShipperRequest{
@@ -442,6 +484,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testUpdate(t *testing.T) {
 
 	// The field create_time should be preserved when a '*'-update mask is used.
 	t.Run("preserve create_time", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		created := fx.create(t)
 		originalCreateTime := created.CreateTime
@@ -459,6 +502,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testUpdate(t *testing.T) {
 
 	// Method should fail with Aborted if the supplied etag doesnt match the current etag value.
 	t.Run("etag mismatch", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		created := fx.create(t)
 		msg := fx.Update()
@@ -472,6 +516,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testUpdate(t *testing.T) {
 
 	// Field etag should have a new value when the resource is successfully updated.
 	t.Run("etag updated", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		created := fx.create(t)
 		msg := fx.Update()
@@ -488,6 +533,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testUpdate(t *testing.T) {
 		created := fx.create(t)
 		// Method should fail with NotFound if the resource does not exist.
 		t.Run("not found", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			msg := fx.Update()
 			msg.Name = created.Name + "notfound"
@@ -499,6 +545,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testUpdate(t *testing.T) {
 
 		// The method should fail with InvalidArgument if the update_mask is invalid.
 		t.Run("invalid update mask", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			_, err := fx.Service().UpdateShipper(fx.Context(), &UpdateShipperRequest{
 				Shipper: created,
@@ -514,8 +561,10 @@ func (fx *FreightServiceShipperTestSuiteConfig) testUpdate(t *testing.T) {
 		// Method should fail with InvalidArgument if any required field is missing
 		// when called with '*' update_mask.
 		t.Run("required fields", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			t.Run(".display_name", func(t *testing.T) {
+				t.Parallel()
 				fx.maybeSkip(t)
 				msg := proto.Clone(created).(*Shipper)
 				container := msg
@@ -535,6 +584,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testUpdate(t *testing.T) {
 				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 			})
 			t.Run(".billing_account", func(t *testing.T) {
+				t.Parallel()
 				fx.maybeSkip(t)
 				msg := proto.Clone(created).(*Shipper)
 				container := msg
@@ -559,9 +609,11 @@ func (fx *FreightServiceShipperTestSuiteConfig) testUpdate(t *testing.T) {
 }
 
 func (fx *FreightServiceShipperTestSuiteConfig) testList(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument is provided page token is not valid.
 	t.Run("invalid page token", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().ListShippers(fx.Context(), &ListShippersRequest{
 			PageToken: "invalid page token",
@@ -571,6 +623,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testList(t *testing.T) {
 
 	// Method should fail with InvalidArgument is provided page size is negative.
 	t.Run("negative page size", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().ListShippers(fx.Context(), &ListShippersRequest{
 			PageSize: -10,
@@ -581,9 +634,11 @@ func (fx *FreightServiceShipperTestSuiteConfig) testList(t *testing.T) {
 }
 
 func (fx *FreightServiceShipperTestSuiteConfig) testDelete(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteShipper(fx.Context(), &DeleteShipperRequest{
 			Name: "",
@@ -593,6 +648,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteShipper(fx.Context(), &DeleteShipperRequest{
 			Name: "invalid resource name",
@@ -602,6 +658,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Resource should be deleted without errors if it exists.
 	t.Run("exists", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		created := fx.create(t)
 		_, err := fx.Service().DeleteShipper(fx.Context(), &DeleteShipperRequest{
@@ -612,6 +669,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		created := fx.create(t)
 		_, err := fx.Service().DeleteShipper(fx.Context(), &DeleteShipperRequest{
@@ -622,6 +680,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Method should fail with NotFound if the resource was already deleted. This also applies to soft-deletion.
 	t.Run("already deleted", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		created := fx.create(t)
 		deleted, err := fx.Service().DeleteShipper(fx.Context(), &DeleteShipperRequest{
@@ -637,6 +696,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteShipper(fx.Context(), &DeleteShipperRequest{
 			Name: "shippers/-",
@@ -646,6 +706,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Method should fail with Aborted if the supplied etag doesnt match the current etag value.
 	t.Run("etag mismatch", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		created := fx.create(t)
 		_, err := fx.Service().DeleteShipper(fx.Context(), &DeleteShipperRequest{
@@ -657,6 +718,7 @@ func (fx *FreightServiceShipperTestSuiteConfig) testDelete(t *testing.T) {
 
 	// A soft-deleted resource should have delete_time assigned.
 	t.Run("soft-deleted delete_time", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		created := fx.create(t)
 		beforeDelete := time.Now()
@@ -722,19 +784,40 @@ type FreightServiceSiteTestSuiteConfig struct {
 	Skip []string
 }
 
+// clone creates an isolated copy of the fixture for parallel test execution.
+// This prevents race conditions on the currParent.
+func (fx *FreightServiceSiteTestSuiteConfig) clone() *FreightServiceSiteTestSuiteConfig {
+	clone := *fx
+	return &clone
+}
+
 func (fx *FreightServiceSiteTestSuiteConfig) test(t *testing.T) {
-	t.Run("Create", fx.testCreate)
-	t.Run("Get", fx.testGet)
-	t.Run("BatchGet", fx.testBatchGet)
-	t.Run("Update", fx.testUpdate)
-	t.Run("List", fx.testList)
-	t.Run("Delete", fx.testDelete)
+	t.Run("Create", func(t *testing.T) {
+		fx.clone().testCreate(t)
+	})
+	t.Run("Get", func(t *testing.T) {
+		fx.clone().testGet(t)
+	})
+	t.Run("BatchGet", func(t *testing.T) {
+		fx.clone().testBatchGet(t)
+	})
+	t.Run("Update", func(t *testing.T) {
+		fx.clone().testUpdate(t)
+	})
+	t.Run("List", func(t *testing.T) {
+		fx.clone().testList(t)
+	})
+	t.Run("Delete", func(t *testing.T) {
+		fx.clone().testDelete(t)
+	})
 }
 
 func (fx *FreightServiceSiteTestSuiteConfig) testCreate(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		userSetID := ""
 		if fx.IDGenerator != nil {
@@ -750,6 +833,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testCreate(t *testing.T) {
 
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		userSetID := ""
 		if fx.IDGenerator != nil {
@@ -765,6 +849,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testCreate(t *testing.T) {
 
 	// Field create_time should be populated when the resource is created.
 	t.Run("create time", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		beforeCreate := time.Now()
@@ -785,6 +870,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testCreate(t *testing.T) {
 
 	// The created resource should be persisted and reachable with Get.
 	t.Run("persisted", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		userSetID := ""
@@ -807,6 +893,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testCreate(t *testing.T) {
 	// If method support user settable IDs, when set the resource should
 	// be returned with the provided ID.
 	t.Run("user settable id", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		msg, err := fx.Service().CreateSite(fx.Context(), &CreateSiteRequest{
@@ -821,6 +908,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testCreate(t *testing.T) {
 	// Method should fail with InvalidArgument if the user settable id doesn't
 	// conform to RFC-1034, see [doc](https://google.aip.dev/122#resource-id-segments).
 	t.Run("invalid user settable id", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		for _, tt := range []struct {
 			name string
@@ -860,6 +948,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testCreate(t *testing.T) {
 			},
 		} {
 			t.Run(tt.name, func(t *testing.T) {
+				t.Parallel()
 				fx.maybeSkip(t)
 				parent := fx.nextParent(t, false)
 				_, err := fx.Service().CreateSite(fx.Context(), &CreateSiteRequest{
@@ -875,6 +964,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testCreate(t *testing.T) {
 	// If method support user settable IDs and the same ID is reused
 	// the method should return AlreadyExists.
 	t.Run("already exists", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		_, err := fx.Service().CreateSite(fx.Context(), &CreateSiteRequest{
@@ -894,8 +984,10 @@ func (fx *FreightServiceSiteTestSuiteConfig) testCreate(t *testing.T) {
 	// The method should fail with InvalidArgument if the resource has any
 	// required fields and they are not provided.
 	t.Run("required fields", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		t.Run(".display_name", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -917,6 +1009,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testCreate(t *testing.T) {
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
 		t.Run(".billing.billing_account", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -938,6 +1031,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testCreate(t *testing.T) {
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
 		t.Run(".region", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -963,8 +1057,10 @@ func (fx *FreightServiceSiteTestSuiteConfig) testCreate(t *testing.T) {
 	// The method should fail with InvalidArgument if the resource has any
 	// resource references and they are invalid.
 	t.Run("resource references", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		t.Run(".billing.billing_account", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -988,6 +1084,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testCreate(t *testing.T) {
 
 	// Field etag should be populated when the resource is created.
 	t.Run("etag populated", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		userSetID := ""
@@ -1006,9 +1103,11 @@ func (fx *FreightServiceSiteTestSuiteConfig) testCreate(t *testing.T) {
 }
 
 func (fx *FreightServiceSiteTestSuiteConfig) testGet(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetSite(fx.Context(), &GetSiteRequest{
 			Name: "",
@@ -1018,6 +1117,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testGet(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetSite(fx.Context(), &GetSiteRequest{
 			Name: "invalid resource name",
@@ -1027,6 +1127,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testGet(t *testing.T) {
 
 	// Resource should be returned without errors if it exists.
 	t.Run("exists", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1039,6 +1140,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testGet(t *testing.T) {
 
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1050,6 +1152,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testGet(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetSite(fx.Context(), &GetSiteRequest{
 			Name: "shippers/-/sites/-",
@@ -1059,6 +1162,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testGet(t *testing.T) {
 
 	// A soft-deleted resource should be returned without errors.
 	t.Run("soft-deleted", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1077,9 +1181,11 @@ func (fx *FreightServiceSiteTestSuiteConfig) testGet(t *testing.T) {
 }
 
 func (fx *FreightServiceSiteTestSuiteConfig) testBatchGet(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().BatchGetSites(fx.Context(), &BatchGetSitesRequest{
 			Parent: "invalid resource name",
@@ -1090,6 +1196,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testBatchGet(t *testing.T) {
 
 	// Method should fail with InvalidArgument if no names are provided.
 	t.Run("names missing", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		_, err := fx.Service().BatchGetSites(fx.Context(), &BatchGetSitesRequest{
@@ -1101,6 +1208,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testBatchGet(t *testing.T) {
 
 	// Method should fail with InvalidArgument if a provided name is not valid.
 	t.Run("invalid names", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		_, err := fx.Service().BatchGetSites(fx.Context(), &BatchGetSitesRequest{
@@ -1114,6 +1222,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testBatchGet(t *testing.T) {
 
 	// Method should fail with InvalidArgument if a provided name only contains wildcards (-)
 	t.Run("wildcard name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		_, err := fx.Service().BatchGetSites(fx.Context(), &BatchGetSitesRequest{
@@ -1132,6 +1241,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testBatchGet(t *testing.T) {
 		created02 := fx.create(t, parent)
 		// Resources should be returned without errors if they exist.
 		t.Run("all exists", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().BatchGetSites(fx.Context(), &BatchGetSitesRequest{
 				Parent: parent,
@@ -1157,6 +1267,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testBatchGet(t *testing.T) {
 		// The method must be atomic; it must fail for all resources
 		// or succeed for all resources (no partial success).
 		t.Run("atomic", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			_, err := fx.Service().BatchGetSites(fx.Context(), &BatchGetSitesRequest{
 				Parent: parent,
@@ -1172,6 +1283,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testBatchGet(t *testing.T) {
 		// If a caller sets the "parent", and the parent collection in the name of any resource
 		// being retrieved does not match, the request must fail.
 		t.Run("parent mismatch", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			_, err := fx.Service().BatchGetSites(fx.Context(), &BatchGetSitesRequest{
 				Parent: fx.peekNextParent(t),
@@ -1184,6 +1296,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testBatchGet(t *testing.T) {
 
 		// The order of resources in the response must be the same as the names in the request.
 		t.Run("ordered", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			for _, order := range [][]*Site{
 				{created00, created01, created02},
@@ -1206,6 +1319,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testBatchGet(t *testing.T) {
 		// If a caller provides duplicate names, the service should return
 		// duplicate resources.
 		t.Run("duplicate names", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().BatchGetSites(fx.Context(), &BatchGetSitesRequest{
 				Parent: parent,
@@ -1230,9 +1344,11 @@ func (fx *FreightServiceSiteTestSuiteConfig) testBatchGet(t *testing.T) {
 }
 
 func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
@@ -1245,6 +1361,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
 
 	// Method should fail with InvalidArgument if provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		msg := fx.Update(parent)
@@ -1257,6 +1374,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
 
 	// Field update_time should be updated when the resource is updated.
 	t.Run("update time", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1269,6 +1387,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
 
 	// The updated resource should be persisted and reachable with Get.
 	t.Run("persisted", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1285,6 +1404,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
 
 	// The field create_time should be preserved when a '*'-update mask is used.
 	t.Run("preserve create_time", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1303,6 +1423,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
 
 	// Method should fail with Aborted if the supplied etag doesnt match the current etag value.
 	t.Run("etag mismatch", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1317,6 +1438,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
 
 	// Field etag should have a new value when the resource is successfully updated.
 	t.Run("etag updated", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1335,6 +1457,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
 		created := fx.create(t, parent)
 		// Method should fail with NotFound if the resource does not exist.
 		t.Run("not found", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			msg := fx.Update(parent)
 			msg.Name = created.Name + "notfound"
@@ -1346,6 +1469,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
 
 		// The method should fail with InvalidArgument if the update_mask is invalid.
 		t.Run("invalid update mask", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			_, err := fx.Service().UpdateSite(fx.Context(), &UpdateSiteRequest{
 				Site: created,
@@ -1361,8 +1485,10 @@ func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
 		// Method should fail with InvalidArgument if any required field is missing
 		// when called with '*' update_mask.
 		t.Run("required fields", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			t.Run(".display_name", func(t *testing.T) {
+				t.Parallel()
 				fx.maybeSkip(t)
 				msg := proto.Clone(created).(*Site)
 				container := msg
@@ -1382,6 +1508,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
 				assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 			})
 			t.Run(".billing.billing_account", func(t *testing.T) {
+				t.Parallel()
 				fx.maybeSkip(t)
 				msg := proto.Clone(created).(*Site)
 				container := msg.GetBilling()
@@ -1406,9 +1533,11 @@ func (fx *FreightServiceSiteTestSuiteConfig) testUpdate(t *testing.T) {
 }
 
 func (fx *FreightServiceSiteTestSuiteConfig) testList(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().ListSites(fx.Context(), &ListSitesRequest{
 			Parent: "invalid resource name",
@@ -1418,6 +1547,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testList(t *testing.T) {
 
 	// Method should fail with InvalidArgument is provided page token is not valid.
 	t.Run("invalid page token", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		_, err := fx.Service().ListSites(fx.Context(), &ListSitesRequest{
@@ -1429,6 +1559,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testList(t *testing.T) {
 
 	// Method should fail with InvalidArgument is provided page size is negative.
 	t.Run("negative page size", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		_, err := fx.Service().ListSites(fx.Context(), &ListSitesRequest{
@@ -1449,6 +1580,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testList(t *testing.T) {
 		// If parent is provided the method must only return resources
 		// under that parent.
 		t.Run("isolation", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListSites(fx.Context(), &ListSitesRequest{
 				Parent:   parent,
@@ -1468,6 +1600,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testList(t *testing.T) {
 
 		// If there are no more resources, next_page_token should not be set.
 		t.Run("last page", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListSites(fx.Context(), &ListSitesRequest{
 				Parent:   parent,
@@ -1479,6 +1612,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testList(t *testing.T) {
 
 		// If there are more resources, next_page_token should be set.
 		t.Run("more pages", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListSites(fx.Context(), &ListSitesRequest{
 				Parent:   parent,
@@ -1490,6 +1624,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testList(t *testing.T) {
 
 		// Listing resource one by one should eventually return all resources.
 		t.Run("one by one", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			msgs := make([]*Site, 0, resourcesCount)
 			var nextPageToken string
@@ -1520,6 +1655,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testList(t *testing.T) {
 
 		// When listing resource with page size zero the service should use a default value.
 		t.Run("page size zero", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListSites(fx.Context(), &ListSitesRequest{
 				Parent:   parent,
@@ -1541,6 +1677,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testList(t *testing.T) {
 
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
+			t.Parallel()
 			fx.maybeSkip(t)
 			const deleteCount = 5
 			for i := 0; i < deleteCount; i++ {
@@ -1570,9 +1707,11 @@ func (fx *FreightServiceSiteTestSuiteConfig) testList(t *testing.T) {
 }
 
 func (fx *FreightServiceSiteTestSuiteConfig) testDelete(t *testing.T) {
+	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteSite(fx.Context(), &DeleteSiteRequest{
 			Name: "",
@@ -1583,6 +1722,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteSite(fx.Context(), &DeleteSiteRequest{
 			Name: "invalid resource name",
@@ -1593,6 +1733,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Resource should be deleted without errors if it exists.
 	t.Run("exists", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1605,6 +1746,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1617,6 +1759,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Method should fail with NotFound if the resource was already deleted. This also applies to soft-deletion.
 	t.Run("already deleted", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1635,6 +1778,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteSite(fx.Context(), &DeleteSiteRequest{
 			Name: "shippers/-/sites/-",
@@ -1645,6 +1789,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Method should fail with Aborted if the supplied etag doesnt match the current etag value.
 	t.Run("etag mismatch", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1657,6 +1802,7 @@ func (fx *FreightServiceSiteTestSuiteConfig) testDelete(t *testing.T) {
 
 	// A soft-deleted resource should have delete_time assigned.
 	t.Run("soft-deleted delete_time", func(t *testing.T) {
+		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
