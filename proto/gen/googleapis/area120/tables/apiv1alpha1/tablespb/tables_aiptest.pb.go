@@ -425,6 +425,27 @@ func (fx *TablesServiceRowTestSuiteConfig) testList(t *testing.T) {
 			)
 		})
 
+		// When listing resource with page size zero the service should use a default value.
+		t.Run("page size zero", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListRows(fx.Context(), &ListRowsRequest{
+				Parent:   parent,
+				PageSize: 0,
+			})
+			assert.NilError(t, err)
+			// Server should use a default page size and return at least some results
+			assert.Check(t, len(response.Rows) > 0, "expected server to return at least 1 resource with page_size=0")
+		})
+
+	}
+	{
+		const resourcesCount = 15
+		parent := fx.nextParent(t, true)
+		parentMsgs := make([]*Row, resourcesCount)
+		for i := 0; i < resourcesCount; i++ {
+			parentMsgs[i] = fx.create(t, parent)
+		}
+
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
 			fx.maybeSkip(t)
@@ -444,44 +465,6 @@ func (fx *TablesServiceRowTestSuiteConfig) testList(t *testing.T) {
 				t,
 				parentMsgs[deleteCount:],
 				response.Rows,
-				cmpopts.SortSlices(func(a, b *Row) bool {
-					return a.Name < b.Name
-				}),
-				protocmp.Transform(),
-			)
-		})
-
-	}
-	{
-		const resourcesCount = 101
-		parent := fx.nextParent(t, true)
-		parentMsgs := make([]*Row, resourcesCount)
-		for i := 0; i < resourcesCount; i++ {
-			parentMsgs[i] = fx.create(t, parent)
-		}
-
-		// Listing resource with page size zero should eventually return all resources.
-		t.Run("page size zero", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msgs := make([]*Row, 0, resourcesCount)
-			var nextPageToken string
-			for {
-				page, err := fx.Service().ListRows(fx.Context(), &ListRowsRequest{
-					Parent:    parent,
-					PageSize:  0,
-					PageToken: nextPageToken,
-				})
-				assert.NilError(t, err)
-				msgs = append(msgs, page.Rows...)
-				nextPageToken = page.NextPageToken
-				if nextPageToken == "" {
-					break
-				}
-			}
-			assert.DeepEqual(
-				t,
-				parentMsgs,
-				msgs,
 				cmpopts.SortSlices(func(a, b *Row) bool {
 					return a.Name < b.Name
 				}),

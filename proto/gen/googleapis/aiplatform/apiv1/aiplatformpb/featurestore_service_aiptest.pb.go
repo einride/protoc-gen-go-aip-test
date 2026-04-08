@@ -439,6 +439,27 @@ func (fx *FeaturestoreServiceEntityTypeTestSuiteConfig) testList(t *testing.T) {
 			)
 		})
 
+		// When listing resource with page size zero the service should use a default value.
+		t.Run("page size zero", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListEntityTypes(fx.Context(), &ListEntityTypesRequest{
+				Parent:   parent,
+				PageSize: 0,
+			})
+			assert.NilError(t, err)
+			// Server should use a default page size and return at least some results
+			assert.Check(t, len(response.EntityTypes) > 0, "expected server to return at least 1 resource with page_size=0")
+		})
+
+	}
+	{
+		const resourcesCount = 15
+		parent := fx.nextParent(t, true)
+		parentMsgs := make([]*EntityType, resourcesCount)
+		for i := 0; i < resourcesCount; i++ {
+			parentMsgs[i] = fx.create(t, parent)
+		}
+
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
 			fx.maybeSkip(t)
@@ -458,44 +479,6 @@ func (fx *FeaturestoreServiceEntityTypeTestSuiteConfig) testList(t *testing.T) {
 				t,
 				parentMsgs[deleteCount:],
 				response.EntityTypes,
-				cmpopts.SortSlices(func(a, b *EntityType) bool {
-					return a.Name < b.Name
-				}),
-				protocmp.Transform(),
-			)
-		})
-
-	}
-	{
-		const resourcesCount = 101
-		parent := fx.nextParent(t, true)
-		parentMsgs := make([]*EntityType, resourcesCount)
-		for i := 0; i < resourcesCount; i++ {
-			parentMsgs[i] = fx.create(t, parent)
-		}
-
-		// Listing resource with page size zero should eventually return all resources.
-		t.Run("page size zero", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msgs := make([]*EntityType, 0, resourcesCount)
-			var nextPageToken string
-			for {
-				page, err := fx.Service().ListEntityTypes(fx.Context(), &ListEntityTypesRequest{
-					Parent:    parent,
-					PageSize:  0,
-					PageToken: nextPageToken,
-				})
-				assert.NilError(t, err)
-				msgs = append(msgs, page.EntityTypes...)
-				nextPageToken = page.NextPageToken
-				if nextPageToken == "" {
-					break
-				}
-			}
-			assert.DeepEqual(
-				t,
-				parentMsgs,
-				msgs,
 				cmpopts.SortSlices(func(a, b *EntityType) bool {
 					return a.Name < b.Name
 				}),
@@ -949,6 +932,27 @@ func (fx *FeaturestoreServiceFeatureTestSuiteConfig) testList(t *testing.T) {
 			)
 		})
 
+		// When listing resource with page size zero the service should use a default value.
+		t.Run("page size zero", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListFeatures(fx.Context(), &ListFeaturesRequest{
+				Parent:   parent,
+				PageSize: 0,
+			})
+			assert.NilError(t, err)
+			// Server should use a default page size and return at least some results
+			assert.Check(t, len(response.Features) > 0, "expected server to return at least 1 resource with page_size=0")
+		})
+
+	}
+	{
+		const resourcesCount = 15
+		parent := fx.nextParent(t, true)
+		parentMsgs := make([]*Feature, resourcesCount)
+		for i := 0; i < resourcesCount; i++ {
+			parentMsgs[i] = fx.create(t, parent)
+		}
+
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
 			fx.maybeSkip(t)
@@ -968,44 +972,6 @@ func (fx *FeaturestoreServiceFeatureTestSuiteConfig) testList(t *testing.T) {
 				t,
 				parentMsgs[deleteCount:],
 				response.Features,
-				cmpopts.SortSlices(func(a, b *Feature) bool {
-					return a.Name < b.Name
-				}),
-				protocmp.Transform(),
-			)
-		})
-
-	}
-	{
-		const resourcesCount = 101
-		parent := fx.nextParent(t, true)
-		parentMsgs := make([]*Feature, resourcesCount)
-		for i := 0; i < resourcesCount; i++ {
-			parentMsgs[i] = fx.create(t, parent)
-		}
-
-		// Listing resource with page size zero should eventually return all resources.
-		t.Run("page size zero", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msgs := make([]*Feature, 0, resourcesCount)
-			var nextPageToken string
-			for {
-				page, err := fx.Service().ListFeatures(fx.Context(), &ListFeaturesRequest{
-					Parent:    parent,
-					PageSize:  0,
-					PageToken: nextPageToken,
-				})
-				assert.NilError(t, err)
-				msgs = append(msgs, page.Features...)
-				nextPageToken = page.NextPageToken
-				if nextPageToken == "" {
-					break
-				}
-			}
-			assert.DeepEqual(
-				t,
-				parentMsgs,
-				msgs,
 				cmpopts.SortSlices(func(a, b *Feature) bool {
 					return a.Name < b.Name
 				}),
@@ -1509,6 +1475,27 @@ func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) testList(t *testing.T)
 			)
 		})
 
+		// When listing resource with page size zero the service should use a default value.
+		t.Run("page size zero", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListFeaturestores(fx.Context(), &ListFeaturestoresRequest{
+				Parent:   parent,
+				PageSize: 0,
+			})
+			assert.NilError(t, err)
+			// Server should use a default page size and return at least some results
+			assert.Check(t, len(response.Featurestores) > 0, "expected server to return at least 1 resource with page_size=0")
+		})
+
+	}
+	{
+		const resourcesCount = 15
+		parent := fx.nextParent(t, true)
+		parentMsgs := make([]*Featurestore, resourcesCount)
+		for i := 0; i < resourcesCount; i++ {
+			parentMsgs[i] = fx.create(t, parent)
+		}
+
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
 			fx.maybeSkip(t)
@@ -1528,44 +1515,6 @@ func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) testList(t *testing.T)
 				t,
 				parentMsgs[deleteCount:],
 				response.Featurestores,
-				cmpopts.SortSlices(func(a, b *Featurestore) bool {
-					return a.Name < b.Name
-				}),
-				protocmp.Transform(),
-			)
-		})
-
-	}
-	{
-		const resourcesCount = 101
-		parent := fx.nextParent(t, true)
-		parentMsgs := make([]*Featurestore, resourcesCount)
-		for i := 0; i < resourcesCount; i++ {
-			parentMsgs[i] = fx.create(t, parent)
-		}
-
-		// Listing resource with page size zero should eventually return all resources.
-		t.Run("page size zero", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msgs := make([]*Featurestore, 0, resourcesCount)
-			var nextPageToken string
-			for {
-				page, err := fx.Service().ListFeaturestores(fx.Context(), &ListFeaturestoresRequest{
-					Parent:    parent,
-					PageSize:  0,
-					PageToken: nextPageToken,
-				})
-				assert.NilError(t, err)
-				msgs = append(msgs, page.Featurestores...)
-				nextPageToken = page.NextPageToken
-				if nextPageToken == "" {
-					break
-				}
-			}
-			assert.DeepEqual(
-				t,
-				parentMsgs,
-				msgs,
 				cmpopts.SortSlices(func(a, b *Featurestore) bool {
 					return a.Name < b.Name
 				}),

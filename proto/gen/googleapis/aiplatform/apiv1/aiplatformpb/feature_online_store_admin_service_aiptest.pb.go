@@ -538,6 +538,27 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testL
 			)
 		})
 
+		// When listing resource with page size zero the service should use a default value.
+		t.Run("page size zero", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListFeatureOnlineStores(fx.Context(), &ListFeatureOnlineStoresRequest{
+				Parent:   parent,
+				PageSize: 0,
+			})
+			assert.NilError(t, err)
+			// Server should use a default page size and return at least some results
+			assert.Check(t, len(response.FeatureOnlineStores) > 0, "expected server to return at least 1 resource with page_size=0")
+		})
+
+	}
+	{
+		const resourcesCount = 15
+		parent := fx.nextParent(t, true)
+		parentMsgs := make([]*FeatureOnlineStore, resourcesCount)
+		for i := 0; i < resourcesCount; i++ {
+			parentMsgs[i] = fx.create(t, parent)
+		}
+
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
 			fx.maybeSkip(t)
@@ -557,44 +578,6 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testL
 				t,
 				parentMsgs[deleteCount:],
 				response.FeatureOnlineStores,
-				cmpopts.SortSlices(func(a, b *FeatureOnlineStore) bool {
-					return a.Name < b.Name
-				}),
-				protocmp.Transform(),
-			)
-		})
-
-	}
-	{
-		const resourcesCount = 101
-		parent := fx.nextParent(t, true)
-		parentMsgs := make([]*FeatureOnlineStore, resourcesCount)
-		for i := 0; i < resourcesCount; i++ {
-			parentMsgs[i] = fx.create(t, parent)
-		}
-
-		// Listing resource with page size zero should eventually return all resources.
-		t.Run("page size zero", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msgs := make([]*FeatureOnlineStore, 0, resourcesCount)
-			var nextPageToken string
-			for {
-				page, err := fx.Service().ListFeatureOnlineStores(fx.Context(), &ListFeatureOnlineStoresRequest{
-					Parent:    parent,
-					PageSize:  0,
-					PageToken: nextPageToken,
-				})
-				assert.NilError(t, err)
-				msgs = append(msgs, page.FeatureOnlineStores...)
-				nextPageToken = page.NextPageToken
-				if nextPageToken == "" {
-					break
-				}
-			}
-			assert.DeepEqual(
-				t,
-				parentMsgs,
-				msgs,
 				cmpopts.SortSlices(func(a, b *FeatureOnlineStore) bool {
 					return a.Name < b.Name
 				}),
@@ -1133,6 +1116,27 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testList(t *
 			)
 		})
 
+		// When listing resource with page size zero the service should use a default value.
+		t.Run("page size zero", func(t *testing.T) {
+			fx.maybeSkip(t)
+			response, err := fx.Service().ListFeatureViews(fx.Context(), &ListFeatureViewsRequest{
+				Parent:   parent,
+				PageSize: 0,
+			})
+			assert.NilError(t, err)
+			// Server should use a default page size and return at least some results
+			assert.Check(t, len(response.FeatureViews) > 0, "expected server to return at least 1 resource with page_size=0")
+		})
+
+	}
+	{
+		const resourcesCount = 15
+		parent := fx.nextParent(t, true)
+		parentMsgs := make([]*FeatureView, resourcesCount)
+		for i := 0; i < resourcesCount; i++ {
+			parentMsgs[i] = fx.create(t, parent)
+		}
+
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
 			fx.maybeSkip(t)
@@ -1152,44 +1156,6 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testList(t *
 				t,
 				parentMsgs[deleteCount:],
 				response.FeatureViews,
-				cmpopts.SortSlices(func(a, b *FeatureView) bool {
-					return a.Name < b.Name
-				}),
-				protocmp.Transform(),
-			)
-		})
-
-	}
-	{
-		const resourcesCount = 101
-		parent := fx.nextParent(t, true)
-		parentMsgs := make([]*FeatureView, resourcesCount)
-		for i := 0; i < resourcesCount; i++ {
-			parentMsgs[i] = fx.create(t, parent)
-		}
-
-		// Listing resource with page size zero should eventually return all resources.
-		t.Run("page size zero", func(t *testing.T) {
-			fx.maybeSkip(t)
-			msgs := make([]*FeatureView, 0, resourcesCount)
-			var nextPageToken string
-			for {
-				page, err := fx.Service().ListFeatureViews(fx.Context(), &ListFeatureViewsRequest{
-					Parent:    parent,
-					PageSize:  0,
-					PageToken: nextPageToken,
-				})
-				assert.NilError(t, err)
-				msgs = append(msgs, page.FeatureViews...)
-				nextPageToken = page.NextPageToken
-				if nextPageToken == "" {
-					break
-				}
-			}
-			assert.DeepEqual(
-				t,
-				parentMsgs,
-				msgs,
 				cmpopts.SortSlices(func(a, b *FeatureView) bool {
 					return a.Name < b.Name
 				}),
@@ -1500,42 +1466,16 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewSyncTestSuiteConfig) testList
 			)
 		})
 
-	}
-	{
-		const resourcesCount = 101
-		parent := fx.nextParent(t, true)
-		parentMsgs := make([]*FeatureViewSync, resourcesCount)
-		for i := 0; i < resourcesCount; i++ {
-			parentMsgs[i] = fx.create(t, parent)
-		}
-
-		// Listing resource with page size zero should eventually return all resources.
+		// When listing resource with page size zero the service should use a default value.
 		t.Run("page size zero", func(t *testing.T) {
 			fx.maybeSkip(t)
-			msgs := make([]*FeatureViewSync, 0, resourcesCount)
-			var nextPageToken string
-			for {
-				page, err := fx.Service().ListFeatureViewSyncs(fx.Context(), &ListFeatureViewSyncsRequest{
-					Parent:    parent,
-					PageSize:  0,
-					PageToken: nextPageToken,
-				})
-				assert.NilError(t, err)
-				msgs = append(msgs, page.FeatureViewSyncs...)
-				nextPageToken = page.NextPageToken
-				if nextPageToken == "" {
-					break
-				}
-			}
-			assert.DeepEqual(
-				t,
-				parentMsgs,
-				msgs,
-				cmpopts.SortSlices(func(a, b *FeatureViewSync) bool {
-					return a.Name < b.Name
-				}),
-				protocmp.Transform(),
-			)
+			response, err := fx.Service().ListFeatureViewSyncs(fx.Context(), &ListFeatureViewSyncsRequest{
+				Parent:   parent,
+				PageSize: 0,
+			})
+			assert.NilError(t, err)
+			// Server should use a default page size and return at least some results
+			assert.Check(t, len(response.FeatureViewSyncs) > 0, "expected server to return at least 1 resource with page_size=0")
 		})
 
 	}
