@@ -107,34 +107,17 @@ type PipelineServicePipelineJobTestSuiteConfig struct {
 	Skip []string
 }
 
-// clone creates an isolated copy of the fixture for parallel test execution.
-// This prevents race conditions on the currParent.
-func (fx *PipelineServicePipelineJobTestSuiteConfig) clone() *PipelineServicePipelineJobTestSuiteConfig {
-	clone := *fx
-	return &clone
-}
-
 func (fx *PipelineServicePipelineJobTestSuiteConfig) test(t *testing.T) {
-	t.Run("Create", func(t *testing.T) {
-		fx.clone().testCreate(t)
-	})
-	t.Run("Get", func(t *testing.T) {
-		fx.clone().testGet(t)
-	})
-	t.Run("List", func(t *testing.T) {
-		fx.clone().testList(t)
-	})
-	t.Run("Delete", func(t *testing.T) {
-		fx.clone().testDelete(t)
-	})
+	t.Run("Create", fx.testCreate)
+	t.Run("Get", fx.testGet)
+	t.Run("List", fx.testList)
+	t.Run("Delete", fx.testDelete)
 }
 
 func (fx *PipelineServicePipelineJobTestSuiteConfig) testCreate(t *testing.T) {
-	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().CreatePipelineJob(fx.Context(), &CreatePipelineJobRequest{
 			Parent:      "",
@@ -145,7 +128,6 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testCreate(t *testing.T) {
 
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().CreatePipelineJob(fx.Context(), &CreatePipelineJobRequest{
 			Parent:      "invalid resource name",
@@ -156,7 +138,6 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testCreate(t *testing.T) {
 
 	// Field create_time should be populated when the resource is created.
 	t.Run("create time", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		beforeCreate := time.Now()
@@ -172,7 +153,6 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testCreate(t *testing.T) {
 
 	// The created resource should be persisted and reachable with Get.
 	t.Run("persisted", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		msg, err := fx.Service().CreatePipelineJob(fx.Context(), &CreatePipelineJobRequest{
@@ -190,10 +170,8 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testCreate(t *testing.T) {
 	// The method should fail with InvalidArgument if the resource has any
 	// required fields and they are not provided.
 	t.Run("required fields", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		t.Run(".runtime_config.gcs_output_directory", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -210,7 +188,6 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testCreate(t *testing.T) {
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
 		t.Run(".encryption_spec.kms_key_name", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -231,10 +208,8 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testCreate(t *testing.T) {
 	// The method should fail with InvalidArgument if the resource has any
 	// resource references and they are invalid.
 	t.Run("resource references", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		t.Run(".network", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -254,11 +229,9 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testCreate(t *testing.T) {
 }
 
 func (fx *PipelineServicePipelineJobTestSuiteConfig) testGet(t *testing.T) {
-	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetPipelineJob(fx.Context(), &GetPipelineJobRequest{
 			Name: "",
@@ -268,7 +241,6 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testGet(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetPipelineJob(fx.Context(), &GetPipelineJobRequest{
 			Name: "invalid resource name",
@@ -278,7 +250,6 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testGet(t *testing.T) {
 
 	// Resource should be returned without errors if it exists.
 	t.Run("exists", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -291,7 +262,6 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testGet(t *testing.T) {
 
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -303,7 +273,6 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testGet(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetPipelineJob(fx.Context(), &GetPipelineJobRequest{
 			Name: "projects/-/locations/-/pipelineJobs/-",
@@ -314,11 +283,9 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testGet(t *testing.T) {
 }
 
 func (fx *PipelineServicePipelineJobTestSuiteConfig) testList(t *testing.T) {
-	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().ListPipelineJobs(fx.Context(), &ListPipelineJobsRequest{
 			Parent: "invalid resource name",
@@ -328,7 +295,6 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testList(t *testing.T) {
 
 	// Method should fail with InvalidArgument is provided page token is not valid.
 	t.Run("invalid page token", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		_, err := fx.Service().ListPipelineJobs(fx.Context(), &ListPipelineJobsRequest{
@@ -340,7 +306,6 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testList(t *testing.T) {
 
 	// Method should fail with InvalidArgument is provided page size is negative.
 	t.Run("negative page size", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		_, err := fx.Service().ListPipelineJobs(fx.Context(), &ListPipelineJobsRequest{
@@ -361,7 +326,6 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testList(t *testing.T) {
 		// If parent is provided the method must only return resources
 		// under that parent.
 		t.Run("isolation", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListPipelineJobs(fx.Context(), &ListPipelineJobsRequest{
 				Parent:   parent,
@@ -381,7 +345,6 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testList(t *testing.T) {
 
 		// If there are no more resources, next_page_token should not be set.
 		t.Run("last page", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListPipelineJobs(fx.Context(), &ListPipelineJobsRequest{
 				Parent:   parent,
@@ -393,7 +356,6 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testList(t *testing.T) {
 
 		// If there are more resources, next_page_token should be set.
 		t.Run("more pages", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListPipelineJobs(fx.Context(), &ListPipelineJobsRequest{
 				Parent:   parent,
@@ -405,7 +367,6 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testList(t *testing.T) {
 
 		// Listing resource one by one should eventually return all resources.
 		t.Run("one by one", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			msgs := make([]*PipelineJob, 0, resourcesCount)
 			var nextPageToken string
@@ -436,7 +397,6 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testList(t *testing.T) {
 
 		// When listing resource with page size zero the service should use a default value.
 		t.Run("page size zero", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListPipelineJobs(fx.Context(), &ListPipelineJobsRequest{
 				Parent:   parent,
@@ -458,7 +418,6 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testList(t *testing.T) {
 
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			const deleteCount = 5
 			for i := 0; i < deleteCount; i++ {
@@ -487,11 +446,9 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testList(t *testing.T) {
 }
 
 func (fx *PipelineServicePipelineJobTestSuiteConfig) testDelete(t *testing.T) {
-	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeletePipelineJob(fx.Context(), &DeletePipelineJobRequest{
 			Name: "",
@@ -501,7 +458,6 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeletePipelineJob(fx.Context(), &DeletePipelineJobRequest{
 			Name: "invalid resource name",
@@ -511,7 +467,6 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Resource should be deleted without errors if it exists.
 	t.Run("exists", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -523,7 +478,6 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -535,7 +489,6 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Method should fail with NotFound if the resource was already deleted. This also applies to soft-deletion.
 	t.Run("already deleted", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -552,7 +505,6 @@ func (fx *PipelineServicePipelineJobTestSuiteConfig) testDelete(t *testing.T) {
 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeletePipelineJob(fx.Context(), &DeletePipelineJobRequest{
 			Name: "projects/-/locations/-/pipelineJobs/-",
@@ -622,34 +574,17 @@ type PipelineServiceTrainingPipelineTestSuiteConfig struct {
 	Skip []string
 }
 
-// clone creates an isolated copy of the fixture for parallel test execution.
-// This prevents race conditions on the currParent.
-func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) clone() *PipelineServiceTrainingPipelineTestSuiteConfig {
-	clone := *fx
-	return &clone
-}
-
 func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) test(t *testing.T) {
-	t.Run("Create", func(t *testing.T) {
-		fx.clone().testCreate(t)
-	})
-	t.Run("Get", func(t *testing.T) {
-		fx.clone().testGet(t)
-	})
-	t.Run("List", func(t *testing.T) {
-		fx.clone().testList(t)
-	})
-	t.Run("Delete", func(t *testing.T) {
-		fx.clone().testDelete(t)
-	})
+	t.Run("Create", fx.testCreate)
+	t.Run("Get", fx.testGet)
+	t.Run("List", fx.testList)
+	t.Run("Delete", fx.testDelete)
 }
 
 func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.T) {
-	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no parent is provided.
 	t.Run("missing parent", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
 			Parent:           "",
@@ -660,7 +595,6 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
 			Parent:           "invalid resource name",
@@ -671,7 +605,6 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 
 	// Field create_time should be populated when the resource is created.
 	t.Run("create time", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		beforeCreate := time.Now()
@@ -687,7 +620,6 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 
 	// The created resource should be persisted and reachable with Get.
 	t.Run("persisted", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		msg, err := fx.Service().CreateTrainingPipeline(fx.Context(), &CreateTrainingPipelineRequest{
@@ -705,10 +637,8 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 	// The method should fail with InvalidArgument if the resource has any
 	// required fields and they are not provided.
 	t.Run("required fields", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		t.Run(".display_name", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -725,7 +655,6 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
 		t.Run(".input_data_config.filter_split.training_filter", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -742,7 +671,6 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
 		t.Run(".input_data_config.filter_split.validation_filter", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -759,7 +687,6 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
 		t.Run(".input_data_config.filter_split.test_filter", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -776,7 +703,6 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
 		t.Run(".input_data_config.predefined_split.key", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -793,7 +719,6 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
 		t.Run(".input_data_config.timestamp_split.key", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -810,7 +735,6 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
 		t.Run(".input_data_config.stratified_split.key", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -827,7 +751,6 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
 		t.Run(".input_data_config.gcs_destination.output_uri_prefix", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -844,7 +767,6 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
 		t.Run(".input_data_config.bigquery_destination.output_uri", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -861,7 +783,6 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
 		t.Run(".input_data_config.dataset_id", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -878,7 +799,6 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
 		t.Run(".training_task_definition", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -895,7 +815,6 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
 		t.Run(".training_task_inputs", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -912,7 +831,6 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
 		t.Run(".model_to_upload.display_name", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -929,7 +847,6 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
 		t.Run(".model_to_upload.container_spec.image_uri", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -946,7 +863,6 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
 		t.Run(".model_to_upload.explanation_spec.parameters", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -963,7 +879,6 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
 		t.Run(".model_to_upload.explanation_spec.parameters.sampled_shapley_attribution.path_count", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -980,7 +895,6 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
 		t.Run(".model_to_upload.explanation_spec.parameters.integrated_gradients_attribution.step_count", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -997,7 +911,6 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
 		t.Run(".model_to_upload.explanation_spec.parameters.xrai_attribution.step_count", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -1014,7 +927,6 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
 		t.Run(".model_to_upload.explanation_spec.parameters.examples.example_gcs_source.gcs_source.uris", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -1031,7 +943,6 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
 		t.Run(".model_to_upload.explanation_spec.metadata.inputs", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -1048,7 +959,6 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
 		t.Run(".model_to_upload.explanation_spec.metadata.outputs", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -1065,7 +975,6 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 			assert.Equal(t, codes.InvalidArgument, status.Code(err), err)
 		})
 		t.Run(".model_to_upload.encryption_spec.kms_key_name", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -1086,10 +995,8 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 	// The method should fail with InvalidArgument if the resource has any
 	// resource references and they are invalid.
 	t.Run("resource references", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		t.Run(".model_to_upload.pipeline_job", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			parent := fx.nextParent(t, false)
 			msg := fx.Create(parent)
@@ -1109,11 +1016,9 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testCreate(t *testing.
 }
 
 func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testGet(t *testing.T) {
-	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetTrainingPipeline(fx.Context(), &GetTrainingPipelineRequest{
 			Name: "",
@@ -1123,7 +1028,6 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testGet(t *testing.T) 
 
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetTrainingPipeline(fx.Context(), &GetTrainingPipelineRequest{
 			Name: "invalid resource name",
@@ -1133,7 +1037,6 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testGet(t *testing.T) 
 
 	// Resource should be returned without errors if it exists.
 	t.Run("exists", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1146,7 +1049,6 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testGet(t *testing.T) 
 
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1158,7 +1060,6 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testGet(t *testing.T) 
 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().GetTrainingPipeline(fx.Context(), &GetTrainingPipelineRequest{
 			Name: "projects/-/locations/-/trainingPipelines/-",
@@ -1169,11 +1070,9 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testGet(t *testing.T) 
 }
 
 func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testList(t *testing.T) {
-	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if provided parent is invalid.
 	t.Run("invalid parent", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().ListTrainingPipelines(fx.Context(), &ListTrainingPipelinesRequest{
 			Parent: "invalid resource name",
@@ -1183,7 +1082,6 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testList(t *testing.T)
 
 	// Method should fail with InvalidArgument is provided page token is not valid.
 	t.Run("invalid page token", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		_, err := fx.Service().ListTrainingPipelines(fx.Context(), &ListTrainingPipelinesRequest{
@@ -1195,7 +1093,6 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testList(t *testing.T)
 
 	// Method should fail with InvalidArgument is provided page size is negative.
 	t.Run("negative page size", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		_, err := fx.Service().ListTrainingPipelines(fx.Context(), &ListTrainingPipelinesRequest{
@@ -1216,7 +1113,6 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testList(t *testing.T)
 		// If parent is provided the method must only return resources
 		// under that parent.
 		t.Run("isolation", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListTrainingPipelines(fx.Context(), &ListTrainingPipelinesRequest{
 				Parent:   parent,
@@ -1236,7 +1132,6 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testList(t *testing.T)
 
 		// If there are no more resources, next_page_token should not be set.
 		t.Run("last page", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListTrainingPipelines(fx.Context(), &ListTrainingPipelinesRequest{
 				Parent:   parent,
@@ -1248,7 +1143,6 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testList(t *testing.T)
 
 		// If there are more resources, next_page_token should be set.
 		t.Run("more pages", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListTrainingPipelines(fx.Context(), &ListTrainingPipelinesRequest{
 				Parent:   parent,
@@ -1260,7 +1154,6 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testList(t *testing.T)
 
 		// Listing resource one by one should eventually return all resources.
 		t.Run("one by one", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			msgs := make([]*TrainingPipeline, 0, resourcesCount)
 			var nextPageToken string
@@ -1291,7 +1184,6 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testList(t *testing.T)
 
 		// When listing resource with page size zero the service should use a default value.
 		t.Run("page size zero", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			response, err := fx.Service().ListTrainingPipelines(fx.Context(), &ListTrainingPipelinesRequest{
 				Parent:   parent,
@@ -1313,7 +1205,6 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testList(t *testing.T)
 
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
-			t.Parallel()
 			fx.maybeSkip(t)
 			const deleteCount = 5
 			for i := 0; i < deleteCount; i++ {
@@ -1342,11 +1233,9 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testList(t *testing.T)
 }
 
 func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testDelete(t *testing.T) {
-	t.Parallel()
 	fx.maybeSkip(t)
 	// Method should fail with InvalidArgument if no name is provided.
 	t.Run("missing name", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteTrainingPipeline(fx.Context(), &DeleteTrainingPipelineRequest{
 			Name: "",
@@ -1356,7 +1245,6 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testDelete(t *testing.
 
 	// Method should fail with InvalidArgument if the provided name is not valid.
 	t.Run("invalid name", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteTrainingPipeline(fx.Context(), &DeleteTrainingPipelineRequest{
 			Name: "invalid resource name",
@@ -1366,7 +1254,6 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testDelete(t *testing.
 
 	// Resource should be deleted without errors if it exists.
 	t.Run("exists", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1378,7 +1265,6 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testDelete(t *testing.
 
 	// Method should fail with NotFound if the resource does not exist.
 	t.Run("not found", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1390,7 +1276,6 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testDelete(t *testing.
 
 	// Method should fail with NotFound if the resource was already deleted. This also applies to soft-deletion.
 	t.Run("already deleted", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		parent := fx.nextParent(t, false)
 		created := fx.create(t, parent)
@@ -1407,7 +1292,6 @@ func (fx *PipelineServiceTrainingPipelineTestSuiteConfig) testDelete(t *testing.
 
 	// Method should fail with InvalidArgument if the provided name only contains wildcards ('-')
 	t.Run("only wildcards", func(t *testing.T) {
-		t.Parallel()
 		fx.maybeSkip(t)
 		_, err := fx.Service().DeleteTrainingPipeline(fx.Context(), &DeleteTrainingPipelineRequest{
 			Name: "projects/-/locations/-/trainingPipelines/-",
