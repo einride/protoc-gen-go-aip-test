@@ -75,7 +75,14 @@ var resourceReferences = suite.Test{
 					Parent:   "parent",
 					Message:  "msg",
 				}.Generate(f, "_", "err", ":=")
-				f.P(ident.AssertEqual, "(t, ", ident.Codes(codes.InvalidArgument), ", ", ident.StatusCode, "(err), err)")
+				f.P(
+					ident.AssertEqual,
+					"(t, ",
+					ident.Codes(codes.InvalidArgument),
+					", ",
+					ident.StatusCode,
+					"(err), err)",
+				)
 				f.P("})")
 			},
 		)

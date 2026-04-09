@@ -140,7 +140,15 @@ func (r *resourceGenerator) generateTestCases(f *protogen.GeneratedFile) error {
 		if !s.Enabled(scope) {
 			continue
 		}
-		f.P("func (fx *", resourceTestSuiteConfigName(r.service.Desc, r.resource), ") test", s.Name, "(t *", testingT, ") {")
+		f.P(
+			"func (fx *",
+			resourceTestSuiteConfigName(r.service.Desc, r.resource),
+			") test",
+			s.Name,
+			"(t *",
+			testingT,
+			") {",
+		)
 		f.P(ident.FixtureMaybeSkip, "(t)")
 		for _, t := range s.Tests {
 			if !t.Enabled(scope) {
