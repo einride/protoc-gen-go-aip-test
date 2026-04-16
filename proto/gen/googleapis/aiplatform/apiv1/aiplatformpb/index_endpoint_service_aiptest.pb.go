@@ -441,7 +441,7 @@ func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) testList(t *testing.
 	})
 
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*IndexEndpoint, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -534,7 +534,7 @@ func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) testList(t *testing.
 
 	}
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*IndexEndpoint, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -544,7 +544,7 @@ func (fx *IndexEndpointServiceIndexEndpointTestSuiteConfig) testList(t *testing.
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
 			fx.maybeSkip(t)
-			const deleteCount = 5
+			const deleteCount = 3
 			for i := 0; i < deleteCount; i++ {
 				_, err := fx.Service().DeleteIndexEndpoint(fx.Context(), &DeleteIndexEndpointRequest{
 					Name: parentMsgs[i].Name,

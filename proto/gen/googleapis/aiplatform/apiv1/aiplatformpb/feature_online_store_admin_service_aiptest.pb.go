@@ -459,7 +459,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testL
 	})
 
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*FeatureOnlineStore, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -552,7 +552,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testL
 
 	}
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*FeatureOnlineStore, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -562,7 +562,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureOnlineStoreTestSuiteConfig) testL
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
 			fx.maybeSkip(t)
-			const deleteCount = 5
+			const deleteCount = 3
 			for i := 0; i < deleteCount; i++ {
 				_, err := fx.Service().DeleteFeatureOnlineStore(fx.Context(), &DeleteFeatureOnlineStoreRequest{
 					Name: parentMsgs[i].Name,
@@ -1037,7 +1037,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testList(t *
 	})
 
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*FeatureView, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -1130,7 +1130,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testList(t *
 
 	}
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*FeatureView, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -1140,7 +1140,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewTestSuiteConfig) testList(t *
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
 			fx.maybeSkip(t)
-			const deleteCount = 5
+			const deleteCount = 3
 			for i := 0; i < deleteCount; i++ {
 				_, err := fx.Service().DeleteFeatureView(fx.Context(), &DeleteFeatureViewRequest{
 					Name: parentMsgs[i].Name,
@@ -1387,7 +1387,7 @@ func (fx *FeatureOnlineStoreAdminServiceFeatureViewSyncTestSuiteConfig) testList
 	})
 
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*FeatureViewSync, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {

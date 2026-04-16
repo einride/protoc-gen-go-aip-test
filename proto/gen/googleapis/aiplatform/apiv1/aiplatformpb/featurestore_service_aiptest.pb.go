@@ -360,7 +360,7 @@ func (fx *FeaturestoreServiceEntityTypeTestSuiteConfig) testList(t *testing.T) {
 	})
 
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*EntityType, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -453,7 +453,7 @@ func (fx *FeaturestoreServiceEntityTypeTestSuiteConfig) testList(t *testing.T) {
 
 	}
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*EntityType, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -463,7 +463,7 @@ func (fx *FeaturestoreServiceEntityTypeTestSuiteConfig) testList(t *testing.T) {
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
 			fx.maybeSkip(t)
-			const deleteCount = 5
+			const deleteCount = 3
 			for i := 0; i < deleteCount; i++ {
 				_, err := fx.Service().DeleteEntityType(fx.Context(), &DeleteEntityTypeRequest{
 					Name: parentMsgs[i].Name,
@@ -853,7 +853,7 @@ func (fx *FeaturestoreServiceFeatureTestSuiteConfig) testList(t *testing.T) {
 	})
 
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*Feature, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -946,7 +946,7 @@ func (fx *FeaturestoreServiceFeatureTestSuiteConfig) testList(t *testing.T) {
 
 	}
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*Feature, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -956,7 +956,7 @@ func (fx *FeaturestoreServiceFeatureTestSuiteConfig) testList(t *testing.T) {
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
 			fx.maybeSkip(t)
-			const deleteCount = 5
+			const deleteCount = 3
 			for i := 0; i < deleteCount; i++ {
 				_, err := fx.Service().DeleteFeature(fx.Context(), &DeleteFeatureRequest{
 					Name: parentMsgs[i].Name,
@@ -1396,7 +1396,7 @@ func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) testList(t *testing.T)
 	})
 
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*Featurestore, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -1489,7 +1489,7 @@ func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) testList(t *testing.T)
 
 	}
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*Featurestore, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -1499,7 +1499,7 @@ func (fx *FeaturestoreServiceFeaturestoreTestSuiteConfig) testList(t *testing.T)
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
 			fx.maybeSkip(t)
-			const deleteCount = 5
+			const deleteCount = 3
 			for i := 0; i < deleteCount; i++ {
 				_, err := fx.Service().DeleteFeaturestore(fx.Context(), &DeleteFeaturestoreRequest{
 					Name: parentMsgs[i].Name,

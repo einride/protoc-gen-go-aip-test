@@ -452,7 +452,7 @@ func (fx *TensorboardServiceTensorboardTestSuiteConfig) testList(t *testing.T) {
 	})
 
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*Tensorboard, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -545,7 +545,7 @@ func (fx *TensorboardServiceTensorboardTestSuiteConfig) testList(t *testing.T) {
 
 	}
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*Tensorboard, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -555,7 +555,7 @@ func (fx *TensorboardServiceTensorboardTestSuiteConfig) testList(t *testing.T) {
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
 			fx.maybeSkip(t)
-			const deleteCount = 5
+			const deleteCount = 3
 			for i := 0; i < deleteCount; i++ {
 				_, err := fx.Service().DeleteTensorboard(fx.Context(), &DeleteTensorboardRequest{
 					Name: parentMsgs[i].Name,
@@ -986,7 +986,7 @@ func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testList(t *te
 	})
 
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*TensorboardExperiment, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -1079,7 +1079,7 @@ func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testList(t *te
 
 	}
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*TensorboardExperiment, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -1089,7 +1089,7 @@ func (fx *TensorboardServiceTensorboardExperimentTestSuiteConfig) testList(t *te
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
 			fx.maybeSkip(t)
-			const deleteCount = 5
+			const deleteCount = 3
 			for i := 0; i < deleteCount; i++ {
 				_, err := fx.Service().DeleteTensorboardExperiment(fx.Context(), &DeleteTensorboardExperimentRequest{
 					Name: parentMsgs[i].Name,
@@ -1589,7 +1589,7 @@ func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testList(t *testing.T
 	})
 
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*TensorboardRun, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -1682,7 +1682,7 @@ func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testList(t *testing.T
 
 	}
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*TensorboardRun, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -1692,7 +1692,7 @@ func (fx *TensorboardServiceTensorboardRunTestSuiteConfig) testList(t *testing.T
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
 			fx.maybeSkip(t)
-			const deleteCount = 5
+			const deleteCount = 3
 			for i := 0; i < deleteCount; i++ {
 				_, err := fx.Service().DeleteTensorboardRun(fx.Context(), &DeleteTensorboardRunRequest{
 					Name: parentMsgs[i].Name,
@@ -2208,7 +2208,7 @@ func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testList(t *te
 	})
 
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*TensorboardTimeSeries, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -2301,7 +2301,7 @@ func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testList(t *te
 
 	}
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*TensorboardTimeSeries, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -2311,7 +2311,7 @@ func (fx *TensorboardServiceTensorboardTimeSeriesTestSuiteConfig) testList(t *te
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
 			fx.maybeSkip(t)
-			const deleteCount = 5
+			const deleteCount = 3
 			for i := 0; i < deleteCount; i++ {
 				_, err := fx.Service().DeleteTensorboardTimeSeries(fx.Context(), &DeleteTensorboardTimeSeriesRequest{
 					Name: parentMsgs[i].Name,

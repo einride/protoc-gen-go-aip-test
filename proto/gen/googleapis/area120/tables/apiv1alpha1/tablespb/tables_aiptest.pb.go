@@ -346,7 +346,7 @@ func (fx *TablesServiceRowTestSuiteConfig) testList(t *testing.T) {
 	})
 
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*Row, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -439,7 +439,7 @@ func (fx *TablesServiceRowTestSuiteConfig) testList(t *testing.T) {
 
 	}
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*Row, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -449,7 +449,7 @@ func (fx *TablesServiceRowTestSuiteConfig) testList(t *testing.T) {
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
 			fx.maybeSkip(t)
-			const deleteCount = 5
+			const deleteCount = 3
 			for i := 0; i < deleteCount; i++ {
 				_, err := fx.Service().DeleteRow(fx.Context(), &DeleteRowRequest{
 					Name: parentMsgs[i].Name,

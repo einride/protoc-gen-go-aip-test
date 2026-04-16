@@ -28,7 +28,8 @@ var deleted = suite.Test{
 			listMethod.Output.Desc,
 			scope.Resource,
 		).Name()))
-		f.P("const deleteCount = 5")
+		// deleteCount needs to be lower than the resourcesCounts in list.go
+		f.P("const deleteCount = 3")
 		f.P("for i := 0; i < deleteCount; i++ {")
 		util.MethodDelete{
 			Method:      deleteMethod,

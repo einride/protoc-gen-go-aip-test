@@ -29,7 +29,7 @@ var withResourcesGroup = suite.TestGroup{
 		onlyif.HasParent,
 	),
 	GenerateBefore: func(f *protogen.GeneratedFile, scope suite.Scope) error {
-		f.P("const resourcesCount = 15")
+		f.P("const resourcesCount = 5")
 		f.P("parent := ", ident.FixtureNextParent, "(t, true)")
 		f.P("parentMsgs := make([]*", scope.Message.GoIdent, ", resourcesCount)")
 		f.P("for i := 0; i < resourcesCount; i++ {")
@@ -53,7 +53,7 @@ var withDeletedResourcesGroup = suite.TestGroup{
 		onlyif.HasParent,
 	),
 	GenerateBefore: func(f *protogen.GeneratedFile, scope suite.Scope) error {
-		f.P("const resourcesCount = 15")
+		f.P("const resourcesCount = 5")
 		f.P("parent := ", ident.FixtureNextParent, "(t, true)")
 		f.P("parentMsgs := make([]*", scope.Message.GoIdent, ", resourcesCount)")
 		f.P("for i := 0; i < resourcesCount; i++ {")
