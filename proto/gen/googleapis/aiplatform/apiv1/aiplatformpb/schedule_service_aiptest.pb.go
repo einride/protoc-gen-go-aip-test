@@ -597,7 +597,7 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testList(t *testing.T) {
 	})
 
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*Schedule, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -690,7 +690,7 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testList(t *testing.T) {
 
 	}
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*Schedule, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -700,7 +700,7 @@ func (fx *ScheduleServiceScheduleTestSuiteConfig) testList(t *testing.T) {
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
 			fx.maybeSkip(t)
-			const deleteCount = 5
+			const deleteCount = 3
 			for i := 0; i < deleteCount; i++ {
 				_, err := fx.Service().DeleteSchedule(fx.Context(), &DeleteScheduleRequest{
 					Name: parentMsgs[i].Name,

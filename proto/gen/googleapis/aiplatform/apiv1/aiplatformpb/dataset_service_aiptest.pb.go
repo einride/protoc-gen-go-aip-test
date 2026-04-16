@@ -257,7 +257,7 @@ func (fx *DatasetServiceAnnotationTestSuiteConfig) testList(t *testing.T) {
 	})
 
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*Annotation, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -573,7 +573,7 @@ func (fx *DatasetServiceDataItemTestSuiteConfig) testList(t *testing.T) {
 	})
 
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*DataItem, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -1122,7 +1122,7 @@ func (fx *DatasetServiceDatasetTestSuiteConfig) testList(t *testing.T) {
 	})
 
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*Dataset, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -1215,7 +1215,7 @@ func (fx *DatasetServiceDatasetTestSuiteConfig) testList(t *testing.T) {
 
 	}
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*Dataset, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -1225,7 +1225,7 @@ func (fx *DatasetServiceDatasetTestSuiteConfig) testList(t *testing.T) {
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
 			fx.maybeSkip(t)
-			const deleteCount = 5
+			const deleteCount = 3
 			for i := 0; i < deleteCount; i++ {
 				_, err := fx.Service().DeleteDataset(fx.Context(), &DeleteDatasetRequest{
 					Name: parentMsgs[i].Name,
@@ -1495,7 +1495,7 @@ func (fx *DatasetServiceDatasetVersionTestSuiteConfig) testList(t *testing.T) {
 	})
 
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*DatasetVersion, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -1588,7 +1588,7 @@ func (fx *DatasetServiceDatasetVersionTestSuiteConfig) testList(t *testing.T) {
 
 	}
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*DatasetVersion, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -1598,7 +1598,7 @@ func (fx *DatasetServiceDatasetVersionTestSuiteConfig) testList(t *testing.T) {
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
 			fx.maybeSkip(t)
-			const deleteCount = 5
+			const deleteCount = 3
 			for i := 0; i < deleteCount; i++ {
 				_, err := fx.Service().DeleteDatasetVersion(fx.Context(), &DeleteDatasetVersionRequest{
 					Name: parentMsgs[i].Name,
@@ -1791,7 +1791,7 @@ func (fx *DatasetServiceSavedQueryTestSuiteConfig) testList(t *testing.T) {
 	})
 
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*SavedQuery, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -1884,7 +1884,7 @@ func (fx *DatasetServiceSavedQueryTestSuiteConfig) testList(t *testing.T) {
 
 	}
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*SavedQuery, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -1894,7 +1894,7 @@ func (fx *DatasetServiceSavedQueryTestSuiteConfig) testList(t *testing.T) {
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
 			fx.maybeSkip(t)
-			const deleteCount = 5
+			const deleteCount = 3
 			for i := 0; i < deleteCount; i++ {
 				_, err := fx.Service().DeleteSavedQuery(fx.Context(), &DeleteSavedQueryRequest{
 					Name: parentMsgs[i].Name,

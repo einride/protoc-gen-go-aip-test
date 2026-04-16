@@ -154,6 +154,19 @@ Sample skips:
 - `"Get/invalid_name"` skips the "invalid name" test for Get standard method.
 - `"Get"` skips all tests for a Get standard method.
 
+### Parallel tests
+
+The `*testing.T` passed to each config provider method is the subtest's
+`*testing.T`. To run resource tests in parallel, call `t.Parallel()` at the top
+of each provider method:
+
+```go
+func (a *myTests) FreightServiceShipper(t *testing.T) *examplefreightv1.FreightServiceShipperTestSuiteConfig {
+    t.Parallel()
+    // ...
+}
+```
+
 ## Suites
 
 <!-- BEGIN suites -->

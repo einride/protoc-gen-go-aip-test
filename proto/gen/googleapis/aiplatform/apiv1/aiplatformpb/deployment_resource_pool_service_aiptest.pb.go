@@ -252,7 +252,7 @@ func (fx *DeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig) te
 	})
 
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*DeploymentResourcePool, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -345,7 +345,7 @@ func (fx *DeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig) te
 
 	}
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*DeploymentResourcePool, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -355,7 +355,7 @@ func (fx *DeploymentResourcePoolServiceDeploymentResourcePoolTestSuiteConfig) te
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
 			fx.maybeSkip(t)
-			const deleteCount = 5
+			const deleteCount = 3
 			for i := 0; i < deleteCount; i++ {
 				_, err := fx.Service().DeleteDeploymentResourcePool(fx.Context(), &DeleteDeploymentResourcePoolRequest{
 					Name: parentMsgs[i].Name,

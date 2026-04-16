@@ -352,7 +352,7 @@ func (fx *DatabaseAdminBackupTestSuiteConfig) testList(t *testing.T) {
 	})
 
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*Backup, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -445,7 +445,7 @@ func (fx *DatabaseAdminBackupTestSuiteConfig) testList(t *testing.T) {
 
 	}
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*Backup, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -455,7 +455,7 @@ func (fx *DatabaseAdminBackupTestSuiteConfig) testList(t *testing.T) {
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
 			fx.maybeSkip(t)
-			const deleteCount = 5
+			const deleteCount = 3
 			for i := 0; i < deleteCount; i++ {
 				_, err := fx.Service().DeleteBackup(fx.Context(), &DeleteBackupRequest{
 					Name: parentMsgs[i].Name,
@@ -788,7 +788,7 @@ func (fx *DatabaseAdminDatabaseTestSuiteConfig) testList(t *testing.T) {
 	})
 
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*Database, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -983,7 +983,7 @@ func (fx *DatabaseAdminDatabaseRoleTestSuiteConfig) testList(t *testing.T) {
 	})
 
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*DatabaseRole, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {

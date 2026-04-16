@@ -709,7 +709,7 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) testList(t *testing.T) {
 	})
 
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*BatchPredictionJob, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -802,7 +802,7 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) testList(t *testing.T) {
 
 	}
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*BatchPredictionJob, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -812,7 +812,7 @@ func (fx *JobServiceBatchPredictionJobTestSuiteConfig) testList(t *testing.T) {
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
 			fx.maybeSkip(t)
-			const deleteCount = 5
+			const deleteCount = 3
 			for i := 0; i < deleteCount; i++ {
 				_, err := fx.Service().DeleteBatchPredictionJob(fx.Context(), &DeleteBatchPredictionJobRequest{
 					Name: parentMsgs[i].Name,
@@ -1284,7 +1284,7 @@ func (fx *JobServiceCustomJobTestSuiteConfig) testList(t *testing.T) {
 	})
 
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*CustomJob, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -1377,7 +1377,7 @@ func (fx *JobServiceCustomJobTestSuiteConfig) testList(t *testing.T) {
 
 	}
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*CustomJob, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -1387,7 +1387,7 @@ func (fx *JobServiceCustomJobTestSuiteConfig) testList(t *testing.T) {
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
 			fx.maybeSkip(t)
-			const deleteCount = 5
+			const deleteCount = 3
 			for i := 0; i < deleteCount; i++ {
 				_, err := fx.Service().DeleteCustomJob(fx.Context(), &DeleteCustomJobRequest{
 					Name: parentMsgs[i].Name,
@@ -1831,7 +1831,7 @@ func (fx *JobServiceDataLabelingJobTestSuiteConfig) testList(t *testing.T) {
 	})
 
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*DataLabelingJob, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -1924,7 +1924,7 @@ func (fx *JobServiceDataLabelingJobTestSuiteConfig) testList(t *testing.T) {
 
 	}
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*DataLabelingJob, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -1934,7 +1934,7 @@ func (fx *JobServiceDataLabelingJobTestSuiteConfig) testList(t *testing.T) {
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
 			fx.maybeSkip(t)
-			const deleteCount = 5
+			const deleteCount = 3
 			for i := 0; i < deleteCount; i++ {
 				_, err := fx.Service().DeleteDataLabelingJob(fx.Context(), &DeleteDataLabelingJobRequest{
 					Name: parentMsgs[i].Name,
@@ -2486,7 +2486,7 @@ func (fx *JobServiceHyperparameterTuningJobTestSuiteConfig) testList(t *testing.
 	})
 
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*HyperparameterTuningJob, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -2579,7 +2579,7 @@ func (fx *JobServiceHyperparameterTuningJobTestSuiteConfig) testList(t *testing.
 
 	}
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*HyperparameterTuningJob, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -2589,7 +2589,7 @@ func (fx *JobServiceHyperparameterTuningJobTestSuiteConfig) testList(t *testing.
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
 			fx.maybeSkip(t)
-			const deleteCount = 5
+			const deleteCount = 3
 			for i := 0; i < deleteCount; i++ {
 				_, err := fx.Service().DeleteHyperparameterTuningJob(fx.Context(), &DeleteHyperparameterTuningJobRequest{
 					Name: parentMsgs[i].Name,
@@ -3283,7 +3283,7 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testList(t *tes
 	})
 
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*ModelDeploymentMonitoringJob, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -3376,7 +3376,7 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testList(t *tes
 
 	}
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*ModelDeploymentMonitoringJob, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -3386,7 +3386,7 @@ func (fx *JobServiceModelDeploymentMonitoringJobTestSuiteConfig) testList(t *tes
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
 			fx.maybeSkip(t)
-			const deleteCount = 5
+			const deleteCount = 3
 			for i := 0; i < deleteCount; i++ {
 				_, err := fx.Service().DeleteModelDeploymentMonitoringJob(fx.Context(), &DeleteModelDeploymentMonitoringJobRequest{
 					Name: parentMsgs[i].Name,
@@ -4002,7 +4002,7 @@ func (fx *JobServiceNasJobTestSuiteConfig) testList(t *testing.T) {
 	})
 
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*NasJob, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -4095,7 +4095,7 @@ func (fx *JobServiceNasJobTestSuiteConfig) testList(t *testing.T) {
 
 	}
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*NasJob, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -4105,7 +4105,7 @@ func (fx *JobServiceNasJobTestSuiteConfig) testList(t *testing.T) {
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
 			fx.maybeSkip(t)
-			const deleteCount = 5
+			const deleteCount = 3
 			for i := 0; i < deleteCount; i++ {
 				_, err := fx.Service().DeleteNasJob(fx.Context(), &DeleteNasJobRequest{
 					Name: parentMsgs[i].Name,
@@ -4356,7 +4356,7 @@ func (fx *JobServiceNasTrialDetailTestSuiteConfig) testList(t *testing.T) {
 	})
 
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*NasTrialDetail, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {

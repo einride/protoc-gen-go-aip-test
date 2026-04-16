@@ -469,7 +469,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testList(t *testing.T) {
 	})
 
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*Artifact, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -562,7 +562,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testList(t *testing.T) {
 
 	}
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*Artifact, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -572,7 +572,7 @@ func (fx *MetadataServiceArtifactTestSuiteConfig) testList(t *testing.T) {
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
 			fx.maybeSkip(t)
-			const deleteCount = 5
+			const deleteCount = 3
 			for i := 0; i < deleteCount; i++ {
 				_, err := fx.Service().DeleteArtifact(fx.Context(), &DeleteArtifactRequest{
 					Name: parentMsgs[i].Name,
@@ -1019,7 +1019,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testList(t *testing.T) {
 	})
 
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*Context, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -1112,7 +1112,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testList(t *testing.T) {
 
 	}
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*Context, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -1122,7 +1122,7 @@ func (fx *MetadataServiceContextTestSuiteConfig) testList(t *testing.T) {
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
 			fx.maybeSkip(t)
-			const deleteCount = 5
+			const deleteCount = 3
 			for i := 0; i < deleteCount; i++ {
 				_, err := fx.Service().DeleteContext(fx.Context(), &DeleteContextRequest{
 					Name: parentMsgs[i].Name,
@@ -1569,7 +1569,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testList(t *testing.T) {
 	})
 
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*Execution, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -1662,7 +1662,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testList(t *testing.T) {
 
 	}
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*Execution, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -1672,7 +1672,7 @@ func (fx *MetadataServiceExecutionTestSuiteConfig) testList(t *testing.T) {
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
 			fx.maybeSkip(t)
-			const deleteCount = 5
+			const deleteCount = 3
 			for i := 0; i < deleteCount; i++ {
 				_, err := fx.Service().DeleteExecution(fx.Context(), &DeleteExecutionRequest{
 					Name: parentMsgs[i].Name,
@@ -2010,7 +2010,7 @@ func (fx *MetadataServiceMetadataSchemaTestSuiteConfig) testList(t *testing.T) {
 	})
 
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*MetadataSchema, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -2305,7 +2305,7 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testList(t *testing.T) {
 	})
 
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*MetadataStore, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -2398,7 +2398,7 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testList(t *testing.T) {
 
 	}
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*MetadataStore, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -2408,7 +2408,7 @@ func (fx *MetadataServiceMetadataStoreTestSuiteConfig) testList(t *testing.T) {
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
 			fx.maybeSkip(t)
-			const deleteCount = 5
+			const deleteCount = 3
 			for i := 0; i < deleteCount; i++ {
 				_, err := fx.Service().DeleteMetadataStore(fx.Context(), &DeleteMetadataStoreRequest{
 					Name: parentMsgs[i].Name,

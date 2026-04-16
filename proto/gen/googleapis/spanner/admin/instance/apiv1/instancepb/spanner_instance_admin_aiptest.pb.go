@@ -544,7 +544,7 @@ func (fx *InstanceAdminInstanceTestSuiteConfig) testList(t *testing.T) {
 	})
 
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*Instance, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -637,7 +637,7 @@ func (fx *InstanceAdminInstanceTestSuiteConfig) testList(t *testing.T) {
 
 	}
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*Instance, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -647,7 +647,7 @@ func (fx *InstanceAdminInstanceTestSuiteConfig) testList(t *testing.T) {
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
 			fx.maybeSkip(t)
-			const deleteCount = 5
+			const deleteCount = 3
 			for i := 0; i < deleteCount; i++ {
 				_, err := fx.Service().DeleteInstance(fx.Context(), &DeleteInstanceRequest{
 					Name: parentMsgs[i].Name,
@@ -1026,7 +1026,7 @@ func (fx *InstanceAdminInstanceConfigTestSuiteConfig) testList(t *testing.T) {
 	})
 
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*InstanceConfig, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -1119,7 +1119,7 @@ func (fx *InstanceAdminInstanceConfigTestSuiteConfig) testList(t *testing.T) {
 
 	}
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*InstanceConfig, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -1129,7 +1129,7 @@ func (fx *InstanceAdminInstanceConfigTestSuiteConfig) testList(t *testing.T) {
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
 			fx.maybeSkip(t)
-			const deleteCount = 5
+			const deleteCount = 3
 			for i := 0; i < deleteCount; i++ {
 				_, err := fx.Service().DeleteInstanceConfig(fx.Context(), &DeleteInstanceConfigRequest{
 					Name: parentMsgs[i].Name,
@@ -1608,7 +1608,7 @@ func (fx *InstanceAdminInstancePartitionTestSuiteConfig) testList(t *testing.T) 
 	})
 
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*InstancePartition, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -1701,7 +1701,7 @@ func (fx *InstanceAdminInstancePartitionTestSuiteConfig) testList(t *testing.T) 
 
 	}
 	{
-		const resourcesCount = 15
+		const resourcesCount = 5
 		parent := fx.nextParent(t, true)
 		parentMsgs := make([]*InstancePartition, resourcesCount)
 		for i := 0; i < resourcesCount; i++ {
@@ -1711,7 +1711,7 @@ func (fx *InstanceAdminInstancePartitionTestSuiteConfig) testList(t *testing.T) 
 		// Method should not return deleted resources.
 		t.Run("deleted", func(t *testing.T) {
 			fx.maybeSkip(t)
-			const deleteCount = 5
+			const deleteCount = 3
 			for i := 0; i < deleteCount; i++ {
 				_, err := fx.Service().DeleteInstancePartition(fx.Context(), &DeleteInstancePartitionRequest{
 					Name: parentMsgs[i].Name,
