@@ -19,7 +19,7 @@ var exists = suite.Test{
 	OnlyIf: suite.OnlyIfs(
 		onlyif.HasMethod(aipreflect.MethodTypeGet),
 	),
-	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
+	Generate: func(f *protogen.GeneratedFile, scope suite.Scope, apiMode util.APIMode) error {
 		getMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeGet)
 
 		if util.HasParent(scope.Resource) {
@@ -32,8 +32,8 @@ var exists = suite.Test{
 			Resource: scope.Resource,
 			Method:   getMethod,
 			// appending to the resource name ensures it is valid
-			Name: "created.Name",
-		}.Generate(f, "msg", "err", ":=")
+			Name: util.FieldGet("created", "Name", apiMode),
+		}.Generate(f, "req", "msg", "err", ":=", apiMode)
 		f.P(ident.AssertNilError, "(t, err)")
 		f.P(ident.AssertDeepEqual, "(t, msg, created, ", ident.ProtocmpTransform, "())")
 		return nil

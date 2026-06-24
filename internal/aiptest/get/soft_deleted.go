@@ -20,7 +20,7 @@ var softDeleted = suite.Test{
 		onlyif.HasMethod(aipreflect.MethodTypeDelete),
 		onlyif.HasField("delete_time"),
 	),
-	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
+	Generate: func(f *protogen.GeneratedFile, scope suite.Scope, apiMode util.APIMode) error {
 		getMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeGet)
 		deleteMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeDelete)
 
@@ -34,13 +34,13 @@ var softDeleted = suite.Test{
 			Resource:    scope.Resource,
 			Method:      deleteMethod,
 			ResourceVar: "created",
-		}.Generate(f, "deleted", "err", ":=")
+		}.Generate(f, "delReq", "deleted", "err", ":=", apiMode)
 		f.P(ident.AssertNilError, "(t, err)")
 		util.MethodGet{
 			Resource: scope.Resource,
 			Method:   getMethod,
-			Name:     "created.Name",
-		}.Generate(f, "msg", "err", ":=")
+			Name:     util.FieldGet("created", "Name", apiMode),
+		}.Generate(f, "getReq", "msg", "err", ":=", apiMode)
 		f.P(ident.AssertNilError, "(t, err)")
 		if util.ReturnsEmpty(deleteMethod.Desc) {
 			// skip asserting if the deleted method returns an Empty response.

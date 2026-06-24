@@ -21,7 +21,7 @@ var ordered = suite.Test{
 		onlyif.HasMethod(aipreflect.MethodTypeBatchGet),
 		onlyif.BatchMethodNotAlternative(aipreflect.MethodTypeBatchGet),
 	),
-	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
+	Generate: func(f *protogen.GeneratedFile, scope suite.Scope, apiMode util.APIMode) error {
 		batchGetMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeBatchGet)
 		responseResources := strcase.UpperCamelCase(string(util.FindResourceField(
 			batchGetMethod.Output.Desc,
@@ -37,9 +37,16 @@ var ordered = suite.Test{
 			Method:   batchGetMethod,
 			Parent:   "parent",
 			Names:    []string{"order[0].GetName()", "order[1].GetName()", "order[2].GetName()"},
-		}.Generate(f, "response", "err", ":=")
+		}.Generate(f, "req", "response", "err", ":=", apiMode)
 		f.P(ident.AssertNilError, "(t, err)")
-		f.P(ident.AssertDeepEqual, "(t, order, response.", responseResources, ",", ident.ProtocmpTransform, "())")
+		f.P(
+			ident.AssertDeepEqual,
+			"(t, order, ",
+			util.FieldGet("response", responseResources, apiMode),
+			",",
+			ident.ProtocmpTransform,
+			"())",
+		)
 		f.P("}")
 		return nil
 	},

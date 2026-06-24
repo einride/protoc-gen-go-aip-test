@@ -23,7 +23,7 @@ var updateTime = suite.Test{
 		onlyif.MethodNotLRO(aipreflect.MethodTypeUpdate),
 		onlyif.HasField("update_time"),
 	),
-	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
+	Generate: func(f *protogen.GeneratedFile, scope suite.Scope, apiMode util.APIMode) error {
 		updateMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeUpdate)
 
 		if util.HasParent(scope.Resource) {
@@ -36,9 +36,16 @@ var updateTime = suite.Test{
 			Resource: scope.Resource,
 			Method:   updateMethod,
 			Msg:      "created",
-		}.Generate(f, "updated", "err", ":=")
+		}.Generate(f, "req", "updated", "err", ":=", apiMode)
 		f.P(ident.AssertNilError, "(t, err)")
-		f.P(ident.AssertCheck, "(t, updated.UpdateTime.AsTime().After(created.UpdateTime.AsTime()))")
+		f.P(
+			ident.AssertCheck,
+			"(t, ",
+			util.FieldGet("updated", "UpdateTime", apiMode),
+			".AsTime().After(",
+			util.FieldGet("created", "UpdateTime", apiMode),
+			".AsTime()))",
+		)
 		return nil
 	},
 }

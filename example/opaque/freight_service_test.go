@@ -6,7 +6,7 @@ import (
 	"sync/atomic"
 	"testing"
 
-	examplefreightv1 "github.com/einride/protoc-gen-go-aip-test/proto/gen/einride/example/freight/v1"
+	examplefreightv1 "github.com/einride/protoc-gen-go-aip-test/proto/gen/opaque/einride/example/freight/v1"
 )
 
 func Test_FreightService(t *testing.T) {
@@ -29,10 +29,10 @@ func Test_FreightService(t *testing.T) {
 		// Create should return a resource which is valid to create, i.e.
 		// all required fields set.
 		Create: func() *examplefreightv1.Shipper {
-			return &examplefreightv1.Shipper{
-				DisplayName:    "Example shipper",
-				BillingAccount: "billingAccounts/12345",
-			}
+			var shipper examplefreightv1.Shipper
+			shipper.SetDisplayName("Example shipper")
+			shipper.SetBillingAccount("billingAccounts/12345")
+			return &shipper
 		},
 		// IDGenerator should return a valid and unique ID to use in the Create call.
 		// If non-nil, this function will be called to set the ID on all Create calls.
@@ -44,10 +44,10 @@ func Test_FreightService(t *testing.T) {
 		// Update should return a resource which is valid to update, i.e.
 		// all required fields set.
 		Update: func() *examplefreightv1.Shipper {
-			return &examplefreightv1.Shipper{
-				DisplayName:    "Updated example shipper",
-				BillingAccount: "billingAccounts/54321",
-			}
+			var shipper examplefreightv1.Shipper
+			shipper.SetDisplayName("Updated example shipper")
+			shipper.SetBillingAccount("billingAccounts/54321")
+			return &shipper
 		},
 	})
 }

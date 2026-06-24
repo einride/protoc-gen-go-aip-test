@@ -1,0 +1,16 @@
+version: v1
+
+plugins:
+  - name: go
+    out: gen/openstruct/googleapis
+    opt:
+      - module=cloud.google.com/go
+      - default_api_level=API_OPEN
+
+  - name: go-grpc
+    out: gen/openstruct/googleapis
+    opt: module=cloud.google.com/go
+
+  - name: go-aip-test
+    out: gen/openstruct/googleapis
+    opt: module=cloud.google.com/go

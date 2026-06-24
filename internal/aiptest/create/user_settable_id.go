@@ -26,7 +26,7 @@ var userSettableID = suite.Test{
 		onlyif.MethodNotLRO(aipreflect.MethodTypeCreate),
 		onlyif.HasUserSettableID,
 	),
-	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
+	Generate: func(f *protogen.GeneratedFile, scope suite.Scope, apiMode util.APIMode) error {
 		createMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeCreate)
 		if util.HasParent(scope.Resource) {
 			f.P("parent := ", ident.FixtureNextParent, "(t, false)")
@@ -36,7 +36,7 @@ var userSettableID = suite.Test{
 			Method:         createMethod,
 			Parent:         "parent",
 			UserSettableID: strconv.Quote("usersetid"),
-		}.Generate(f, "msg", "err", ":=")
+		}.Generate(f, "req", "msg", "err", ":=", apiMode)
 		f.P(ident.AssertNilError, "(t, err)")
 		f.P(ident.AssertCheck, "(t, ", ident.StringsHasSuffix, "(msg.GetName(), ", strconv.Quote("usersetid"), "))")
 		return nil
@@ -55,7 +55,7 @@ var invalidUserSettableID = suite.Test{
 		onlyif.MethodNotLRO(aipreflect.MethodTypeCreate),
 		onlyif.HasUserSettableID,
 	),
-	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
+	Generate: func(f *protogen.GeneratedFile, scope suite.Scope, apiMode util.APIMode) error {
 		f.P("for _, tt := range []struct {")
 		f.P("name string")
 		f.P("id string")
@@ -114,7 +114,7 @@ var invalidUserSettableID = suite.Test{
 			Method:         createMethod,
 			Parent:         "parent",
 			UserSettableID: "tt.id",
-		}.Generate(f, "_", "err", ":=")
+		}.Generate(f, "req", "_", "err", ":=", apiMode)
 		f.P(ident.AssertEqual, "(t, ", ident.Codes(codes.InvalidArgument), ", ", ident.StatusCode, "(err), err)")
 		f.P("})")
 		f.P("}")

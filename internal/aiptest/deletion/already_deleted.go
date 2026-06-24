@@ -20,7 +20,7 @@ var alreadyDeleted = suite.Test{
 	OnlyIf: suite.OnlyIfs(
 		onlyif.HasMethod(aipreflect.MethodTypeDelete),
 	),
-	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
+	Generate: func(f *protogen.GeneratedFile, scope suite.Scope, apiMode util.APIMode) error {
 		deleteMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeDelete)
 		if util.HasParent(scope.Resource) {
 			f.P("parent := ", ident.FixtureNextParent, "(t, false)")
@@ -32,7 +32,7 @@ var alreadyDeleted = suite.Test{
 			Resource:    scope.Resource,
 			Method:      deleteMethod,
 			ResourceVar: "created",
-		}.Generate(f, "deleted", "err", ":=")
+		}.Generate(f, "req1", "deleted", "err", ":=", apiMode)
 		f.P(ident.AssertNilError, "(t, err)")
 		// prevent no usage error
 		f.P("_ = deleted")
@@ -40,8 +40,8 @@ var alreadyDeleted = suite.Test{
 			Resource:    scope.Resource,
 			Method:      deleteMethod,
 			ResourceVar: "deleted",
-			Name:        "created.Name",
-		}.Generate(f, "_", "err", "=")
+			Name:        util.FieldGet("created", "Name", apiMode),
+		}.Generate(f, "req2", "_", "err", "=", apiMode)
 		f.P(ident.AssertEqual, "(t, ", ident.Codes(codes.NotFound), ",", ident.StatusCode, "(err), err)")
 		return nil
 	},

@@ -20,7 +20,7 @@ var persisted = suite.Test{
 		onlyif.MethodNotLRO(aipreflect.MethodTypeCreate),
 		onlyif.HasMethod(aipreflect.MethodTypeGet),
 	),
-	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
+	Generate: func(f *protogen.GeneratedFile, scope suite.Scope, apiMode util.APIMode) error {
 		createMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeCreate)
 		getMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeGet)
 		if util.HasParent(scope.Resource) {
@@ -30,13 +30,13 @@ var persisted = suite.Test{
 			Resource: scope.Resource,
 			Method:   createMethod,
 			Parent:   "parent",
-		}.Generate(f, "msg", "err", ":=")
+		}.Generate(f, "getReq", "msg", "err", ":=", apiMode)
 		f.P(ident.AssertNilError, "(t, err)")
 		util.MethodGet{
 			Resource: scope.Resource,
 			Method:   getMethod,
-			Name:     "msg.Name",
-		}.Generate(f, "persisted", "err", ":=")
+			Name:     util.FieldGet("msg", "Name", apiMode),
+		}.Generate(f, "createReq", "persisted", "err", ":=", apiMode)
 		f.P(ident.AssertNilError, "(t, err)")
 		f.P(ident.AssertDeepEqual, "(t, msg, persisted, ", ident.ProtocmpTransform, "())")
 		return nil

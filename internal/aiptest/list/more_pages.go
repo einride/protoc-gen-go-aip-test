@@ -20,16 +20,16 @@ var morePages = suite.Test{
 		onlyif.HasMethod(aipreflect.MethodTypeList),
 		onlyif.HasParent,
 	),
-	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
+	Generate: func(f *protogen.GeneratedFile, scope suite.Scope, apiMode util.APIMode) error {
 		listMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeList)
 		util.MethodList{
 			Resource: scope.Resource,
 			Method:   listMethod,
 			Parent:   "parent",
 			PageSize: "resourcesCount-1",
-		}.Generate(f, "response", "err", ":=")
+		}.Generate(f, "req", "response", "err", ":=", apiMode)
 		f.P(ident.AssertNilError, "(t, err)")
-		f.P(ident.AssertCheck, "(t, response.NextPageToken != \"\")")
+		f.P(ident.AssertCheck, "(t, ", util.FieldGet("response", "NextPageToken", apiMode), " != \"\")")
 		return nil
 	},
 }

@@ -22,7 +22,7 @@ var createTime = suite.Test{
 		onlyif.HasField("create_time"),
 	),
 
-	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
+	Generate: func(f *protogen.GeneratedFile, scope suite.Scope, apiMode util.APIMode) error {
 		createMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeCreate)
 		if util.HasParent(scope.Resource) {
 			f.P("parent := ", ident.FixtureNextParent, "(t, false)")
@@ -32,14 +32,20 @@ var createTime = suite.Test{
 			Resource: scope.Resource,
 			Method:   createMethod,
 			Parent:   "parent",
-		}.Generate(f, "msg", "err", ":=")
+		}.Generate(f, "req", "msg", "err", ":=", apiMode)
 		f.P(ident.AssertNilError, "(t, err)")
-		f.P(ident.AssertCheck, "(t, msg.CreateTime != nil)")
-		f.P(ident.AssertCheck, "(t, !msg.CreateTime.AsTime().IsZero())")
+		f.P(ident.AssertCheck, "(t, ", util.FieldGet("msg", "CreateTime", apiMode), " != nil)")
+		f.P(ident.AssertCheck, "(t, !", util.FieldGet("msg", "CreateTime", apiMode), ".AsTime().IsZero())")
 		f.P(
 			ident.AssertCheck,
-			"(t, msg.CreateTime.AsTime().After(beforeCreate), ",
-			"\"msg.CreateTime (%v) is not after beforeCreate (%v)\", msg.CreateTime.AsTime(), beforeCreate)",
+			"(t, ",
+			util.FieldGet("msg", "CreateTime", apiMode),
+			".AsTime().After(beforeCreate), ",
+			"\"",
+			util.FieldGet("msg", "CreateTime", apiMode),
+			" (%v) is not after beforeCreate (%v)\", ",
+			util.FieldGet("msg", "CreateTime", apiMode),
+			".AsTime(), beforeCreate)",
 		)
 		return nil
 	},

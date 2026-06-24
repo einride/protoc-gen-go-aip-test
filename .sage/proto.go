@@ -21,7 +21,13 @@ const (
 
 func (Proto) All(ctx context.Context) error {
 	sg.SerialDeps(ctx, Proto.BufFormat, Proto.BufLint, Proto.APILinterLint)
-	sg.SerialDeps(ctx, Proto.BufGenerate, Proto.BufGenerateGoogleapis)
+	sg.SerialDeps(
+		ctx,
+		Proto.BufGenerateOpenStruct,
+		Proto.BufGenerateOpaque,
+		Proto.BufGenerateGoogleapisOpenStruct,
+		Proto.BufGenerateGoogleapisOpaque,
+	)
 	return nil
 }
 
@@ -61,22 +67,49 @@ func (Proto) ProtocGenGoAIPTest(ctx context.Context) error {
 	return sg.Command(ctx, "go", "build", "-o", sg.FromBinDir("protoc-gen-go-aip-test"), ".").Run()
 }
 
-func (Proto) BufGenerate(ctx context.Context) error {
+func (Proto) BufGenerateOpenStruct(ctx context.Context) error {
 	sg.Deps(ctx, Proto.ProtocGenGo, Proto.ProtocGenGoGRPC, Proto.ProtocGenGoAIPTest)
 	sg.Logger(ctx).Println("generating proto stubs...")
-	cmd := sgbuf.Command(ctx, "generate", "--template", "buf.gen.yaml", "--path", "einride")
+	cmd := sgbuf.Command(ctx, "generate", "--template", "buf.openstruct.gen.yaml", "--path", "einride")
 	cmd.Dir = sg.FromGitRoot("proto")
 	return cmd.Run()
 }
 
-func (Proto) BufGenerateGoogleapis(ctx context.Context) error {
+func (Proto) BufGenerateOpaque(ctx context.Context) error {
+	sg.Deps(ctx, Proto.ProtocGenGo, Proto.ProtocGenGoGRPC, Proto.ProtocGenGoAIPTest)
+	sg.Logger(ctx).Println("generating proto stubs...")
+	cmd := sgbuf.Command(ctx, "generate", "--template", "buf.opaque.gen.yaml", "--path", "einride")
+	cmd.Dir = sg.FromGitRoot("proto")
+	return cmd.Run()
+}
+
+func (Proto) BufGenerateGoogleapisOpenStruct(ctx context.Context) error {
 	sg.Deps(ctx, Proto.ProtocGenGo, Proto.ProtocGenGoGRPC, Proto.ProtocGenGoAIPTest)
 	sg.Logger(ctx).Println("generating example proto stubs...")
 	cmd := sgbuf.Command(
 		ctx,
 		"generate",
 		"https://github.com/googleapis/googleapis.git#depth=1000,ref="+googleapisRef,
-		"--template", "buf.gen.googleapis.yaml",
+		"--template", "buf.openstruct.gen.googleapis.yaml",
+		"--path", "google/area120/tables/v1alpha1",
+		"--path", "google/cloud/aiplatform/v1",
+		"--path", "google/cloud/gsuiteaddons/v1",
+		"--path", "google/cloud/scheduler/v1",
+		"--path", "google/pubsub/v1",
+		"--path", "google/spanner",
+	)
+	cmd.Dir = sg.FromGitRoot("proto")
+	return cmd.Run()
+}
+
+func (Proto) BufGenerateGoogleapisOpaque(ctx context.Context) error {
+	sg.Deps(ctx, Proto.ProtocGenGo, Proto.ProtocGenGoGRPC, Proto.ProtocGenGoAIPTest)
+	sg.Logger(ctx).Println("generating example proto stubs...")
+	cmd := sgbuf.Command(
+		ctx,
+		"generate",
+		"https://github.com/googleapis/googleapis.git#depth=1000,ref="+googleapisRef,
+		"--template", "buf.opaque.gen.googleapis.yaml",
 		"--path", "google/area120/tables/v1alpha1",
 		"--path", "google/cloud/aiplatform/v1",
 		"--path", "google/cloud/gsuiteaddons/v1",

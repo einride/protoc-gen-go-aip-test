@@ -23,14 +23,14 @@ var parentMismatch = suite.Test{
 		onlyif.HasMethod(aipreflect.MethodTypeBatchGet),
 		onlyif.BatchMethodNotAlternative(aipreflect.MethodTypeBatchGet),
 	),
-	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
+	Generate: func(f *protogen.GeneratedFile, scope suite.Scope, apiMode util.APIMode) error {
 		batchGetMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeBatchGet)
 		util.MethodBatchGet{
 			Resource: scope.Resource,
 			Method:   batchGetMethod,
 			Parent:   "fx.peekNextParent(t)",
-			Names:    []string{"created00.Name"},
-		}.Generate(f, "_", "err", ":=")
+			Names:    []string{util.FieldGet("created00", "Name", apiMode)},
+		}.Generate(f, "req", "_", "err", ":=", apiMode)
 		f.P(ident.AssertEqual, "(t, ", ident.Codes(codes.InvalidArgument), ",", ident.StatusCode, "(err), err)")
 		return nil
 	},

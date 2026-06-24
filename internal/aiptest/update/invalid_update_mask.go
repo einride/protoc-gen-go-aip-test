@@ -22,14 +22,14 @@ var invalidUpdateMask = suite.Test{
 		onlyif.HasMethod(aipreflect.MethodTypeUpdate),
 		onlyif.HasUpdateMask,
 	),
-	Generate: func(f *protogen.GeneratedFile, scope suite.Scope) error {
+	Generate: func(f *protogen.GeneratedFile, scope suite.Scope, apiMode util.APIMode) error {
 		updateMethod, _ := util.StandardMethod(scope.Service, scope.Resource, aipreflect.MethodTypeUpdate)
 		util.MethodUpdate{
 			Resource:   scope.Resource,
 			Method:     updateMethod,
 			Msg:        "created",
 			UpdateMask: []string{strconv.Quote("invalid_field_xyz")},
-		}.Generate(f, "_", "err", ":=")
+		}.Generate(f, "req", "_", "err", ":=", apiMode)
 		f.P(ident.AssertEqual, "(t, ", ident.Codes(codes.InvalidArgument), ",", ident.StatusCode, "(err), err)")
 		return nil
 	},
