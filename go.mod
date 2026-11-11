@@ -1,6 +1,6 @@
 module github.com/einride/protoc-gen-go-aip-test
 
-go 1.25.7
+go 1.26.11
 
 require (
 	cloud.google.com/go/iam v1.2.1
