@@ -82,6 +82,10 @@ endif
 go-test: $(sagefile)
 	@$(sagefile) GoTest
 
+.PHONY: go-vuln-check
+go-vuln-check: $(sagefile)
+	@$(sagefile) GoVulnCheck
+
 .PHONY: readme-snippet
 readme-snippet: $(sagefile)
 	@$(sagefile) ReadmeSnippet
