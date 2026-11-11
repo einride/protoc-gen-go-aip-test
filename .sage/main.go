@@ -14,6 +14,7 @@ import (
 	"go.einride.tech/sage/tools/sggolangcilintv2"
 	"go.einride.tech/sage/tools/sggoreleaser"
 	"go.einride.tech/sage/tools/sggosemanticrelease"
+	"go.einride.tech/sage/tools/sggovulncheck"
 	"go.einride.tech/sage/tools/sgmdformat"
 	"go.einride.tech/sage/tools/sgyamlfmt"
 )
@@ -36,10 +37,15 @@ func All(ctx context.Context) error {
 	sg.Deps(ctx, ConvcoCheck, FormatYAML, Proto.All)
 	sg.Deps(ctx, ReadmeSnippet)
 	sg.Deps(ctx, FormatMarkdown)
-	sg.Deps(ctx, GoLint, GoTest)
+	sg.Deps(ctx, GoLint, GoTest, GoVulnCheck)
 	sg.Deps(ctx, GoModTidy)
 	sg.Deps(ctx, GitVerifyNoDiff)
 	return nil
+}
+
+func GoVulnCheck(ctx context.Context) error {
+	sg.Logger(ctx).Println("checking for vulnerabilities...")
+	return sggovulncheck.RunAll(ctx)
 }
 
 func ConvcoCheck(ctx context.Context) error {
